@@ -1,9 +1,4 @@
-// UTILITIES
-function indexRandom(arr) {
-  let max = arr.length - 1;
-  let index = Math.floor(Math.random() * (max + 1));
-  return index;
-}
+import { indexRandom } from "./utils/indexRandom.ts";
 
 // ENCYCLOPEDIA
   // ITEMS
@@ -20,15 +15,11 @@ function indexRandom(arr) {
   ];
 
   //MATERIALS
-  const bone = ["bone", "horn", "ivory"];
-  const metal = ["bronze", "copper", "gold", "iron", "mercury", "pewter", "silver", "steel"];
-  const stone = ["flint", "granite", "obsidian"];
-  const wood = ["ash", "elm", "mahogany", "oak", "willow"];
-  const materials = [bone, metal, stone, wood];
+  
 
   //THIS GAME
   let itemsAvailable = items.slice();
-  let itemsUsed = [];
+  let itemsUsed: string[] = [];
 
 // ITEM CREATION
 function itemCreateNamed(item) {

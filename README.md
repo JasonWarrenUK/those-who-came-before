@@ -1,40 +1,58 @@
-# Those Who Came Before
+# Svelte library
 
-![Ruins under a night sky](/img/banner.png)
+Everything you need to build a Svelte library, powered by [`sv`](https://npmjs.com/package/sv).
 
-## What is TWCB About?
+Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
 
-A narrative game about understanding vanished cultures by interpreting procedurally generated artefacts.
+## Creating a project
 
-### What is TWCB *Really* About?
+If you're seeing this, you've probably already done this step. Congrats!
 
-It's about how we talk about other people, and the self-imposed limits we create through our assumptions.
+```bash
+# create a new project in the current directory
+npx sv create
 
----
+# create a new project in my-app
+npx sv create my-app
+```
 
-## Development
+## Developing
 
-- [Devlog](/docs/DEVLOG.md)
-- [Roadmap](/docs/TASKLIST.md)
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
----
+```bash
+npm run dev
 
-## Inspiration
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-### Themes & Ideas
+Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
 
-- Mali & its amazing history
-- All the knowledge lost when Mayan books were burned
-- The Bronze Age Collapse
-- The Basque language's lost relatives
+## Building
 
-### Games & Media
+To build your library:
 
-- Strange Horticulture
-- Heaven's Vault
+```bash
+npm run package
+```
 
----
+To create a production version of your showcase app:
 
-### Badges
+```bash
+npm run build
+```
 
-![GNU 3.0 License](https://img.shields.io/badge/license-GNU_General_Public_License_3.0-pink)
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Publishing
+
+Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
+
+To publish your library to [npm](https://www.npmjs.com):
+
+```bash
+npm publish
+```
