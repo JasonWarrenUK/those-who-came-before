@@ -31,7 +31,7 @@
     "exclude": []
   },
   "tasks": {
-    "start": "deno run --allow-read main.ts"
+    "start": "vite dev"
   },
   "imports": {
     "oak": "jsr:@oak/oak"
