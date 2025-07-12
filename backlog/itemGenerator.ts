@@ -1,4 +1,4 @@
-import { indexRandom } from "./utils/indexRandom.ts";
+import { indexRandom } from "../utils/indexRandom.ts";
 
 // ENCYCLOPEDIA
   // ITEMS
