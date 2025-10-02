@@ -1,9 +1,15 @@
-const bone = ["bone", "horn", "ivory"];
-const metal = ["bronze", "copper", "gold", "iron", "mercury", "pewter", "silver", "steel"];
-const stone = ["flint", "granite", "obsidian"];
-const wood = ["ash", "elm", "mahogany", "oak", "willow"];
+const bone: string[] = ['bone', 'horn', 'ivory'];
+const metal: string[] = [
+	'bronze',
+	'copper',
+	'gold',
+	'iron',
+	'mercury',
+	'pewter',
+	'silver',
+	'steel'
+];
+const stone: string[] = ['flint', 'granite', 'obsidian'];
+const wood: string[] = ['ash', 'elm', 'mahogany', 'oak', 'willow'];
 
-export const materials = [
-  bone,
-  metal,
-  stone, wood];
+export const materials: string[][] = [bone, metal, stone, wood];
