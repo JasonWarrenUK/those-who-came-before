@@ -1,40 +1,38 @@
-# Those Who Came Before
+# sv
 
-![Ruins under a night sky](/img/banner.png)
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## What is TWCB About?
+## Creating a project
 
-A narrative game about understanding vanished cultures by interpreting procedurally generated artefacts.
+If you're seeing this, you've probably already done this step. Congrats!
 
-### What is TWCB *Really* About?
+```bash
+# create a new project in the current directory
+npx sv create
 
-It's about how we talk about other people, and the self-imposed limits we create through our assumptions.
+# create a new project in my-app
+npx sv create my-app
+```
 
----
+## Developing
 
-## Development
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-- [Devlog](/docs/DEVLOG.md)
-- [Roadmap](/docs/TASKLIST.md)
+```bash
+npm run dev
 
----
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-## Inspiration
+## Building
 
-### Themes & Ideas
+To create a production version of your app:
 
-- Mali & its amazing history
-- All the knowledge lost when Mayan books were burned
-- The Bronze Age Collapse
-- The Basque language's lost relatives
+```bash
+npm run build
+```
 
-### Games & Media
+You can preview the production build with `npm run preview`.
 
-- Strange Horticulture
-- Heaven's Vault
-
----
-
-### Badges
-
-![GNU 3.0 License](https://img.shields.io/badge/license-GNU_General_Public_License_3.0-pink)
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
