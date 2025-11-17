@@ -24,8 +24,12 @@ disable-model-invocation: true
   <Roadmaps>
     <Roadmap i="0" type="hub" active="true" path="docs/dev/roadmap/Those-Who-Came-Before-MVP.md"  />
     <Roadmap i="1" type="route" active="true" path="docs/dev/roadmap/Item-Generation-MVP.md" />
-    <Roadmap i="1" type="route" active="true" path="docs/dev/roadmap/Culture-Generation-MVP.md" />
-    <Roadmap i="1" type="route" active="true" path="docs/dev/roadmap/History-Generation-MVP.md" />
+    <Roadmap i="2" type="route" active="true" path="docs/dev/roadmap/Culture-Generation-MVP.md" />
+    <Roadmap i="3" type="route" active="true" path="docs/dev/roadmap/History-Generation-MVP.md" />
+    <Roadmap i="4" type="route" active="true" path="docs/dev/roadmap/World-State-MVP.md" />
+    <Roadmap i="5" type="route" active="true" path="docs/dev/roadmap/User-Interface-MVP.md" />
+    <Roadmap i="6" type="route" active="true" path="docs/dev/roadmap/Player-Progression-MVP.md" />
+    <Roadmap i="7" type="route" active="true" path="docs/dev/roadmap/Player-Knowledge-State-MVP.md" />
   </Roadmaps>
   <Loops>
     <Loop i="0">
