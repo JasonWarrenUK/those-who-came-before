@@ -1,4 +1,4 @@
-# Those Who Came Before: IdeatioN
+# Those Who Came Before: Ideation
 *Date: 13 January 2026*
 
 ## 0) Executive Summary
@@ -120,3 +120,19 @@
 - [x] Artefacts: text now, later visuals derived from properties  
 - [x] TypeScript + Deno; no Unity/Unreal  
 - [x] Reference touchstones as listed above
+
+### Appendix B: Remember
+
+1.	Iterate on World Generation
+	•	Expand the generation logic to create multiple civilizations, each with different cultural attributes, timelines, and relationships.
+2.	Track Player Knowledge
+	•	Distinguish what the player thinks is true from what is actually true.
+	•	Build a synergy: future generation logic references the player’s assumptions to produce new items or interpret them differently.
+3.	Build an Artifact-Inspection Screen
+	•	Show the item’s shape, motifs, etc., and let the player record hypotheses or attach notes.
+4.	Incorporate a Save System
+	•	Because you’re using Deno, saving game data can be as simple as writing JSON to a file.
+	•	If you go browser-based, you might store it in localStorage or IndexedDB.
+5.	Polish or Replace the UI
+	•	If you want a richly styled interface, consider hooking up something like Tailwind, or going with a more game-centric UI framework.
+	•	If 2D or more robust rendering is needed, libraries like pixi.js￼ or Phaser￼ (though these are not Deno-first, you can still import them via npm: specifiers with Deno) could be integrated.
