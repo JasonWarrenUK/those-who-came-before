@@ -1,9 +1,9 @@
 # Those Who Came Before
 
-**An interactive archaeological artifact discovery game built with SvelteKit**
+**An archaeological interpretation game where your mistakes build the world**
 
 > [!NOTE]
-> Under Construction - Core game loop is complete, but advanced features are in development.
+> Phase 1 complete. Engine foundation in place — type system, seeded PRNG, module skeleton. See [Implementation Status](#implementation-status) for details.
 
 ---
 
@@ -13,88 +13,94 @@
 
 ## About
 
-**Those Who Came Before** is a browser-based game where players discover archaeological artifacts by randomly generating combinations of item types and materials. Track your discoveries in a timeline view and complete task-based missions as you uncover the treasures of ancient civilizations.
+You play an early-career academic archaeologist. You excavate artefacts, observe their properties, form hypotheses about the cultures that made them, and publish your findings. The catch: your existing beliefs filter how you perceive new evidence. A wrong interpretation doesn't fail — it compounds, shaping what you notice, what you miss, and what you confidently publish to the academic world.
 
-### Features
+The game's systems are designed around six pillars:
 
-- **Random Artifact Generation**: Discover unique combinations of item types (axes, brooches, daggers, etc.) with various materials
-- **Discovery Timeline**: Visual timeline tracking all artifacts you've uncovered
-- **Task System**: Mission-based progression with achievement tracking
-- **Persistent State**: Game state management using Svelte 5 Runes
-- **Modern UI**: Built with DaisyUI components and Tailwind CSS
+- **Error Is the Engine** — Mistakes are generative, not punitive. You can build an elaborate, internally consistent, and completely false academic edifice — and that's a valid way to play.
+- **Diegesis First** — No out-of-character tooltips or system messages. Contradictions surface as peer letters, student questions, or impossible artefacts.
+- **Simulation Honesty** — Every artefact derives from the same underlying world state. What you see is filtered by your beliefs, but the data is real.
+- **Accumulation Over Revelation** — Knowledge builds incrementally through observations, inferences, and hypotheses. There are no eureka moments handed to you.
+- **The Player Is an Unreliable Narrator** — Your publications have consequences. Commit to a wrong interpretation and the academic community will hold you to it.
+- **Clarity of State Over Spectacle** — Legibility over polish. You should always understand what your character knows and believes.
 
 ## Tech Stack
 
 - **Runtime**: Deno
-- **Framework**: Svelte 5.0 (Runes API) + SvelteKit 2.22
-- **Build Tool**: Vite 6.0
-- **Styling**: Tailwind CSS 4.0 + DaisyUI 5.1
-- **Language**: TypeScript 5.0
-- **Deployment**: Node adapter (SSR-capable via Deno's Node compat)
+- **Framework**: Svelte 5 (Runes) + SvelteKit 2
+- **Build**: Vite 6
+- **Styling**: Tailwind CSS 4 + DaisyUI 5
+- **Language**: TypeScript 5
 
 ## Quick Start
 
-### Installation
-
 ```bash
-deno install
+deno install              # Install dependencies
+deno task dev             # Dev server at localhost:5173
+deno task build           # Production build
+deno task preview         # Preview production build
 ```
 
-### Development
-
 ```bash
-deno task dev
+deno task check           # Type checking
+deno task check:watch     # Continuous type checking
+deno task test            # Run tests
+deno task test:watch      # Continuous testing
+deno task lint            # Check formatting + ESLint
+deno task format          # Auto-format with Prettier
 ```
 
-Starts the Vite dev server with hot module replacement at `http://localhost:5173`
+## Implementation Status
 
-### Build
+### Phase 1: Foundation — Complete
 
-```bash
-deno task build
-```
+- Type system: 15 files covering all domain interfaces from the design docs
+- Seeded PRNG: xoshiro128** with determinism guarantee and utility functions
+- Engine skeleton: 38 stub modules across 7 domains with correct type signatures
+- Test infrastructure: Vitest with passing tests for PRNG and world seed
+- Project Explorer at `/dev/explorer` for developer inspection
 
-Creates production-optimized build using Vite and SvelteKit adapter-node.
+### What's Next
 
-### Preview Production Build
+The [implementation roadmap](docs/09-implementation-roadmap.md) defines 24 sequential phases. Key milestones:
 
-```bash
-deno task preview
-```
+| Phase | Milestone | What It Adds |
+|-------|-----------|-------------|
+| 2–7 | Generation pipeline | Component grammar, plausibility, materials, decoration, excavation |
+| 8–9 | World & pipeline integration | Seed-driven world state, full artefact generation |
+| 10–11 | Corpus & descriptions | NPC scholarship baseline, three-register prose |
+| 12 | **First playable** | Artefact inspection UI with register switching |
+| 13–14 | Knowledge system | Observations, inferences, hypotheses, evidence chains |
+| 15–16 | **The lens** | Beliefs filter perception — the core mechanic |
+| 17–18 | Contradictions | Detection, strain, diegetic surfacing, retcon flow |
+| 19 | Persistence | IndexedDB save/load |
+| 20–23 | Career & social | Publication, reputation, NPC peer review, academic progression |
+| 24 | Expansion | Full career track, rich NPCs, desk-based UI |
 
-### Code Quality
-
-```bash
-deno task check          # Type checking
-deno task check:watch    # Continuous type checking
-deno task test           # Run tests
-deno task lint           # Check formatting + ESLint
-deno task format         # Auto-format with Prettier
-```
+Phase 16 is the inflection point — before it, an artefact browser with note-taking; after it, the game.
 
 ## Documentation
 
-- [Getting Started](docs/Getting-Started.md) - Setup and basic usage
-- [Technical Overview](docs/dev/Technical-Overview.md) - Architecture and implementation details
-- [Architecture Decisions](docs/dev/Architecture-Decisions.md) - Design rationale and trade-offs
-- [CLAUDE.md](CLAUDE.md) - AI assistant development guide
+The project has a complete design specification across 13 documents:
 
-## Project Status
+| Doc | Topic |
+|-----|-------|
+| [00](docs/00-project-overview.md) | Project overview and reading order |
+| [01](docs/01-project-audit.md) | Project audit |
+| [02](docs/02-design-pillars.md) | Design pillars |
+| [03](docs/03-core-loops-system-map.md) | Core loop and systems map |
+| [04](docs/04.interpretative-lens.md) | Interpretive lens (core mechanic) |
+| [05](docs/05-generation-architecture.md) | Generation architecture (9-stage pipeline) |
+| [06](docs/06-knowledge-contradiction-model.md) | Knowledge and contradiction model |
+| [07](docs/07-career-social-systems.md) | Career and social systems |
+| [08](docs/08-technical-architecture.md) | Technical architecture |
+| [09](docs/09-implementation-roadmap.md) | Implementation roadmap (24 phases) |
+| [10](docs/10-document-tradition-system.md) | Document tradition system |
+| [11](docs/11-deferred-design-questions.md) | Deferred design questions |
+| [12](docs/12-propagation-register.md) | Cross-document propagation register |
+| [13](docs/13-deferred-post-mvp.md) | Deferred post-MVP design |
 
-This project is **under active development**. The core game loop is functional:
-
-✅ Random artifact generation
-✅ State management with Svelte 5 Runes
-✅ Timeline visualization
-✅ Task/mission tracking
-✅ TypeScript type safety
-
-Planned features:
-- Persistence layer (localStorage/database)
-- More artifact types and materials
-- Enhanced mission system
-- Save/load game state
-- Additional game mechanics
+**Reading order:** Doc 02 (pillars) → Doc 03 (systems) → Doc 04 (core mechanic) for the big picture. Doc 09 (roadmap) → phase-relevant spec → Doc 08 (architecture) for implementation.
 
 ## Contributing
 
@@ -102,4 +108,4 @@ This is a personal project by [Jason Warren](https://github.com/JasonWarrenUK), 
 
 ## License
 
-`© Goblin Uprising` - All rights reserved.
+`© Goblin Uprising` — All rights reserved.
