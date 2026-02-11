@@ -1,0 +1,25 @@
+{
+	"tasks": {
+		"dev": "deno run -A npm:vite dev",
+		"build": "deno run -A npm:vite build",
+		"preview": "deno run -A npm:vite preview",
+		"check": "deno run -A npm:svelte-kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json"
+	},
+	"compilerOptions": {
+		"strict": true,
+		"allowJs": true,
+		"checkJs": true,
+		"lib": ["esnext", "dom", "dom.iterable"]
+	},
+	"nodeModulesDir": "auto",
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 100,
+		"singleQuote": true
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-explicit-any"]
+		}
+	}
+}
