@@ -25,24 +25,25 @@
 
 ## Tech Stack
 
+- **Runtime**: Deno
 - **Framework**: Svelte 5.0 (Runes API) + SvelteKit 2.22
-- **Build Tool**: Vite 7.0
+- **Build Tool**: Vite 6.0
 - **Styling**: Tailwind CSS 4.0 + DaisyUI 5.1
 - **Language**: TypeScript 5.0
-- **Deployment**: Node adapter (SSR-capable)
+- **Deployment**: Node adapter (SSR-capable via Deno's Node compat)
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-npm install
+deno install
 ```
 
 ### Development
 
 ```bash
-npm run dev
+deno task dev
 ```
 
 Starts the Vite dev server with hot module replacement at `http://localhost:5173`
@@ -50,7 +51,7 @@ Starts the Vite dev server with hot module replacement at `http://localhost:5173
 ### Build
 
 ```bash
-npm run build
+deno task build
 ```
 
 Creates production-optimized build using Vite and SvelteKit adapter-node.
@@ -58,16 +59,17 @@ Creates production-optimized build using Vite and SvelteKit adapter-node.
 ### Preview Production Build
 
 ```bash
-npm run preview
+deno task preview
 ```
 
 ### Code Quality
 
 ```bash
-npm run check          # Type checking
-npm run check:watch    # Continuous type checking
-npm run lint           # Check formatting + ESLint
-npm run format         # Auto-format with Prettier
+deno task check          # Type checking
+deno task check:watch    # Continuous type checking
+deno task test           # Run tests
+deno task lint           # Check formatting + ESLint
+deno task format         # Auto-format with Prettier
 ```
 
 ## Documentation

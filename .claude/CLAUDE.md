@@ -6,52 +6,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Those Who Came Before** is an interactive archaeological artifact discovery game built with SvelteKit. The application randomly generates artifact combinations (item types + materials) and tracks discovered items in a timeline view with task-based progression.
 
+## Runtime
+
+This project uses **Deno** exclusively. Do not use `npm`, `npx`, `node`, or any Node-specific tooling. All tasks are defined in `deno.json` and run via `deno task`.
+
 ## Development Commands
 
 ### Setup
 ```bash
-npm install
+deno install
 ```
 
 ### Development Server
 ```bash
-npm run dev
+deno task dev
 ```
 Starts Vite dev server with hot module replacement.
 
 ### Build
 ```bash
-npm run build
+deno task build
 ```
 Creates production-optimized build using Vite + SvelteKit adapter-node.
 
 ### Preview Production Build
 ```bash
-npm run preview
+deno task preview
 ```
 Preview the production build locally before deployment.
 
 ### Type Checking
 ```bash
-npm run check          # One-time type check
-npm run check:watch    # Continuous type checking
+deno task check          # One-time type check
+deno task check:watch    # Continuous type checking
 ```
 Runs `svelte-check` to validate TypeScript types across Svelte components.
 
+### Testing
+```bash
+deno task test           # One-time test run
+deno task test:watch     # Continuous testing
+```
+Runs Vitest against `tests/**/*.test.ts`.
+
 ### Code Quality
 ```bash
-npm run lint           # Check formatting + ESLint
-npm run format         # Auto-format with Prettier
+deno task lint           # Check formatting + ESLint
+deno task format         # Auto-format with Prettier
 ```
 
 ## Architecture
 
 ### Tech Stack
+- **Runtime**: Deno
 - **Framework**: Svelte 5.0 (using Runes) + SvelteKit 2.22
-- **Build Tool**: Vite 7.0
+- **Build Tool**: Vite 6.0
 - **Styling**: Tailwind CSS 4.0 + DaisyUI 5.1
 - **Language**: TypeScript 5.0
-- **Deployment**: Node adapter (SSR-capable)
+- **Deployment**: Node adapter (SSR-capable via Deno's Node compat)
 
 ### State Management
 This project uses **Svelte 5 Runes** for reactivity:
