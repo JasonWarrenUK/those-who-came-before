@@ -36,9 +36,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [Links](#links)
 - [Beyond MVP](#post-mvp)
 
----
-
-<a name="m1"><h3>Milestone 1: Foundation</h3></a>
+<details>
+<summary><a name="m1"><h3>Milestone 1: Foundation</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Deno runtime, type system, seeded PRNG, test infrastructure, Project Explorer shell
@@ -57,10 +56,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m1-blocked"><h4>Blocked (Milestone 1)</h4></a>
 
 <a name="m1-done"><h4>Completed (Milestone 1)</h4></a>
+</details>
 
----
-
-<a name="m2"><h3>Milestone 2: Generation Pipeline</h3></a>
+<details>
+<summary><a name="m2"><h3>Milestone 2: Generation Pipeline</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Full 9-stage artefact generation (grammar → plausibility → tags → materials → decoration → classification → description → excavation → corpus)
@@ -85,10 +84,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m2-blocked"><h4>Blocked (Milestone 2)</h4></a>
 
 <a name="m2-done"><h4>Completed (Milestone 2)</h4></a>
+</details>
 
----
-
-<a name="m3"><h3>Milestone 3: World State & Integration</h3></a>
+<details>
+<summary><a name="m3"><h3>Milestone 3: World State & Integration</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** WorldState generation (seed → chronology → cultures), stores architecture, pipeline integration with real culture data
@@ -106,10 +105,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m3-blocked"><h4>Blocked (Milestone 3)</h4></a>
 
 <a name="m3-done"><h4>Completed (Milestone 3)</h4></a>
+</details>
 
----
-
-<a name="m4"><h3>Milestone 4: Player Interface</h3></a>
+<details>
+<summary><a name="m4"><h3>Milestone 4: Player Interface</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Basic UI for artefact inspection (multi-component descriptions, register switching, provenance display)
@@ -128,10 +127,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m4-blocked"><h4>Blocked (Milestone 4)</h4></a>
 
 <a name="m4-done"><h4>Completed (Milestone 4)</h4></a>
+</details>
 
----
-
-<a name="m5"><h3>Milestone 5: Knowledge Model</h3></a>
+<details>
+<summary><a name="m5"><h3>Milestone 5: Knowledge Model</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Player's `InterpretiveModel` (observations, inferences, hypotheses), document library, evidence chains
@@ -154,10 +153,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m5-blocked"><h4>Blocked (Milestone 5)</h4></a>
 
 <a name="m5-done"><h4>Completed (Milestone 5)</h4></a>
+</details>
 
----
-
-<a name="m6"><h3>Milestone 6: Lens System</h3></a>
+<details>
+<summary><a name="m6"><h3>Milestone 6: Lens System</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Lens computation from hypotheses, presentation effects (salience, classification, framing, omission)
@@ -180,10 +179,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m6-blocked"><h4>Blocked (Milestone 6)</h4></a>
 
 <a name="m6-done"><h4>Completed (Milestone 6)</h4></a>
+</details>
 
----
-
-<a name="m7"><h3>Milestone 7: Contradictions</h3></a>
+<details>
+<summary><a name="m7"><h3>Milestone 7: Contradictions</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Contradiction detection (player vs world + corpus), strain accumulation, diegetic surfacing, retcon flow
@@ -206,10 +205,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m7-blocked"><h4>Blocked (Milestone 7)</h4></a>
 
 <a name="m7-done"><h4>Completed (Milestone 7)</h4></a>
+</details>
 
----
-
-<a name="m8"><h3>Milestone 8: Persistence</h3></a>
+<details>
+<summary><a name="m8"><h3>Milestone 8: Persistence</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Save/load infrastructure with IndexedDB, schema versioning, auto-save
@@ -229,10 +228,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m8-blocked"><h4>Blocked (Milestone 8)</h4></a>
 
 <a name="m8-done"><h4>Completed (Milestone 8)</h4></a>
+</details>
 
----
-
-<a name="m9"><h3>Milestone 9: Career & Publication</h3></a>
+<details>
+<summary><a name="m9"><h3>Milestone 9: Career & Publication</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** Document tradition system (lineage, dissemination, venues), reputation, publication effects on lens, career progression
@@ -258,10 +257,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m9-blocked"><h4>Blocked (Milestone 9)</h4></a>
 
 <a name="m9-done"><h4>Completed (Milestone 9)</h4></a>
+</details>
 
----
-
-<a name="m10"><h3>Milestone 10: NPC Systems</h3></a>
+<details>
+<summary><a name="m10"><h3>Milestone 10: NPC Systems</h3></a></summary>
 
 > [!IMPORTANT]
 > **Goal:** NPC peer review, alternative interpretations, social channels (peer letters, student questions), relationship dynamics
@@ -284,8 +283,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m10-blocked"><h4>Blocked (Milestone 10)</h4></a>
 
 <a name="m10-done"><h4>Completed (Milestone 10)</h4></a>
-
----
+</details>
 
 <a name="map"><h2>Progress Map</h2></a>
 
