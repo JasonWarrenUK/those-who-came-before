@@ -6,8 +6,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | Not started             | 1FD.1             | —                 |
-| **GN**   | Not started             | —                 | 1FD.3             |
+| **FD**   | In progress             | 1FD.6             | —                 |
+| **GN**   | Not started             | —                 | 1FD.6             |
 | **WS**   | Not started             | —                 | 2GN.28            |
 | **UI**   | Not started             | —                 | 3WS.10            |
 | **KN**   | Not started             | —                 | 4UI.6             |
@@ -45,14 +45,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m1-doing"><h4>In Progress (Milestone 1)</h4></a>
 
 <a name="m1-todo"><h4>To Do (Milestone 1)</h4></a>
-
-**Deno migration**
-
-- [ ] 1FD.1. Create `deno.json` with tasks, compilerOptions, fmt/lint config
-- [ ] 1FD.2. Swap `adapter-node` for `adapter-deno` in `svelte.config.js`
-- [ ] 1FD.3. Strip Node tooling (`package.json`, `eslint.config.js`, `.prettierrc`, `tsconfig.json`)
-- [ ] 1FD.4. Verify npm deps via `npm:` specifiers (Svelte 5, SvelteKit 2, Vite 7, Tailwind 4, DaisyUI 5)
-- [ ] 1FD.5. Verify `deno task dev` serves app, `deno task check` passes
 
 **Seeded PRNG**
 
@@ -103,6 +95,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m1-blocked"><h4>Blocked (Milestone 1)</h4></a>
 
 <a name="m1-done"><h4>Completed (Milestone 1)</h4></a>
+
+**Deno migration**
+
+- [x] 1FD.1. Create `deno.json` with tasks, compilerOptions, fmt/lint config
+- [x] 1FD.2. Swap `adapter-node` for `adapter-deno` in `svelte.config.js`
+- [x] 1FD.3. Strip Node tooling (`.prettierrc`, `.prettierignore`, `.npmrc`)
+- [x] 1FD.4. Verify npm deps via `npm:` specifiers (Svelte 5, SvelteKit 2, Vite 7, Tailwind 4, DaisyUI 5)
+- [x] 1FD.5. Verify `deno task dev` serves app, `deno task check` passes
 </details>
 
 <details>
@@ -641,11 +641,6 @@ title: Progress Map
 graph TD
 
 subgraph M1["Milestone 1: Foundation"]
-  1FD.1["`*1FD.1*<br/>deno.json config`"]:::open
-  1FD.2["`*1FD.2*<br/>Swap adapter-deno`"]:::open
-  1FD.3["`*1FD.3*<br/>Strip Node tooling`"]:::open
-  1FD.4["`*1FD.4*<br/>Verify npm: specifiers`"]:::open
-  1FD.5["`*1FD.5*<br/>Verify deno task dev`"]:::blocked
   1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::open
   1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::blocked
   1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::blocked
@@ -674,23 +669,17 @@ subgraph M1["Milestone 1: Foundation"]
   1FD.31["`*1FD.31*<br/>types/description.ts`"]:::open
   1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::open
   1FD.33["`*1FD.33*<br/>types/save.ts`"]:::open
-  1FD.34["`*1FD.34*<br/>Configure deno test`"]:::blocked
+  1FD.34["`*1FD.34*<br/>Configure deno test`"]:::open
   1FD.35["`*1FD.35*<br/>Test fixture helpers`"]:::blocked
-  1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::blocked
+  1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::open
   1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
   1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
   1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
 
-  1FD.5 --> 1FD.1
-  1FD.5 --> 1FD.2
-  1FD.5 --> 1FD.3
-  1FD.5 --> 1FD.4
   1FD.7 --> 1FD.6
   1FD.8 --> 1FD.6
   1FD.9 --> 1FD.6
-  1FD.34 --> 1FD.5
   1FD.35 --> 1FD.34
-  1FD.36 --> 1FD.5
   1FD.37 --> 1FD.36
   1FD.38 --> 1FD.37
   1FD.38 --> 1FD.6

@@ -1,0 +1,40 @@
+{
+	"tasks": {
+		"dev": "deno run -A npm:vite dev",
+		"build": "deno run -A npm:vite build",
+		"preview": "deno run -A npm:vite preview",
+		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json"
+	},
+	"compilerOptions": {
+		"strict": true,
+		"allowJs": true,
+		"checkJs": true,
+		"lib": ["esnext", "dom", "dom.iterable"]
+	},
+	"nodeModulesDir": "auto",
+	"unstable": ["detect-cjs", "fmt-component"],
+	"imports": {
+		"svelte": "npm:svelte@5",
+		"@sveltejs/kit": "npm:@sveltejs/kit@^2.22.0",
+		"@deno/svelte-adapter": "npm:@deno/svelte-adapter@^0.1.1",
+		"@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@6",
+		"vite": "npm:vite@^7.0.0",
+		"@tailwindcss/vite": "npm:@tailwindcss/vite@4",
+		"tailwindcss": "npm:tailwindcss@4",
+		"@tailwindcss/forms": "npm:@tailwindcss/forms@~0.5.9",
+		"@tailwindcss/typography": "npm:@tailwindcss/typography@~0.5.15",
+		"daisyui": "npm:daisyui@5",
+		"svelte-check": "npm:svelte-check@4",
+		"typescript": "npm:typescript@5"
+	},
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 100,
+		"singleQuote": true
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-explicit-any"]
+		}
+	}
+}
