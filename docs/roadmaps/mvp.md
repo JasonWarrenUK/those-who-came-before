@@ -636,253 +636,256 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 ```mermaid
 ---
+config:
+  layout: elk
 title: Progress Map
 ---
 graph TD
+    m1{{"`<h2>Milestone 1</h2>`"}}:::mile
+    m1A{"`<h3>1A</h3>Deno build configured`"}:::mile
+    m1B{"`<h3>1B</h3>All types created`"}:::mile
+    m1C{"`<h3>1C</h3>M1 Explorer`"}:::mile
+    m1D{"`<h3>1D</h3>Random Generation Util`"}:::mile
+    1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::blocked
+    1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::blocked
+    1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::blocked
+    1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::blocked
+    1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::blocked
+    1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::blocked
+    1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::blocked
+    1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::blocked
+    1FD.14["`*1FD.14*<br/>types/world core`"]:::blocked
+    1FD.15["`*1FD.15*<br/>types/world relations`"]:::blocked
+    1FD.16["`*1FD.16*<br/>types/world provenance`"]:::blocked
+    1FD.17["`*1FD.17*<br/>types/world dating`"]:::blocked
+    1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::blocked
+    1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::blocked
+    1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::blocked
+    1FD.21["`*1FD.21*<br/>types/documents core`"]:::blocked
+    1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::blocked
+    1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::blocked
+    1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::blocked
+    1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::blocked
+    1FD.26["`*1FD.26*<br/>types/career core`"]:::blocked
+    1FD.27["`*1FD.27*<br/>types/career drains`"]:::blocked
+    1FD.28["`*1FD.28*<br/>types/term.ts`"]:::blocked
+    1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::blocked
+    1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::blocked
+    1FD.31["`*1FD.31*<br/>types/description.ts`"]:::blocked
+    1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::blocked
+    1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
+    1FD.34["`*1FD.34*<br/>Configure deno test`"]:::open
+    1FD.35["`*1FD.35*<br/>Test fixture helpers`"]:::blocked
+    1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::blocked
+    1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
+    1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
+    1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
+    1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
+    1FD.7 --> m1D
+    1FD.8 --> m1D
+    1FD.9 --> m1D
+    1FD.10 --> 1FD.11
+    1FD.11 --> 1FD.13
+    1FD.12 --> 1FD.10 & 1FD.18 & 1FD.32
+    1FD.13 --> 1FD.31
+    1FD.14 --> 1FD.15 & 1FD.16 & 1FD.17
+    1FD.15 --> 1FD.30
+    1FD.16 --> 1FD.30
+    1FD.17 --> 1FD.30
+    1FD.18 --> 1FD.19 & 1FD.20
+    1FD.19 --> 1FD.21 & 1FD.24 & 1FD.29
+    1FD.20 --> 1FD.24 & 1FD.29
+    1FD.21 --> 1FD.23
+    1FD.22 --> 1FD.27
+    1FD.23 --> 1FD.22
+    1FD.24 --> 1FD.25
+    1FD.25 --> 1FD.27
+    1FD.26 --> 1FD.28
+    1FD.27 --> 1FD.33
+    1FD.28 --> 1FD.27
+    1FD.29 --> 1FD.30
+    1FD.30 --> 1FD.33
+    1FD.31 --> 1FD.22
+    1FD.32 --> 1FD.20
+    1FD.33 --> m1B
+    1FD.34 --> 1FD.35
+    1FD.35 --> m1A
+    1FD.36 --> 1FD.37 & 1FD.39
+    1FD.37 --> 1FD.38
+    1FD.38 --> m1C
+    1FD.39 --> m1C
+    m1A --> 1FD.6 & 1FD.12 & 1FD.14 & 1FD.26 & 1FD.36
+    m1B --> 1FD.39
+    m1C --> m1
+    m1D --> 1FD.37
 
-subgraph M1["Milestone 1: Foundation"]
-  1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::open
-  1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::blocked
-  1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::blocked
-  1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::blocked
-  1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::open
-  1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::open
-  1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::open
-  1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::open
-  1FD.14["`*1FD.14*<br/>types/world core`"]:::open
-  1FD.15["`*1FD.15*<br/>types/world relations`"]:::open
-  1FD.16["`*1FD.16*<br/>types/world provenance`"]:::open
-  1FD.17["`*1FD.17*<br/>types/world dating`"]:::open
-  1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::open
-  1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::open
-  1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::open
-  1FD.21["`*1FD.21*<br/>types/documents core`"]:::open
-  1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::open
-  1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::open
-  1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::open
-  1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::open
-  1FD.26["`*1FD.26*<br/>types/career core`"]:::open
-  1FD.27["`*1FD.27*<br/>types/career drains`"]:::open
-  1FD.28["`*1FD.28*<br/>types/term.ts`"]:::open
-  1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::open
-  1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::open
-  1FD.31["`*1FD.31*<br/>types/description.ts`"]:::open
-  1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::open
-  1FD.33["`*1FD.33*<br/>types/save.ts`"]:::open
-  1FD.34["`*1FD.34*<br/>Configure deno test`"]:::open
-  1FD.35["`*1FD.35*<br/>Test fixture helpers`"]:::blocked
-  1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::open
-  1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
-  1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
-  1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
+m1 --> 2GN.1 & 2GN.2 & 2GN.11 & 2GN.22 & 2GN.28 & 2GN.35 & 2GN.36 & 2GN.37
 
-  1FD.7 --> 1FD.6
-  1FD.8 --> 1FD.6
-  1FD.9 --> 1FD.6
-  1FD.35 --> 1FD.34
-  1FD.37 --> 1FD.36
-  1FD.38 --> 1FD.37
-  1FD.38 --> 1FD.6
-  1FD.39 --> 1FD.36
-end
+m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 
-subgraph M2["Milestone 2: Generation Pipeline"]
-  2GN.1["`*2GN.1*<br/>Primitive defs`"]:::blocked
-  2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::blocked
-  2GN.3["`*2GN.3*<br/>expandGrammar`"]:::blocked
-  2GN.4["`*2GN.4*<br/>selectGrammarOption`"]:::blocked
-  2GN.5["`*2GN.5*<br/>phaseInfluence`"]:::blocked
-  2GN.6["`*2GN.6*<br/>Accumulation checking`"]:::blocked
-  2GN.7["`*2GN.7*<br/>Complexity budget`"]:::blocked
-  2GN.8["`*2GN.8*<br/>Normalisation`"]:::blocked
-  2GN.9["`*2GN.9*<br/>deriveInspectionDepth`"]:::blocked
-  2GN.10["`*2GN.10*<br/>allowedMaterialTags`"]:::blocked
-  2GN.11["`*2GN.11*<br/>Plausibility rules data`"]:::blocked
-  2GN.12["`*2GN.12*<br/>checkPlausibility`"]:::blocked
-  2GN.13["`*2GN.13*<br/>Physical viability`"]:::blocked
-  2GN.14["`*2GN.14*<br/>Ergonomic rules`"]:::blocked
-  2GN.15["`*2GN.15*<br/>Material-structural compat`"]:::blocked
-  2GN.16["`*2GN.16*<br/>Re-expansion loop`"]:::blocked
-  2GN.17["`*2GN.17*<br/>Classification rules data`"]:::blocked
-  2GN.18["`*2GN.18*<br/>Tag accumulation`"]:::blocked
-  2GN.19["`*2GN.19*<br/>extractFeatures`"]:::blocked
-  2GN.20["`*2GN.20*<br/>classifyArtefact`"]:::blocked
-  2GN.21["`*2GN.21*<br/>physicalLabel`"]:::blocked
-  2GN.22["`*2GN.22*<br/>Material defs data`"]:::blocked
-  2GN.23["`*2GN.23*<br/>assignMaterial`"]:::blocked
-  2GN.24["`*2GN.24*<br/>isAvailable`"]:::blocked
-  2GN.25["`*2GN.25*<br/>computeMaterialWeight`"]:::blocked
-  2GN.26["`*2GN.26*<br/>MaterialProvenance`"]:::blocked
-  2GN.27["`*2GN.27*<br/>Material tag influence`"]:::blocked
-  2GN.28["`*2GN.28*<br/>Decoration defs data`"]:::blocked
-  2GN.29["`*2GN.29*<br/>Decoration expansion`"]:::blocked
-  2GN.30["`*2GN.30*<br/>Material prereq enforce`"]:::blocked
-  2GN.31["`*2GN.31*<br/>Layering support`"]:::blocked
-  2GN.32["`*2GN.32*<br/>Recursion depth cap`"]:::blocked
-  2GN.33["`*2GN.33*<br/>Motif assignment`"]:::blocked
-  2GN.34["`*2GN.34*<br/>Decorative tag contrib`"]:::blocked
-  2GN.35["`*2GN.35*<br/>Observational templates`"]:::blocked
-  2GN.36["`*2GN.36*<br/>Interpretive templates`"]:::blocked
-  2GN.37["`*2GN.37*<br/>Technical templates`"]:::blocked
-  2GN.38["`*2GN.38*<br/>generateDescription`"]:::blocked
-  2GN.39["`*2GN.39*<br/>Template expansion`"]:::blocked
-  2GN.40["`*2GN.40*<br/>Component descriptions`"]:::blocked
-  2GN.41["`*2GN.41*<br/>Decorative descriptions`"]:::blocked
-  2GN.42["`*2GN.42*<br/>physicalLabel composite`"]:::blocked
-  2GN.43["`*2GN.43*<br/>Provenance description`"]:::blocked
-  2GN.44["`*2GN.44*<br/>Excavation composition`"]:::blocked
-  2GN.45["`*2GN.45*<br/>Ambiguity targets`"]:::blocked
-  2GN.46["`*2GN.46*<br/>Batch monitoring`"]:::blocked
-  2GN.47["`*2GN.47*<br/>Provenance generation`"]:::blocked
-  2GN.48["`*2GN.48*<br/>generateNPCScholars`"]:::blocked
-  2GN.49["`*2GN.49*<br/>NPC InterpretiveModel`"]:::blocked
-  2GN.50["`*2GN.50*<br/>simulateExcavations`"]:::blocked
-  2GN.51["`*2GN.51*<br/>generatePublications`"]:::blocked
-  2GN.52["`*2GN.52*<br/>Coverage gaps`"]:::blocked
-  2GN.53["`*2GN.53*<br/>aggregateCorpus`"]:::blocked
-  2GN.54["`*2GN.54*<br/>Dating frameworks`"]:::blocked
-  2GN.55["`*2GN.55*<br/>Calibrated wrongness`"]:::blocked
-  2GN.56["`*2GN.56*<br/>Pipeline orchestrator`"]:::blocked
+2GN.1["`*2GN.1*<br/>Primitive defs`"]:::blocked
+2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::blocked
+2GN.3["`*2GN.3*<br/>expandGrammar`"]:::blocked
+2GN.4["`*2GN.4*<br/>selectGrammarOption`"]:::blocked
+2GN.5["`*2GN.5*<br/>phaseInfluence`"]:::blocked
+2GN.6["`*2GN.6*<br/>Accumulation checking`"]:::blocked
+2GN.7["`*2GN.7*<br/>Complexity budget`"]:::blocked
+2GN.8["`*2GN.8*<br/>Normalisation`"]:::blocked
+2GN.9["`*2GN.9*<br/>deriveInspectionDepth`"]:::blocked
+2GN.10["`*2GN.10*<br/>allowedMaterialTags`"]:::blocked
+2GN.11["`*2GN.11*<br/>Plausibility rules data`"]:::blocked
+2GN.12["`*2GN.12*<br/>checkPlausibility`"]:::blocked
+2GN.13["`*2GN.13*<br/>Physical viability`"]:::blocked
+2GN.14["`*2GN.14*<br/>Ergonomic rules`"]:::blocked
+2GN.15["`*2GN.15*<br/>Material-structural compat`"]:::blocked
+2GN.16["`*2GN.16*<br/>Re-expansion loop`"]:::blocked
+2GN.17["`*2GN.17*<br/>Classification rules data`"]:::blocked
+2GN.18["`*2GN.18*<br/>Tag accumulation`"]:::blocked
+2GN.19["`*2GN.19*<br/>extractFeatures`"]:::blocked
+2GN.20["`*2GN.20*<br/>classifyArtefact`"]:::blocked
+2GN.21["`*2GN.21*<br/>physicalLabel`"]:::blocked
+2GN.22["`*2GN.22*<br/>Material defs data`"]:::blocked
+2GN.23["`*2GN.23*<br/>assignMaterial`"]:::blocked
+2GN.24["`*2GN.24*<br/>isAvailable`"]:::blocked
+2GN.25["`*2GN.25*<br/>computeMaterialWeight`"]:::blocked
+2GN.26["`*2GN.26*<br/>MaterialProvenance`"]:::blocked
+2GN.27["`*2GN.27*<br/>Material tag influence`"]:::blocked
+2GN.28["`*2GN.28*<br/>Decoration defs data`"]:::blocked
+2GN.29["`*2GN.29*<br/>Decoration expansion`"]:::blocked
+2GN.30["`*2GN.30*<br/>Material prereq enforce`"]:::blocked
+2GN.31["`*2GN.31*<br/>Layering support`"]:::blocked
+2GN.32["`*2GN.32*<br/>Recursion depth cap`"]:::blocked
+2GN.33["`*2GN.33*<br/>Motif assignment`"]:::blocked
+2GN.34["`*2GN.34*<br/>Decorative tag contrib`"]:::blocked
+2GN.35["`*2GN.35*<br/>Observational templates`"]:::blocked
+2GN.36["`*2GN.36*<br/>Interpretive templates`"]:::blocked
+2GN.37["`*2GN.37*<br/>Technical templates`"]:::blocked
+2GN.38["`*2GN.38*<br/>generateDescription`"]:::blocked
+2GN.39["`*2GN.39*<br/>Template expansion`"]:::blocked
+2GN.40["`*2GN.40*<br/>Component descriptions`"]:::blocked
+2GN.41["`*2GN.41*<br/>Decorative descriptions`"]:::blocked
+2GN.42["`*2GN.42*<br/>physicalLabel composite`"]:::blocked
+2GN.43["`*2GN.43*<br/>Provenance description`"]:::blocked
+2GN.44["`*2GN.44*<br/>Excavation composition`"]:::blocked
+2GN.45["`*2GN.45*<br/>Ambiguity targets`"]:::blocked
+2GN.46["`*2GN.46*<br/>Batch monitoring`"]:::blocked
+2GN.47["`*2GN.47*<br/>Provenance generation`"]:::blocked
+2GN.48["`*2GN.48*<br/>generateNPCScholars`"]:::blocked
+2GN.49["`*2GN.49*<br/>NPC InterpretiveModel`"]:::blocked
+2GN.50["`*2GN.50*<br/>simulateExcavations`"]:::blocked
+2GN.51["`*2GN.51*<br/>generatePublications`"]:::blocked
+2GN.52["`*2GN.52*<br/>Coverage gaps`"]:::blocked
+2GN.53["`*2GN.53*<br/>aggregateCorpus`"]:::blocked
+2GN.54["`*2GN.54*<br/>Dating frameworks`"]:::blocked
+2GN.55["`*2GN.55*<br/>Calibrated wrongness`"]:::blocked
+2GN.56["`*2GN.56*<br/>Pipeline orchestrator`"]:::blocked
 
-  2GN.1 --> 1FD.6
-  2GN.2 --> 2GN.1
-  2GN.3 --> 2GN.2
-  2GN.4 --> 2GN.3
-  2GN.5 --> 2GN.3
-  2GN.6 --> 2GN.3
-  2GN.7 --> 2GN.3
-  2GN.8 --> 2GN.4
-  2GN.8 --> 2GN.6
-  2GN.9 --> 2GN.8
-  2GN.10 --> 2GN.8
-  2GN.11 --> 1FD.11
-  2GN.12 --> 2GN.8
-  2GN.12 --> 2GN.11
-  2GN.13 --> 2GN.12
-  2GN.14 --> 2GN.12
-  2GN.15 --> 2GN.12
-  2GN.16 --> 2GN.12
-  2GN.17 --> 1FD.12
-  2GN.18 --> 2GN.3
-  2GN.18 --> 2GN.17
-  2GN.19 --> 2GN.12
-  2GN.20 --> 2GN.19
-  2GN.20 --> 2GN.18
-  2GN.21 --> 2GN.20
-  2GN.22 --> 1FD.12
-  2GN.23 --> 2GN.19
-  2GN.23 --> 2GN.22
-  2GN.24 --> 2GN.23
-  2GN.25 --> 2GN.23
-  2GN.26 --> 2GN.23
-  2GN.27 --> 2GN.23
-  2GN.27 --> 2GN.20
-  2GN.28 --> 1FD.13
-  2GN.29 --> 2GN.23
-  2GN.29 --> 2GN.28
-  2GN.30 --> 2GN.29
-  2GN.31 --> 2GN.29
-  2GN.32 --> 2GN.29
-  2GN.33 --> 2GN.29
-  2GN.34 --> 2GN.29
-  2GN.34 --> 2GN.20
-  2GN.35 --> 1FD.31
-  2GN.36 --> 1FD.31
-  2GN.37 --> 1FD.31
-  2GN.38 --> 2GN.34
-  2GN.38 --> 2GN.35
-  2GN.39 --> 2GN.38
-  2GN.40 --> 2GN.39
-  2GN.41 --> 2GN.39
-  2GN.42 --> 2GN.39
-  2GN.43 --> 2GN.39
-  2GN.44 --> 2GN.38
-  2GN.45 --> 2GN.44
-  2GN.46 --> 2GN.44
-  2GN.47 --> 2GN.44
-  2GN.48 --> 2GN.44
-  2GN.49 --> 2GN.48
-  2GN.50 --> 2GN.49
-  2GN.51 --> 2GN.50
-  2GN.52 --> 2GN.50
-  2GN.53 --> 2GN.51
-  2GN.54 --> 2GN.50
-  2GN.55 --> 2GN.49
-  2GN.56 --> 2GN.53
-end
+2GN.1 --> 2GN.12
+2GN.2 --> 2GN.3
+2GN.3 --> 2GN.4 & 2GN.5 & 2GN.6 & 2GN.7 & 2GN.18
+2GN.4 --> 2GN.8
+2GN.6 --> 2GN.8
+2GN.8 --> 2GN.9 & 2GN.10 & 2GN.12
+2GN.11 --> 2GN.12
+2GN.12 --> 2GN.13 & 2GN.14 & 2GN.15 & 2GN.16 & 2GN.17 & 2GN.19
+2GN.17 --> 2GN.18
+2GN.18 --> 2GN.20
+2GN.19 --> 2GN.20
+2GN.20 --> 2GN.21
+2GN.19 --> 2GN.23
+2GN.20 --> 2GN.27 & 2GN.34
+2GN.22 --> 2GN.23
+2GN.23 --> 2GN.24 & 2GN.25 & 2GN.26 & 2GN.27 & 2GN.29
+2GN.28 --> 2GN.29
+2GN.29 --> 2GN.30 & 2GN.31 & 2GN.32 & 2GN.33 & 2GN.34
+2GN.34 --> 2GN.38
+2GN.35 --> 2GN.38
+2GN.38 --> 2GN.39 & 2GN.44
+2GN.39 --> 2GN.40 & 2GN.41 & 2GN.42 & 2GN.43
+2GN.44 --> 2GN.45 & 2GN.46 & 2GN.47 & 2GN.48
+2GN.48 --> 2GN.49
+2GN.49 --> 2GN.50 & 2GN.55
+2GN.50 --> 2GN.51 & 2GN.52 & 2GN.54
+2GN.51 --> 2GN.53
+2GN.52 --> m2
+2GN.53 --> 2GN.56
+2GN.54 --> m2
+2GN.55 --> m2
+2GN.56 --> m2
 
-subgraph M3["Milestone 3: World State"]
-  3WS.1["`*3WS.1*<br/>createWorldSeed`"]:::blocked
-  3WS.2["`*3WS.2*<br/>generateChronology`"]:::blocked
-  3WS.3["`*3WS.3*<br/>generateCultures`"]:::blocked
-  3WS.4["`*3WS.4*<br/>generatePhases`"]:::blocked
-  3WS.5["`*3WS.5*<br/>generateRelationships`"]:::blocked
-  3WS.6["`*3WS.6*<br/>MaterialFlow gen`"]:::blocked
-  3WS.7["`*3WS.7*<br/>GeologicalContext`"]:::blocked
-  3WS.8["`*3WS.8*<br/>Motif vocabulary`"]:::blocked
-  3WS.9["`*3WS.9*<br/>createWorld orchestrator`"]:::blocked
-  3WS.10["`*3WS.10*<br/>worldState store`"]:::blocked
-  3WS.11["`*3WS.11*<br/>playerInterp store stub`"]:::blocked
-  3WS.12["`*3WS.12*<br/>lensState store stub`"]:::blocked
-  3WS.13["`*3WS.13*<br/>ui store`"]:::blocked
-  3WS.14["`*3WS.14*<br/>gameState orchestrator`"]:::blocked
-  3WS.15["`*3WS.15*<br/>Pipeline real data`"]:::blocked
-  3WS.16["`*3WS.16*<br/>E2E determinism verify`"]:::blocked
-  3WS.17["`*3WS.17*<br/>Explorer: timeline`"]:::blocked
-  3WS.18["`*3WS.18*<br/>Explorer: culture profiles`"]:::blocked
-  3WS.19["`*3WS.19*<br/>Explorer: relationship graph`"]:::blocked
-  3WS.20["`*3WS.20*<br/>Explorer: store inspector`"]:::blocked
+m2 --> 3WS.1
 
-  3WS.1 --> 2GN.56
-  3WS.2 --> 3WS.1
-  3WS.3 --> 3WS.2
-  3WS.4 --> 3WS.3
-  3WS.5 --> 3WS.3
-  3WS.6 --> 3WS.5
-  3WS.7 --> 3WS.1
-  3WS.8 --> 3WS.3
-  3WS.9 --> 3WS.4
-  3WS.9 --> 3WS.5
-  3WS.9 --> 3WS.7
-  3WS.10 --> 3WS.9
-  3WS.11 --> 3WS.10
-  3WS.12 --> 3WS.10
-  3WS.13 --> 3WS.10
-  3WS.14 --> 3WS.10
-  3WS.14 --> 3WS.11
-  3WS.14 --> 3WS.12
-  3WS.14 --> 3WS.13
-  3WS.15 --> 3WS.14
-  3WS.16 --> 3WS.15
-  3WS.17 --> 3WS.10
-  3WS.18 --> 3WS.10
-  3WS.19 --> 3WS.10
-  3WS.20 --> 3WS.14
-end
+m3{{"`<h2>Milestone 3</h2>`"}}:::mile
+
+3WS.1["`*3WS.1*<br/>createWorldSeed`"]:::blocked
+3WS.2["`*3WS.2*<br/>generateChronology`"]:::blocked
+3WS.3["`*3WS.3*<br/>generateCultures`"]:::blocked
+3WS.4["`*3WS.4*<br/>generatePhases`"]:::blocked
+3WS.5["`*3WS.5*<br/>generateRelationships`"]:::blocked
+3WS.6["`*3WS.6*<br/>MaterialFlow gen`"]:::blocked
+3WS.7["`*3WS.7*<br/>GeologicalContext`"]:::blocked
+3WS.8["`*3WS.8*<br/>Motif vocabulary`"]:::blocked
+3WS.9["`*3WS.9*<br/>createWorld orchestrator`"]:::blocked
+3WS.10["`*3WS.10*<br/>worldState store`"]:::blocked
+3WS.11["`*3WS.11*<br/>playerInterp store stub`"]:::blocked
+3WS.12["`*3WS.12*<br/>lensState store stub`"]:::blocked
+3WS.13["`*3WS.13*<br/>ui store`"]:::blocked
+3WS.14["`*3WS.14*<br/>gameState orchestrator`"]:::blocked
+3WS.15["`*3WS.15*<br/>Pipeline real data`"]:::blocked
+3WS.16["`*3WS.16*<br/>E2E determinism verify`"]:::blocked
+3WS.17["`*3WS.17*<br/>Explorer: timeline`"]:::blocked
+3WS.18["`*3WS.18*<br/>Explorer: culture profiles`"]:::blocked
+3WS.19["`*3WS.19*<br/>Explorer: relationship graph`"]:::blocked
+3WS.20["`*3WS.20*<br/>Explorer: store inspector`"]:::blocked
+
+3WS.1 --> 3WS.2 & 3WS.7
+3WS.2 --> 3WS.3
+3WS.3 --> 3WS.4 & 3WS.5 & 3WS.8
+3WS.4 --> 3WS.9
+3WS.5 --> 3WS.6 & 3WS.9
+3WS.7 --> 3WS.9
+3WS.8 --> m3
+3WS.9 --> 3WS.10
+3WS.10 --> 3WS.11 & 3WS.12 & 3WS.13 & 3WS.14 & 3WS.17 & 3WS.18 & 3WS.19
+3WS.11 --> 3WS.14
+3WS.12 --> 3WS.14
+3WS.13 --> 3WS.14
+3WS.14 --> 3WS.15 & 3WS.20
+3WS.15 --> 3WS.16
+3WS.16 --> m3
+3WS.17 --> 3WS.20
+3WS.18 --> 3WS.20
+3WS.19 --> 3WS.20
+3WS.20 --> m3
+
+m3 --> 4UI.1
 
 subgraph M4["Milestone 4: Player Interface"]
-  4UI.1["`*4UI.1*<br/>ArtefactInspector`"]:::blocked
-  4UI.2["`*4UI.2*<br/>PropertyList`"]:::blocked
-  4UI.3["`*4UI.3*<br/>TagBadge`"]:::blocked
-  4UI.4["`*4UI.4*<br/>ConfidenceBadge`"]:::blocked
-  4UI.5["`*4UI.5*<br/>Component list UI`"]:::blocked
-  4UI.6["`*4UI.6*<br/>Provenance display`"]:::blocked
-  4UI.7["`*4UI.7*<br/>Study route`"]:::blocked
-  4UI.8["`*4UI.8*<br/>Register switching`"]:::blocked
-  4UI.9["`*4UI.9*<br/>Generate artefact btn`"]:::blocked
+    m4{"`Milestone 4`"}:::mile
 
-  4UI.1 --> 3WS.15
-  4UI.2 --> 4UI.1
-  4UI.3 --> 4UI.1
-  4UI.4 --> 4UI.1
-  4UI.5 --> 4UI.1
-  4UI.6 --> 4UI.5
-  4UI.7 --> 4UI.6
-  4UI.8 --> 4UI.6
-  4UI.9 --> 4UI.6
+    4UI.1["`*4UI.1*<br/>ArtefactInspector`"]:::blocked
+    4UI.2["`*4UI.2*<br/>PropertyList`"]:::blocked
+    4UI.3["`*4UI.3*<br/>TagBadge`"]:::blocked
+    4UI.4["`*4UI.4*<br/>ConfidenceBadge`"]:::blocked
+    4UI.5["`*4UI.5*<br/>Component list UI`"]:::blocked
+    4UI.6["`*4UI.6*<br/>Provenance display`"]:::blocked
+    4UI.7["`*4UI.7*<br/>Study route`"]:::blocked
+    4UI.8["`*4UI.8*<br/>Register switching`"]:::blocked
+    4UI.9["`*4UI.9*<br/>Generate artefact btn`"]:::blocked
+
+    4UI.1 --> 4UI.2 & 4UI.3 & 4UI.4 & 4UI.5
+    4UI.5 --> 4UI.6
+    4UI.6 --> 4UI.7 & 4UI.8 & 4UI.9
+    4UI.7 --> m4
+    4UI.8 --> m4
+    4UI.9 --> m4
 end
 
+m4 --> 5KN.1
+
 subgraph M5["Milestone 5: Knowledge Model"]
+  m5{"`Milestone 5`"}:::mile
+  
   5KN.1["`*5KN.1*<br/>createObservation`"]:::blocked
   5KN.2["`*5KN.2*<br/>reviseObservation`"]:::blocked
   5KN.3["`*5KN.3*<br/>ArtefactStudy create`"]:::blocked
@@ -908,7 +911,6 @@ subgraph M5["Milestone 5: Knowledge Model"]
   5KN.23["`*5KN.23*<br/>Library route`"]:::blocked
   5KN.24["`*5KN.24*<br/>Document view route`"]:::blocked
 
-  5KN.1 --> 4UI.6
   5KN.2 --> 5KN.1
   5KN.3 --> 5KN.1
   5KN.4 --> 5KN.1
@@ -934,7 +936,11 @@ subgraph M5["Milestone 5: Knowledge Model"]
   5KN.24 --> 5KN.22
 end
 
+m5 --> 6LS.1
+
 subgraph M6["Milestone 6: Lens System"]
+  m6{"`Milestone 6`"}:::mile
+  
   6LS.1["`*6LS.1*<br/>computeLensStrength`"]:::blocked
   6LS.2["`*6LS.2*<br/>computeLens`"]:::blocked
   6LS.3["`*6LS.3*<br/>Per-tag lens weights`"]:::blocked
@@ -951,7 +957,7 @@ subgraph M6["Milestone 6: Lens System"]
   6LS.14["`*6LS.14*<br/>Cross-ref panel`"]:::blocked
   6LS.15["`*6LS.15*<br/>Raw data drill-down`"]:::blocked
 
-  6LS.1 --> 5KN.12
+  
   6LS.2 --> 6LS.1
   6LS.3 --> 6LS.1
   6LS.4 --> 6LS.2
@@ -972,7 +978,11 @@ subgraph M6["Milestone 6: Lens System"]
   6LS.15 --> 6LS.11
 end
 
+m6 --> 7CD.1
+
 subgraph M7["Milestone 7: Contradictions"]
+  m7{"`Milestone 7`"}:::mile
+  
   7CD.1["`*7CD.1*<br/>detectContradictions`"]:::blocked
   7CD.2["`*7CD.2*<br/>Material rules`"]:::blocked
   7CD.3["`*7CD.3*<br/>Temporal rules`"]:::blocked
@@ -1004,7 +1014,6 @@ subgraph M7["Milestone 7: Contradictions"]
   7CD.29["`*7CD.29*<br/>Cascade visualisation`"]:::blocked
   7CD.30["`*7CD.30*<br/>Resolution outcome`"]:::blocked
 
-  7CD.1 --> 6LS.5
   7CD.2 --> 7CD.1
   7CD.3 --> 7CD.1
   7CD.4 --> 7CD.1
@@ -1036,7 +1045,11 @@ subgraph M7["Milestone 7: Contradictions"]
   7CD.30 --> 7CD.28
 end
 
+m7 --> 8PS.1
+
 subgraph M8["Milestone 8: Persistence"]
+  m8{"`Milestone 8`"}:::mile
+  
   8PS.1["`*8PS.1*<br/>Map serialise utils`"]:::blocked
   8PS.2["`*8PS.2*<br/>serialiseGameState`"]:::blocked
   8PS.3["`*8PS.3*<br/>deserialiseGameState`"]:::blocked
@@ -1047,7 +1060,6 @@ subgraph M8["Milestone 8: Persistence"]
   8PS.8["`*8PS.8*<br/>Save/load UI`"]:::blocked
   8PS.9["`*8PS.9*<br/>Auto-save indicator`"]:::blocked
 
-  8PS.1 --> 7CD.25
   8PS.2 --> 8PS.1
   8PS.3 --> 8PS.2
   8PS.4 --> 8PS.1
@@ -1058,7 +1070,11 @@ subgraph M8["Milestone 8: Persistence"]
   8PS.9 --> 8PS.7
 end
 
+m8 --> 9CR.1
+
 subgraph M9["Milestone 9: Career & Publication"]
+  m9{"`Milestone 9`"}:::mile
+  
   9CR.1["`*9CR.1*<br/>Lineage graph`"]:::blocked
   9CR.2["`*9CR.2*<br/>advanceDissemination`"]:::blocked
   9CR.3["`*9CR.3*<br/>extractCommitments`"]:::blocked
@@ -1092,7 +1108,6 @@ subgraph M9["Milestone 9: Career & Publication"]
   9CR.31["`*9CR.31*<br/>Term dashboard`"]:::blocked
   9CR.32["`*9CR.32*<br/>Role advancement notif`"]:::blocked
 
-  9CR.1 --> 8PS.5
   9CR.2 --> 9CR.1
   9CR.3 --> 9CR.1
   9CR.4 --> 9CR.1
@@ -1126,7 +1141,11 @@ subgraph M9["Milestone 9: Career & Publication"]
   9CR.32 --> 9CR.15
 end
 
+m9 --> 10NP.1
+
 subgraph M10["Milestone 10: NPC Systems"]
+  m10{"`Milestone 10`"}:::mile
+  
   10NP.1["`*10NP.1*<br/>generatePeerReview`"]:::blocked
   10NP.2["`*10NP.2*<br/>ReviewerFeedback gen`"]:::blocked
   10NP.3["`*10NP.3*<br/>Review outcome`"]:::blocked
@@ -1148,7 +1167,6 @@ subgraph M10["Milestone 10: NPC Systems"]
   10NP.19["`*10NP.19*<br/>Relationship indicators`"]:::blocked
   10NP.20["`*10NP.20*<br/>Form reclassification`"]:::blocked
 
-  10NP.1 --> 9CR.12
   10NP.2 --> 10NP.1
   10NP.3 --> 10NP.1
   10NP.4 --> 10NP.1
