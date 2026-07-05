@@ -133,6 +133,79 @@ Two refinements to the time/action economy: (1) 4 terms per year instead of 3, a
 | 10 | `VenueTemporalProfile.openWeeks` range updated to 0–47, cycle length to 48 | 2026-02-09 |
 | 11 | Section 2.8 rewritten: 4 terms/year, summer-research term, absolute week counter, sub-question 4 updated | 2026-02-09 |
 
+### 2.10 Description Register Scope: Three-Value MVP (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 04, Section 3.4
+
+The three-register `DescriptionRegister` ('observational' | 'interpretive' | 'technical') is MVP-canonical. Doc 05 Section 12's five-value `ObservationRegister` and its `RegisterAccess` unlock model are deferred post-MVP.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 05 | MVP note added under Section 12.1 marking the five-register model post-MVP | 2026-07-04 |
+| 06 | Section 2.1 `observationRegister` field annotated as three-value at MVP | 2026-07-04 |
+| 13 | Entry 4 added: five-register observation system deferral | 2026-07-04 |
+
+### 2.11 Unified Feature Extraction Supersedes Accumulation-During-Expansion (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 05, Section 9
+
+Single-pass unified feature extraction is canonical. Doc 09 Phase 4's accumulation-during-grammar-expansion model is superseded; the roadmap implements unified extraction and the former task for accumulation-during-expansion (2GN.18) was removed.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 09 | Supersession note added under Phase 4 | 2026-07-04 |
+
+### 2.12 MVP Career Gating Without Activity Execution (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 07, Sections 4.2 and 7
+
+MVP career progression (postdoc to junior lecturer) gates on reputation, publications and terms-in-role only. Career activity execution (field seasons, conference presentations) is deferred post-MVP; the junior-lecturer `RoleRequirement` uses `activities: []`.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 07 | Section 4.2 junior-lecturer requirement changed to `activities: []`; Section 7 activities moved from MVP scope to First Expansion | 2026-07-04 |
+| 13 | Entry 5 added: career activity execution deferral | 2026-07-04 |
+
+### 2.13 Sabbatical as Engine Hooks Only (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 07, Section 4.1; doc 04, Section 4
+
+Sabbatical ships in MVP as engine hooks only: background drain zeroing plus the -0.15 lens strength modifier. Player-facing availability (Reader/Professor gating, cooldown) is post-MVP.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 13 | Entry 5 records the player-facing sabbatical deferral | 2026-07-04 |
+
+### 2.14 SaveFile Persistence Scope (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 08, Section 4.1
+
+`SaveFile` persists `worldState`, `playerInterpretation` and `termState`. `lensState` is not persisted; it is recomputed from `playerInterpretation` on load. The contradiction queue is serialised within `playerInterpretation`.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 08 | Section 4.1 `SaveFile` gains `termState`; non-persistence of `lensState` and contradiction queue placement documented | 2026-07-04 |
+
+### 2.15 HypothesisStrain as Canonical Strain Type (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 06, Section 5
+
+`HypothesisStrain` is the canonical strain type. The name `StrainScore` is dropped.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 08 | Section 3.2 `InterpretiveModel.strainScores` retyped to `Map<string, HypothesisStrain>` | 2026-07-04 |
+
+### 2.16 Graduated Dissemination Lens Factor Gains 'presented' (2026-07-04)
+**Origin:** Alignment audit (2026-07-04)
+**Source of truth:** Doc 10, Section 6 (state definitions); doc 04, Section 4 (weights)
+
+The graduated dissemination lens factor gains a 'presented' value of 0.15, so all six `DisseminationState` values carry weights.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 04 | Section 4 `LensStrength` dissemination comment updated with 0.15 (presented) | 2026-07-04 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*

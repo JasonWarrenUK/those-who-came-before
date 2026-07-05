@@ -42,11 +42,11 @@ Publication tracks, reputation, and the social cost of being wrong. Defines the 
 
 ### Doc 08 — Technical Architecture
 
-The code-level specification. Covers the Deno runtime and toolchain (stripping Node dependencies, `deno.json` configuration), SvelteKit project structure with `adapter-deno`, the store hierarchy (`GameStore` → `WorldState` + `PlayerInterpretiveState` + `TermState` + `UIState`), the engine module architecture, the generation pipeline as code, term-boundary orchestration with the absolute week counter, and background process scheduling. Includes the `TermState` interface with week tracking, term types, and energy management.
+The code-level specification. Covers the Deno runtime and toolchain (stripping Node dependencies, `deno.json` configuration), SvelteKit project structure with `@deno/svelte-adapter`, the store hierarchy (`GameStore` → `WorldState` + `PlayerInterpretiveState` + `TermState` + `UIState`), the engine module architecture, the generation pipeline as code, term-boundary orchestration with the absolute week counter, and background process scheduling. Includes the `TermState` interface with week tracking, term types, and energy management.
 
 ### Doc 09 — Implementation Roadmap
 
-Seven phases of sequential, demonstrable increments. Phase 1: Foundation (Deno migration, type system, seeded PRNG). Phase 2: Component Grammar (geometric primitives, bottom-up composition, constraint validation). Phase 3: World Building (chronology, cultures, material biases, tag classification). Phase 4: The Lens (interpretive model, five lens channels, observation filtering). Phase 5: Knowledge & Contradiction (knowledge graph, contradiction detection, strain, diegetic surfacing). Phase 6: Documents & Career (document tradition, dissemination pipeline, venue system, reputation, role progression). Phase 7: Integration & Polish (full loop testing, UI refinement, persistence, balancing). Each phase has a definition of done, dependency list, and effort estimate.
+Twenty-four sequential, demonstrable phases: foundation (phase 1), the generation pipeline and world state (phases 2–9), corpus generation, descriptions and the player interface (phases 10–12), knowledge (phases 13–14), the lens (phases 15–16), contradictions (phases 17–18), persistence (phase 19), career (phases 20–21), NPCs (phases 22–23) and expansion tracks (phase 24). Each phase has a definition of done, and every phase grows the `/dev/explorer` developer workbench. The live task-level execution roadmap derived from doc 09 is `docs/roadmaps/mvp.md`.
 
 ### Doc 10 — Document Tradition System
 
@@ -58,27 +58,17 @@ Cross-cutting concerns and locked-in decisions that emerged during specification
 
 ### Doc 12 — Propagation Register
 
-A process document tracking cross-document consistency. When a design session produces changes that affect other documents, they’re logged here for the next propagation pass. Records nine completed propagation rounds covering the generation architecture, objective/subjective reconceptualisation, property visibility model, agent-generic interpretation principle, systems map rebuild, document tradition integration, time/action economy, week tracking, and summer-research term addition. No pending items remain.
+A process document tracking cross-document consistency. When a design session produces changes that affect other documents, they’re logged here for the next propagation pass. Records the completed propagation entries (sixteen at last count) covering the generation architecture, objective/subjective reconceptualisation, property visibility model, agent-generic interpretation principle, systems map rebuild, document tradition integration, time/action economy, week tracking, summer-research term addition and the 2026-07-04 roadmap-alignment decisions. No pending items remain.
 
 ### Doc 13 — Deferred Post-MVP Design Questions
 
-Three design areas explicitly parked for future development: alternative dissemination pathways (exhibitions, lectures, conference proceedings — different pipelines beyond standard text submission), emergent schools of thought (NPC scholars clustering into intellectual movements with citation networks and coordinated resistance to challenges), and publication quality metrics for role qualification (replacing flat publication counts with weighted impact scores). Each entry includes the original question, deferral rationale, architectural provisions already in place, and an MVP risk assessment. All three are rated low or no risk to the current architecture.
+Five design areas explicitly parked for future development: alternative dissemination pathways (exhibitions, lectures, conference proceedings — different pipelines beyond standard text submission), emergent schools of thought (NPC scholars clustering into intellectual movements with citation networks and coordinated resistance to challenges), publication quality metrics for role qualification (replacing flat publication counts with weighted impact scores), the five-register `ObservationRegister` acquisition system (MVP ships the three-register `DescriptionRegister`) and career activity execution (field seasons, conference presentations; MVP gates progression on reputation, publications and terms-in-role). Each entry includes the original question, deferral rationale, architectural provisions already in place, and an MVP risk assessment. All are rated low or no risk to the current architecture.
 
 -----
 
 ## Supplementary Files
 
-### Codebase (2026-01-31)
-
-A snapshot of the full SvelteKit codebase as of late January 2026. Contains the working tech demo (item + material generation with reactive state management), historical backlog attempts, in-repo documentation from earlier milestone specs, and Claude Code integration commands.
-
-### Directory Structure (2026-01-31)
-
-A tree view of the repository layout. Useful for orienting around the existing code without reading every file.
-
-### Stylistic Inspiration
-
-Reference games organised by what they inspire: UI (Strange Horticulture, 80 Days), procedural content generation (Caves of Qud, Dwarf Fortress, Ultima Ratio Regum, Beyond the Chiron Gate, Voyageur), and gameplay mechanics — both digital (Book of Hours, Strange Horticulture, Heaven’s Vault) and analogue (Microscope). Heaven’s Vault is specifically called out for its accumulative language translation system.
+The supplementary reference materials that previously accompanied these documents (a codebase snapshot dated 2026-01-31, a directory structure tree dated 2026-01-31 and a stylistic inspiration list) lived in the external design workspace and are not part of this repository.
 
 -----
 
@@ -86,7 +76,7 @@ Reference games organised by what they inspire: UI (Strange Horticulture, 80 Day
 
 **If you want the big picture:** Doc 02 → Doc 03 → Doc 04 (the pillars, the systems map, and the core mechanic).
 
-**If you’re implementing:** Doc 09 → the phase-relevant spec doc → Doc 08 (the roadmap tells you what to build, the spec doc tells you how, the architecture doc tells you where it goes).
+**If you’re implementing:** `docs/roadmaps/mvp.md` → Doc 09 → the phase-relevant spec doc → Doc 08 (the live roadmap tells you the current task, doc 09 gives the phase context, the spec doc tells you how, the architecture doc tells you where it goes).
 
 **If you’re reviewing the design:** Doc 02 → Doc 03 → Doc 05 → Doc 06 → Doc 07 → Doc 10 (pillars through to full system specifications).
 

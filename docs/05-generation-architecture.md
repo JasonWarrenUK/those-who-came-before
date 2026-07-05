@@ -89,7 +89,7 @@ interface CulturePhase {
 
 Culture A's "Expansion" might overlap with Culture B's "Settlement" and early "Consolidation." When the player encounters artefacts from both cultures in the same archaeological layer, they must work out the temporal relationship themselves — the game doesn't tell them that these periods overlap.
 
-`presentYear` anchors the chronology to the player's working moment. The difference between `presentYear` and an artefact's provenance `year` is its true age — but this is hidden from the player. Absolute dating is not free information (see Section 4.6).
+`presentYear` anchors the chronology to the player's working moment. The difference between `presentYear` and an artefact's provenance `year` is its true age — but this is hidden from the player. Absolute dating is not free information (see Section 4.7).
 
 ### 3.2 Multi-Attribute Phase Characteristics
 
@@ -404,7 +404,7 @@ A player who parrots consensus publishes confirmations and plateaus. A player wh
 
 For MVP: 3–4 NPC researchers, 6–8 simulated excavation campaigns across 2 cultures, ~15–20 summary publications establishing the baseline.
 
-### 4.6 Dating and Absolute Chronology
+### 4.7 Dating and Absolute Chronology
 
 The gap between `WorldChronology.endYear` and `WorldChronology.presentYear` is the distance between the vanished civilisations and the player's working moment. An artefact's true age is `presentYear - provenance.year` — but this is hidden. The player has to earn absolute dates.
 
@@ -981,6 +981,8 @@ If the player has been coasting on confirmatory evidence for too long, the next 
 
 ### 12.1 Observation Registers
 
+**MVP note:** MVP implements the three-value `DescriptionRegister` from doc 04 §3.4 ('observational' | 'interpretive' | 'technical'). The five-value `ObservationRegister` and the `RegisterAccess` acquisition model described in this section are deferred post-MVP (see doc 13).
+
 When a player inspects an artefact, the descriptions they receive are filtered through the registers available to them. Registers determine the *framing* of observations, not their truth.
 
 ```typescript
@@ -1126,6 +1128,8 @@ Note what is *not* guaranteed: per-artefact ambiguity. Some artefacts are obviou
 | No world generation | Chronology, culture, geology, and corpus generation | New system |
 
 The current item generation code is a prototype that proved the architecture works. The domain model is being replaced wholesale. The component architecture, state management patterns, and SvelteKit scaffolding all survive.
+
+**Update:** the pre-reset source files listed above were removed from `src/` in the repository reset and survive only in `backlog/` as reference; new code is written fresh.
 
 ---
 

@@ -58,6 +58,8 @@ The `componentRef` field aligns with the bottom-up component grammar (doc 05): a
 
 Two distinct axes track how an observation was framed. `epistemicMode` records whether the player was describing what they saw ('observational') or what they think it means ('interpretive') — a player can write "marks along the edge" or "evidence of repeated use," and the distinction matters for contradiction detection and lens calibration, since interpretive-mode notes carry more inferential weight. `observationRegister` records which doc 05 register (neutral, functional, aesthetic, ritual, technical) was active when the observation was made — this tracks the *framing* through which the evidence was presented, not the player's epistemic commitment to it. A player could make a technical-register, observational-mode note ("edge deformation consistent with contact against harder material") or a technical-register, interpretive-mode note ("this was used as a chisel"). Both axes feed into contradiction detection and lens calibration, but they're independent.
 
+**MVP note:** at MVP the `observationRegister` field uses the three-value `DescriptionRegister` from doc 04 §3.4 ('observational' | 'interpretive' | 'technical'); the five-register `ObservationRegister` model is post-MVP (see doc 13).
+
 ### 2.2 Inferences
 
 Logical connections between observations. "I noticed X in artefact A, and Y in artefact B, therefore Z."
@@ -406,7 +408,7 @@ interface ContradictionDetector {
 
 Contradictions against occluded world state properties surface as impossible artefacts and field reports. Contradictions against the professional corpus surface through peer channels — an NPC points out that the agent's claim conflicts with established consensus, or a reviewer cites existing literature that contradicts the submission. The corpus can itself be wrong (doc 05, section 4.5 — calibrated wrongness), so contradictions between the player and the corpus don't always mean the player is wrong. They mean there's a disagreement, and the player must decide whether to defer to authority or trust their own evidence.
 
-The dating framework (doc 05, section 4.6) adds a temporal dimension to detection. If the player assigns an artefact to a period that conflicts with the established dating framework, that's a corpus contradiction. If the dating framework itself is wrong and the player has commissioned independent dating, the player may be right — and publishing that challenge follows the claim magnitude system.
+The dating framework (doc 05, section 4.7) adds a temporal dimension to detection. If the player assigns an artefact to a period that conflicts with the established dating framework, that's a corpus contradiction. If the dating framework itself is wrong and the player has commissioned independent dating, the player may be right — and publishing that challenge follows the claim magnitude system.
 
 Detection also considers the epistemic mode of observations. Observations recorded in interpretive mode (conclusions, not raw descriptions) are more likely to participate in contradictions than observational-mode notes, because interpretations carry more inferential weight.
 

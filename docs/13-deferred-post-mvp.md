@@ -102,4 +102,46 @@ The `RoleRequirements` interface (doc 07, Section 4.2) already has fields for bo
 
 ---
 
+## 4. Five-Register Observation System
+
+**Origin:** Doc 05, Section 12 (decision recorded 2026-07-04)
+**Deferred because:** MVP ships the three-register `DescriptionRegister` from doc 04, Section 3.4 ('observational' | 'interpretive' | 'technical'). The five-value `ObservationRegister` and its `RegisterAccess` acquisition model add progression texture that the core loop does not require.
+
+### The Question
+
+Doc 05, Section 12 specifies five observation registers ('neutral', 'functional', 'aesthetic', 'ritual', 'technical') with an unlock model: `neutral` is always available and the others unlock through exposure and practice, tracked per domain via `RegisterAccess` (observation counts, inference counts, contradictions resolved, domain exposure). Post-MVP questions: how quickly registers should unlock, whether domain-specific proficiency is legible to the player and how documents written under the three-register MVP model map onto the five-register scheme.
+
+### Architectural Provisions
+
+Description generation (doc 05, Section 13) is template-driven and register-parameterised, so widening the register union is a data and template change rather than a structural one. Observations record their register at creation (doc 06, Section 2.1), so saves made under the three-register model remain interpretable.
+
+### MVP Risk Assessment
+
+**Low risk.** The `observationRegister` field is optional and typed by a union; extending the union is a localised change. The main migration concern is mapping the three MVP values onto the five-value scheme, since 'interpretive' has no single equivalent, which may require a save migration.
+
+**Affects:** doc 04 (register selection under lens), doc 05 (Sections 12 and 13), doc 06 (observation records).
+
+---
+
+## 5. Career Activity Execution and Player-Facing Sabbatical
+
+**Origin:** Doc 07, Sections 4.1, 4.2 and 7 (decision recorded 2026-07-04)
+**Deferred because:** MVP career progression (postdoc to junior lecturer) gates on reputation, publications and terms-in-role only. Executing career activities (field seasons, conference presentations) is content the single MVP transition does not need.
+
+### The Question
+
+Doc 07 defines career activities that consume time and energy within the term economy. MVP ships the activity type definitions and the economy that would price them, but no activity execution. Sabbatical ships as engine hooks only: background drain zeroing and the -0.15 lens strength modifier (doc 04, Section 4) exist in the engine, while player-facing availability (Reader/Professor gating, cooldown rules) is deferred. Post-MVP questions: which activities return first, how field seasons generate new excavations and whether conference presentations feed the 'presented' dissemination state's graduated lens weight.
+
+### Architectural Provisions
+
+`RoleRequirement.activities` remains in the interface, with `activities: []` for the junior-lecturer transition, so activity gating can be reintroduced per role without an interface change. The term economy (doc 08, Section 3.6) already models concurrent activities with time and energy costs. The sabbatical hooks are engine-complete and need only a player-facing trigger.
+
+### MVP Risk Assessment
+
+**Low risk.** Activity execution layers onto existing interfaces (`ActiveActivity`, `RoleRequirement.activities`) without changing them. The 'presented' dissemination state and its 0.15 lens factor already exist, so conference presentations have a landing site when they arrive.
+
+**Affects:** doc 04 (sabbatical lens modifier), doc 07 (activities, role advancement, MVP scope), doc 10 ('presented' dissemination state).
+
+---
+
 *This document is a living registry. Items are added when design questions are explicitly deferred from the current development round.*

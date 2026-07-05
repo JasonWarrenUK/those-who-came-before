@@ -211,7 +211,7 @@ The lens shouldn't be binary (on/off) — it should scale with the player's comm
 interface LensStrength {
   hypothesisId: string;
   factors: {
-    dissemination: number;       // Graduated: 0 (private), 0.1 (circulated), 0.2 (submitted), 0.3 (published), 0.35 (collected)
+    dissemination: number;       // Graduated: 0 (private), 0.1 (circulated), 0.15 (presented), 0.2 (submitted), 0.3 (published), 0.35 (collected)
     venuePrestige: number;       // 0–1, multiplied with dissemination. High-prestige publication = stronger lock-in.
     confidence: number;          // 0–1 direct mapping from hypothesis confidence
     evidenceCount: number;       // log2(count) * 0.1, capped at 0.3

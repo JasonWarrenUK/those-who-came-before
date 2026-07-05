@@ -23,7 +23,7 @@ Deno replaces Node entirely. This means:
 | `.prettierrc` + `.prettierignore` + deps | `deno fmt` | Remove |
 | `tsconfig.json` | `deno.json` compilerOptions | Merge & simplify |
 | `.npmrc` | Not needed | Remove |
-| `@sveltejs/adapter-node` | `@sveltejs/adapter-deno` (or `svelte-adapter-deno`) | Swap |
+| `@sveltejs/adapter-node` | `@deno/svelte-adapter` | Swap |
 
 ### 1.3 `deno.json` (Projected)
 
@@ -73,7 +73,7 @@ Note: The SvelteKit + Deno story has a wrinkle — Vite still runs through npm s
 ```
 those-who-came-before/
 ├── deno.json                           # Tasks, compiler options, fmt/lint config
-├── svelte.config.js                    # SvelteKit config (adapter-deno)
+├── svelte.config.js                    # SvelteKit config (@deno/svelte-adapter)
 ├── vite.config.ts                      # Vite plugins
 │
 ├── src/
@@ -104,7 +104,6 @@ those-who-came-before/
 │       │   ├── generation/
 │       │   │   ├── grammar.ts          # Bottom-up component grammar (geometric primitives)
 │       │   │   ├── plausibility.ts     # Plausibility checking (physical viability)
-│       │   │   ├── accumulation.ts     # Pattern-based classification accumulation
 │       │   │   ├── materials.ts        # Material assignment with geological scarcity + culture bias
 │       │   │   ├── decoration.ts       # Decorative grammar (post-material, layered)
 │       │   │   ├── classification.ts   # Unified tag classification (structural + decorative)
@@ -115,7 +114,7 @@ those-who-came-before/
 │       │   ├── world/
 │       │   │   ├── chronology.ts       # Period generation
 │       │   │   ├── culture.ts          # Culture generation
-│       │   │   ├── provenance.ts       # Site/context generation
+│       │   │   ├── provenance.ts       # Site/context generation (folded into engine/generation/excavation.ts; the roadmap implements provenance generation there)
 │       │   │   ├── scholars.ts         # Scholar entity generation (player + NPC)
 │       │   │   └── seed.ts             # PRNG + world seed
 │       │   ├── lens/
@@ -229,7 +228,6 @@ those-who-came-before/
 │   ├── engine/
 │   │   ├── grammar.test.ts
 │   │   ├── plausibility.test.ts
-│   │   ├── accumulation.test.ts
 │   │   ├── materials.test.ts
 │   │   ├── decoration.test.ts
 │   │   ├── classification.test.ts
@@ -333,7 +331,7 @@ interface InterpretiveModel {
   methodologicalWeights: MethodologicalProfile;
 
   // Contradiction state (claims under tension)
-  strainScores: Map<string, StrainScore>;
+  strainScores: Map<string, HypothesisStrain>;      // Canonical strain type (doc 06 §5)
   contradictionQueue: ContradictionQueue;
 }
 ```
@@ -723,7 +721,9 @@ export interface SaveFile {
   savedAt: string;
   seed: string;
   worldState: SerialisedWorldState;     // Everything that exists
-  playerInterpretation: SerialisedInterpretiveModel;  // Player's epistemic model
+  playerInterpretation: SerialisedInterpretiveModel;  // Player's epistemic model (includes serialised contradiction queue)
+  termState: SerialisedTermState;       // Calendar position + energy budget
+  // lensState is NOT persisted: it is recomputed from playerInterpretation on load
   metadata: {
     playTime: number;                   // Seconds
     artefactsExamined: number;
@@ -815,7 +815,6 @@ All engine modules get unit tests. These run with `deno test` — fast, no brows
 tests/engine/
 ├── grammar.test.ts          # Component grammar produces valid structures
 ├── plausibility.test.ts     # Invalid structures rejected, valid ones pass
-├── accumulation.test.ts     # Pattern-based classification works correctly
 ├── materials.test.ts        # Cultural bias + scarcity affects distribution
 ├── decoration.test.ts       # Decorative layers respect material prerequisites
 ├── classification.test.ts   # Structural + decorative features → expected tags
@@ -969,6 +968,8 @@ Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 
 | `src/lib/components/Timeline.svelte` | → `src/lib/components/world/Timeline.svelte` (expanded) |
 | `backlog/` | Preserved as historical reference |
 
+**Update:** the tooling half of this table was completed in the Deno migration, and the listed `src/` source files were removed in the repository reset; they now live in `backlog/`, not `src/lib/`.
+
 ### 8.3 Migration Order
 
 1. **Deno migration** (runtime swap, strip Node tooling, verify deps)
@@ -976,7 +977,7 @@ Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 
 3. **PRNG** (seeded random, replacing `Math.random()`)
 4. **Engine skeleton** (directory structure, empty modules with type signatures — including `interpretation/`, `documents/`)
 5. **Component grammar + plausibility** (bottom-up geometric primitives, plausibility checking)
-6. **Accumulation + classification** (pattern-based tag accumulation, unified classification)
+6. **Feature extraction + classification** (single-pass unified extraction with rule-based tag scoring per doc 05 §9; the accumulation-during-expansion model was superseded 2026-07-04)
 7. **Material assignment** (geological scarcity + culture-biased selection)
 8. **Decorative grammar** (post-material decorative layer with layering support)
 9. **Store refactor** (split gameState into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator)
@@ -988,7 +989,7 @@ Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 
 15. **Interpretation layer** (claim creation, inference chains, methodological profiles — agent-generic `InterpretiveModel` operations, player store + UI)
 16. **Document tradition** (lineage graph, dissemination state machine, commitments, form classification, venue generation — doc 10)
 17. **Contradiction detection** (compares `InterpretiveModel` against occluded properties, strain accumulation, diegetic surfacing)
-18. **Persistence** (IndexedDB save/load — serialises `worldState` + `playerInterpretation`)
+18. **Persistence** (IndexedDB save/load — serialises `worldState` + `playerInterpretation` + `termState`; lensState is recomputed on load)
 19. **Career integration** (reputation as scholar property, dissemination as career events, role advancement, peer review — doc 07)
 20. **Minimal NPCs** (named peer review, contradiction delivery, review selection based on NPC `InterpretiveModel`)
 

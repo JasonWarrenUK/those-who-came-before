@@ -123,7 +123,7 @@ The interface prioritises legibility of the player's current knowledge state, re
 | Which document types are core? | Artefact studies, material generalisations, cultural profiles, and the revision record. Everything else is expansion. | Pillar 4 + 6 |
 | NPC scholars for MVP? | No. The player can be their own unreliable narrator without rivals. NPCs add richness but not mechanism. | Pillar 5 |
 | Persistence approach? | IndexedDB for web. It's the path of least resistance for structured data in a browser. | Pillar 4 (long-form play needs persistence; this is the simplest path) |
-| Stack confirmation? | SvelteKit + Deno (adapter-deno). Runtime locked to Deno as of February 2026; Node tooling stripped. | Pragmatism |
+| Stack confirmation? | SvelteKit + Deno (`@deno/svelte-adapter`). Runtime locked to Deno as of February 2026; Node tooling stripped. | Pragmatism |
 
 ---
 

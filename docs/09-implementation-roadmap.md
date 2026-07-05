@@ -126,6 +126,8 @@ Small-to-moderate. The rules are enumerable. The interesting work is calibrating
 
 **Pattern-based classification during grammar expansion**
 
+> **Superseded (decision recorded 2026-07-04):** the accumulation-during-expansion model described in this phase was superseded by doc 05 §9's single-pass unified feature extraction. The roadmap implements unified extraction; the former task for accumulation-during-expansion was removed.
+
 ### What Gets Built
 
 - Tag taxonomy (`FunctionTag`, `ContextTag`)

@@ -294,6 +294,7 @@ interface FormReclassificationEvent {
     basis: string;
   }[];
 }
+```
 
 ---
 
@@ -310,8 +311,8 @@ Energy carry-over between terms creates long-arc consequences. A player who push
 ```typescript
 interface TermState {
   termIndex: number;                     // 0-based, within the career
-  year: number;                          // Derived: Math.floor(termIndex / 3)
-  termInYear: 1 | 2 | 3;
+  year: number;                          // Derived: Math.floor(termIndex / 4)
+  termType: TermType;                    // 'autumn' | 'spring' | 'summer-teaching' | 'summer-research'
   timeRemaining: number;                 // Weeks remaining in this term
   energy: number;                        // Current energy level
   energyCap: number;                     // Maximum energy (may vary by circumstance)
@@ -333,6 +334,8 @@ interface BackgroundDrain {
   roleImposed: boolean;                  // true = mandatory for current role
 }
 ```
+
+**Note:** canonical term and time types live in doc 08 §3.6 (TERMS_PER_YEAR = 4, `currentAbsoluteWeek`); this block shows only the career-specific fields.
 
 **Background drains by role:**
 
@@ -431,7 +434,7 @@ const roleRequirements: Record<AcademicRole, RoleRequirement> = {
   'junior-lecturer': {
     reputation: { rigour: 0.3, originality: 0.2 },
     publishedDocuments: 2,
-    activities: ['field-season'],
+    activities: [],                      // Field-season gating is post-MVP; activity execution is not in MVP scope
     minTermsInRole: 3                    // ~1 year as postdoc
   },
   'senior-lecturer': {
@@ -615,11 +618,11 @@ The oracle problem doesn't need a special rule. The existing systems make intell
 - Contradiction delivery via peer letter channel
 - Reputation model (all five dimensions)
 - Standard dissemination pipeline only (private → circulated → submitted → published)
-- Career roles: postdoc → junior lecturer (two roles, one transition)
-- Activities: field season, conference presentation (two types)
+- Career roles: postdoc → junior lecturer (two roles, one transition), gated on reputation, publications and terms-in-role only
 
 ### First Expansion
 
+- Activity execution: field season, conference presentation (two types); post-MVP, since MVP progression gates on reputation, publications and terms-in-role only
 - Curatorial and popular publication tracks
 - Student supervision activity + student question channel
 - Peer review activity (the mirror)
