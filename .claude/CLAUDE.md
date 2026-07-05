@@ -4,70 +4,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Those Who Came Before** is an archaeological artifact discovery game where player mistakes compound into an unreliable narrative. The core mechanic: your interpretations create a lens that filters future observations, leading to confirmation bias and systematic error.
+**Those Who Came Before** is an archaeological artefact discovery game where player mistakes compound into an unreliable narrative. The core mechanic: your interpretations create a lens that filters future observations, leading to confirmation bias and systematic error.
 
-**Current Status**: Extensive design specification (docs 00-13) with minimal implementation. A basic SvelteKit tech demo exists (item+material generation), but the full system remains unbuilt.
+**Current Status**: Extensive design specification (docs 00-13). The repo was reset for launch: `src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming); the old tech demo is archived in `backlog/` as dead reference code. Implementation restarts from Milestone 1 of `docs/roadmaps/mvp.md` (Deno migration tasks 1FD.1–1FD.5 complete).
 
 ## Critical Context
 
 ### Documentation Primacy
 
-This project has **13 comprehensive design documents** (docs/00-13) that specify every system in detail. When working on this codebase:
+This project has **14 comprehensive design documents** (docs/00-13) that specify every system in detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on this codebase:
 
 1. **Always check the design docs first** before implementing anything
-2. The docs are the source of truth, not the current code
+2. The docs are the source of truth for design; `docs/roadmaps/mvp.md` is the source of truth for task sequencing and completion state
 3. Current implementation is ~2% complete; most systems exist only in specification
 
 ### Reading Guide by Task
 
 - **Understanding the vision**: Read docs 02 (Design Pillars) → 03 (Core Loop) → 04 (Interpretive Lens)
-- **Implementing a feature**: Read doc 09 (Roadmap) → relevant spec doc → doc 08 (Architecture)
+- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (authoritative task list + status) → relevant spec doc → doc 08 (Architecture)
 - **Working on generation**: Doc 05 (Generation Architecture) — most technically dense
 - **Working on documents/career**: Doc 06 (Knowledge Model) → doc 07 (Career) → doc 10 (Documents)
 - **Understanding decisions**: Doc 11 (Deferred Decisions) → doc 13 (Post-MVP)
 
 ## Development Commands
 
-**Note**: Project targets Deno runtime but hasn't migrated yet. Current commands assume Node/npm until Phase 1 migration.
+The Deno migration is complete (roadmap tasks 1FD.1–1FD.5). There is no `package.json`; npm commands do not work here.
 
-### Current (Pre-Migration)
 ```bash
-npm install              # Setup (when package.json exists)
-npm run dev              # Dev server with HMR
-npm run build            # Production build
-npm run preview          # Preview production build
-npm run check            # Type checking
-npm run check:watch      # Continuous type checking
-npm run lint             # Check formatting + ESLint
-npm run format           # Auto-format with Prettier
-```
-
-### Target (Post-Deno Migration — Phase 1)
-```bash
-deno task dev            # Dev server
+deno task dev            # Dev server with HMR
 deno task build          # Production build
-deno task preview        # Preview build
-deno task check          # Type checking
-deno fmt                 # Format (replaces Prettier)
-deno lint                # Lint (replaces ESLint)
-deno test                # Run tests
+deno task preview        # Preview production build
+deno task check          # Type checking (svelte-check via deno)
+deno fmt                 # Format (replaced Prettier)
+deno lint                # Lint (replaced ESLint)
+deno test                # Run tests (runner config lands with task 1FD.34)
 ```
 
 ## Architecture
 
 ### Tech Stack
 
-**Current**:
-- Framework: Svelte 5.0 (Runes) + SvelteKit 2.22
-- Build: Vite 7.0
-- Styling: Tailwind CSS 4.0 + DaisyUI 5.1
-- Language: TypeScript 5.0
-- Runtime: Node (to be replaced)
-
-**Target** (from doc 08):
+- Framework: Svelte 5 (Runes) + SvelteKit 2
+- Build: Vite 7
+- Styling: Tailwind CSS 4 + DaisyUI 5
+- Language: TypeScript 5
 - Runtime: Deno (native TypeScript, built-in tooling)
-- Adapter: `adapter-deno` (replaces `adapter-node`)
-- Everything else unchanged
+- Adapter: `@deno/svelte-adapter` (replaced `adapter-node`)
 
 ### State Architecture (Target)
 
@@ -222,26 +204,11 @@ From doc 11, section 2.8:
 
 ## Implementation Roadmap
 
-From doc 09. Work proceeds in **demonstrable phases**:
+The execution roadmap is **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP NPC Systems) with task IDs, checkbox completion state, dependency edges and a status table. Always take task selection and completion state from it. Doc 09 is the narrative source it was derived from (24 phases with design rationale); when they diverge on sequencing, `mvp.md` governs.
 
-### Phase 1: Foundation
-- Deno migration
-- Type system (all interfaces from design docs)
-- Seeded PRNG
-- Test infrastructure
+Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Generation Pipeline → 3 World State & Integration → 4 Player Interface → 5 Knowledge Model → 6 Lens System → 7 Contradictions → 8 Persistence → 9 Career & Publication → 10 NPC Systems.
 
-### Phase 2: Component Grammar
-- Geometric primitives
-- Bottom-up composition
-- Typed joins
-
-### Phase 3: Plausibility Checker
-- Physical viability rules
-- Ergonomic constraints
-
-### Phase 4–7: See doc 09 for full sequence
-
-**Each phase produces something runnable and testable.** The Project Explorer (`/dev/explorer`) is the developer workbench that grows with each phase.
+**Each milestone produces something runnable and testable.** The Project Explorer (`/dev/explorer`) is the developer workbench that grows with each milestone.
 
 ## File Naming Conventions
 
@@ -255,7 +222,7 @@ From doc 09. Work proceeds in **demonstrable phases**:
 Uses **DaisyUI** on **Tailwind CSS**:
 - Themes: caramellatte (light) + coffee (dark)
 - Pre-built components: cards, buttons, timelines, badges
-- Tailwind class ordering via Prettier plugin (until Deno migration)
+- Formatting via `deno fmt` (the `fmt-component` unstable flag covers Svelte files)
 
 When building custom components:
 - Follow DaisyUI class patterns
@@ -304,11 +271,10 @@ For complex outputs (generated artefacts, lens-filtered descriptions).
 ## Current Implementation Status
 
 **What exists**:
-- ✅ SvelteKit structure with Svelte 5 Runes
-- ✅ Basic reactive state management
-- ✅ Simple item+material generation (coin-flip random, not simulation)
-- ✅ Timeline component
-- ✅ DaisyUI styling
+- ✅ SvelteKit + Svelte 5 scaffold on Deno (`deno.json`, `@deno/svelte-adapter` configured — tasks 1FD.1–1FD.5)
+- ✅ Single route (`src/routes/+page.svelte`) and three static components (Header, Footer, Timeline empty state)
+- ✅ Tailwind + DaisyUI theming (caramellatte/coffee) in `app.css`
+- ✅ Old item+material demo archived in `backlog/` (dead reference code, not wired into the app)
 
 **What's specified but unbuilt**:
 - ⏳ Everything in docs 00-13
@@ -340,7 +306,7 @@ When making any design decision, these take precedence.
 ### When Adding a Feature
 
 1. Check if it's already specified in docs 00-13
-2. If yes: implement per spec in the appropriate phase (doc 09)
+2. If yes: implement per spec in the appropriate milestone task (`docs/roadmaps/mvp.md`)
 3. If no: check against design pillars (doc 02)
 4. Ensure it fits the data flow (engine → stores → components)
 
@@ -369,32 +335,15 @@ When making any design decision, these take precedence.
 
 From doc 09: A developer-facing UI at `/dev/explorer` for testing each system as it's built. Not the player UI.
 
-Features grow per phase:
-- Phase 1: Seed input, PRNG output display, type index
-- Phase 2: Structure viewer, culture profile selector, re-roll button
-- Phase 3: Plausibility panel with rejection reasons
-- Later phases: Add tabs for lens testing, contradiction inspection, document lineage, etc.
+Features grow per milestone (see the Explorer-extension tasks in each milestone of `docs/roadmaps/mvp.md`):
+- Milestone 1: Seed input, PRNG output display, type index
+- Milestone 2: Structure viewer, plausibility panel, tag inspector, material/decoration/description viewers, corpus browser
+- Milestone 3: Chronology timeline, culture profiles, store inspector
+- Later milestones: Lens testing, contradiction inspection, document lineage, career state, NPC panels
 
 ## Migration Notes
 
-### From Current Codebase to Target
-
-What gets preserved:
-- SvelteKit structure (`src/routes/`, `src/lib/`)
-- Svelte 5 Runes patterns
-- Tailwind + DaisyUI
-- Component architecture philosophy
-- Immutable update patterns
-
-What gets replaced:
-- `package.json` → `deno.json`
-- `eslint.config.js` → `deno lint`
-- `.prettierrc` → `deno fmt`
-- `src/lib/services/itemGenerator.ts` → `src/lib/engine/generation/pipeline.ts` (9 modules)
-- `src/lib/stores/gameState.svelte.ts` → Split into 4 stores + orchestrator
-- `src/lib/data/items.ts` → `src/lib/data/grammars/primitives.ts`
-
-See doc 08, section 8 for full migration sequence.
+The Deno migration (roadmap tasks 1FD.1–1FD.5) is complete: `deno.json` replaced `package.json`, and `deno fmt`/`deno lint` replaced Prettier/ESLint. The pre-migration tech demo (`itemGenerator.ts`, `materials.ts`, `item-grammars/`) lives in `backlog/` and is reference-only, not a porting source; new engine code is written fresh in `src/lib/engine/` per docs 05 and 08 and the roadmap tasks (pipeline at 2GN.x, stores at 3WS.x).
 
 ## Glossary
 
@@ -405,10 +354,13 @@ See doc 08, section 8 for full migration sequence.
 - **Dissemination state**: Where a document is in publication pipeline
 - **Absolute week**: Canonical timestamp spanning entire career (never resets)
 - **Strain**: Accumulated pressure from unresolved contradictions
+- **Spelling**: always "artefact", never "artifact", in identifiers, filenames and prose (British spelling throughout)
 
 ## References
 
+- `docs/roadmaps/mvp.md`: Execution roadmap (TASK SEQUENCE — authoritative for what to build next)
 - Doc 00: Project overview (navigation guide)
+- Doc 01: Project audit (historical snapshot of the pre-reset codebase)
 - Doc 02: Design pillars
 - Doc 03: Core loop & systems map
 - Doc 04: Interpretive lens (core mechanic)
@@ -416,7 +368,8 @@ See doc 08, section 8 for full migration sequence.
 - Doc 06: Knowledge & contradiction model
 - Doc 07: Career & social systems
 - Doc 08: Technical architecture (THIS IS YOUR BUILD GUIDE)
-- Doc 09: Implementation roadmap (PHASE SEQUENCE)
+- Doc 09: Implementation roadmap narrative (source doc for mvp.md; design rationale)
 - Doc 10: Document tradition system
 - Doc 11: Deferred design questions (locked decisions)
+- Doc 12: Propagation register (cross-doc consistency log)
 - Doc 13: Post-MVP deferrals
