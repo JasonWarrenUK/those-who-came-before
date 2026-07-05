@@ -19,8 +19,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 ---
 
-## Contents
-
 - [Milestones](#milestones)
   - [Milestone 1: Foundation](#m1)
   - [Milestone 2: Generation Pipeline](#m2)
@@ -35,6 +33,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [Progress Map](#map)
 - [Links](#links)
 - [Beyond MVP](#post-mvp)
+
+---
+
+## Milestones
 
 <details>
 <summary><a name="m1"><h3>Milestone 1: Foundation</h3></a></summary>
