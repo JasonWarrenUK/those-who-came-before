@@ -7,13 +7,13 @@ description: MVP implementation roadmap from foundation through NPC social syste
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
 | **FD**   | In progress             | 1FD.6             | —                 |
-| **GN**   | Not started             | —                 | 1FD.6             |
-| **WS**   | Not started             | —                 | 2GN.28            |
-| **UI**   | Not started             | —                 | 3WS.10            |
+| **GN**   | Not started             | —                 | 1FD.10            |
+| **WS**   | Not started             | —                 | 2GN.56            |
+| **UI**   | Not started             | —                 | 3WS.15            |
 | **KN**   | Not started             | —                 | 4UI.6             |
-| **LS**   | Not started             | —                 | 5KN.7             |
+| **LS**   | Not started             | —                 | 5KN.12            |
 | **CD**   | Not started             | —                 | 6LS.5             |
-| **PS**   | Not started             | —                 | 7CD.5             |
+| **PS**   | Not started             | —                 | 7CD.25            |
 | **CR**   | Not started             | —                 | 8PS.5             |
 | **NP**   | Not started             | —                 | 9CR.12            |
 
@@ -58,29 +58,29 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Type system**
 
 - [ ] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType`
-- [ ] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`
+- [ ] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §7)
 - [ ] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude`
 - [ ] 1FD.13. `src/lib/types/decoration.ts` — `DecorativeLayer`, `DecorativeTechnique`, surface/applied/textile element types
-- [ ] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `WorldChronology`, `CultureTimeline`, `CulturePhase`, `PhaseCharacteristics`, `Culture`, `CulturalProfile`, `CraftInvestmentProfile`
+- [ ] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `WorldChronology`, `CultureTimeline`, `CulturePhase`, `PhaseCharacteristics`, `Culture`, `CulturalProfile`, `CraftInvestmentProfile`, `MotifSet`
 - [ ] 1FD.15. `src/lib/types/world.ts` — `CultureRelationship`, `RelationshipPhase`, `RelationshipDynamics`, `MaterialFlow`
-- [ ] 1FD.16. `src/lib/types/world.ts` — `Provenance`, `SiteType`, `PreservationState`, `DepositionType`, `GeologicalContext`, `RegionalAvailability`, `AvailabilityLevel`
+- [ ] 1FD.16. `src/lib/types/world.ts` — `Provenance`, `SiteType`, `PreservationState`, `DepositionType`, `GeologicalContext`, `RegionalAvailability`, `AvailabilityLevel` (site-composition/excavation types live here; doc 08's `types/excavation.ts` is folded in)
 - [ ] 1FD.17. `src/lib/types/world.ts` — `DatingFramework`, `LayerDating`, `DatingMethod`
 - [ ] 1FD.18. `src/lib/types/interpretation.ts` — `InterpretiveModel`, `Observation`, `Inference`, `EvidenceLink`, `InferenceScope`, `Hypothesis`, `Confidence`
-- [ ] 1FD.19. `src/lib/types/interpretation.ts` — `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile`, `StrainScore`
+- [ ] 1FD.19. `src/lib/types/interpretation.ts` — `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired)
 - [ ] 1FD.20. `src/lib/types/lens.ts` — `LensStrength`, `ObservationSalience`, `ClassificationSuggestion`, `CrossReference`, `DescriptionFrame`, `OmissionCheck`, `LensState`
-- [ ] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`
+- [ ] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`)
 - [ ] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage`
 - [ ] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification`
-- [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`
+- [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP)
 - [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain`
 - [ ] 1FD.26. `src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType`
-- [ ] 1FD.27. `src/lib/types/career.ts` — `BackgroundDrain`, `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
-- [ ] 1FD.28. `src/lib/types/term.ts` — `TermType`, `AcademicYear`, `TermState`, constants (`WEEKS_PER_TERM`, `TERMS_PER_YEAR`), helpers (`termStartWeek`, `weekInTerm`, `termIndexFromWeek`, `yearFromTerm`)
+- [ ] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
+- [ ] 1FD.28. `src/lib/types/term.ts` — `TermType`, `AcademicYear`, `TermState`, `BackgroundDrain`, `CompletedAction` (doc 08 §3.6 places both in term.ts), constants (`WEEKS_PER_TERM`, `TERMS_PER_YEAR`), helpers (`termStartWeek`, `weekInTerm`, `termIndexFromWeek`, `yearFromTerm`)
 - [ ] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation`
-- [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
-- [ ] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ObservationRegister`, `RegisterAccess`
+- [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
+- [ ] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ProvenancePresentation`, `DescriptionRegister` (`'observational' | 'interpretive' | 'technical'` per doc 04 §3.4; the five-value `ObservationRegister` + `RegisterAccess` acquisition model from doc 05 §12 is post-MVP)
 - [ ] 1FD.32. `src/lib/types/visibility.ts` — `PropertyVisibility` enum (`observable`, `inferable`, `occluded`, `engine-internal`), visibility annotation helpers
-- [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `CURRENT_SAVE_VERSION`
+- [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
 
 **Test infrastructure**
 
@@ -101,7 +101,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Deno migration**
 
 - [x] 1FD.1. Create `deno.json` with tasks, compilerOptions, fmt/lint config
-- [x] 1FD.2. Swap `adapter-node` for `adapter-deno` in `svelte.config.js`
+- [x] 1FD.2. Swap `adapter-node` for `@deno/svelte-adapter` in `svelte.config.js`
 - [x] 1FD.3. Strip Node tooling (`.prettierrc`, `.prettierignore`, `.npmrc`)
 - [x] 1FD.4. Verify npm deps via `npm:` specifiers (Svelte 5, SvelteKit 2, Vite 7, Tailwind 4, DaisyUI 5)
 - [x] 1FD.5. Verify `deno task dev` serves app, `deno task check` passes
@@ -111,7 +111,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <summary><a name="m2"><h3>Milestone 2: Generation Pipeline</h3></a></summary>
 
 > [!IMPORTANT]
-> **Goal:** Full 9-stage artefact generation (grammar → plausibility → tags → materials → decoration → classification → description → excavation → corpus)
+> **Goal:** Artefact generation per doc 05 — per-artefact stages 4–8 (grammar → normalisation/plausibility → materials → decoration → unified feature extraction + classification), description templates (stage 9), plus excavation composition and initial corpus (stage 3, generated against mock world fixtures until 3WS.15 wires real `WorldState`)
 
 <a name="m2-doing"><h4>In Progress (Milestone 2)</h4></a>
 
@@ -119,8 +119,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Static data — primitives & grammar rules**
 
-- [ ] 2GN.1. `src/lib/data/grammars/primitives.ts` — geometric primitive defs (elongated, cylindrical, flat-broad, hollow-enclosed, ring-form, disc-form, bar-form, sheet-form) with parameter enums — **depends on 1FD.6**
-- [ ] 2GN.2. `src/lib/data/grammars/core.ts` — MVP component grammar rules: `<object>` → `<component-group>+`, `<component-group>` → `<primary-component>` + optional attachments, base weights
+- [ ] 2GN.1. `src/lib/data/grammars/primitives.ts` — geometric primitive defs (elongated, cylindrical, flat-broad, hollow-enclosed, ring-form, disc-form, bar-form, sheet-form) with parameter enums — **depends on 1FD.10**
+- [ ] 2GN.2. `src/lib/data/grammars/core.ts` — MVP component grammar rules: `<object>` → `<component-group>+`, `<component-group>` → `<primary-component>` + optional attachments, base weights — **depends on 1FD.10**
 
 **Component grammar engine**
 
@@ -145,15 +145,15 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Tag accumulation & classification**
 
 - [ ] 2GN.17. `src/lib/data/classification.ts` — classification rules: feature→tag scoring, structural/container/decorative/cross-layer contributions — **depends on 1FD.12**
-- [ ] 2GN.18. `engine/generation/accumulation.ts` — pattern-based tag accumulation during grammar expansion — **depends on 2GN.3, 2GN.17**
-- [ ] 2GN.19. `engine/generation/classification.ts` — `extractFeatures(artefact): ExtractedFeatures` — unified feature extraction from components — **depends on 2GN.12**
-- [ ] 2GN.20. `engine/generation/classification.ts` — `classifyArtefact(features, rules): Map<FunctionTag|ContextTag, number>` — rule-based scoring
+- ~~2GN.18~~ *Removed 2026-07-04: superseded by doc 05 §9 single-pass unified feature extraction (see 2GN.19). Per-component tag breakdowns in the explorer derive from feature-to-tag scoring, not accumulation during expansion.*
+- [ ] 2GN.19. `engine/generation/classification.ts` — `extractFeatures(artefact): ExtractedFeatures` — unified feature extraction from components (initially structural features only; 2GN.27 and 2GN.34 complete the doc 05 stage-8 `ExtractedFeatures` contract with material and decorative fields) — **depends on 2GN.12**
+- [ ] 2GN.20. `engine/generation/classification.ts` — `classifyArtefact(features, rules): Map<FunctionTag|ContextTag, number>` — rule-based scoring — **depends on 2GN.17, 2GN.19**
 - [ ] 2GN.21. `engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)
 
 **Material assignment**
 
 - [ ] 2GN.22. `src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, geological scarcity, cultural affinity modifiers, decorability — **depends on 1FD.12**
-- [ ] 2GN.23. `engine/generation/materials.ts` — `assignMaterial(component, culture, phase, geology, trade, materials, prng): MaterialDefinition` — per-component assignment — **depends on 2GN.19**
+- [ ] 2GN.23. `engine/generation/materials.ts` — `assignMaterial(component, culture, phase, geology, trade, materials, prng): MaterialDefinition` — per-component assignment — **depends on 2GN.12, 2GN.22**
 - [ ] 2GN.24. `engine/generation/materials.ts` — `isAvailable(material, geology, trade): boolean` — local + trade availability check
 - [ ] 2GN.25. `engine/generation/materials.ts` — `computeMaterialWeight(material, culture, phase): number` — cultural affinity × phase technology
 - [ ] 2GN.26. `engine/generation/materials.ts` — `MaterialProvenance` metadata generation (source, origin region, trade path)
@@ -172,9 +172,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Description & register system**
 
 - [ ] 2GN.35. `src/lib/data/descriptions/observational/` — observational register templates per component type and decorative technique — **depends on 1FD.31**
-- [ ] 2GN.36. `src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants
-- [ ] 2GN.37. `src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing)
-- [ ] 2GN.38. `engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component — **depends on 2GN.34, 2GN.35**
+- [ ] 2GN.36. `src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants — **depends on 1FD.31**
+- [ ] 2GN.37. `src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing) — **depends on 1FD.31**
+- [ ] 2GN.38. `engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component — **depends on 2GN.34, 2GN.35, 2GN.36, 2GN.37**
 - [ ] 2GN.39. `engine/generation/description.ts` — template expansion: parameterised template system with property slots
 - [ ] 2GN.40. `engine/generation/description.ts` — per-component descriptions in all three registers for structural components
 - [ ] 2GN.41. `engine/generation/description.ts` — per-layer descriptions for decorative elements (techniques, motifs, materials)
@@ -186,11 +186,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 2GN.44. `engine/generation/excavation.ts` — excavation composition: generate artefact batches with contextual juxtapositions (settlement + ritual intrusion, burial + trade goods, workshop + prestige item) — **depends on 2GN.38**
 - [ ] 2GN.45. `engine/generation/excavation.ts` — ambiguity distribution targets (~30-40% clear, ~40-50% moderate, ~20-30% high)
 - [ ] 2GN.46. `engine/generation/excavation.ts` — soft batch monitoring: measure interpretive challenge distribution, steer next excavation if skewed
-- [ ] 2GN.47. `engine/generation/excavation.ts` — provenance generation: site name, site type (weighted by culture), region, layer, associated finds, preservation state, deposition type
+- [ ] 2GN.47. `engine/generation/excavation.ts` — provenance generation: site name, site type (weighted by culture), region, layer, associated finds, preservation state, deposition type (doc 08's `engine/world/provenance.ts` is folded in here) — **depends on 2GN.66**
 
 **Corpus generation**
 
-- [ ] 2GN.48. `engine/world/scholars.ts` — `generateNPCScholars(world, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage — **depends on 2GN.44**
+> [!NOTE]
+> M2 corpus tasks run against mock world fixtures (1FD.35); real `WorldState` data replaces the mocks at 3WS.15. Doc 05 sequences corpus as stage 3 (after world generation); building it here against fixtures keeps M2 self-contained without inverting that order at runtime.
+
+- [ ] 2GN.48. `engine/world/scholars.ts` — `generateNPCScholars(world, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage — **depends on 2GN.44, 2GN.66**
 - [ ] 2GN.49. `engine/world/scholars.ts` — NPC `InterpretiveModel` generation: cultural/artefact/chrono claims with calibrated wrongness (~70% correct, ~30% wrong)
 - [ ] 2GN.50. `engine/generation/corpus.ts` — `simulateExcavations(npcs, world, prng): SimulatedExcavation[]` — 6-8 campaigns biased by NPC preferences
 - [ ] 2GN.51. `engine/generation/corpus.ts` — `generatePublications(npcs, excavations, world, prng): DocumentNode[]` — ~15-20 summary publications with lineage and commitments
@@ -198,6 +201,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 2GN.53. `engine/generation/corpus.ts` — `aggregateCorpus(publications): ProfessionalCorpus` — material/form frequencies, context associations, active debates, consensus
 - [ ] 2GN.54. `engine/generation/corpus.ts` — dating framework generation per site: layer datings, methods, error margins, some deliberately wrong
 - [ ] 2GN.55. `engine/generation/corpus.ts` — calibrated wrongness distribution: interpretive errors, absence claim errors, rarity assessment errors, cross-cultural errors
+
+**Static data — names**
+
+- [ ] 2GN.66. `src/lib/data/names/` — naming grammars for sites, cultures, scholars (doc 08 `data/names/`) — **depends on 1FD.14**
 
 **Pipeline orchestrator**
 
@@ -244,6 +251,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Store refactor**
 
+> [!NOTE]
+> `termState` is deliberately deferred to 9CR.21; it depends on the energy/term mechanics built in M9. Doc 08 §3.3 and doc 09 Phase 12 include it in this refactor, but do not create it here.
+
 - [ ] 3WS.10. `src/lib/stores/worldState.svelte.ts` — reactive wrapper: chronology, artefacts, sites, scholars, documents, lineage graph, venues, career events — **depends on 3WS.9**
 - [ ] 3WS.11. `src/lib/stores/playerInterpretation.svelte.ts` — reactive wrapper around player's `InterpretiveModel` with immutable update methods (placeholder)
 - [ ] 3WS.12. `src/lib/stores/lensState.svelte.ts` — lens state store (placeholder, computed later)
@@ -260,7 +270,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 3WS.17. Explorer: chronology timeline with period boundaries
 - [ ] 3WS.18. Explorer: culture profiles with bias summaries
 - [ ] 3WS.19. Explorer: culture relationship graph visualisation
-- [ ] 3WS.20. Explorer: store inspector panel — live view of `worldState`, `playerInterpretation` contents
+- [ ] 3WS.20. Explorer: store inspector panel — live view of `worldState`, `playerInterpretation` contents (`termState` added at 9CR.21)
 
 <a name="m3-blocked"><h4>Blocked (Milestone 3)</h4></a>
 
@@ -309,7 +319,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Observation engine**
 
-- [ ] 5KN.1. `engine/interpretation/claims.ts` — `createObservation(artefactId, componentRef?, content, tags, confidence, epistemicMode, register): Observation` — **depends on 4UI.6**
+- [ ] 5KN.1. `engine/interpretation/claims.ts` — `createObservation(artefactId, componentRef?, decorativeRef?, content, tags, confidence, epistemicMode, register): Observation` — full `Observation` shape per doc 06 §2.1 — **depends on 4UI.6**
 - [ ] 5KN.2. `engine/interpretation/claims.ts` — `reviseObservation(id, newContent, newConfidence)` with superseded-by chain
 - [ ] 5KN.3. `engine/interpretation/claims.ts` — `ArtefactStudy` creation: collection of observations for a single artefact
 
@@ -368,7 +378,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Lens strength computation**
 
-- [ ] 6LS.1. `engine/lens/strength.ts` — `computeLensStrength(hypothesis, model, documents, venues): LensStrength` — dissemination (0-0.35), venuePrestige (0-1 multiplier), confidence (0-1), evidenceCount (log2×0.1, cap 0.3), taught (+0.2), cited (0.05/citation, cap 0.2), contradictions (-0.1 each), sabbatical (-0.15) — **depends on 5KN.12**
+- [ ] 6LS.1. `engine/lens/strength.ts` — `computeLensStrength(hypothesis, model, documents, venues): LensStrength` — dissemination (private 0, circulated 0.1, presented 0.15, submitted 0.2, published 0.3, collected 0.35), venuePrestige (0-1 multiplier), confidence (0-1), evidenceCount (log2×0.1, cap 0.3), taught (+0.2), cited (0.05/citation, cap 0.2), contradictions (-0.1 each), sabbatical (-0.15) — **depends on 5KN.12**
 - [ ] 6LS.2. `engine/lens/strength.ts` — `computeLens(model, documents, venues): LensState` — full lens state from all hypotheses
 - [ ] 6LS.3. `engine/lens/strength.ts` — per-tag lens weights: each hypothesis contributes specific tag boosts/suppressions based on tags + strength
 - [ ] 6LS.4. `engine/lens/strength.ts` — `computeLensWithDecay(model, documents, venues, termIndex): LensState` — natural decay (-0.02/term unpublished, -0.01/term published), contradiction pressure (-0.05/term cumulative), sabbatical flat reduction
@@ -415,10 +425,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 7CD.1. `engine/contradiction/detection.ts` — `detectContradictions(artefact, model, worldState, corpus): Contradiction[]` — agent-generic detector — **depends on 6LS.5**
 - [ ] 7CD.2. `engine/contradiction/detection.ts` — material contradiction rules (agent claims culture doesn't use material X, but artefact from that culture contains it)
 - [ ] 7CD.3. `engine/contradiction/detection.ts` — temporal contradiction rules (chronology conflicts with stratigraphic evidence)
-- [ ] 7CD.4. `engine/contradiction/detection.ts` — cultural contradiction rules (profile predictions contradicted by new evidence)
+- [ ] 7CD.4. `engine/contradiction/detection.ts` — cultural contradiction rules (agent's `CulturalClaim`s about a culture contradicted by new artefact evidence; MVP substitutes `CulturalClaim` for the post-MVP cultural-profile document — see Beyond MVP)
 - [ ] 7CD.5. `engine/contradiction/detection.ts` — structural contradiction rules (inference chain logical impossibility)
 - [ ] 7CD.6. `engine/contradiction/detection.ts` — provenance contradiction rules (context attribution conflicts with origin)
-- [ ] 7CD.7. `engine/contradiction/detection.ts` — corpus contradiction rules (player claims vs professional consensus — NB: corpus may be wrong)
+- [ ] 7CD.7. `engine/contradiction/detection.ts` — corpus contradiction rules (agent claims vs professional consensus — NB: corpus may be wrong)
 - [ ] 7CD.8. `engine/contradiction/detection.ts` — rarity contradiction rules (perceived rarity diverges from occluded distribution)
 - [ ] 7CD.9. `engine/contradiction/detection.ts` — material provenance contradiction rules (wrong explanation for material presence despite correct identification)
 - [ ] 7CD.10. `engine/contradiction/detection.ts` — severity scoring: `minor`/`moderate`/`major`/`critical` based on type, evidence weight, stakes
@@ -426,14 +436,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Strain model**
 
-- [ ] 7CD.12. `engine/contradiction/strain.ts` — `accumulateStrain(model, termIndex): Map<string, StrainScore>` — per-hypothesis strain from reinterpretations, partial mismatches, missing evidence, peer doubt — **depends on 7CD.1**
+- [ ] 7CD.12. `engine/contradiction/strain.ts` — `accumulateStrain(model, termIndex): Map<string, HypothesisStrain>` — per-hypothesis strain from reinterpretations, partial mismatches, missing evidence, peer doubt — **depends on 7CD.1**
 - [ ] 7CD.13. `engine/contradiction/strain.ts` — strain threshold: exceeded → hypothesis "stressed", increases surfacing frequency and severity
 - [ ] 7CD.14. `engine/contradiction/strain.ts` — decorative mismatch strain: motif outside expected cultural context adds small strain per occurrence
 
 **Surfacing & resolution**
 
 - [ ] 7CD.15. `engine/contradiction/surfacing.ts` — `selectSurfacingChannel(contradiction, channels): DiegeticSurface` — choose channel by type — **depends on 7CD.10**
-- [ ] 7CD.16. `engine/contradiction/surfacing.ts` — `impossible-artefact` channel: generate artefact that visibly contradicts player's model
+- [ ] 7CD.16. `engine/contradiction/surfacing.ts` — `impossible-artefact` channel: wrap a detected contradiction as a `DiegeticSurface` referencing the triggering artefact (`artefactId` + `anomaly` per doc 06 §4.5); no artefact generation here
 - [ ] 7CD.17. `engine/contradiction/surfacing.ts` — `field-report` channel: site finding that contradicts expectation
 - [ ] 7CD.18. `engine/contradiction/surfacing.ts` — escalation: unresolved contradictions increase surfacing frequency per term
 - [ ] 7CD.19. `engine/contradiction/resolution.ts` — `traceAffectedChain(contradiction, model): { proofId, brokenStep, affectedDocuments }` — identify challenged proof steps — **depends on 7CD.15**
@@ -475,9 +485,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Serialisation**
 
 - [ ] 8PS.1. `persistence/serialisation.ts` — `serialiseMap` / `deserialiseMap` utilities for `Map<K,V>` → `[K,V][]` round-tripping — **depends on 7CD.25**
-- [ ] 8PS.2. `persistence/serialisation.ts` — `serialiseGameState(state): SaveFile` — full state serialisation (worldState, playerInterpretation, termState, lensState, contradiction queue)
+- [ ] 8PS.2. `persistence/serialisation.ts` — `serialiseGameState(state): SaveFile` — full state serialisation (worldState, playerInterpretation, termState; contradiction queue serialised within playerInterpretation; lensState recomputed on load, not persisted)
 - [ ] 8PS.3. `persistence/serialisation.ts` — `deserialiseGameState(save): GameState` — full state deserialisation
-- [ ] 8PS.4. `persistence/schema.ts` — `SaveFile` interface, `CURRENT_SAVE_VERSION`, metadata shape
+- [ ] 8PS.4. `persistence/schema.ts` — re-export `SaveFile` and `CURRENT_SAVE_VERSION` from `src/lib/types/save.ts` (canonical home per 1FD.33); add save metadata shape
 - [ ] 8PS.5. `persistence/schema.ts` — schema migration: `migrations: Record<number, Migration>`, `migrateSave(save): SaveFile` — sequential migration runner
 
 **IndexedDB adapter**
@@ -515,6 +525,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 9CR.2. `engine/documents/dissemination.ts` — `advanceDissemination(documentId, newState, venueId?, worldState): DisseminationResult` — state machine (private → circulated → submitted → published)
 - [ ] 9CR.3. `engine/documents/commitments.ts` — `extractCommitments(model, hypothesisIds): string[]` — derive commitments from player's claims for document creation
 - [ ] 9CR.4. `engine/documents/form.ts` — `classifyDocumentForm(inputs): { formLabel, formConfidence }` — weighted rule matching
+- [ ] 9CR.35. `engine/documents/retraction.ts` — `retractDocument(documentId, scope, worldState): Retraction` — flag node retracted, create `Retraction` record (full/partial per doc 10 §7) — **depends on 9CR.2**
+- [ ] 9CR.36. `engine/documents/retraction.ts` — `traceTaintedLineage(retractedDocId, lineageGraph): TaintedLineage[]` — descendant cascade per doc 10 §7.1 (clean/defensible/tainted descendants) — **depends on 9CR.1, 9CR.35**
+- [ ] 9CR.37. Retraction UI — retract action on disseminated documents with tainted-lineage audit view — **depends on 9CR.36**
+- [ ] 9CR.38. `engine/documents/perception.ts` — `initialisePerception(doc)` on first transition beyond `private`; `updatePerception(doc, worldState)` at term boundaries maintaining `audienceReach`, `takeawayDivergence`, `citationCount` (doc 10 §8/§11); feeds 6LS.1's citation input and 9CR.14's retraction cost — **depends on 9CR.2**
 
 **Venue system**
 
@@ -532,24 +546,25 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 - [ ] 9CR.11. `engine/career/events.ts` — `DisseminationCareerEffect` generation: reputation effects scaled by venue properties per dissemination transition — **depends on 9CR.7**
 - [ ] 9CR.12. Claim magnitude system: `ClaimMagnitude` determination (confirmation/extension/challenge/novel) relative to professional corpus — **depends on 9CR.7**
-- [ ] 9CR.13. Publication effects on lens strength: dissemination state graduated contribution (private 0, circulated 0.1, submitted 0.2, published 0.3, collected 0.35) × venue prestige — **depends on 9CR.6**
-- [ ] 9CR.14. `engine/career/reputation.ts` — retraction reputation cost implementation — **depends on 9CR.7**
+- [ ] 9CR.13. Publication effects on lens strength: dissemination state graduated contribution (private 0, circulated 0.1, presented 0.15, submitted 0.2, published 0.3, collected 0.35) × venue prestige — **depends on 9CR.6**
+- [ ] 9CR.14. `engine/career/reputation.ts` — retraction reputation cost implementation — **depends on 9CR.7, 9CR.35, 9CR.38**
 
 **Career progression engine**
 
 - [ ] 9CR.15. `engine/career/progression.ts` — `evaluateCareerProgress(scholar, worldState, termIndex): CareerEvent[]` — role advancement checks at term boundaries — **depends on 9CR.7**
-- [ ] 9CR.16. `engine/career/progression.ts` — `RoleRequirement` evaluation: reputation, published docs, min venue prestige, activities, min terms in role
+- [ ] 9CR.16. `engine/career/progression.ts` — `RoleRequirement` evaluation: reputation, published docs, min venue prestige, min terms in role (activities requirement stubbed for MVP: junior-lecturer uses `activities: []`; activity execution is deferred post-MVP per doc 07 §7)
 - [ ] 9CR.17. `engine/career/progression.ts` — background drain profiles per role: postdoc (0), junior lecturer (2.0/week), senior lecturer (3.5), reader (4.0), professor (5.0) — sub-components (teaching, admin, supervision)
 - [ ] 9CR.18. `engine/career/progression.ts` — `calculateBaseEnergy(scholar): number` — base energy from role and career state
 - [ ] 9CR.19. `engine/career/progression.ts` — `calculateEnergyCarryOver(remaining): number` — carry-over between terms
 - [ ] 9CR.20. `engine/career/progression.ts` — `getTermType(termIndex): TermType` — derive term type from index position in year cycle
+- [ ] 9CR.39. Dating commissioning — `commissionDating(artefactId, worldState)` gated by `ReputationGate` (doc 09 Phase 21: dating facility access at appropriate career stages); returns independent dating from the world's dating framework, giving the player a route to challenge wrong corpus frameworks (doc 06) — **depends on 9CR.10**
 
 **Term state**
 
 - [ ] 9CR.21. `src/lib/stores/termState.svelte.ts` — full term state: currentTermIndex, absoluteWeek, termType, weekCapacity, weeksAllocated, energyBudget, energyRemaining, backgroundDrains, completedActions, activeActivities — **depends on 9CR.17**
-- [ ] 9CR.22. Term boundary orchestration in `gameState`: `completeTerm()` — advance dissemination, accumulate strain, recompute lens with decay, career checks, venue cycles, energy replenishment — **depends on 9CR.21**
+- [ ] 9CR.22. Term boundary orchestration in `gameState`: `completeTerm()` — advance dissemination, update document perception, accumulate strain, recompute lens with decay, career checks, venue cycles, energy replenishment — **depends on 9CR.21, 9CR.38**
 - [ ] 9CR.23. Summer-research term: correctly exclude teaching drains, higher effective energy budget — **depends on 9CR.20**
-- [ ] 9CR.24. Sabbatical implementation: zero all background drains, temporary lens reduction (-0.15), available at Reader/Professor with cooldown — **depends on 9CR.20**
+- [ ] 9CR.24. Sabbatical engine hooks: career-state flag zeroes all background drains for the term and feeds the -0.15 lens modifier consumed by 6LS.1/6LS.4; no player-facing availability in MVP (Reader/Professor gating and cooldown are post-MVP — see Beyond MVP) — **depends on 9CR.20**
 
 **Store extensions**
 
@@ -636,6 +651,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 <a name="map"><h2>Progress Map</h2></a>
 
+> [!NOTE]
+> The task list's **depends on** edges are authoritative for picking work; this map is a visual aid. Edges point prerequisite → dependent throughout.
+
 ```mermaid
 ---
 config:
@@ -644,19 +662,19 @@ title: Progress Map
 ---
 graph TD
     m1{{"`<h2>Milestone 1</h2>`"}}:::mile
-    m1A{"`<h3>1A</h3>Deno build configured`"}:::mile
+    m1A{"`<h3>1A</h3>Deno build configured`"}:::done
     m1B{"`<h3>1B</h3>All types created`"}:::mile
     m1C{"`<h3>1C</h3>M1 Explorer`"}:::mile
     m1D{"`<h3>1D</h3>Random Generation Util`"}:::mile
-    1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::blocked
+    1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::open
     1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::blocked
     1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::blocked
     1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::blocked
-    1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::blocked
+    1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::open
     1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::blocked
-    1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::blocked
+    1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::open
     1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::blocked
-    1FD.14["`*1FD.14*<br/>types/world core`"]:::blocked
+    1FD.14["`*1FD.14*<br/>types/world core`"]:::open
     1FD.15["`*1FD.15*<br/>types/world relations`"]:::blocked
     1FD.16["`*1FD.16*<br/>types/world provenance`"]:::blocked
     1FD.17["`*1FD.17*<br/>types/world dating`"]:::blocked
@@ -668,7 +686,7 @@ graph TD
     1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::blocked
     1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::blocked
     1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::blocked
-    1FD.26["`*1FD.26*<br/>types/career core`"]:::blocked
+    1FD.26["`*1FD.26*<br/>types/career core`"]:::open
     1FD.27["`*1FD.27*<br/>types/career drains`"]:::blocked
     1FD.28["`*1FD.28*<br/>types/term.ts`"]:::blocked
     1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::blocked
@@ -678,7 +696,7 @@ graph TD
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::open
     1FD.35["`*1FD.35*<br/>Test fixture helpers`"]:::blocked
-    1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::blocked
+    1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::open
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
@@ -688,7 +706,7 @@ graph TD
     1FD.9 --> m1D
     1FD.10 --> 1FD.11
     1FD.11 --> 1FD.13
-    1FD.12 --> 1FD.10 & 1FD.18 & 1FD.32
+    1FD.12 --> 1FD.18 & 1FD.32
     1FD.13 --> 1FD.31
     1FD.14 --> 1FD.15 & 1FD.16 & 1FD.17
     1FD.15 --> 1FD.30
@@ -711,7 +729,7 @@ graph TD
     1FD.32 --> 1FD.20
     1FD.33 --> m1B
     1FD.34 --> 1FD.35
-    1FD.35 --> m1A
+    1FD.35 --> m1
     1FD.36 --> 1FD.37 & 1FD.39
     1FD.37 --> 1FD.38
     1FD.38 --> m1C
@@ -721,7 +739,7 @@ graph TD
     m1C --> m1
     m1D --> 1FD.37
 
-m1 --> 2GN.1 & 2GN.2 & 2GN.11 & 2GN.22 & 2GN.28 & 2GN.35 & 2GN.36 & 2GN.37
+m1 --> 2GN.1 & 2GN.2 & 2GN.11 & 2GN.22 & 2GN.28 & 2GN.35 & 2GN.36 & 2GN.37 & 2GN.66
 
 m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 
@@ -742,7 +760,6 @@ m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 2GN.15["`*2GN.15*<br/>Material-structural compat`"]:::blocked
 2GN.16["`*2GN.16*<br/>Re-expansion loop`"]:::blocked
 2GN.17["`*2GN.17*<br/>Classification rules data`"]:::blocked
-2GN.18["`*2GN.18*<br/>Tag accumulation`"]:::blocked
 2GN.19["`*2GN.19*<br/>extractFeatures`"]:::blocked
 2GN.20["`*2GN.20*<br/>classifyArtefact`"]:::blocked
 2GN.21["`*2GN.21*<br/>physicalLabel`"]:::blocked
@@ -781,39 +798,52 @@ m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 2GN.54["`*2GN.54*<br/>Dating frameworks`"]:::blocked
 2GN.55["`*2GN.55*<br/>Calibrated wrongness`"]:::blocked
 2GN.56["`*2GN.56*<br/>Pipeline orchestrator`"]:::blocked
+2GN.66["`*2GN.66*<br/>Naming grammars data`"]:::blocked
+2GN.57["`*2GN.57*<br/>Explorer: structure viewer`"]:::blocked
+2GN.58["`*2GN.58*<br/>Explorer: plausibility panel`"]:::blocked
+2GN.59["`*2GN.59*<br/>Explorer: tag inspector`"]:::blocked
+2GN.60["`*2GN.60*<br/>Explorer: material viewer`"]:::blocked
+2GN.61["`*2GN.61*<br/>Explorer: decoration inspector`"]:::blocked
+2GN.62["`*2GN.62*<br/>Explorer: description viewer`"]:::blocked
+2GN.63["`*2GN.63*<br/>Explorer: excavation viewer`"]:::blocked
+2GN.64["`*2GN.64*<br/>Explorer: corpus browser`"]:::blocked
+2GN.65["`*2GN.65*<br/>Explorer: pipeline stages`"]:::blocked
 
 2GN.1 --> 2GN.12
 2GN.2 --> 2GN.3
-2GN.3 --> 2GN.4 & 2GN.5 & 2GN.6 & 2GN.7 & 2GN.18
+2GN.3 --> 2GN.4 & 2GN.5 & 2GN.6 & 2GN.7
 2GN.4 --> 2GN.8
 2GN.6 --> 2GN.8
-2GN.8 --> 2GN.9 & 2GN.10 & 2GN.12
+2GN.8 --> 2GN.9 & 2GN.10 & 2GN.12 & 2GN.57
 2GN.11 --> 2GN.12
-2GN.12 --> 2GN.13 & 2GN.14 & 2GN.15 & 2GN.16 & 2GN.17 & 2GN.19
-2GN.17 --> 2GN.18
-2GN.18 --> 2GN.20
+2GN.12 --> 2GN.13 & 2GN.14 & 2GN.15 & 2GN.16 & 2GN.17 & 2GN.19 & 2GN.23 & 2GN.58
+2GN.17 --> 2GN.20
 2GN.19 --> 2GN.20
-2GN.20 --> 2GN.21
-2GN.19 --> 2GN.23
-2GN.20 --> 2GN.27 & 2GN.34
+2GN.20 --> 2GN.21 & 2GN.27 & 2GN.34 & 2GN.59
 2GN.22 --> 2GN.23
-2GN.23 --> 2GN.24 & 2GN.25 & 2GN.26 & 2GN.27 & 2GN.29
+2GN.23 --> 2GN.24 & 2GN.25 & 2GN.26 & 2GN.27 & 2GN.29 & 2GN.60
 2GN.28 --> 2GN.29
-2GN.29 --> 2GN.30 & 2GN.31 & 2GN.32 & 2GN.33 & 2GN.34
+2GN.29 --> 2GN.30 & 2GN.31 & 2GN.32 & 2GN.33 & 2GN.34 & 2GN.61
 2GN.34 --> 2GN.38
 2GN.35 --> 2GN.38
+2GN.36 --> 2GN.38
+2GN.37 --> 2GN.38
 2GN.38 --> 2GN.39 & 2GN.44
 2GN.39 --> 2GN.40 & 2GN.41 & 2GN.42 & 2GN.43
-2GN.44 --> 2GN.45 & 2GN.46 & 2GN.47 & 2GN.48
+2GN.40 --> 2GN.62
+2GN.44 --> 2GN.45 & 2GN.46 & 2GN.47 & 2GN.48 & 2GN.63
+2GN.45 --> 2GN.63
+2GN.66 --> 2GN.47 & 2GN.48
 2GN.48 --> 2GN.49
 2GN.49 --> 2GN.50 & 2GN.55
 2GN.50 --> 2GN.51 & 2GN.52 & 2GN.54
 2GN.51 --> 2GN.53
 2GN.52 --> m2
-2GN.53 --> 2GN.56
-2GN.54 --> m2
+2GN.53 --> 2GN.56 & 2GN.64
+2GN.54 --> 2GN.64
 2GN.55 --> m2
-2GN.56 --> m2
+2GN.56 --> 2GN.65
+2GN.57 & 2GN.58 & 2GN.59 & 2GN.60 & 2GN.61 & 2GN.62 & 2GN.63 & 2GN.64 & 2GN.65 --> m2
 
 m2 --> 3WS.1
 
@@ -912,30 +942,22 @@ subgraph M5["Milestone 5: Knowledge Model"]
   5KN.22["`*5KN.22*<br/>DocumentEditor`"]:::blocked
   5KN.23["`*5KN.23*<br/>Library route`"]:::blocked
   5KN.24["`*5KN.24*<br/>Document view route`"]:::blocked
+  5KN.25["`*5KN.25*<br/>Explorer: model viewer`"]:::blocked
+  5KN.26["`*5KN.26*<br/>Explorer: evidence graph`"]:::blocked
 
-  5KN.2 --> 5KN.1
-  5KN.3 --> 5KN.1
-  5KN.4 --> 5KN.1
-  5KN.5 --> 5KN.4
-  5KN.6 --> 5KN.5
-  5KN.7 --> 5KN.5
-  5KN.8 --> 5KN.5
-  5KN.9 --> 5KN.5
-  5KN.10 --> 5KN.1
-  5KN.11 --> 5KN.10
-  5KN.12 --> 5KN.10
-  5KN.13 --> 5KN.12
-  5KN.14 --> 5KN.10
-  5KN.15 --> 5KN.10
-  5KN.16 --> 5KN.5
-  5KN.17 --> 5KN.15
-  5KN.18 --> 5KN.17
-  5KN.19 --> 5KN.17
-  5KN.20 --> 5KN.12
-  5KN.21 --> 5KN.20
-  5KN.22 --> 5KN.20
-  5KN.23 --> 5KN.21
-  5KN.24 --> 5KN.22
+  5KN.1 --> 5KN.2 & 5KN.3 & 5KN.4 & 5KN.10
+  5KN.4 --> 5KN.5 & 5KN.25
+  5KN.5 --> 5KN.6 & 5KN.7 & 5KN.8 & 5KN.9 & 5KN.16
+  5KN.10 --> 5KN.11 & 5KN.12 & 5KN.14 & 5KN.15
+  5KN.12 --> 5KN.13 & 5KN.20 & 5KN.26
+  5KN.15 --> 5KN.17
+  5KN.17 --> 5KN.18 & 5KN.19
+  5KN.20 --> 5KN.21 & 5KN.22
+  5KN.21 --> 5KN.23
+  5KN.22 --> 5KN.24
+  5KN.2 & 5KN.3 & 5KN.6 & 5KN.7 & 5KN.8 & 5KN.9 --> m5
+  5KN.11 & 5KN.13 & 5KN.14 & 5KN.16 & 5KN.18 & 5KN.19 --> m5
+  5KN.23 & 5KN.24 & 5KN.25 & 5KN.26 --> m5
 end
 
 m5 --> 6LS.1
@@ -958,26 +980,20 @@ subgraph M6["Milestone 6: Lens System"]
   6LS.13["`*6LS.13*<br/>On closer inspection`"]:::blocked
   6LS.14["`*6LS.14*<br/>Cross-ref panel`"]:::blocked
   6LS.15["`*6LS.15*<br/>Raw data drill-down`"]:::blocked
+  6LS.16["`*6LS.16*<br/>Explorer: lens state panel`"]:::blocked
+  6LS.17["`*6LS.17*<br/>Explorer: lens diff panel`"]:::blocked
 
-  
-  6LS.2 --> 6LS.1
-  6LS.3 --> 6LS.1
-  6LS.4 --> 6LS.2
-  6LS.5 --> 6LS.2
-  6LS.6 --> 6LS.5
-  6LS.7 --> 6LS.5
-  6LS.8 --> 6LS.5
-  6LS.9 --> 6LS.5
-  6LS.10 --> 6LS.5
-  6LS.11 --> 6LS.6
-  6LS.11 --> 6LS.7
-  6LS.11 --> 6LS.8
-  6LS.11 --> 6LS.9
-  6LS.11 --> 6LS.10
-  6LS.12 --> 6LS.11
-  6LS.13 --> 6LS.11
-  6LS.14 --> 6LS.8
-  6LS.15 --> 6LS.11
+  6LS.1 --> 6LS.2 & 6LS.3
+  6LS.2 --> 6LS.4 & 6LS.5
+  6LS.3 --> 6LS.16
+  6LS.5 --> 6LS.6 & 6LS.7 & 6LS.8 & 6LS.9 & 6LS.10 & 6LS.16
+  6LS.6 --> 6LS.11
+  6LS.7 --> 6LS.11
+  6LS.8 --> 6LS.11 & 6LS.14
+  6LS.9 --> 6LS.11
+  6LS.10 --> 6LS.11
+  6LS.11 --> 6LS.12 & 6LS.13 & 6LS.15 & 6LS.17
+  6LS.4 & 6LS.12 & 6LS.13 & 6LS.14 & 6LS.15 & 6LS.16 & 6LS.17 --> m6
 end
 
 m6 --> 7CD.1
@@ -1015,36 +1031,21 @@ subgraph M7["Milestone 7: Contradictions"]
   7CD.28["`*7CD.28*<br/>RetconFlow`"]:::blocked
   7CD.29["`*7CD.29*<br/>Cascade visualisation`"]:::blocked
   7CD.30["`*7CD.30*<br/>Resolution outcome`"]:::blocked
+  7CD.31["`*7CD.31*<br/>Explorer: contradiction inspector`"]:::blocked
+  7CD.32["`*7CD.32*<br/>Explorer: surfacing log`"]:::blocked
 
-  7CD.2 --> 7CD.1
-  7CD.3 --> 7CD.1
-  7CD.4 --> 7CD.1
-  7CD.5 --> 7CD.1
-  7CD.6 --> 7CD.1
-  7CD.7 --> 7CD.1
-  7CD.8 --> 7CD.1
-  7CD.9 --> 7CD.1
-  7CD.10 --> 7CD.1
-  7CD.11 --> 7CD.1
-  7CD.12 --> 7CD.1
-  7CD.13 --> 7CD.12
-  7CD.14 --> 7CD.12
-  7CD.15 --> 7CD.10
-  7CD.16 --> 7CD.15
-  7CD.17 --> 7CD.15
-  7CD.18 --> 7CD.15
-  7CD.19 --> 7CD.15
-  7CD.20 --> 7CD.19
-  7CD.21 --> 7CD.20
-  7CD.22 --> 7CD.20
-  7CD.23 --> 7CD.20
-  7CD.24 --> 7CD.20
-  7CD.25 --> 7CD.12
-  7CD.26 --> 7CD.25
-  7CD.27 --> 7CD.19
-  7CD.28 --> 7CD.20
-  7CD.29 --> 7CD.28
-  7CD.30 --> 7CD.28
+  7CD.1 --> 7CD.2 & 7CD.3 & 7CD.4 & 7CD.5 & 7CD.6 & 7CD.7 & 7CD.8 & 7CD.9 & 7CD.10 & 7CD.11 & 7CD.12
+  7CD.10 --> 7CD.15
+  7CD.12 --> 7CD.13 & 7CD.14 & 7CD.25
+  7CD.15 --> 7CD.16 & 7CD.17 & 7CD.18 & 7CD.19 & 7CD.32
+  7CD.19 --> 7CD.20 & 7CD.27
+  7CD.20 --> 7CD.21 & 7CD.22 & 7CD.23 & 7CD.24 & 7CD.28
+  7CD.22 --> 7CD.32
+  7CD.25 --> 7CD.26 & 7CD.31
+  7CD.28 --> 7CD.29 & 7CD.30
+  7CD.2 & 7CD.3 & 7CD.4 & 7CD.5 & 7CD.6 & 7CD.7 & 7CD.8 & 7CD.9 & 7CD.11 --> m7
+  7CD.13 & 7CD.14 & 7CD.16 & 7CD.17 & 7CD.18 & 7CD.21 & 7CD.23 & 7CD.24 --> m7
+  7CD.26 & 7CD.27 & 7CD.29 & 7CD.30 & 7CD.31 & 7CD.32 --> m7
 end
 
 m7 --> 8PS.1
@@ -1061,15 +1062,16 @@ subgraph M8["Milestone 8: Persistence"]
   8PS.7["`*8PS.7*<br/>Auto-save`"]:::blocked
   8PS.8["`*8PS.8*<br/>Save/load UI`"]:::blocked
   8PS.9["`*8PS.9*<br/>Auto-save indicator`"]:::blocked
+  8PS.10["`*8PS.10*<br/>Explorer: persistence inspector`"]:::blocked
 
-  8PS.2 --> 8PS.1
-  8PS.3 --> 8PS.2
-  8PS.4 --> 8PS.1
-  8PS.5 --> 8PS.4
-  8PS.6 --> 8PS.2
-  8PS.7 --> 8PS.6
-  8PS.8 --> 8PS.6
-  8PS.9 --> 8PS.7
+  8PS.1 --> 8PS.2 & 8PS.4
+  8PS.2 --> 8PS.3 & 8PS.6
+  8PS.3 --> 8PS.10
+  8PS.4 --> 8PS.5
+  8PS.5 --> 8PS.10
+  8PS.6 --> 8PS.7 & 8PS.8
+  8PS.7 --> 8PS.9
+  8PS.8 & 8PS.9 & 8PS.10 --> m8
 end
 
 m8 --> 9CR.1
@@ -1109,38 +1111,36 @@ subgraph M9["Milestone 9: Career & Publication"]
   9CR.30["`*9CR.30*<br/>Career route`"]:::blocked
   9CR.31["`*9CR.31*<br/>Term dashboard`"]:::blocked
   9CR.32["`*9CR.32*<br/>Role advancement notif`"]:::blocked
+  9CR.35["`*9CR.35*<br/>retractDocument`"]:::blocked
+  9CR.36["`*9CR.36*<br/>traceTaintedLineage`"]:::blocked
+  9CR.37["`*9CR.37*<br/>Retraction UI`"]:::blocked
+  9CR.38["`*9CR.38*<br/>Document perception`"]:::blocked
+  9CR.39["`*9CR.39*<br/>Dating commissioning`"]:::blocked
+  9CR.33["`*9CR.33*<br/>Explorer: reputation dashboard`"]:::blocked
+  9CR.34["`*9CR.34*<br/>Explorer: career state panel`"]:::blocked
 
-  9CR.2 --> 9CR.1
-  9CR.3 --> 9CR.1
-  9CR.4 --> 9CR.1
-  9CR.5 --> 9CR.1
-  9CR.6 --> 9CR.5
-  9CR.7 --> 9CR.2
-  9CR.8 --> 9CR.7
-  9CR.9 --> 9CR.7
-  9CR.10 --> 9CR.7
-  9CR.11 --> 9CR.7
-  9CR.12 --> 9CR.7
-  9CR.13 --> 9CR.6
-  9CR.14 --> 9CR.7
-  9CR.15 --> 9CR.7
-  9CR.16 --> 9CR.15
-  9CR.17 --> 9CR.15
-  9CR.18 --> 9CR.17
-  9CR.19 --> 9CR.17
-  9CR.20 --> 9CR.15
-  9CR.21 --> 9CR.17
-  9CR.22 --> 9CR.21
-  9CR.23 --> 9CR.20
-  9CR.24 --> 9CR.20
-  9CR.25 --> 9CR.2
-  9CR.26 --> 9CR.5
-  9CR.27 --> 9CR.3
-  9CR.28 --> 9CR.7
-  9CR.29 --> 9CR.11
-  9CR.30 --> 9CR.28
-  9CR.31 --> 9CR.21
-  9CR.32 --> 9CR.15
+  9CR.1 --> 9CR.2 & 9CR.3 & 9CR.4 & 9CR.5 & 9CR.36
+  9CR.2 --> 9CR.7 & 9CR.25 & 9CR.35 & 9CR.38
+  9CR.3 --> 9CR.27
+  9CR.5 --> 9CR.6 & 9CR.26
+  9CR.6 --> 9CR.13
+  9CR.7 --> 9CR.8 & 9CR.9 & 9CR.10 & 9CR.11 & 9CR.12 & 9CR.14 & 9CR.15 & 9CR.28 & 9CR.33
+  9CR.10 --> 9CR.39
+  9CR.11 --> 9CR.29
+  9CR.12 --> 9CR.33
+  9CR.15 --> 9CR.16 & 9CR.17 & 9CR.20 & 9CR.32
+  9CR.16 --> 9CR.34
+  9CR.17 --> 9CR.18 & 9CR.19 & 9CR.21
+  9CR.18 --> 9CR.34
+  9CR.20 --> 9CR.23 & 9CR.24
+  9CR.21 --> 9CR.22 & 9CR.31
+  9CR.28 --> 9CR.30
+  9CR.35 --> 9CR.14 & 9CR.36
+  9CR.36 --> 9CR.37
+  9CR.38 --> 9CR.14 & 9CR.22
+  9CR.4 & 9CR.8 & 9CR.9 & 9CR.13 & 9CR.14 & 9CR.19 --> m9
+  9CR.22 & 9CR.23 & 9CR.24 & 9CR.25 & 9CR.26 & 9CR.27 --> m9
+  9CR.29 & 9CR.30 & 9CR.31 & 9CR.32 & 9CR.33 & 9CR.34 & 9CR.37 & 9CR.39 --> m9
 end
 
 m9 --> 10NP.1
@@ -1168,31 +1168,29 @@ subgraph M10["Milestone 10: NPC Systems"]
   10NP.18["`*10NP.18*<br/>Student question UI`"]:::blocked
   10NP.19["`*10NP.19*<br/>Relationship indicators`"]:::blocked
   10NP.20["`*10NP.20*<br/>Form reclassification`"]:::blocked
+  10NP.21["`*10NP.21*<br/>Explorer: NPC panel`"]:::blocked
+  10NP.22["`*10NP.22*<br/>Explorer: citation balance`"]:::blocked
+  10NP.23["`*10NP.23*<br/>Explorer: question targeting`"]:::blocked
 
-  10NP.2 --> 10NP.1
-  10NP.3 --> 10NP.1
-  10NP.4 --> 10NP.1
-  10NP.5 --> 10NP.1
-  10NP.6 --> 10NP.5
-  10NP.7 --> 10NP.1
-  10NP.8 --> 10NP.5
-  10NP.9 --> 10NP.5
-  10NP.10 --> 10NP.1
-  10NP.11 --> 10NP.3
-  10NP.12 --> 10NP.1
-  10NP.13 --> 10NP.9
-  10NP.14 --> 10NP.10
-  10NP.15 --> 10NP.2
-  10NP.16 --> 10NP.6
-  10NP.17 --> 10NP.8
-  10NP.18 --> 10NP.9
-  10NP.19 --> 10NP.14
-  10NP.20 --> 10NP.3
+  10NP.1 --> 10NP.2 & 10NP.3 & 10NP.4 & 10NP.5 & 10NP.7 & 10NP.10 & 10NP.12
+  10NP.2 --> 10NP.15
+  10NP.3 --> 10NP.11 & 10NP.20
+  10NP.4 --> 10NP.21
+  10NP.5 --> 10NP.6 & 10NP.8 & 10NP.9
+  10NP.6 --> 10NP.16 & 10NP.21
+  10NP.7 --> 10NP.22
+  10NP.8 --> 10NP.17
+  10NP.9 --> 10NP.13 & 10NP.18 & 10NP.23
+  10NP.10 --> 10NP.14 & 10NP.22
+  10NP.14 --> 10NP.19
+  10NP.11 & 10NP.12 & 10NP.13 & 10NP.15 & 10NP.16 & 10NP.17 & 10NP.18 --> m10
+  10NP.19 & 10NP.20 & 10NP.21 & 10NP.22 & 10NP.23 --> m10
 end
 
 classDef default,blocked fill:#f9f;
 classDef open fill:#ff9;
 classDef mile fill:#9ff;
+classDef done fill:#9f9;
 ```
 
 ---
@@ -1201,7 +1199,7 @@ classDef mile fill:#9ff;
 
 - [Doc 02: Design Pillars](../02-design-pillars.md) — Non-negotiable principles
 - [Doc 03: Core Loop](../03-core-loops-system-map.md) — Systems map
-- [Doc 04: Interpretive Lens](../04.interpretative-lens.md) — Core mechanic
+- [Doc 04: Interpretive Lens](../04-interpretive-lens.md) — Core mechanic
 - [Doc 05: Generation Architecture](../05-generation-architecture.md) — 9-stage pipeline
 - [Doc 06: Knowledge Model](../06-knowledge-contradiction-model.md) — Claims, contradictions, strain
 - [Doc 07: Career Systems](../07-career-social-systems.md) — Reputation, progression, NPCs
@@ -1209,6 +1207,7 @@ classDef mile fill:#9ff;
 - [Doc 09: Implementation Roadmap](../09-implementation-roadmap.md) — Phase-by-phase breakdown (source)
 - [Doc 10: Document Tradition](../10-document-tradition-system.md) — Lineage, dissemination, venues
 - [Doc 11: Deferred Questions](../11-deferred-design-questions.md) — Locked decisions
+- [Doc 12: Propagation Register](../12-propagation-register.md) — Cross-doc consistency log
 - [Doc 13: Post-MVP](../13-deferred-post-mvp.md) — Beyond Milestone 10
 
 ---
@@ -1220,9 +1219,10 @@ classDef mile fill:#9ff;
 - Curatorial publication track (exhibition narratives, thematic grouping)
 - Popular publication track (simplified claims, public misconceptions)
 - Full career role progression (through professor)
-- All career activity types (conferences, grants, sabbatical)
+- Career activity execution (field seasons, conference presentations, grants, sabbatical availability)
 - Richer NPC personalities and relationships
 - Desk-based UI evolution (Strange Horticulture aesthetic)
 - Cultural profile document type (player-authored culture models)
+- Five-register `ObservationRegister` acquisition system (doc 05 §12); MVP ships doc 04's three-register `DescriptionRegister`
 
-See [Doc 13: Post-MVP Deferrals](../13-deferred-post-mvp.md) for full details.
+Source: [Doc 09: Implementation Roadmap](../09-implementation-roadmap.md), Phase 24. Separately deferred design questions (alternative dissemination pathways, emergent schools of thought, publication quality metrics for role qualification): see [Doc 13: Post-MVP Deferrals](../13-deferred-post-mvp.md).
