@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.6             | —                 |
+| **FD**   | In progress             | 1FD.10            | —                 |
 | **GN**   | Not started             | —                 | 1FD.10            |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -48,13 +48,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 <a name="m1-todo"><h4>To Do (Milestone 1)</h4></a>
 
-**Seeded PRNG**
-
-- [ ] 1FD.6. Implement `src/lib/engine/prng.ts` — xoshiro128** algorithm, `createPrng(seed: string): () => number`
-- [ ] 1FD.7. Write `weightedSelect(items, prng)` utility (reused across pipeline)
-- [ ] 1FD.8. Write PRNG determinism test — same seed → identical sequence
-- [ ] 1FD.9. Write PRNG distribution test — output approximately uniform over large sample
-
 **Type system**
 
 - [ ] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType`
@@ -84,8 +77,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Test infrastructure**
 
-- [ ] 1FD.34. Configure `deno test`, verify runner executes against engine skeleton
-- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories
+- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.12/1FD.16, mock artefact blocked on 1FD.11/1FD.10/1FD.12 — none of those types exist yet)
 
 **Project Explorer shell**
 
@@ -105,6 +97,17 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.3. Strip Node tooling (`.prettierrc`, `.prettierignore`, `.npmrc`)
 - [x] 1FD.4. Verify npm deps via `npm:` specifiers (Svelte 5, SvelteKit 2, Vite 7, Tailwind 4, DaisyUI 5)
 - [x] 1FD.5. Verify `deno task dev` serves app, `deno task check` passes
+
+**Seeded PRNG**
+
+- [x] 1FD.6. Implement `src/lib/engine/prng.ts` — xoshiro128** algorithm, `createPrng(seed: string): () => number`
+- [x] 1FD.7. Write `weightedSelect(items, prng)` utility (reused across pipeline)
+- [x] 1FD.8. Write PRNG determinism test — same seed → identical sequence
+- [x] 1FD.9. Write PRNG distribution test — output approximately uniform over large sample
+
+**Test infrastructure**
+
+- [x] 1FD.34. Configure `deno test`, verify runner executes against engine skeleton (`deno task test` wired in `deno.json`; `@std/assert@^1.0.19` added; `tsconfig.json` excludes `*.test.ts` from `svelte-check` since Deno test files use `Deno.ns`/`jsr:` specifiers svelte-check can't resolve)
 </details>
 
 <details>
@@ -665,11 +668,11 @@ graph TD
     m1A{"`<h3>1A</h3>Deno build configured`"}:::done
     m1B{"`<h3>1B</h3>All types created`"}:::mile
     m1C{"`<h3>1C</h3>M1 Explorer`"}:::mile
-    m1D{"`<h3>1D</h3>Random Generation Util`"}:::mile
-    1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::open
-    1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::blocked
-    1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::blocked
-    1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::blocked
+    m1D{"`<h3>1D</h3>Random Generation Util`"}:::done
+    1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::done
+    1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::done
+    1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::done
+    1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::done
     1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::open
     1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::blocked
     1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::open
@@ -694,8 +697,8 @@ graph TD
     1FD.31["`*1FD.31*<br/>types/description.ts`"]:::blocked
     1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::blocked
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
-    1FD.34["`*1FD.34*<br/>Configure deno test`"]:::open
-    1FD.35["`*1FD.35*<br/>Test fixture helpers`"]:::blocked
+    1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
+    1FD.35["`*1FD.35*<br/>Test fixture helpers (partial)`"]:::open
     1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::open
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
