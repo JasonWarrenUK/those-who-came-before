@@ -13,7 +13,7 @@ import { createPrng } from '../../src/lib/engine/prng.ts';
  * `src/lib/types/world.ts` (roadmap task 1FD.14) doesn't exist yet — swap this for the real type
  * import once that task lands.
  */
-interface MockWorldSeed {
+export interface MockWorldSeed {
 	raw: string;
 	prng: () => number;
 }

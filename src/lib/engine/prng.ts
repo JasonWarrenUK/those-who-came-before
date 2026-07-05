@@ -97,7 +97,8 @@ export function weightedSelect<T>(
 		throw new Error('weightedSelect: items must not be empty');
 	}
 
-	const totalWeight = items.reduce((sum, item) => sum + Math.max(0, getWeight(item)), 0);
+	const weights = items.map((item) => Math.max(0, getWeight(item)));
+	const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
 	if (totalWeight <= 0) {
 		const index = Math.floor(prng() * items.length);
@@ -105,10 +106,10 @@ export function weightedSelect<T>(
 	}
 
 	let remaining = prng() * totalWeight;
-	for (const item of items) {
-		remaining -= Math.max(0, getWeight(item));
+	for (let i = 0; i < items.length; i++) {
+		remaining -= weights[i];
 		if (remaining <= 0) {
-			return item;
+			return items[i];
 		}
 	}
 

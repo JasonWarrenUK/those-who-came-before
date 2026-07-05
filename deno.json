@@ -4,7 +4,7 @@
 		"build": "deno run -A npm:vite build",
 		"preview": "deno run -A npm:vite preview",
 		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json",
-		"test": "deno test -A"
+		"test": "deno test"
 	},
 	"compilerOptions": {
 		"strict": true,
