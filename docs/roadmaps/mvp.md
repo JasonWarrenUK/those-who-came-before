@@ -6,8 +6,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.10            | —                 |
-| **GN**   | Not started             | —                 | 1FD.10            |
+| **FD**   | In progress             | 1FD.11            | —                 |
+| **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
 | **KN**   | Not started             | —                 | 4UI.6             |
@@ -50,9 +50,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Type system**
 
-- [ ] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType`
 - [ ] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §7)
-- [ ] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude`
 - [ ] 1FD.13. `src/lib/types/decoration.ts` — `DecorativeLayer`, `DecorativeTechnique`, surface/applied/textile element types
 - [ ] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `WorldChronology`, `CultureTimeline`, `CulturePhase`, `PhaseCharacteristics`, `Culture`, `CulturalProfile`, `CraftInvestmentProfile`, `MotifSet`
 - [ ] 1FD.15. `src/lib/types/world.ts` — `CultureRelationship`, `RelationshipPhase`, `RelationshipDynamics`, `MaterialFlow`
@@ -77,7 +75,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Test infrastructure**
 
-- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.12/1FD.16, mock artefact blocked on 1FD.11/1FD.10/1FD.12 — none of those types exist yet)
+- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.16 — `MaterialTag` (1FD.12) now exists; mock artefact blocked on 1FD.11 — `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
 
 **Project Explorer shell**
 
@@ -104,6 +102,11 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.7. Write `weightedSelect(items, prng)` utility (reused across pipeline)
 - [x] 1FD.8. Write PRNG determinism test — same seed → identical sequence
 - [x] 1FD.9. Write PRNG distribution test — output approximately uniform over large sample
+
+**Type system**
+
+- [x] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude` (built ahead of 1FD.10 so `grammar.ts` could import the real `MaterialTag` rather than a placeholder; `ClassificationRule.condition` types against a local `ExtractedFeatures` stand-in — `TODO(1FD.11)` — swap for the real import once `artefact.ts` lands)
+- [x] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType` (imports `MaterialTag` from 1FD.12; `GrammarOption.expandsTo` and `.phaseModifiers` are provisional shapes, JSDoc-marked, pending 2GN.3/2GN.5)
 
 **Test infrastructure**
 
@@ -673,9 +676,9 @@ graph TD
     1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::done
     1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::done
     1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::done
-    1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::open
-    1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::blocked
-    1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::open
+    1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::done
+    1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::open
+    1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::done
     1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::blocked
     1FD.14["`*1FD.14*<br/>types/world core`"]:::open
     1FD.15["`*1FD.15*<br/>types/world relations`"]:::blocked
@@ -746,8 +749,8 @@ m1 --> 2GN.1 & 2GN.2 & 2GN.11 & 2GN.22 & 2GN.28 & 2GN.35 & 2GN.36 & 2GN.37 & 2GN
 
 m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 
-2GN.1["`*2GN.1*<br/>Primitive defs`"]:::blocked
-2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::blocked
+2GN.1["`*2GN.1*<br/>Primitive defs`"]:::open
+2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::open
 2GN.3["`*2GN.3*<br/>expandGrammar`"]:::blocked
 2GN.4["`*2GN.4*<br/>selectGrammarOption`"]:::blocked
 2GN.5["`*2GN.5*<br/>phaseInfluence`"]:::blocked
@@ -762,11 +765,11 @@ m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 2GN.14["`*2GN.14*<br/>Ergonomic rules`"]:::blocked
 2GN.15["`*2GN.15*<br/>Material-structural compat`"]:::blocked
 2GN.16["`*2GN.16*<br/>Re-expansion loop`"]:::blocked
-2GN.17["`*2GN.17*<br/>Classification rules data`"]:::blocked
+2GN.17["`*2GN.17*<br/>Classification rules data`"]:::open
 2GN.19["`*2GN.19*<br/>extractFeatures`"]:::blocked
 2GN.20["`*2GN.20*<br/>classifyArtefact`"]:::blocked
 2GN.21["`*2GN.21*<br/>physicalLabel`"]:::blocked
-2GN.22["`*2GN.22*<br/>Material defs data`"]:::blocked
+2GN.22["`*2GN.22*<br/>Material defs data`"]:::open
 2GN.23["`*2GN.23*<br/>assignMaterial`"]:::blocked
 2GN.24["`*2GN.24*<br/>isAvailable`"]:::blocked
 2GN.25["`*2GN.25*<br/>computeMaterialWeight`"]:::blocked
