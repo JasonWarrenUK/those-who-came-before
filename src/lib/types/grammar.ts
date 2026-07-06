@@ -69,7 +69,9 @@ export interface AccumulationConstraints {
  * — starting from `baseWeight`, shifting it by `culturalModifiers` against the culture's material
  * affinities, then scaling by `phaseInfluence` — so no precomputed effective weight is stored
  * here; it's derived transiently and fed to `weightedSelect` (`src/lib/engine/prng.ts`) via that
- * function's `getWeight` callback.
+ * function's `getWeight` callback. Doc 05 §5.4's own pseudocode shows a simplified two-arg
+ * `weightedSelect(weighted, prng)` over precomputed `{option, effectiveWeight}` pairs; the real
+ * utility takes a `getWeight` callback instead, so don't expect to find that param in the doc.
  */
 export interface GrammarOption {
 	/**
