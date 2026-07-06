@@ -95,7 +95,7 @@ export interface ExtractedFeatures {
 	overallComplexity: number;
 
 	// Dimensional — TODO(1FD.11): inline placeholders for Portability/InspectionDepth literal unions.
-	portability: 'pocketable' | 'handheld' | 'two-handed' | 'team-lift';
+	portability: 'pocketable' | 'one-hand' | 'two-hand' | 'team-lift' | 'major-effort';
 	inspectionDepth: 'full' | 'detailed' | 'observational';
 }
 
