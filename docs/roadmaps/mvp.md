@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.13            | —                 |
+| **FD**   | In progress             | 1FD.17, 1FD.19, 1FD.20, 1FD.28, 1FD.31 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -50,31 +50,24 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Type system**
 
-- [ ] 1FD.13. `src/lib/types/decoration.ts` — `DecorativeLayer`, `DecorativeTechnique`, surface/applied/textile element types
-- [ ] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `WorldChronology`, `CultureTimeline`, `CulturePhase`, `PhaseCharacteristics`, `Culture`, `CulturalProfile`, `CraftInvestmentProfile`, `MotifSet`
-- [ ] 1FD.15. `src/lib/types/world.ts` — `CultureRelationship`, `RelationshipPhase`, `RelationshipDynamics`, `MaterialFlow`
-- [ ] 1FD.16. `src/lib/types/world.ts` — `Provenance`, `SiteType`, `PreservationState`, `DepositionType`, `GeologicalContext`, `RegionalAvailability`, `AvailabilityLevel` (site-composition/excavation types live here; doc 08's `types/excavation.ts` is folded in)
 - [ ] 1FD.17. `src/lib/types/world.ts` — `DatingFramework`, `LayerDating`, `DatingMethod`
-- [ ] 1FD.18. `src/lib/types/interpretation.ts` — `InterpretiveModel`, `Observation`, `Inference`, `EvidenceLink`, `InferenceScope`, `Hypothesis`, `Confidence`
-- [ ] 1FD.19. `src/lib/types/interpretation.ts` — `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired)
+- [ ] 1FD.19. `src/lib/types/interpretation.ts` — `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired; resolves the five same-file `TODO(1FD.19)` stand-ins in `interpretation.ts`)
 - [ ] 1FD.20. `src/lib/types/lens.ts` — `LensStrength`, `ObservationSalience`, `ClassificationSuggestion`, `CrossReference`, `DescriptionFrame`, `OmissionCheck`, `LensState`
 - [ ] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`)
 - [ ] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage`
 - [ ] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification`
 - [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP)
-- [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain`
-- [ ] 1FD.26. `src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType`
+- [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`)
 - [ ] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
 - [ ] 1FD.28. `src/lib/types/term.ts` — `TermType`, `AcademicYear`, `TermState`, `BackgroundDrain`, `CompletedAction` (doc 08 §3.6 places both in term.ts), constants (`WEEKS_PER_TERM`, `TERMS_PER_YEAR`), helpers (`termStartWeek`, `weekInTerm`, `termIndexFromWeek`, `yearFromTerm`)
 - [ ] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation`
 - [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
 - [ ] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ProvenancePresentation`, `DescriptionRegister` (`'observational' | 'interpretive' | 'technical'` per doc 04 §3.4; the five-value `ObservationRegister` + `RegisterAccess` acquisition model from doc 05 §12 is post-MVP)
-- [ ] 1FD.32. `src/lib/types/visibility.ts` — `PropertyVisibility` enum (`observable`, `inferable`, `occluded`, `engine-internal`), visibility annotation helpers
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
 
 **Test infrastructure**
 
-- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.16; mock artefact unblocked — `NormalisedArtefact`/`ClassifiedArtefact` (1FD.11), `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
+- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture unblocked — `Culture`/`CulturalProfile` (1FD.14), `SiteType`/`DepositionType` (1FD.16) and `MaterialTag` (1FD.12) now exist; mock artefact unblocked — `NormalisedArtefact`/`ClassifiedArtefact` (1FD.11), `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
 
 **Project Explorer shell**
 
@@ -106,7 +99,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 - [x] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude` (built ahead of 1FD.10 so `grammar.ts` could import the real `MaterialTag` rather than a placeholder; `ClassificationRule.condition` typed against a local `ExtractedFeatures` stand-in until 1FD.11 landed, now imports the real type from `artefact.ts`)
 - [x] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType` (imports `MaterialTag` from 1FD.12; `GrammarOption.expandsTo` and `.phaseModifiers` are provisional shapes, JSDoc-marked, pending 2GN.3/2GN.5)
-- [x] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §5.2, §6.1, §7, §9; `MaterialDefinition` has no doc 05 field shape, adopted the `{id, displayName, tags}` shape from `docs/dev/implementation/m1-artefact-generation.md` — doc 05 §15's richer geological/cultural fields deferred until `GeologicalContext`/`CulturalProfile` exist; `ClassifiedArtefact.decorativeLayers`/`.provenance` reference private `TODO(1FD.13)`/`TODO(1FD.16)` opaque `unknown` placeholders for `DecorativeLayer`/`Provenance`, owned by those tasks)
+- [x] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §5.2, §6.1, §7, §9; `MaterialDefinition` has no doc 05 field shape, adopted the `{id, displayName, tags}` shape from `docs/dev/implementation/m1-artefact-generation.md` — doc 05 §15's richer geological/cultural fields deferred until `GeologicalContext`/`CulturalProfile` exist; `ClassifiedArtefact.decorativeLayers`/`.provenance` now import the real `DecorativeLayer`/`Provenance` from `decoration.ts`/`world.ts`, both landed with 1FD.13/1FD.16)
+- [x] 1FD.13. `src/lib/types/decoration.ts` — `DecorativeTechnique`, `DecorativeLayer` (doc 05 §8.2–§8.3; `DecorativeTechnique` is a flat 16-member union, not a discriminated union with per-technique params, since `DecorativeLayer` only carries generic `motifRef?`/`material?` slots; material-prerequisite rules are engine/data-layer concerns, not typed here — see roadmap 2GN.28/2GN.30; resolves the `TODO(1FD.13)` stand-in in `artefact.ts`)
+- [x] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `PhaseCharacteristics`, `CulturePhase`, `CultureTimeline`, `CulturalProfile`, `Culture`, `CraftInvestmentProfile`, `MotifSet`, `MotifDefinition`, `WorldChronology` (doc 05 §2, §3.1–§3.3; `MotifSet`/`MotifDefinition` are invented, provisional, not doc-specified — minimal shape so `DecorativeLayer.motifRef` can reference one by id; `CulturalProfile`'s JSDoc flags the unrelated same-named type in doc 06 §3.3; built together with 1FD.15/1FD.16 in the same file since `CraftInvestmentProfile` and `WorldChronology` reference their types directly)
+- [x] 1FD.15. `src/lib/types/world.ts` — `MaterialFlow`, `RelationshipDynamics`, `RelationshipPhase`, `CultureRelationship` (doc 05 §3.4, fully specified verbatim; built alongside 1FD.14/1FD.16)
+- [x] 1FD.16. `src/lib/types/world.ts` — `SiteType`, `PreservationState`, `DepositionType`, `Provenance`, `AvailabilityLevel`, `RegionalAvailability`, `GeologicalContext` (doc 05 §3.5–§3.6, fully specified verbatim; `Provenance`'s JSDoc distinguishes it from `MaterialProvenance` in `artefact.ts`; resolves the `TODO(1FD.16)` stand-in in `artefact.ts`; built alongside 1FD.14/1FD.15)
+- [x] 1FD.18. `src/lib/types/interpretation.ts` — `Confidence`, `Observation`, `EvidenceLink`, `InferenceScope`, `Inference`, `Hypothesis`, `InterpretiveModel` (doc 06 §2.1–§2.3, doc 08 §3.2; `InterpretiveModel` uses the doc 08 §3.2 "claims" shape rather than doc 06 §6's "knowledge layers" shape — the two docs conflict, and doc 08's version matches this roadmap's own field ownership (1FD.19, 1FD.25) and the concrete store-construction code in doc 08 §3.4; `Observation.observationRegister` is typed as the inline MVP three-value union pending `DescriptionRegister` from 1FD.20/1FD.31; `InterpretiveModel`'s five 1FD.19-owned fields and two 1FD.25-owned fields are private `unknown` placeholders)
+- [x] 1FD.26. `src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType` (doc 07 §2, §2.2, §4.0–§4.1, fully specified verbatim and self-contained; `CareerActivity.outcomes: ActivityOutcome[]` needed an invented, provisional `ActivityOutcome` shape — doc 07 names it only as a comment, "Possible results", with no roadmap task owning it)
+- [x] 1FD.32. `src/lib/types/visibility.ts` — `PropertyVisibility` (string-literal union, not a TS `enum`, per the convention already committed in `artefact.ts`'s module JSDoc), `PROPERTY_VISIBILITY_VALUES`, `isPropertyVisibility` (doc 11 §2.7 authoritative; helpers kept minimal since there's no consumer yet — `lens.ts`, 1FD.20, is the first)
 
 **Test infrastructure**
 
@@ -679,26 +679,26 @@ graph TD
     1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::done
     1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::done
     1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::done
-    1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::open
-    1FD.14["`*1FD.14*<br/>types/world core`"]:::open
-    1FD.15["`*1FD.15*<br/>types/world relations`"]:::blocked
-    1FD.16["`*1FD.16*<br/>types/world provenance`"]:::blocked
-    1FD.17["`*1FD.17*<br/>types/world dating`"]:::blocked
-    1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::blocked
-    1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::blocked
-    1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::blocked
+    1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::done
+    1FD.14["`*1FD.14*<br/>types/world core`"]:::done
+    1FD.15["`*1FD.15*<br/>types/world relations`"]:::done
+    1FD.16["`*1FD.16*<br/>types/world provenance`"]:::done
+    1FD.17["`*1FD.17*<br/>types/world dating`"]:::open
+    1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::done
+    1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::open
+    1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::open
     1FD.21["`*1FD.21*<br/>types/documents core`"]:::blocked
     1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::blocked
     1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::blocked
     1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::blocked
     1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::blocked
-    1FD.26["`*1FD.26*<br/>types/career core`"]:::open
+    1FD.26["`*1FD.26*<br/>types/career core`"]:::done
     1FD.27["`*1FD.27*<br/>types/career drains`"]:::blocked
-    1FD.28["`*1FD.28*<br/>types/term.ts`"]:::blocked
+    1FD.28["`*1FD.28*<br/>types/term.ts`"]:::open
     1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::blocked
     1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::blocked
-    1FD.31["`*1FD.31*<br/>types/description.ts`"]:::blocked
-    1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::blocked
+    1FD.31["`*1FD.31*<br/>types/description.ts`"]:::open
+    1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::done
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
     1FD.35["`*1FD.35*<br/>Test fixture helpers (partial)`"]:::open

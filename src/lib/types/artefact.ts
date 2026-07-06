@@ -17,22 +17,8 @@
 
 import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
-
-/**
- * TODO(1FD.13): opaque placeholder for `DecorativeLayer`, owned by `src/lib/types/decoration.ts`
- * (doc 05 §8.3). Nothing in this file dereferences its fields, so an opaque `unknown` typechecks
- * everywhere it is used (`ClassifiedArtefact.decorativeLayers`) while avoiding a duplicate
- * definition that would conflict when 1FD.13 lands. Swap for
- * `import type { DecorativeLayer } from './decoration.ts'` and delete this line then.
- */
-type DecorativeLayer = unknown;
-
-/**
- * TODO(1FD.16): opaque placeholder for `Provenance`, owned by `src/lib/types/world.ts` (doc 05
- * §3.5). Used only as the type of `ClassifiedArtefact.provenance`; nothing here reads its fields.
- * Swap for `import type { Provenance } from './world.ts'` and delete this line once 1FD.16 lands.
- */
-type Provenance = unknown;
+import type { DecorativeLayer } from './decoration.ts';
+import type { Provenance } from './world.ts';
 
 /**
  * Where an object sits on the single portability axis (doc 05 §5.2) — the one unambiguous
@@ -144,8 +130,9 @@ export interface NormalisedComponent {
  * material identity (doc 05 §1.1). Visibility: observable (material identity).
  *
  * Doc 05 §15 envisions a richer definition carrying geological availability and cultural
- * affinities; those fields are deferred until `GeologicalContext` (roadmap 1FD.16) and
- * `CulturalProfile` (roadmap 1FD.14) exist to type them.
+ * affinities. `GeologicalContext` (world.ts, roadmap 1FD.16) and `CulturalProfile` (world.ts,
+ * roadmap 1FD.14) now exist to type those fields, but adding them here is a deliberate follow-up,
+ * not part of building `world.ts` itself — this interface is unchanged for now.
  */
 export interface MaterialDefinition {
 	/** Stable id, referenced by `MaterialAssignment.materialId`. */
@@ -309,7 +296,7 @@ export interface ClassifiedArtefact extends NormalisedArtefact {
 	/** Per-component material assignments (doc 05 §7). */
 	materials: MaterialAssignment[];
 
-	/** The decorative layers applied to the artefact (doc 05 §8.3). Owned by roadmap 1FD.13. */
+	/** The decorative layers applied to the artefact (doc 05 §8.3). */
 	decorativeLayers: DecorativeLayer[];
 
 	/** The unified extracted feature set (doc 05 §9.1). */
@@ -329,7 +316,7 @@ export interface ClassifiedArtefact extends NormalisedArtefact {
 	 */
 	physicalLabel: string;
 
-	/** Chronological, cultural and depositional provenance (doc 05 §3.5). Owned by roadmap 1FD.16. */
+	/** Chronological, cultural and depositional provenance (doc 05 §3.5). */
 	provenance: Provenance;
 
 	/** Per-component material provenance (doc 05 §7.1). Occluded from the player. */

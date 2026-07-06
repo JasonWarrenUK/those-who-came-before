@@ -31,7 +31,7 @@ export type FunctionTag =
 
 /**
  * How an object was USED — its social register of use, distinct from `FunctionTag` (doc 05 §9.2).
- * Not the same axis as deposition context (`DepositionType`, doc 05 §3.3) — this describes use,
+ * Not the same axis as deposition context (`DepositionType`, doc 05 §3.5) — this describes use,
  * not how the artefact ended up in the ground.
  */
 export type ContextTag =
