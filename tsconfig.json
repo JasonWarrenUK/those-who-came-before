@@ -2,6 +2,10 @@
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"strict": true,
-		"skipLibCheck": true
-	}
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": true
+	},
+	// *.test.ts files are Deno-only (Deno.test, deno.ns lib, jsr: specifiers) and never bundled
+	// by Vite, so svelte-check shouldn't type-check them — `deno task test` covers them instead.
+	"exclude": ["src/**/*.test.ts"]
 }
