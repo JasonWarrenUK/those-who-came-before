@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.11            | —                 |
+| **FD**   | In progress             | 1FD.13            | —                 |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -50,7 +50,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Type system**
 
-- [ ] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §7)
 - [ ] 1FD.13. `src/lib/types/decoration.ts` — `DecorativeLayer`, `DecorativeTechnique`, surface/applied/textile element types
 - [ ] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `WorldChronology`, `CultureTimeline`, `CulturePhase`, `PhaseCharacteristics`, `Culture`, `CulturalProfile`, `CraftInvestmentProfile`, `MotifSet`
 - [ ] 1FD.15. `src/lib/types/world.ts` — `CultureRelationship`, `RelationshipPhase`, `RelationshipDynamics`, `MaterialFlow`
@@ -75,7 +74,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Test infrastructure**
 
-- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.16 — `MaterialTag` (1FD.12) now exists; mock artefact blocked on 1FD.11 — `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
+- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture blocked on 1FD.14/1FD.16; mock artefact unblocked — `NormalisedArtefact`/`ClassifiedArtefact` (1FD.11), `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
 
 **Project Explorer shell**
 
@@ -105,8 +104,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Type system**
 
-- [x] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude` (built ahead of 1FD.10 so `grammar.ts` could import the real `MaterialTag` rather than a placeholder; `ClassificationRule.condition` types against a local `ExtractedFeatures` stand-in — `TODO(1FD.11)` — swap for the real import once `artefact.ts` lands)
+- [x] 1FD.12. `src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude` (built ahead of 1FD.10 so `grammar.ts` could import the real `MaterialTag` rather than a placeholder; `ClassificationRule.condition` typed against a local `ExtractedFeatures` stand-in until 1FD.11 landed, now imports the real type from `artefact.ts`)
 - [x] 1FD.10. `src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType` (imports `MaterialTag` from 1FD.12; `GrammarOption.expandsTo` and `.phaseModifiers` are provisional shapes, JSDoc-marked, pending 2GN.3/2GN.5)
+- [x] 1FD.11. `src/lib/types/artefact.ts` — `NormalisedArtefact`, `NormalisedComponent`, `Attachment`, `ObjectDimensions`, `Portability`, `InspectionDepth`, `ClassifiedArtefact`, `ExtractedFeatures`, `MaterialAssignment`, `MaterialDefinition`, `MaterialProvenance` (doc 05 §5.2, §6.1, §7, §9; `MaterialDefinition` has no doc 05 field shape, adopted the `{id, displayName, tags}` shape from `docs/dev/implementation/m1-artefact-generation.md` — doc 05 §15's richer geological/cultural fields deferred until `GeologicalContext`/`CulturalProfile` exist; `ClassifiedArtefact.decorativeLayers`/`.provenance` reference private `TODO(1FD.13)`/`TODO(1FD.16)` opaque `unknown` placeholders for `DecorativeLayer`/`Provenance`, owned by those tasks)
 
 **Test infrastructure**
 
@@ -677,9 +677,9 @@ graph TD
     1FD.8["`*1FD.8*<br/>PRNG determinism test`"]:::done
     1FD.9["`*1FD.9*<br/>PRNG distribution test`"]:::done
     1FD.10["`*1FD.10*<br/>types/grammar.ts`"]:::done
-    1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::open
+    1FD.11["`*1FD.11*<br/>types/artefact.ts`"]:::done
     1FD.12["`*1FD.12*<br/>types/tags.ts`"]:::done
-    1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::blocked
+    1FD.13["`*1FD.13*<br/>types/decoration.ts`"]:::open
     1FD.14["`*1FD.14*<br/>types/world core`"]:::open
     1FD.15["`*1FD.15*<br/>types/world relations`"]:::blocked
     1FD.16["`*1FD.16*<br/>types/world provenance`"]:::blocked
