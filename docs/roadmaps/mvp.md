@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.17, 1FD.19, 1FD.20, 1FD.28, 1FD.31 | — |
+| **FD**   | In progress             | 1FD.17, 1FD.20, 1FD.28, 1FD.31 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -51,7 +51,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Type system**
 
 - [ ] 1FD.17. `src/lib/types/world.ts` — `DatingFramework`, `LayerDating`, `DatingMethod`
-- [ ] 1FD.19. `src/lib/types/interpretation.ts` — `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired; resolves the five same-file `TODO(1FD.19)` stand-ins in `interpretation.ts`)
 - [ ] 1FD.20. `src/lib/types/lens.ts` — `LensStrength`, `ObservationSalience`, `ClassificationSuggestion`, `CrossReference`, `DescriptionFrame`, `OmissionCheck`, `LensState`
 - [ ] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`)
 - [ ] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage`
@@ -104,7 +103,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.14. `src/lib/types/world.ts` — `WorldSeed`, `PhaseCharacteristics`, `CulturePhase`, `CultureTimeline`, `CulturalProfile`, `Culture`, `CraftInvestmentProfile`, `MotifSet`, `MotifDefinition`, `WorldChronology` (doc 05 §2, §3.1–§3.3; `MotifSet`/`MotifDefinition` are invented, provisional, not doc-specified — minimal shape so `DecorativeLayer.motifRef` can reference one by id; `CulturalProfile`'s JSDoc flags the unrelated same-named type in doc 06 §3.3; built together with 1FD.15/1FD.16 in the same file since `CraftInvestmentProfile` and `WorldChronology` reference their types directly)
 - [x] 1FD.15. `src/lib/types/world.ts` — `MaterialFlow`, `RelationshipDynamics`, `RelationshipPhase`, `CultureRelationship` (doc 05 §3.4, fully specified verbatim; built alongside 1FD.14/1FD.16)
 - [x] 1FD.16. `src/lib/types/world.ts` — `SiteType`, `PreservationState`, `DepositionType`, `Provenance`, `AvailabilityLevel`, `RegionalAvailability`, `GeologicalContext` (doc 05 §3.5–§3.6, fully specified verbatim; `Provenance`'s JSDoc distinguishes it from `MaterialProvenance` in `artefact.ts`; resolves the `TODO(1FD.16)` stand-in in `artefact.ts`; built alongside 1FD.14/1FD.15)
-- [x] 1FD.18. `src/lib/types/interpretation.ts` — `Confidence`, `Observation`, `EvidenceLink`, `InferenceScope`, `Inference`, `Hypothesis`, `InterpretiveModel` (doc 06 §2.1–§2.3, doc 08 §3.2; `InterpretiveModel` uses the doc 08 §3.2 "claims" shape rather than doc 06 §6's "knowledge layers" shape — the two docs conflict, and doc 08's version matches this roadmap's own field ownership (1FD.19, 1FD.25) and the concrete store-construction code in doc 08 §3.4; `Observation.observationRegister` is typed as the inline MVP three-value union pending `DescriptionRegister` from 1FD.20/1FD.31; `InterpretiveModel`'s five 1FD.19-owned fields and two 1FD.25-owned fields are private `unknown` placeholders)
+- [x] 1FD.18. `src/lib/types/interpretation.ts` — `Confidence`, `Observation`, `EvidenceLink`, `InferenceScope`, `Inference`, `Hypothesis`, `InterpretiveModel` (doc 06 §2.1–§2.3, doc 08 §3.2; `InterpretiveModel` uses the doc 08 §3.2 "claims" shape rather than doc 06 §6's "knowledge layers" shape — the two docs conflict, and doc 08's version matches this roadmap's own field ownership (1FD.19, 1FD.25) and the concrete store-construction code in doc 08 §3.4; `Observation.observationRegister` is typed as the inline MVP three-value union pending `DescriptionRegister` from 1FD.20/1FD.31; `InterpretiveModel`'s five 1FD.19-owned fields were private `unknown` placeholders until 1FD.19 landed, its two 1FD.25-owned fields still are)
+- [x] 1FD.19. `src/lib/types/interpretation.ts` — `MethodologicalBias`, `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (doc 08 §3.2 names all five as `InterpretiveModel` members but gives no field shapes; authored against downstream consumers instead — the contradiction detector's `agentClaim: { claimId, claim }` contract (doc 06 §4.2, 1FD.24) requires `id` + `claim: string` on the three claim types, and the player store's `Map` usage (doc 08 §3.4) requires `id`-keying and a `status` union including `'active'`, reusing the `'active' | 'challenged' | 'retracted'` union already on `Inference`/`Hypothesis`; `MethodologicalBias` is an authored union — `'materialist' | 'structuralist' | 'culturalist'` from doc 07 §5.1 plus an authored `'generalist'` neutral member so the union stays total (no optional `bias` field) and `MethodologicalProfile` has a sensible non-empty default (`bias: 'generalist'`, all `weights` at `1.0`) for the `defaultMethodology()` factory, 3WS.11; strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired; resolves the five same-file `TODO(1FD.19)` stand-ins in `interpretation.ts`)
 - [x] 1FD.26. `src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType` (doc 07 §2, §2.2, §4.0–§4.1, fully specified verbatim and self-contained; `CareerActivity.outcomes: ActivityOutcome[]` needed an invented, provisional `ActivityOutcome` shape — doc 07 names it only as a comment, "Possible results", with no roadmap task owning it)
 - [x] 1FD.32. `src/lib/types/visibility.ts` — `PropertyVisibility` (string-literal union, not a TS `enum`, per the convention already committed in `artefact.ts`'s module JSDoc), `PROPERTY_VISIBILITY_VALUES`, `isPropertyVisibility` (doc 11 §2.7 authoritative; helpers kept minimal since there's no consumer yet — `lens.ts`, 1FD.20, is the first)
 
@@ -685,9 +685,9 @@ graph TD
     1FD.16["`*1FD.16*<br/>types/world provenance`"]:::done
     1FD.17["`*1FD.17*<br/>types/world dating`"]:::open
     1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::done
-    1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::open
+    1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::done
     1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::open
-    1FD.21["`*1FD.21*<br/>types/documents core`"]:::blocked
+    1FD.21["`*1FD.21*<br/>types/documents core`"]:::open
     1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::blocked
     1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::blocked
     1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::blocked
