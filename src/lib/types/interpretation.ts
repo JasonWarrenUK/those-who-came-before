@@ -26,6 +26,16 @@ export type Confidence =
 	| 'certain';
 
 /**
+ * Whether a claim still stands, is under challenge, or has been withdrawn — shared by `Inference`,
+ * `Hypothesis`, `CulturalClaim`, `ArtefactClaim` and `ChronoClaim` so the status vocabulary stays
+ * centralised rather than repeated inline at each site.
+ */
+export type ClaimStatus =
+	| 'active'
+	| 'challenged'
+	| 'retracted';
+
+/**
  * A raw note attached to a specific artefact (doc 06 §2.1) — the ground floor of the knowledge
  * graph. The player (or NPC) records what they perceive, filtered through the lens without their
  * knowledge. Cheap to create and revise; revision history is tracked via `revisedAtTerm` and
@@ -182,7 +192,7 @@ export interface Inference {
 	revisedAtTerm?: number;
 
 	/** Whether the inference still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 }
 
 /**
@@ -233,7 +243,7 @@ export interface Hypothesis {
 	revisedAtTerm?: number;
 
 	/** Whether the hypothesis still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 }
 
 /**
@@ -278,7 +288,7 @@ export interface CulturalClaim {
 	confidence: Confidence;
 
 	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 
 	/** Term index when the claim was first made. */
 	createdAtTerm: number;
@@ -315,7 +325,7 @@ export interface ArtefactClaim {
 	confidence: Confidence;
 
 	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 
 	/** Term index when the claim was first made. */
 	createdAtTerm: number;
@@ -351,7 +361,7 @@ export interface ChronoClaim {
 	confidence: Confidence;
 
 	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 
 	/** Term index when the claim was first made. */
 	createdAtTerm: number;
