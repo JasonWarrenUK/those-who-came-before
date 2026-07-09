@@ -7,5 +7,6 @@
 	},
 	// *.test.ts files are Deno-only (Deno.test, deno.ns lib, jsr: specifiers) and never bundled
 	// by Vite, so svelte-check shouldn't type-check them — `deno task test` covers them instead.
-	"exclude": ["src/**/*.test.ts"]
+	// tests/fixtures/*.test.ts (roadmap 1FD.35) hits the same issue, so it's excluded too.
+	"exclude": ["src/**/*.test.ts", "tests/**/*.test.ts"]
 }
