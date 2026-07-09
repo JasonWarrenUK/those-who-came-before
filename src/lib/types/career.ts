@@ -165,7 +165,7 @@ export interface CareerActivity {
 	};
 
 	/** Activity types that cannot run concurrently with this one (doc 07 §4.1). */
-	exclusive?: string[];
+	exclusive?: ActivityType[];
 
 	/** Possible results of completing this activity (doc 07 §4.1). */
 	outcomes: ActivityOutcome[];
