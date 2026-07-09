@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.17, 1FD.20, 1FD.28, 1FD.31 | — |
+| **FD**   | In progress             | 1FD.21, 1FD.24, 1FD.29, 1FD.36 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -50,18 +50,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Type system**
 
-- [ ] 1FD.17. `src/lib/types/world.ts` — `DatingFramework`, `LayerDating`, `DatingMethod`
-- [ ] 1FD.20. `src/lib/types/lens.ts` — `LensStrength`, `ObservationSalience`, `ClassificationSuggestion`, `CrossReference`, `DescriptionFrame`, `OmissionCheck`, `LensState`
 - [ ] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`)
 - [ ] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage`
 - [ ] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification`
 - [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP)
 - [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`)
 - [ ] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
-- [ ] 1FD.28. `src/lib/types/term.ts` — `TermType`, `AcademicYear`, `TermState`, `BackgroundDrain`, `CompletedAction` (doc 08 §3.6 places both in term.ts), constants (`WEEKS_PER_TERM`, `TERMS_PER_YEAR`), helpers (`termStartWeek`, `weekInTerm`, `termIndexFromWeek`, `yearFromTerm`)
 - [ ] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation`
 - [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
-- [ ] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ProvenancePresentation`, `DescriptionRegister` (`'observational' | 'interpretive' | 'technical'` per doc 04 §3.4; the five-value `ObservationRegister` + `RegisterAccess` acquisition model from doc 05 §12 is post-MVP)
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
 
 **Project Explorer shell**
@@ -103,6 +99,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.19. `src/lib/types/interpretation.ts` — `MethodologicalBias`, `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment`, `MethodologicalProfile` (doc 08 §3.2 names all five as `InterpretiveModel` members but gives no field shapes; authored against downstream consumers instead — the contradiction detector's `agentClaim: { claimId, claim }` contract (doc 06 §4.2, 1FD.24) requires `id` + `claim: string` on the three claim types, and the player store's `Map` usage (doc 08 §3.4) requires `id`-keying and a `status` union including `'active'`, reusing the `'active' | 'challenged' | 'retracted'` union already on `Inference`/`Hypothesis`; `MethodologicalBias` is an authored union — `'materialist' | 'structuralist' | 'culturalist'` from doc 07 §5.1 plus an authored `'generalist'` neutral member so the union stays total (no optional `bias` field) and `MethodologicalProfile` has a sensible non-empty default (`bias: 'generalist'`, all `weights` at `1.0`) for the `defaultMethodology()` factory, 3WS.11; strain lives in `HypothesisStrain`, 1FD.25 — the name `StrainScore` is retired; resolves the five same-file `TODO(1FD.19)` stand-ins in `interpretation.ts`)
 - [x] 1FD.26. `src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType` (doc 07 §2, §2.2, §4.0–§4.1, fully specified verbatim and self-contained; `CareerActivity.outcomes: ActivityOutcome[]` needed an invented, provisional `ActivityOutcome` shape — doc 07 names it only as a comment, "Possible results", with no roadmap task owning it)
 - [x] 1FD.32. `src/lib/types/visibility.ts` — `PropertyVisibility` (string-literal union, not a TS `enum`, per the convention already committed in `artefact.ts`'s module JSDoc), `PROPERTY_VISIBILITY_VALUES`, `isPropertyVisibility` (doc 11 §2.7 authoritative; helpers kept minimal since there's no consumer yet — `lens.ts`, 1FD.20, is the first)
+- [x] 1FD.17. `src/lib/types/world.ts` — `DatingFramework`, `LayerDating`, `DatingMethod` (doc 05 §4.7, fully specified verbatim; `DatingConfidence` hoisted from the doc's inline union on `DatingFramework.confidence` per the `ClaimStatus` precedent in interpretation.ts — `ProvenancePresentation.dating`, 1FD.31, is the second consumer)
+- [x] 1FD.28. `src/lib/types/term.ts` — `TermType`, `AcademicYear`, `TermState`, `BackgroundDrain`, `CompletedAction` (doc 08 §3.6 verbatim, which supersedes doc 07's older sketches per doc 12 §2.9), constants (`WEEKS_PER_TERM`, `TERMS_PER_YEAR`, plus `WEEKS_PER_YEAR` from the same doc block), helpers (`termStartWeek`, `weekInTerm`, `termIndexFromWeek`, `yearFromTerm`; all 0-based per doc 11 §2.8, covered by `term.test.ts`; `getTermType(termIndex)` deliberately excluded — it belongs to 9CR.20, `engine/career/progression.ts`)
+- [x] 1FD.20. `src/lib/types/lens.ts` — `LensStrength`, `ObservationSalience`, `ClassificationSuggestion`, `CrossReference`, `DescriptionFrame`, `OmissionCheck`, `LensState` (doc 04 §3.1–§3.5, §4, incl. the graduated dissemination factor with 0.15 presented per doc 12 §2.16; `LensState` is named by doc 06 §6 and 6LS.2/6LS.4 but shaped nowhere — landed as a flagged provisional design, per-hypothesis `strengths` Map + aggregated `tagWeights` + `computedAtTerm`, to firm up at 6LS.2/6LS.3; also owns `DescriptionRegister` (doc 04 §3.4), moved here from the 1FD.31 bullet because `DescriptionFrame` keys a `Record` on it and description.ts already imports lens.ts, keeping imports one-directional; resolves the `observationRegister` inline-union TODO in interpretation.ts from 1FD.18)
+- [x] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ProvenancePresentation` (doc 05 §13.1–§13.2; both `register` fields narrowed from the doc's five-value `ObservationRegister` to the three-value `DescriptionRegister` per doc 12 §2.10 — the five-register model + `RegisterAccess` is post-MVP, doc 13 §4; `DescriptionRegister` itself lives in lens.ts under 1FD.20, imported here; `ProvenancePresentation` is named by `ArtefactPresentation.provenance` but shaped nowhere — landed as a flagged provisional player-visible projection of world.ts `Provenance`, `cultureId`/`phaseId`/`year` deliberately absent with an optional corpus-derived `dating` block per doc 05 §4.7, to firm up at 2GN.38)
 
 **Test infrastructure**
 
@@ -680,21 +680,21 @@ graph TD
     1FD.14["`*1FD.14*<br/>types/world core`"]:::done
     1FD.15["`*1FD.15*<br/>types/world relations`"]:::done
     1FD.16["`*1FD.16*<br/>types/world provenance`"]:::done
-    1FD.17["`*1FD.17*<br/>types/world dating`"]:::open
+    1FD.17["`*1FD.17*<br/>types/world dating`"]:::done
     1FD.18["`*1FD.18*<br/>types/interpretation core`"]:::done
     1FD.19["`*1FD.19*<br/>types/interpretation claims`"]:::done
-    1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::open
+    1FD.20["`*1FD.20*<br/>types/lens.ts`"]:::done
     1FD.21["`*1FD.21*<br/>types/documents core`"]:::open
     1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::blocked
     1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::blocked
-    1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::blocked
+    1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::open
     1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::blocked
     1FD.26["`*1FD.26*<br/>types/career core`"]:::done
     1FD.27["`*1FD.27*<br/>types/career drains`"]:::blocked
-    1FD.28["`*1FD.28*<br/>types/term.ts`"]:::open
-    1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::blocked
+    1FD.28["`*1FD.28*<br/>types/term.ts`"]:::done
+    1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::open
     1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::blocked
-    1FD.31["`*1FD.31*<br/>types/description.ts`"]:::open
+    1FD.31["`*1FD.31*<br/>types/description.ts`"]:::done
     1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::done
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
@@ -714,10 +714,10 @@ graph TD
     1FD.14 --> 1FD.15 & 1FD.16 & 1FD.17
     1FD.15 --> 1FD.30
     1FD.16 --> 1FD.30
-    1FD.17 --> 1FD.30
+    1FD.17 --> 1FD.30 & 1FD.31
     1FD.18 --> 1FD.19 & 1FD.20
     1FD.19 --> 1FD.21 & 1FD.24 & 1FD.29
-    1FD.20 --> 1FD.24 & 1FD.29
+    1FD.20 --> 1FD.24 & 1FD.29 & 1FD.31
     1FD.21 --> 1FD.23
     1FD.22 --> 1FD.27
     1FD.23 --> 1FD.22
