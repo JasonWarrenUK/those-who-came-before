@@ -64,10 +64,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [ ] 1FD.31. `src/lib/types/description.ts` — `DescriptionTemplate`, `DescriptionVariant`, `ArtefactPresentation`, `PresentedObservation`, `TagSuggestion`, `ProvenancePresentation`, `DescriptionRegister` (`'observational' | 'interpretive' | 'technical'` per doc 04 §3.4; the five-value `ObservationRegister` + `RegisterAccess` acquisition model from doc 05 §12 is post-MVP)
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
 
-**Test infrastructure**
-
-- [ ] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (partially done: `tests/fixtures/world.ts` has `mockWorldSeed`; mock culture unblocked — `Culture`/`CulturalProfile` (1FD.14), `SiteType`/`DepositionType` (1FD.16) and `MaterialTag` (1FD.12) now exist; mock artefact unblocked — `NormalisedArtefact`/`ClassifiedArtefact` (1FD.11), `ArrangementPattern`/`AttachmentType` (1FD.10) and `MaterialTag` (1FD.12) now exist)
-
 **Project Explorer shell**
 
 - [ ] 1FD.36. Create route `/dev/explorer` with layout and nav
@@ -111,6 +107,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Test infrastructure**
 
 - [x] 1FD.34. Configure `deno test`, verify runner executes against engine skeleton (`deno task test` wired in `deno.json`; `@std/assert@^1.0.19` added; `tsconfig.json` excludes `*.test.ts` from `svelte-check` since Deno test files use `Deno.ns`/`jsr:` specifiers svelte-check can't resolve)
+- [x] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (split per-domain, mirroring `src/lib/types/`: `tests/fixtures/world.ts` keeps `mockWorldSeed`, now returning the real `WorldSeed` instead of a local stand-in; `tests/fixtures/culture.ts` adds `mockCulture`; `tests/fixtures/artefact.ts` adds `mockNormalisedArtefact` and `mockArtefact`; each takes a shallow-merge `overrides` param that replaces whole top-level branches rather than deep-merging, since several fields are `Map`s or multi-level nested objects; `tsconfig.json`'s `exclude` extended to `tests/**/*.test.ts` alongside the existing `src/**/*.test.ts` for the same Deno-only reason)
 </details>
 
 <details>
