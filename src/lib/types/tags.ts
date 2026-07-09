@@ -8,6 +8,8 @@
  * sits against the professional corpus (doc 05 §4.6), not a property of the artefact itself.
  */
 
+import type { ExtractedFeatures } from './artefact.ts';
+
 /**
  * What an object was FOR — its physical/social purpose (doc 05 §9.2). Not mutually exclusive with
  * other function tags or with `ContextTag`.
@@ -29,7 +31,7 @@ export type FunctionTag =
 
 /**
  * How an object was USED — its social register of use, distinct from `FunctionTag` (doc 05 §9.2).
- * Not the same axis as deposition context (`DepositionType`, doc 05 §3.3) — this describes use,
+ * Not the same axis as deposition context (`DepositionType`, doc 05 §3.5) — this describes use,
  * not how the artefact ended up in the ground.
  */
 export type ContextTag =
@@ -58,46 +60,6 @@ export type MaterialTag =
 	| 'leather'
 	| 'precious-stone'
 	| 'precious-metal';
-
-/**
- * TODO(1FD.11): structural stand-in for the real `ExtractedFeatures` (doc 05 §9.1), which belongs
- * in `src/lib/types/artefact.ts`. That file doesn't exist yet, and `ClassificationRule.condition`
- * needs a feature shape to typecheck its predicates against — swap this for
- * `import type { ExtractedFeatures } from './artefact.ts'` once 1FD.11 lands. Field set copied
- * verbatim from doc 05 §9.1 so classification rule predicates (doc 05 §9.2) type-check against
- * real field names in the meantime. `Portability` and `InspectionDepth` (also 1FD.11) are inlined
- * as their doc-05-specified literal unions rather than imported, for the same reason.
- */
-export interface ExtractedFeatures {
-	// Structural features
-	hasEdge: boolean;
-	edgeCount: number;
-	hasPoint: boolean;
-	hasImpactSurface: boolean;
-	hasContainer: boolean;
-	containerOpenness: number;
-	hasFasteningMechanism: boolean;
-	primaryAxisLength: 'short' | 'medium' | 'long';
-	isWearable: boolean;
-	partCount: number;
-	attachmentDiversity: number;
-
-	// Decorative features
-	decorativeLayerCount: number;
-	motifPresent: boolean;
-	motifCulturalOrigins: string[];
-	techniqueComplexity: number;
-	preciousMaterialsInDecoration: boolean;
-
-	// Combined
-	functionalComplexity: number;
-	decorativeComplexity: number;
-	overallComplexity: number;
-
-	// Dimensional — TODO(1FD.11): inline placeholders for Portability/InspectionDepth literal unions.
-	portability: 'pocketable' | 'one-hand' | 'two-hand' | 'team-lift' | 'major-effort';
-	inspectionDepth: 'full' | 'detailed' | 'observational';
-}
 
 /**
  * One feature→tag scoring contribution (doc 05 §9.2). `classifyArtefact` (roadmap 2GN.20) folds
