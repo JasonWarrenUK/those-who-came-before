@@ -7,8 +7,10 @@
  * §2.6, doc 08 §3.1–§3.2). This module is data shapes only, no behaviour.
  *
  * `CulturalClaim`, `ArtefactClaim`, `ChronoClaim`, `AgentAssessment` and `MethodologicalProfile`
- * are specified here in doc 08 §3.2 but owned by roadmap 1FD.19 (a later task against this same
- * file); they are opaque placeholders below until that task lands.
+ * (roadmap 1FD.19) are named in doc 08 §3.2 as `InterpretiveModel` members but given no field
+ * shapes there; their fields below are authored against downstream consumers instead — the
+ * contradiction detector's `agentClaim: { claimId, claim }` contract (doc 06 §4.2, roadmap 1FD.24)
+ * and the player store's `id`-keyed, `status`-filtered `Map` usage (doc 08 §3.4).
  */
 
 import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
@@ -22,6 +24,16 @@ export type Confidence =
 	| 'tentative'
 	| 'confident'
 	| 'certain';
+
+/**
+ * Whether a claim still stands, is under challenge, or has been withdrawn — shared by `Inference`,
+ * `Hypothesis`, `CulturalClaim`, `ArtefactClaim` and `ChronoClaim` so the status vocabulary stays
+ * centralised rather than repeated inline at each site.
+ */
+export type ClaimStatus =
+	| 'active'
+	| 'challenged'
+	| 'retracted';
 
 /**
  * A raw note attached to a specific artefact (doc 06 §2.1) — the ground floor of the knowledge
@@ -180,7 +192,7 @@ export interface Inference {
 	revisedAtTerm?: number;
 
 	/** Whether the inference still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 }
 
 /**
@@ -231,59 +243,190 @@ export interface Hypothesis {
 	revisedAtTerm?: number;
 
 	/** Whether the hypothesis still stands, is under challenge, or has been withdrawn. */
-	status: 'active' | 'challenged' | 'retracted';
+	status: ClaimStatus;
 }
 
 /**
- * TODO(1FD.19): opaque placeholder for `CulturalClaim`, owned by this same file
- * (`src/lib/types/interpretation.ts`, doc 08 §3.2) — a later task in this file's own scope, e.g.
- * "Culture X preferred obsidian for blades." Nothing in this file dereferences its fields, so an
- * opaque `unknown` typechecks everywhere it is used (`InterpretiveModel.culturalClaims`) while
- * avoiding a duplicate definition that would conflict when 1FD.19 lands. Define `CulturalClaim`
- * directly in this file and delete this placeholder then; no import will be needed.
+ * The recurring methodological-bias vocabulary (doc 07 §5.1) — the interpretive school a scholar's
+ * reasoning leans towards. A materialist privileges physical/material evidence, a structuralist
+ * formal and typological relationships, a culturalist contextual and symbolic meaning. Shared by
+ * `AgentAssessment` (how one agent characterises another) and `MethodologicalProfile` (an agent's
+ * own stance).
  */
-type CulturalClaim = unknown;
+export type MethodologicalBias =
+	| 'materialist'
+	| 'structuralist'
+	| 'culturalist'
+	| 'generalist'; // Provisional, not doc-specified: no strong leaning yet; the fresh-profile default
 
 /**
- * TODO(1FD.19): opaque placeholder for `ArtefactClaim`, owned by this same file
- * (`src/lib/types/interpretation.ts`, doc 08 §3.2) — a later task in this file's own scope, e.g.
- * "This blade was ceremonial." Nothing in this file dereferences its fields, so an opaque
- * `unknown` typechecks everywhere it is used (`InterpretiveModel.artefactClaims`) while avoiding a
- * duplicate definition that would conflict when 1FD.19 lands. Define `ArtefactClaim` directly in
- * this file and delete this placeholder then; no import will be needed.
+ * A single assertion an agent holds about a culture (doc 08 §3.2) — the MVP, model-resident
+ * stand-in for the working-document `CulturalProfile` (doc 06 §3.3; roadmap 7CD.4 notes this
+ * substitution explicitly). Where a `CulturalProfile` aggregates many material and functional
+ * preferences into one evolving document, a `CulturalClaim` is a single such assertion held "in the
+ * agent's head" — e.g. "Culture X preferred obsidian for blades." Read by material contradiction
+ * detection (doc 06 §4.2 `MaterialContradiction`), which references it via `{ claimId: id, claim }`.
  */
-type ArtefactClaim = unknown;
+export interface CulturalClaim {
+	/** Stable id; the key under which this claim lives in `InterpretiveModel.culturalClaims`. */
+	id: string;
+
+	/** Which culture this claim is about, by the agent's own label. */
+	cultureLabel: string;
+
+	/** The assertion in the agent's own words — read by contradiction detection (doc 06 §4.2). */
+	claim: string;
+
+	/**
+	 * Provisional, not doc-specified: the material this claim concerns, when it is a material-use
+	 * assertion. Lets material contradiction detection (doc 06 §4.2) match the claim against a new
+	 * artefact's composition without re-parsing `claim` prose. Absent for non-material claims.
+	 */
+	materialTag?: MaterialTag;
+
+	/** How strongly the agent holds this claim. */
+	confidence: Confidence;
+
+	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
+	status: ClaimStatus;
+
+	/** Term index when the claim was first made. */
+	createdAtTerm: number;
+
+	/** Term index of the most recent revision, if any. */
+	revisedAtTerm?: number;
+}
 
 /**
- * TODO(1FD.19): opaque placeholder for `ChronoClaim`, owned by this same file
- * (`src/lib/types/interpretation.ts`, doc 08 §3.2) — a later task in this file's own scope, e.g.
- * "Period Y preceded Period Z." Nothing in this file dereferences its fields, so an opaque
- * `unknown` typechecks everywhere it is used (`InterpretiveModel.chronologicalClaims`) while
- * avoiding a duplicate definition that would conflict when 1FD.19 lands. Define `ChronoClaim`
- * directly in this file and delete this placeholder then; no import will be needed.
+ * A single interpretation an agent attaches to one specific artefact (doc 08 §3.2) — the
+ * lightweight, model-resident counterpart to the working-document `ArtefactStudy` (doc 06 §3.1).
+ * Where an `ArtefactStudy` is the full analysis workspace for an artefact, an `ArtefactClaim` is one
+ * assertion about its function, use or attribution — e.g. "This blade was ceremonial." Read by
+ * contradiction detection (doc 06 §4.2), which references it via `{ claimId: id, claim }`.
  */
-type ChronoClaim = unknown;
+export interface ArtefactClaim {
+	/** Stable id; the key under which this claim lives in `InterpretiveModel.artefactClaims`. */
+	id: string;
+
+	/** The artefact this claim is about. */
+	artefactId: string;
+
+	/** The assertion in the agent's own words — read by contradiction detection (doc 06 §4.2). */
+	claim: string;
+
+	/**
+	 * Provisional, not doc-specified: the function/context tags this claim assigns to the artefact
+	 * (cf. `ArtefactStudy.assignedTags`, doc 06 §3.1). Not mutually exclusive (doc 05 §9.2). Empty
+	 * when the claim isn't a tag assignment.
+	 */
+	assignedTags: (FunctionTag | ContextTag)[];
+
+	/** How strongly the agent holds this claim. */
+	confidence: Confidence;
+
+	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
+	status: ClaimStatus;
+
+	/** Term index when the claim was first made. */
+	createdAtTerm: number;
+
+	/** Term index of the most recent revision, if any. */
+	revisedAtTerm?: number;
+}
 
 /**
- * TODO(1FD.19): opaque placeholder for `AgentAssessment`, owned by this same file
- * (`src/lib/types/interpretation.ts`, doc 08 §3.2) — a later task in this file's own scope, e.g.
- * "Dr. Okonkwo is a reliable structuralist." Nothing in this file dereferences its fields, so an
- * opaque `unknown` typechecks everywhere it is used (`InterpretiveModel.agentAssessments`) while
- * avoiding a duplicate definition that would conflict when 1FD.19 lands. Define `AgentAssessment`
- * directly in this file and delete this placeholder then; no import will be needed.
+ * A single chronological-ordering assertion an agent holds (doc 08 §3.2) — that one period or
+ * culture precedes another, e.g. "Period Y preceded Period Z." Read by temporal contradiction
+ * detection (doc 06 §4.2 `TemporalContradiction`), which references it via `{ claimId: id, claim }`
+ * and fires when a new artefact's provenance contradicts the asserted ordering.
  */
-type AgentAssessment = unknown;
+export interface ChronoClaim {
+	/** Stable id; the key under which this claim lives in `InterpretiveModel.chronologicalClaims`. */
+	id: string;
+
+	/**
+	 * Provisional, not doc-specified: the earlier period/culture in the asserted ordering, by the
+	 * agent's own label. Paired with `laterLabel` so temporal contradiction detection (doc 06 §4.2)
+	 * can compare the ordering against occluded chronology without re-parsing `claim` prose.
+	 */
+	earlierLabel: string;
+
+	/** Provisional, not doc-specified: the later period/culture in the asserted ordering. */
+	laterLabel: string;
+
+	/** The assertion in the agent's own words — read by contradiction detection (doc 06 §4.2). */
+	claim: string;
+
+	/** How strongly the agent holds this claim. */
+	confidence: Confidence;
+
+	/** Whether the claim still stands, is under challenge, or has been withdrawn. */
+	status: ClaimStatus;
+
+	/** Term index when the claim was first made. */
+	createdAtTerm: number;
+
+	/** Term index of the most recent revision, if any. */
+	revisedAtTerm?: number;
+}
 
 /**
- * TODO(1FD.19): opaque placeholder for `MethodologicalProfile`, owned by this same file
- * (`src/lib/types/interpretation.ts`, doc 08 §3.2) — a later task in this file's own scope,
- * shaping how an agent weighs new evidence. Nothing in this file dereferences its fields, so an
- * opaque `unknown` typechecks everywhere it is used (`InterpretiveModel.methodologicalWeights`)
- * while avoiding a duplicate definition that would conflict when 1FD.19 lands. Define
- * `MethodologicalProfile` directly in this file and delete this placeholder then; no import will
- * be needed.
+ * One agent's standing view of another agent (doc 08 §3.2) — keyed in
+ * `InterpretiveModel.agentAssessments` by the assessed agent's id, e.g. "Dr. Okonkwo is a reliable
+ * structuralist." Mirrors the `relationship` and `methodologicalBias` fields of the working-document
+ * `MinimalScholar` (doc 07 §5.1), but held from the assessing agent's own perspective rather than
+ * the assessed agent's. Deferred for NPCs at MVP (doc 08 §3.2): the type exists and the player's
+ * map may be populated, but NPC models leave `agentAssessments` empty for now.
  */
-type MethodologicalProfile = unknown;
+export interface AgentAssessment {
+	/** The agent being assessed — also this entry's key in `agentAssessments`. */
+	agentId: string;
+
+	/**
+	 * Provisional, not doc-specified: how reliable the assessing agent judges them to be, 0–1.
+	 * Parallels `MinimalScholar.relationship.respect` (doc 07 §5.1) but is the assessor's own read.
+	 */
+	reliability: number;
+
+	/**
+	 * How much the assessing agent agrees with their positions, 0–1 (cf.
+	 * `MinimalScholar.relationship.agreement`, doc 07 §5.1).
+	 */
+	agreement: number;
+
+	/** How the assessing agent characterises their methodological school (doc 07 §5.1). */
+	methodologicalBias: MethodologicalBias;
+}
+
+/**
+ * An agent's own methodological stance (doc 08 §3.2), stored as `InterpretiveModel`'s
+ * `methodologicalWeights` — it biases how strongly evidence in each domain is weighed when new
+ * evidence arrives (doc 07 §5.2: "a materialist reviewer scrutinises material claims more
+ * carefully"). Every agent has one; a fresh player starts from a neutral default produced by
+ * `defaultMethodology()` (store factory, roadmap 3WS.11) — `bias: 'generalist'` with all `weights`
+ * at `1.0`, i.e. no domain up- or down-weighted until play shifts them.
+ */
+export interface MethodologicalProfile {
+	/** The agent's primary interpretive school (doc 07 §5.1). Default `'generalist'`. */
+	bias: MethodologicalBias;
+
+	/**
+	 * Per-domain evidence multipliers. Each defaults to `1.0` (neutral); above `1` up-weights a
+	 * domain, below `1` down-weights it. Provisional, not doc-specified: the three keys mirror
+	 * `MethodologicalBias` so a bias can be expressed as a weighting (e.g. a materialist raises
+	 * `materialEvidence`).
+	 */
+	weights: {
+		/** Weight on material/physical evidence (composition, wear, provenance). Default `1.0`. */
+		materialEvidence: number;
+
+		/** Weight on structural/typological evidence (form, arrangement, sequence). Default `1.0`. */
+		structuralEvidence: number;
+
+		/** Weight on cultural/contextual evidence (symbolism, deposition, association). Default `1.0`. */
+		culturalEvidence: number;
+	};
+}
 
 /**
  * TODO(1FD.25): opaque placeholder for `HypothesisStrain`, owned by
