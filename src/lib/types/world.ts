@@ -481,3 +481,68 @@ export interface GeologicalContext {
 	/** Availability keyed by material id. */
 	materialAvailability: Map<string, RegionalAvailability>;
 }
+
+/**
+ * How a layer's estimated date range was derived (doc 05 §4.7). The first two are inference from
+ * context; the last three are scientific analyses the player can commission once career-gated
+ * access allows (they take time, may consume part of the artefact and carry error margins).
+ */
+export type DatingMethod =
+	| 'stratigraphic-inference' // Relative position + anchored layers
+	| 'typological-comparison' // Compared to dated artefacts elsewhere
+	| 'radiocarbon' // C14 (requires organic material)
+	| 'dendrochronology' // Tree rings (requires preserved wood)
+	| 'thermoluminescence'; // TL (requires fired ceramics)
+
+/**
+ * How settled a site's dating framework is within the professional corpus (doc 05 §4.7). Hoisted
+ * from the doc's inline union on `DatingFramework.confidence` so the vocabulary stays centralised
+ * (the `ClaimStatus` precedent in interpretation.ts) — description presentation (roadmap 1FD.31)
+ * is the second consumer.
+ */
+export type DatingConfidence =
+	| 'well-established'
+	| 'provisional'
+	| 'contested';
+
+/**
+ * The corpus's dated estimate for one stratigraphic layer (doc 05 §4.7). This is an NPC claim
+ * about the world, not ground truth: the true deposition year lives on `Provenance.year`
+ * (occluded), and `estimatedRange` may fail to contain it when the original dating was flawed or
+ * extrapolated beyond its evidence base.
+ */
+export interface LayerDating {
+	/** Stratigraphic layer identifier, matching `Provenance.context.layer`. */
+	layerId: string;
+
+	/** Estimated absolute year range for the layer. */
+	estimatedRange: [number, number];
+
+	/** How the range was derived. */
+	method: DatingMethod;
+
+	/** Years of uncertainty either side of the range. */
+	errorMargin: number;
+}
+
+/**
+ * An approximate chronological framework for a well-studied site, established by NPC dating work
+ * (doc 05 §4.7). Presented as established fact in the reference literature — and possibly wrong.
+ * Visibility: observable via the corpus, but observable-as-claim: an artefact's true age is
+ * `WorldChronology.presentYear - Provenance.year` and stays hidden; the player earns absolute
+ * dates through frameworks like this or by commissioning independent dating. Overturning a
+ * framework is a high-magnitude, high-scrutiny claim (doc 05 §4.6).
+ */
+export interface DatingFramework {
+	/** Site this framework covers (`Provenance.site`). */
+	siteId: string;
+
+	/** Per-layer dated estimates. */
+	layers: LayerDating[];
+
+	/** Ids of the NPC publications that established the framework. */
+	establishedBy: string[];
+
+	/** How settled the framework is in the literature. */
+	confidence: DatingConfidence;
+}
