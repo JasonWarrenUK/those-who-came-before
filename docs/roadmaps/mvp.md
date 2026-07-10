@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.24, 1FD.29, 1FD.36, 1FD.40 | — |
+| **FD**   | In progress             | 1FD.25, 1FD.30, 1FD.36, 1FD.40 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -53,10 +53,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`; `DocumentNode` unavoidably references `DisseminationState`, so 1FD.22's full member list landed alongside it too)
 - [x] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage` (`DisseminationState` scoped to MVP's four states per doc 10 §11 — `presented`/`collected` deferred; completed alongside 1FD.21 since `DocumentNode` depends on it directly)
 - [x] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification` (doc 07 §3.1 transcribed verbatim, term-denominated; doc 10 §6.4's week-denominated `VenueTemporalProfile` overlaps it — reconciliation owned by 1FD.40)
-- [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP)
-- [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`)
+- [x] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP; `ContradictionSeverity` landed here from 1FD.25's bullet since all eight members reference it directly, per the 1FD.21/22 precedent)
+- [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`; `ContradictionSeverity` already landed with 1FD.24)
 - [ ] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
-- [ ] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation`
+- [x] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation` (doc 07 §5.1 + doc 05 §4.1; `MinimalScholar.specialism.methodologicalBias` narrowed from the doc's `string` to interpretation.ts's `MethodologicalBias` union per the 1FD.31 register-narrowing precedent)
 - [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
 - [ ] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23**
@@ -688,13 +688,13 @@ graph TD
     1FD.21["`*1FD.21*<br/>types/documents core`"]:::done
     1FD.22["`*1FD.22*<br/>types/documents dissem`"]:::done
     1FD.23["`*1FD.23*<br/>types/venues.ts`"]:::done
-    1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::open
-    1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::blocked
+    1FD.24["`*1FD.24*<br/>types/contradiction core`"]:::done
+    1FD.25["`*1FD.25*<br/>types/contradiction queue`"]:::open
     1FD.26["`*1FD.26*<br/>types/career core`"]:::done
     1FD.27["`*1FD.27*<br/>types/career drains`"]:::blocked
     1FD.28["`*1FD.28*<br/>types/term.ts`"]:::done
-    1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::open
-    1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::blocked
+    1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::done
+    1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::open
     1FD.31["`*1FD.31*<br/>types/description.ts`"]:::done
     1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::done
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
