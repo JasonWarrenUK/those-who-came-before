@@ -14,8 +14,8 @@
  * Known spec tension: `TemporalMode` here is term-denominated per doc 07 §3.1, while doc 10 §6.4
  * defines a separate week-denominated `VenueTemporalProfile` covering overlapping ground
  * (submission windows, lead times). Doc 12 records doc 10's week conversion but no reconciliation
- * with doc 07; no roadmap task owns `VenueTemporalProfile`. Doc 07's shapes are transcribed as
- * written. This module is data shapes only, no behaviour.
+ * with doc 07; roadmap task 1FD.40 owns `VenueTemporalProfile` and the reconciliation. Doc 07's
+ * shapes are transcribed as written. This module is data shapes only, no behaviour.
  */
 
 /**
