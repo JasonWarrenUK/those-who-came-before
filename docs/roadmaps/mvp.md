@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.24, 1FD.29, 1FD.36 | — |
+| **FD**   | In progress             | 1FD.24, 1FD.29, 1FD.36, 1FD.40 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -52,13 +52,14 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 - [x] 1FD.21. `src/lib/types/documents.ts` — `DocumentNode`, `DocumentLineage`, `DerivationType`, `DerivationEvent`, `DocumentScope`, `Audience`, `PublicationRegister`, `DocumentPerception` (simplified MVP shape per doc 10 §11: `audienceReach`, `takeawayDivergence`, `citationCount`; `DocumentNode` unavoidably references `DisseminationState`, so 1FD.22's full member list landed alongside it too)
 - [x] 1FD.22. `src/lib/types/documents.ts` — `DisseminationState`, `DisseminationEvent`, `DisseminationDetails`, `PeerReviewState`, `Retraction`, `TaintedLineage` (`DisseminationState` scoped to MVP's four states per doc 10 §11 — `presented`/`collected` deferred; completed alongside 1FD.21 since `DocumentNode` depends on it directly)
-- [x] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification` (doc 07 §3.1 transcribed verbatim, term-denominated; doc 10 §6.4's week-denominated `VenueTemporalProfile` overlaps it and is owned by no roadmap task — unreconciled in doc 12)
+- [x] 1FD.23. `src/lib/types/venues.ts` — `VenueDefinition`, `ContainerModel`, `TemporalMode`, `SubmissionWindow`, `EditorialProcess`, `AudienceEncounter`, `VenueScope`, `VenueClassification` (doc 07 §3.1 transcribed verbatim, term-denominated; doc 10 §6.4's week-denominated `VenueTemporalProfile` overlaps it — reconciliation owned by 1FD.40)
 - [ ] 1FD.24. `src/lib/types/contradiction.ts` — `Contradiction` union, `MaterialContradiction`, `TemporalContradiction`, `CulturalContradiction`, `StructuralContradiction`, `ProvenanceContradiction`, `CorpusContradiction`, `RarityContradiction`, `MaterialProvenanceContradiction` (all eight members per doc 06 §4.2; `CulturalContradiction.agentClaim` references a claimId at MVP — doc 06's profileId applies once cultural-profile documents land post-MVP)
 - [ ] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionSeverity`, `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`)
 - [ ] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback`
 - [ ] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation`
 - [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
+- [ ] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23**
 
 **Project Explorer shell**
 
@@ -703,6 +704,7 @@ graph TD
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
+    1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::open
     1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
     1FD.7 --> m1D
     1FD.8 --> m1D
@@ -721,6 +723,7 @@ graph TD
     1FD.21 --> 1FD.23
     1FD.22 --> 1FD.27
     1FD.23 --> 1FD.22
+    1FD.23 --> 1FD.40
     1FD.24 --> 1FD.25
     1FD.25 --> 1FD.27
     1FD.26 --> 1FD.28
@@ -731,6 +734,7 @@ graph TD
     1FD.31 --> 1FD.22
     1FD.32 --> 1FD.20
     1FD.33 --> m1B
+    1FD.40 --> m1B
     1FD.34 --> 1FD.35
     1FD.35 --> m1
     1FD.36 --> 1FD.37 & 1FD.39
