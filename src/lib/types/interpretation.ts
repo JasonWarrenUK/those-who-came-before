@@ -13,6 +13,7 @@
  * and the player store's `id`-keyed, `status`-filtered `Map` usage (doc 08 §3.4).
  */
 
+import type { DescriptionRegister } from './lens.ts';
 import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
 
 /**
@@ -106,17 +107,9 @@ export interface Observation {
 	 * technical-register and interpretive-mode.
 	 *
 	 * MVP note: this is the three-value `DescriptionRegister` from doc 04 §3.4, not the post-MVP
-	 * five-register `ObservationRegister` model from doc 05 §12 (doc 06 §2.1, doc 13). Typed
-	 * inline for now because `DescriptionRegister` doesn't exist yet.
-	 *
-	 * TODO: replace this inline union with an import of `DescriptionRegister` from `./lens.ts`
-	 * (roadmap 1FD.20) or `./description.ts` (roadmap 1FD.31), whichever lands first, once either
-	 * exists.
+	 * five-register `ObservationRegister` model from doc 05 §12 (doc 06 §2.1, doc 13).
 	 */
-	observationRegister?:
-		| 'observational'
-		| 'interpretive'
-		| 'technical';
+	observationRegister?: DescriptionRegister;
 
 	/** Term index when the observation was first recorded. */
 	createdAtTerm: number;
