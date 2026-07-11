@@ -14,7 +14,13 @@ export interface ExplorerPanel {
 
 export const panels: ExplorerPanel[] = [
 	{ id: 'overview', label: 'Overview', path: '/dev/explorer', milestone: 1, status: 'available' },
-	{ id: 'prng', label: 'PRNG Output', path: '/dev/explorer/prng', milestone: 1, status: 'planned' },
+	{
+		id: 'prng',
+		label: 'PRNG Output',
+		path: '/dev/explorer/prng',
+		milestone: 1,
+		status: 'available',
+	},
 	{
 		id: 'types',
 		label: 'Type Index',
