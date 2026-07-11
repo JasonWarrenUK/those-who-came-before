@@ -18,7 +18,33 @@ import type {
 } from '../../src/lib/types/world.ts';
 import type { MaterialTag } from '../../src/lib/types/tags.ts';
 
-function mockPhaseCharacteristics(): PhaseCharacteristics {
+/**
+ * Per-branch partial overrides for `mockPhaseCharacteristics`. Explicit rather than a generic
+ * DeepPartial so the fixture's surface stays readable and misspelt attribute names fail to
+ * compile.
+ */
+export interface PhaseCharacteristicsOverrides {
+	technology?: Partial<PhaseCharacteristics['technology']>;
+	economy?: Partial<PhaseCharacteristics['economy']>;
+	society?: Partial<PhaseCharacteristics['society']>;
+	aesthetics?: Partial<PhaseCharacteristics['aesthetics']>;
+}
+
+/**
+ * Builds a mock `PhaseCharacteristics` with every attribute at a neutral 0.5, so tests can push
+ * single attributes to the extremes (e.g. `{ technology: { metallurgy: 1 } }`) and observe the
+ * shift against an otherwise-flat profile.
+ *
+ * Overrides merge two levels deep, diverging deliberately from `mockCulture`'s whole-branch
+ * replacement: that convention exists because `Map`s and deep nesting drop siblings under a
+ * shallow spread, but every `PhaseCharacteristics` branch is a flat numeric record, so a
+ * per-branch spread is lossless and spares callers restating twelve unchanged attributes.
+ *
+ * @param overrides - Per-branch partial attribute replacements, merged over the 0.5 defaults.
+ */
+export function mockPhaseCharacteristics(
+	overrides: PhaseCharacteristicsOverrides = {},
+): PhaseCharacteristics {
 	return {
 		technology: {
 			metallurgy: 0.5,
@@ -27,22 +53,26 @@ function mockPhaseCharacteristics(): PhaseCharacteristics {
 			stoneWorking: 0.5,
 			glassWorking: 0.5,
 			woodWorking: 0.5,
+			...overrides.technology,
 		},
 		economy: {
 			tradeOpenness: 0.5,
 			surplus: 0.5,
 			urbanisation: 0.5,
+			...overrides.economy,
 		},
 		society: {
 			stratification: 0.5,
 			militarisation: 0.5,
 			religiousEmphasis: 0.5,
 			craftSpecialisation: 0.5,
+			...overrides.society,
 		},
 		aesthetics: {
 			decorativeEmphasis: 0.5,
 			motifComplexity: 0.5,
 			formConservatism: 0.5,
+			...overrides.aesthetics,
 		},
 	};
 }
@@ -68,15 +98,31 @@ function mockCraftInvestment(): CraftInvestmentProfile {
 	};
 }
 
-function mockBaseProfile(cultureId: string): CulturalProfile {
-	return {
+/**
+ * Builds a mock `CulturalProfile`: metal-leaning `materialAffinities`, a single-motif vocabulary
+ * and a populated craft-investment profile.
+ *
+ * Overrides merge shallowly per the `mockCulture` convention — `materialAffinities` is a `Map`,
+ * so callers wanting different affinities pass a whole replacement `Map` (e.g.
+ * `{ materialAffinities: new Map() }` for a culture with no leanings at all).
+ *
+ * @param overrides - Partial `CulturalProfile` merged shallowly over the defaults.
+ */
+export function mockCulturalProfile(overrides: Partial<CulturalProfile> = {}): CulturalProfile {
+	const defaults: CulturalProfile = {
 		materialAffinities: new Map<MaterialTag, number>([
 			['metal', 1.5],
 			['stone', 1.0],
 		]),
-		motifVocabulary: mockMotifVocabulary(cultureId),
+		motifVocabulary: mockMotifVocabulary('test-culture'),
 		craftInvestment: mockCraftInvestment(),
 	};
+
+	return { ...defaults, ...overrides };
+}
+
+function mockBaseProfile(cultureId: string): CulturalProfile {
+	return mockCulturalProfile({ motifVocabulary: mockMotifVocabulary(cultureId) });
 }
 
 function mockTimeline(cultureId: string): CultureTimeline {
