@@ -7,7 +7,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
 | **FD**   | Complete                | —      | — |
-| **GN**   | In progress             | 2GN.2, 2GN.17, 2GN.22 | —      |
+| **GN**   | In progress             | 2GN.3, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
 | **KN**   | Not started             | —                 | 4UI.6             |
@@ -124,10 +124,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 <a name="m2-todo"><h4>To Do (Milestone 2)</h4></a>
 
-**Static data — primitives & grammar rules**
-
-- [ ] 2GN.2. `src/lib/data/grammars/core.ts` — MVP component grammar rules: `<object>` → `<component-group>+`, `<component-group>` → `<primary-component>` + optional attachments, base weights — **depends on 1FD.10**
-
 **Component grammar engine**
 
 - [ ] 2GN.3. `engine/generation/grammar.ts` — `expandGrammar(rules, culture, phase, prng)`: top-level grammar expansion, selects primary component, expands attachment chains — **depends on 2GN.2**
@@ -235,6 +231,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Static data — primitives & grammar rules**
 
 - [x] 2GN.1. `src/lib/data/grammars/primitives.ts` — geometric primitive defs (elongated, cylindrical, flat-broad, hollow-enclosed, ring-form, disc-form, bar-form, sheet-form) with parameter enums — **depends on 1FD.10** (doc 05 §5.3 transcribed verbatim as a single `as const` `PRIMITIVE_PARAMETERS` registry — primitive id → parameter name → ordered value list — with `PrimitiveType` derived via `keyof typeof`, a flagged deviation from the interfaces-first convention per the `Serialised<T>` zero-drift precedent in save.ts; "parameter enums" realised as string-literal value lists per the no-`enum` convention committed in artefact.ts; parameters deliberately scoped per primitive, no shared unions — `crossSection` and `taper` carry different value-sets across primitives; `PRIMITIVE_TYPES` array + `isPrimitiveType` guard round out the union-values-guard trio per the visibility.ts precedent; material-tag compatibility stays with 2GN.10, dimension derivation with 2GN.8, selection weights with 2GN.2/2GN.4 — this module is data only, no `MaterialTag` import needed; covered by 7 Deno tests asserting the eight-primitive vocabulary, per-primitive parameter names and verbatim spot-checked value lists)
+- [x] 2GN.2. `src/lib/data/grammars/core.ts` — MVP component grammar rules: `<object>` → `<component-group>+`, `<component-group>` → `<primary-component>` + optional attachments, base weights — **depends on 1FD.10** (four `GrammarRule`s in BNF order exported as a `readonly GrammarRule[]` — interfaces-first against the 1FD.10 types, no keyed index since `symbol` is already the rule's identity; `attachment` authored as a fourth rule so `selectGrammarOption` (2GN.4) applies culture-biased weighted selection uniformly to join choice, with the caveat documented in the module header that its options expand to `AttachmentType` terminals — neither rule symbols nor primitives — consumed positionally by `expandGrammar` (2GN.3) as edge labels, never expanded as components; the BNF's `+`/`*` repetition is deliberately not encoded — chain length is engine behaviour (2GN.3) bounded by accumulation constraints (2GN.6/2GN.7); all `baseWeight`s and `culturalModifiers` are authored MVP-provisional archaeology-flavoured priors since doc 05 §5.4 gives the modifier maths but no numbers, to tune once generation is observable in the Explorer; five illustrative `phaseModifiers` entries — hollow-enclosed on `technology.ceramics`, bar-form/socketed/riveted/threaded on `technology.metallurgy` — as fixtures for `phaseInfluence`, multiplier semantics firming up at 2GN.5; covered by 8 Deno tests asserting the four-rule vocabulary, exact primitive and attachment coverage in registry/union order, `expandsTo` resolution, positive finite weights and valid modifier keys — no assertions on specific weight values, so tests don't fossilise provisional numbers)
 </details>
 
 <details>
@@ -757,7 +754,7 @@ m1 --> 2GN.1 & 2GN.2 & 2GN.11 & 2GN.22 & 2GN.28 & 2GN.35 & 2GN.36 & 2GN.37 & 2GN
 m2{{"`<h2>Milestone 2</h2>`"}}:::mile
 
 2GN.1["`*2GN.1*<br/>Primitive defs`"]:::open
-2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::open
+2GN.2["`*2GN.2*<br/>Grammar rules data`"]:::done
 2GN.3["`*2GN.3*<br/>expandGrammar`"]:::blocked
 2GN.4["`*2GN.4*<br/>selectGrammarOption`"]:::blocked
 2GN.5["`*2GN.5*<br/>phaseInfluence`"]:::blocked
