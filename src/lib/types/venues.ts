@@ -11,12 +11,14 @@
  * a tier. Venues are static once generated for MVP — shifting attributes (reputation damage,
  * editorial turnover, scope drift) are deferred post-MVP (doc 11).
  *
- * Known spec tension: `TemporalMode` here is term-denominated per doc 07 §3.1, while doc 10 §6.4
- * defines a separate week-denominated `VenueTemporalProfile` covering overlapping ground
- * (submission windows, lead times). Doc 12 records doc 10's week conversion but no reconciliation
- * with doc 07; roadmap task 1FD.40 owns `VenueTemporalProfile` and the reconciliation. Doc 07's
- * shapes are transcribed as written, save the `methodologicalLeaning` narrowing noted on the
- * field. This module is data shapes only, no behaviour.
+ * Temporal model: doc 10 §6.4's week-denominated `VenueTemporalProfile` is canonical (doc 12
+ * §2.17). Doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` are superseded — the
+ * doc 12 §2.9 week-conversion sweep updated doc 10's profile but never doc 07, and the landed
+ * `PeerReviewState` (documents.ts, 1FD.22) already works in absolute weeks. `visibilityWindow`,
+ * the one doc 07 temporal field with no doc 10 equivalent, is deferred post-MVP per the
+ * `presented`/`collected` `DisseminationState` precedent — no task or doc consumes it. Doc 07's
+ * remaining shapes are transcribed as written, save the `methodologicalLeaning` narrowing noted
+ * on the field. This module is data shapes only, no behaviour.
  */
 
 import type { MethodologicalBias } from './interpretation.ts';
@@ -35,37 +37,31 @@ export type ContainerModel =
 	| 'event';
 
 /**
- * When a venue accepts submissions (doc 07 §3.1). Seasonal windows create calendar pressure: the
- * player must decide whether to rush a document to meet a window or wait for the next cycle.
+ * When a venue accepts and publishes work (doc 10 §6.4). Seasonal windows create calendar
+ * pressure: the player must decide whether to rush a document to meet a window or wait for the
+ * next cycle; rolling venues are always open but may have longer review times. Lead times are
+ * stored in weeks for verisimilitude — the player sees "expected review: 16–24 weeks" — but
+ * resolution occurs at term boundaries, because that's when the world ticks (doc 08 §3.6). Set
+ * per-venue at world generation (9CR.5) and observable: the player can check submission
+ * deadlines. Weeks-within-year values tie to `WEEKS_PER_YEAR` (term.ts, 1FD.28).
  */
-export interface SubmissionWindow {
-	/** Windows per year (1 = annual, 3 = termly, etc.). */
-	frequency: number;
+export interface VenueTemporalProfile {
+	/** Self-referential when the profile is embedded in `VenueDefinition`. */
+	venueId: string;
 
-	/** How windows align with the academic calendar, if they do. */
-	alignment?: 'term-start' | 'term-end' | 'annual' | 'event-tied';
+	submissionMode: 'rolling' | 'seasonal';
 
-	/**
-	 * Whether a window is currently open. Runtime-derived state sitting inside an otherwise static
-	 * definition (transcribed verbatim from doc 07 §3.1); doc 10 §6.4's schedule-based
-	 * `VenueTemporalProfile` derives openness from the current week instead, and 1FD.40's
-	 * reconciliation owns this field's fate. Consumers should derive window status from the
-	 * current term rather than trusting a stored flag.
-	 */
-	open: boolean;
-}
+	/** Seasonal venues only: ranges of weeks-within-year (0–47) when submissions are accepted. */
+	openWeeks?: [number, number][];
 
-/**
- * When and how often a venue accepts and publishes work (doc 07 §3.1).
- */
-export interface TemporalMode {
-	submissionWindow: SubmissionWindow;
+	/** Seasonal venues only: period of the cycle (e.g. 48 = annual). */
+	cycleLengthWeeks?: number;
 
-	/** Terms between acceptance and publication (1–3 typical). */
-	leadTime: number;
+	/** Min–max weeks from submission to decision. */
+	reviewLeadTimeWeeks: [number, number];
 
-	/** Terms the work remains "current" before fading into the backlist. */
-	visibilityWindow: number | 'indefinite';
+	/** Weeks from acceptance to formal publication. */
+	publicationLeadTimeWeeks: number;
 }
 
 /**
@@ -121,7 +117,7 @@ export interface VenueDefinition {
 
 	// Structural properties — how publication works here
 	containerModel: ContainerModel;
-	temporalMode: TemporalMode;
+	temporalProfile: VenueTemporalProfile;
 
 	/** Whether the audience encounters actual artefacts alongside the work. */
 	artefactSituated: boolean;

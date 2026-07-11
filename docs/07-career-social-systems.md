@@ -160,6 +160,11 @@ interface SubmissionWindow {
   alignment?: 'term-start' | 'term-end' | 'annual' | 'event-tied';
   open: boolean;                         // Is a window currently open?
 }
+```
+
+> **Superseded (doc 12, section 2.17):** `TemporalMode` and `SubmissionWindow` above are superseded by doc 10 section 6.4's week-denominated `VenueTemporalProfile` — weeks are the canonical timestamp (doc 12, section 2.9), and `VenueDefinition.temporalMode` is now `temporalProfile: VenueTemporalProfile`. `visibilityWindow` has no week-denominated equivalent and no consumer; it is deferred post-MVP.
+
+```typescript
 
 type EditorialProcess =
   | 'peer-review'                        // Named reviewers evaluate submission

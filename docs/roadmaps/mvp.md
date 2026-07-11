@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.30, 1FD.40 | — |
+| **FD**   | In progress             | 1FD.33 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -57,9 +57,9 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.25. `src/lib/types/contradiction.ts` — `ContradictionQueue`, `QueuedContradiction`, `DiegeticSurface`, `Resolution`, `HypothesisStrain` (doc 06 §4.4–§4.6, §5 verbatim; `HypothesisStrain` is the canonical strain type per doc 12 §2.15; all six `DiegeticSurface` channels typed though MVP drives only `impossible-artefact`/`field-report` — doc 07 §5.2's NPC generators already return the other shapes; `ContradictionQueue` shaped per doc 06, with doc 08 §3.4's bare-`Contradiction`-push store sketch JSDoc-flagged as illustrative pseudo-code to reconcile at the store task; `Resolution.contradictionId` flagged as a doc 06 forward reference — `Contradiction` members carry no `id` at MVP, the identity scheme belongs to the detection engine (7CD.x); resolves the two cross-file `TODO(1FD.25)` stand-ins in `interpretation.ts`; `ContradictionSeverity` already landed with 1FD.24)
 - [x] 1FD.27. `src/lib/types/career.ts` — `RoleRequirement`, `DisseminationCareerEffect`, `PeerReviewCareerEvent`, `ReviewerFeedback` (doc 07 §3.2–§3.3, §4.2 verbatim; `DisseminationTransition` hoisted from §3.2 per the `ContradictionSeverity` precedent and scoped to MVP's three live transitions — `published-to-collected` dropped per the 1FD.22 `DisseminationState` precedent; authored `ReputationEffect` hoist for the `{dimension, delta, basis}` shape doc 07 inlines identically on both career-event types; doc 08 §5's singular `reputationEffect` read in the `resolvePeerReview` sketch JSDoc-flagged — doc 07's plural array governs; `ActivityOutcome`'s provisional note updated now this task has landed, it stays provisional until activity execution gets an owning task per doc 13 §5; file remains import-free, cross-domain references by plain `string` id)
 - [x] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation` (doc 07 §5.1 + doc 05 §4.1; `MinimalScholar.specialism.methodologicalBias` narrowed from the doc's `string` to interpretation.ts's `MethodologicalBias` union per the 1FD.31 register-narrowing precedent)
-- [ ] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget`
+- [x] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget` (doc 05 §4.2–§4.3 verbatim; `ContextFrequency` is named by `ProfessionalCorpus.contextAssociations` but shaped nowhere — authored provisional per the `MotifSet`/`ActivityOutcome`/`ProvenancePresentation` precedent, as the reverse index of `FrequencyRecord.byContext` — `{totalObserved, byCulture, associatedMaterials, associatedForms, lastUpdated}` — to firm up at 2GN.53, the first real producer; `SiteType` imported from world.ts per the scholars.ts precedent; cross-domain references — NPC ids, document node ids, culture ids, period ids — stay plain `string` per the career.ts convention)
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
-- [ ] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23**
+- [x] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23** (resolved as **supersede**, recorded as doc 12 §2.17: the §2.9 week sweep updated doc 10's profile but never doc 07, and `PeerReviewState` (1FD.22) already works in absolute weeks — so `TemporalMode`/`SubmissionWindow` removed, `VenueDefinition.temporalMode` → `temporalProfile: VenueTemporalProfile`, transcribed verbatim with `venueId` kept as self-referential when embedded; `TemporalMode.visibilityWindow` had no week equivalent and no consumer anywhere — dropped for MVP per the `presented`/`collected` `DisseminationState` precedent rather than converted; doc 07 §3.1 gained a supersession note)
 
 **Project Explorer shell**
 
@@ -697,17 +697,17 @@ graph TD
     1FD.27["`*1FD.27*<br/>types/career effects`"]:::done
     1FD.28["`*1FD.28*<br/>types/term.ts`"]:::done
     1FD.29["`*1FD.29*<br/>types/scholars.ts`"]:::done
-    1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::open
+    1FD.30["`*1FD.30*<br/>types/corpus.ts`"]:::done
     1FD.31["`*1FD.31*<br/>types/description.ts`"]:::done
     1FD.32["`*1FD.32*<br/>types/visibility.ts`"]:::done
-    1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
+    1FD.33["`*1FD.33*<br/>types/save.ts`"]:::open
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
     1FD.35["`*1FD.35*<br/>Test fixture helpers (partial)`"]:::open
     1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::done
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::done
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::done
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
-    1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::open
+    1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::done
     1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
     1FD.7 --> m1D
     1FD.8 --> m1D
