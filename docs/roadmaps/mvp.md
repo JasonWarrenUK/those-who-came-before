@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.33, 1FD.40 | — |
+| **FD**   | In progress             | 1FD.33 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -59,7 +59,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 - [x] 1FD.29. `src/lib/types/scholars.ts` — `MinimalScholar`, `NPCScholarSeed`, `SimulatedExcavation` (doc 07 §5.1 + doc 05 §4.1; `MinimalScholar.specialism.methodologicalBias` narrowed from the doc's `string` to interpretation.ts's `MethodologicalBias` union per the 1FD.31 register-narrowing precedent)
 - [x] 1FD.30. `src/lib/types/corpus.ts` — `ProfessionalCorpus`, `FrequencyRecord`, `ContextFrequency`, `ConsensusStatement`, `Debate`, `DebatePosition`, `CoverageBudget` (doc 05 §4.2–§4.3 verbatim; `ContextFrequency` is named by `ProfessionalCorpus.contextAssociations` but shaped nowhere — authored provisional per the `MotifSet`/`ActivityOutcome`/`ProvenancePresentation` precedent, as the reverse index of `FrequencyRecord.byContext` — `{totalObserved, byCulture, associatedMaterials, associatedForms, lastUpdated}` — to firm up at 2GN.53, the first real producer; `SiteType` imported from world.ts per the scholars.ts precedent; cross-domain references — NPC ids, document node ids, culture ids, period ids — stay plain `string` per the career.ts convention)
 - [ ] 1FD.33. `src/lib/types/save.ts` — `SaveFile`, `SerialisedWorldState`, `SerialisedInterpretiveModel`, `SerialisedTermState`, `CURRENT_SAVE_VERSION`
-- [ ] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23**
+- [x] 1FD.40. `src/lib/types/venues.ts` — `VenueTemporalProfile` (doc 10 §6.4, week-denominated: `submissionMode`, `openWeeks`, `cycleLengthWeeks`, `reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`); reconcile with doc 07 §3.1's term-denominated `TemporalMode`/`SubmissionWindow` (supersede or coexist — doc 12's week-conversion sweep suggests weeks are canonical, cf. §2.9 precedent) and record the resolution in doc 12; consumed downstream by 9CR.5 (venue generation sets temporal properties) and 9CR.22 (venue cycles at term boundaries) — **depends on 1FD.23** (resolved as **supersede**, recorded as doc 12 §2.17: the §2.9 week sweep updated doc 10's profile but never doc 07, and `PeerReviewState` (1FD.22) already works in absolute weeks — so `TemporalMode`/`SubmissionWindow` removed, `VenueDefinition.temporalMode` → `temporalProfile: VenueTemporalProfile`, transcribed verbatim with `venueId` kept as self-referential when embedded; `TemporalMode.visibilityWindow` had no week equivalent and no consumer anywhere — dropped for MVP per the `presented`/`collected` `DisseminationState` precedent rather than converted; doc 07 §3.1 gained a supersession note)
 
 **Project Explorer shell**
 
@@ -707,7 +707,7 @@ graph TD
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::done
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::done
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
-    1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::open
+    1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::done
     1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
     1FD.7 --> m1D
     1FD.8 --> m1D
