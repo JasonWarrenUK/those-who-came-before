@@ -15,8 +15,11 @@
  * defines a separate week-denominated `VenueTemporalProfile` covering overlapping ground
  * (submission windows, lead times). Doc 12 records doc 10's week conversion but no reconciliation
  * with doc 07; roadmap task 1FD.40 owns `VenueTemporalProfile` and the reconciliation. Doc 07's
- * shapes are transcribed as written. This module is data shapes only, no behaviour.
+ * shapes are transcribed as written, save the `methodologicalLeaning` narrowing noted on the
+ * field. This module is data shapes only, no behaviour.
  */
+
+import type { MethodologicalBias } from './interpretation.ts';
 
 /**
  * How publication is structured at a venue (doc 07 §3.1).
@@ -42,7 +45,13 @@ export interface SubmissionWindow {
 	/** How windows align with the academic calendar, if they do. */
 	alignment?: 'term-start' | 'term-end' | 'annual' | 'event-tied';
 
-	/** Whether a window is currently open. */
+	/**
+	 * Whether a window is currently open. Runtime-derived state sitting inside an otherwise static
+	 * definition (transcribed verbatim from doc 07 §3.1); doc 10 §6.4's schedule-based
+	 * `VenueTemporalProfile` derives openness from the current week instead, and 1FD.40's
+	 * reconciliation owns this field's fate. Consumers should derive window status from the
+	 * current term rather than trusting a stored flag.
+	 */
 	open: boolean;
 }
 
@@ -140,8 +149,12 @@ export interface VenueDefinition {
 		/** Which periods. */
 		periodAffinities?: string[];
 
-		/** Structuralist, materialist, etc. */
-		methodologicalLeaning?: string;
+		/**
+		 * Structuralist, materialist, etc. Narrowed from doc 07's `string` to the existing
+		 * `MethodologicalBias` union per the 1FD.31 register-narrowing precedent, matching
+		 * `MinimalScholar.specialism.methodologicalBias`.
+		 */
+		methodologicalLeaning?: MethodologicalBias;
 	};
 }
 
