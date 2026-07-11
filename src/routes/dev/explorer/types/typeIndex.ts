@@ -44,6 +44,14 @@ export interface InterfaceSummary {
 	extends: string[];
 
 	fields: TypeFieldSummary[];
+
+	/**
+	 * Every type identifier this declaration's fields and heritage refer to, raw and unfiltered:
+	 * built-ins like `Map` and `Record` are included, because one module's parse cannot know the
+	 * full registry. The caller filters against the registered names (see `+page.server.ts`).
+	 * Deduplicated, in first-appearance order, never including the declaration's own name.
+	 */
+	references: string[];
 }
 
 /** An exported `type` alias declaration. */
@@ -63,6 +71,9 @@ export interface AliasSummary {
 
 	/** The aliased type exactly as written in source. */
 	typeText: string;
+
+	/** Raw referenced type identifiers, on the same terms as `InterfaceSummary.references`. */
+	references: string[];
 }
 
 export type TypeDeclarationSummary = InterfaceSummary | AliasSummary;
@@ -80,6 +91,12 @@ export interface TypeModuleIndex {
 
 	/** Names of exported consts and functions (e.g. `PROPERTY_VISIBILITY_VALUES`, `termStartWeek`). */
 	otherExports: string[];
+
+	/**
+	 * Base file names of sibling type modules this module imports from (`./world.ts` → `world.ts`).
+	 * Non-relative imports are excluded — only the intra-`types/` dependency graph is of interest.
+	 */
+	imports: string[];
 }
 
 /** Collapses JSDoc comment text to its first sentence. */
@@ -144,6 +161,25 @@ function moduleSummary(sourceFile: ts.SourceFile, source: string): string {
 	return text.split(/\n\s*\n/)[0].trim();
 }
 
+/**
+ * Walks a type node collecting every referenced type identifier: `TypeReference` names cover field
+ * annotations and alias bodies, `ExpressionWithTypeArguments` covers heritage clauses. Qualified
+ * names (`ts.Foo`) keep their qualifier text; none occur in `src/lib/types/` today.
+ */
+function collectTypeReferences(root: ts.Node, sourceFile: ts.SourceFile, into: Set<string>): void {
+	const visit = (node: ts.Node): void => {
+		if (ts.isTypeReferenceNode(node)) {
+			into.add(
+				ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText(sourceFile),
+			);
+		} else if (ts.isExpressionWithTypeArguments(node) && ts.isIdentifier(node.expression)) {
+			into.add(node.expression.text);
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(root);
+}
+
 function isExported(node: ts.Statement): boolean {
 	return ts.canHaveModifiers(node) &&
 		(ts.getModifiers(node) ?? []).some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword);
@@ -157,15 +193,24 @@ function parseInterface(
 		.filter((clause) => clause.token === ts.SyntaxKind.ExtendsKeyword)
 		.flatMap((clause) => clause.types.map((type) => type.getText(sourceFile)));
 
-	const fields = node.members.filter(ts.isPropertySignature).map((member): TypeFieldSummary => ({
-		name: member.name.getText(sourceFile),
-		optional: member.questionToken !== undefined,
-		readonly: (member.modifiers ?? []).some(
-			(modifier) => modifier.kind === ts.SyntaxKind.ReadonlyKeyword,
-		),
-		typeText: member.type?.getText(sourceFile) ?? 'unknown',
-		summary: declarationSummary(member),
-	}));
+	const references = new Set<string>();
+	for (const clause of node.heritageClauses ?? []) {
+		collectTypeReferences(clause, sourceFile, references);
+	}
+
+	const fields = node.members.filter(ts.isPropertySignature).map((member): TypeFieldSummary => {
+		if (member.type) collectTypeReferences(member.type, sourceFile, references);
+		return {
+			name: member.name.getText(sourceFile),
+			optional: member.questionToken !== undefined,
+			readonly: (member.modifiers ?? []).some(
+				(modifier) => modifier.kind === ts.SyntaxKind.ReadonlyKeyword,
+			),
+			typeText: member.type?.getText(sourceFile) ?? 'unknown',
+			summary: declarationSummary(member),
+		};
+	});
+	references.delete(node.name.text);
 
 	return {
 		kind: 'interface',
@@ -173,6 +218,7 @@ function parseInterface(
 		summary: declarationSummary(node),
 		extends: heritage,
 		fields,
+		references: [...references],
 	};
 }
 
@@ -190,12 +236,17 @@ function parseAlias(node: ts.TypeAliasDeclaration, sourceFile: ts.SourceFile): A
 		}
 	}
 
+	const references = new Set<string>();
+	collectTypeReferences(node.type, sourceFile, references);
+	references.delete(node.name.text);
+
 	return {
 		kind: 'alias',
 		name: node.name.text,
 		summary: declarationSummary(node),
 		unionMembers,
 		typeText: node.type.getText(sourceFile),
+		references: [...references],
 	};
 }
 
@@ -208,9 +259,15 @@ export function parseTypeModule(fileName: string, source: string): TypeModuleInd
 
 	const declarations: TypeDeclarationSummary[] = [];
 	const otherExports: string[] = [];
+	const imports = new Set<string>();
 
 	for (const statement of sourceFile.statements) {
-		if (ts.isInterfaceDeclaration(statement) && isExported(statement)) {
+		if (
+			ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier) &&
+			statement.moduleSpecifier.text.startsWith('./')
+		) {
+			imports.add(statement.moduleSpecifier.text.replace(/^\.\//, ''));
+		} else if (ts.isInterfaceDeclaration(statement) && isExported(statement)) {
 			declarations.push(parseInterface(statement, sourceFile));
 		} else if (ts.isTypeAliasDeclaration(statement) && isExported(statement)) {
 			declarations.push(parseAlias(statement, sourceFile));
@@ -228,5 +285,6 @@ export function parseTypeModule(fileName: string, source: string): TypeModuleInd
 		summary: moduleSummary(sourceFile, source),
 		declarations,
 		otherExports,
+		imports: [...imports],
 	};
 }

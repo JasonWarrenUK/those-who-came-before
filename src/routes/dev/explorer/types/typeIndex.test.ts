@@ -151,6 +151,34 @@ Deno.test('parseTypeModule: exported consts and functions land in otherExports o
 	assertEquals(parsed.otherExports, ['LEVEL_VALUES', 'isLevel']);
 });
 
+Deno.test('parseTypeModule: references are raw type identifiers, deduplicated, self excluded', () => {
+	const parsed = parseTypeModule('widget.ts', INTERFACE_MODULE);
+	const widget = parsed.declarations[0];
+	// Raw means built-ins like Map are included — filtering against the registry is the caller's job.
+	assertEquals(widget.references, ['Map', 'MaterialTag']);
+
+	const named = parsed.declarations[1];
+	// The extends clause contributes a reference; the declaration's own name never appears.
+	assertEquals(named.references, ['Widget']);
+});
+
+Deno.test('parseTypeModule: alias references come from the aliased type, recursion excluded', () => {
+	const parsed = parseTypeModule('alias.ts', ALIAS_MODULE);
+	const wrapped = parsed.declarations[1];
+	// Wrapped<T> references itself recursively; the self-reference is excluded. Its type
+	// parameter and the infer/mapped-type locals (T, K, V, P) all surface as raw references —
+	// first-appearance order — and are later dropped by registry filtering alongside Map.
+	assertEquals(wrapped.references, ['T', 'Map', 'K', 'V', 'P']);
+});
+
+Deno.test('parseTypeModule: relative imports are captured as sibling module names', () => {
+	const parsed = parseTypeModule('widget.ts', INTERFACE_MODULE);
+	assertEquals(parsed.imports, ['tags.ts']);
+
+	const noImports = parseTypeModule('alias.ts', ALIAS_MODULE);
+	assertEquals(noImports.imports, []);
+});
+
 Deno.test('parseTypeModule: a lone JSDoc above the first declaration is not a module summary', () => {
 	const source = `/** Doc belonging to the declaration, not the module. */
 export interface Solo {
