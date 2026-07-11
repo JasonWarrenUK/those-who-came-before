@@ -7,7 +7,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
 | **FD**   | Complete                | —      | — |
-| **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
+| **GN**   | In progress             | 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
 | **KN**   | Not started             | —                 | 4UI.6             |
@@ -126,7 +126,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Static data — primitives & grammar rules**
 
-- [ ] 2GN.1. `src/lib/data/grammars/primitives.ts` — geometric primitive defs (elongated, cylindrical, flat-broad, hollow-enclosed, ring-form, disc-form, bar-form, sheet-form) with parameter enums — **depends on 1FD.10**
 - [ ] 2GN.2. `src/lib/data/grammars/core.ts` — MVP component grammar rules: `<object>` → `<component-group>+`, `<component-group>` → `<primary-component>` + optional attachments, base weights — **depends on 1FD.10**
 
 **Component grammar engine**
@@ -232,6 +231,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 <a name="m2-blocked"><h4>Blocked (Milestone 2)</h4></a>
 
 <a name="m2-done"><h4>Completed (Milestone 2)</h4></a>
+
+**Static data — primitives & grammar rules**
+
+- [x] 2GN.1. `src/lib/data/grammars/primitives.ts` — geometric primitive defs (elongated, cylindrical, flat-broad, hollow-enclosed, ring-form, disc-form, bar-form, sheet-form) with parameter enums — **depends on 1FD.10** (doc 05 §5.3 transcribed verbatim as a single `as const` `PRIMITIVE_PARAMETERS` registry — primitive id → parameter name → ordered value list — with `PrimitiveType` derived via `keyof typeof`, a flagged deviation from the interfaces-first convention per the `Serialised<T>` zero-drift precedent in save.ts; "parameter enums" realised as string-literal value lists per the no-`enum` convention committed in artefact.ts; parameters deliberately scoped per primitive, no shared unions — `crossSection` and `taper` carry different value-sets across primitives; `PRIMITIVE_TYPES` array + `isPrimitiveType` guard round out the union-values-guard trio per the visibility.ts precedent; material-tag compatibility stays with 2GN.10, dimension derivation with 2GN.8, selection weights with 2GN.2/2GN.4 — this module is data only, no `MaterialTag` import needed; covered by 7 Deno tests asserting the eight-primitive vocabulary, per-primitive parameter names and verbatim spot-checked value lists)
 </details>
 
 <details>
