@@ -20,9 +20,10 @@ import type { MaterialTag } from './tags.ts';
  * guarantee is over the sequence, not each artefact in isolation.
  *
  * Not serialisable as-is: `prng` is a live closure over generator state, not data. Persisting and
- * restoring world state across sessions is a future save-system concern (roadmap 1FD.33,
- * `persistence/save.ts`), not this task's problem — whatever that system does, it won't be storing
- * this closure verbatim.
+ * restoring world state across sessions is a save-system concern (types at `src/lib/types/save.ts`
+ * per roadmap 1FD.33, behaviour at `persistence/`, 8PS.x), not this task's problem — whatever that
+ * system does, it won't be storing this closure verbatim (`Serialised<T>` maps functions to
+ * `never` for exactly this reason).
  */
 export interface WorldSeed {
 	/** The raw seed string as entered or generated. */
