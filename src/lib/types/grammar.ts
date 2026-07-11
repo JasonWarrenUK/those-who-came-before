@@ -97,15 +97,17 @@ export interface GrammarOption {
 	culturalModifiers: Map<MaterialTag, number>;
 
 	/**
-	 * Optional phase-characteristic weight multipliers, read by `phaseInfluence` (roadmap 2GN.5)
-	 * to scale the option against a `PhaseCharacteristics` profile (doc 05 §3.2) — e.g. a
-	 * metal-bearing primitive keyed on `'technology.metallurgy'`.
+	 * Optional phase-characteristic weight multipliers, read by `phaseInfluence`
+	 * (`engine/generation/grammar.ts`, roadmap 2GN.5) to scale the option against a
+	 * `PhaseCharacteristics` profile (doc 05 §3.2) — e.g. a metal-bearing primitive keyed on
+	 * `'technology.metallurgy'`.
 	 *
-	 * Provisional: doc 05 §5.4 shows only the call `phaseInfluence(option, phase)` and never
-	 * specifies the field it reads. Keyed by dotted `PhaseCharacteristics` path as the minimal
-	 * shape that lets 2GN.5 look up an attribute and multiply; expect this to firm up there.
-	 * Optional so an option can opt out of phase bias (`phaseInfluence` returns a neutral `1` when
-	 * absent).
+	 * Contract (firmed at 2GN.5): each `[dottedPath, multiplier]` entry resolves its attribute
+	 * `a` (0–1) and contributes the factor `1 + (multiplier − 1) × a` — neutral at `a = 0`, the
+	 * full multiplier at `a = 1`, with `multiplier < 1` suppressing in proportion to the
+	 * attribute. Entries combine by product; an unresolvable path throws (authoring typo, caught
+	 * loudly). Optional so an option can opt out of phase bias (`phaseInfluence` returns a
+	 * neutral `1` when absent).
 	 */
 	phaseModifiers?: Map<string, number>;
 }
