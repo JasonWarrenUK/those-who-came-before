@@ -16,10 +16,32 @@ const sources = import.meta.glob(['/src/lib/types/*.ts', '!**/*.test.ts'], {
 // Parsed once at module scope: the sources are fixed for the lifetime of the server, so there is
 // nothing per-request about this work. Server-side only, keeping the multi-megabyte `typescript`
 // parser out of the client bundle.
-const modules = Object.entries(sources)
+const parsed = Object.entries(sources)
 	.map(([path, source]) => parseTypeModule(path.split('/').pop() ?? path, source))
 	.sort((a, b) => a.fileName.localeCompare(b.fileName));
 
+/**
+ * Registered type name → home module. Names are globally unique across `src/lib/types/` (verified
+ * at 1FD.39), so a flat map is safe. Drives reference filtering here and cross-reference links,
+ * neighbourhood diagrams and reverse lookups client-side.
+ */
+const registry: Record<string, string> = {};
+for (const module of parsed) {
+	for (const declaration of module.declarations) {
+		registry[declaration.name] = module.fileName;
+	}
+}
+
+// The parser reports references raw (it cannot know the registry from one module); only names
+// registered here are meaningful — the rest are built-ins like `Map` and `Record`.
+const modules = parsed.map((module) => ({
+	...module,
+	declarations: module.declarations.map((declaration) => ({
+		...declaration,
+		references: declaration.references.filter((name) => name in registry),
+	})),
+}));
+
 export const load: PageServerLoad = () => {
-	return { modules };
+	return { modules, registry };
 };

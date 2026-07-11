@@ -1,11 +1,16 @@
 <script lang="ts">
 import type { PageProps } from './$types';
 import type { TypeDeclarationSummary } from './typeIndex';
+import { moduleGraphSource, neighbourhoodSource } from './diagrams';
+import MermaidDiagram from './MermaidDiagram.svelte';
 
 let { data }: PageProps = $props();
 
 let filter = $state('');
 const query = $derived(filter.trim().toLowerCase());
+
+/** Name of the type whose reference neighbourhood diagram is open, if any. */
+let selectedType = $state<string | null>(null);
 
 const interfaceCount = $derived(
 	data.modules.flatMap((module) => module.declarations).filter((d) => d.kind === 'interface')
@@ -14,6 +19,23 @@ const interfaceCount = $derived(
 const aliasCount = $derived(
 	data.modules.flatMap((module) => module.declarations).filter((d) => d.kind === 'alias').length,
 );
+
+const moduleGraph = $derived(moduleGraphSource(data.modules));
+
+/** Reverse of the declarations' `references`: type name → names of the types that reference it. */
+const inboundRefs = $derived.by(() => {
+	const map = new Map<string, string[]>();
+	for (const module of data.modules) {
+		for (const declaration of module.declarations) {
+			for (const reference of declaration.references) {
+				const list = map.get(reference) ?? [];
+				list.push(declaration.name);
+				map.set(reference, list);
+			}
+		}
+	}
+	return map;
+});
 
 function declarationMatches(declaration: TypeDeclarationSummary, needle: string): boolean {
 	if (declaration.name.toLowerCase().includes(needle)) return true;
@@ -39,7 +61,35 @@ const visibleModules = $derived(
 const visibleDeclarationCount = $derived(
 	visibleModules.reduce((total, module) => total + module.declarations.length, 0),
 );
+
+/** Opens the target type's module collapse, scrolls to its card and flashes a highlight ring. */
+function jumpToType(name: string): void {
+	const target = document.getElementById(`type-${name}`);
+	if (!target) return;
+	target.closest('details')?.setAttribute('open', '');
+	// The scroll must wait for the layout to settle: DaisyUI's collapse expands over a ~200ms
+	// transition, and any scroll issued while coordinates are still shifting targets stale
+	// geometry — then the browser's scroll-anchoring correction reverts it besides.
+	setTimeout(() => {
+		target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		target.classList.add('ring-2', 'ring-primary');
+		setTimeout(() => target.classList.remove('ring-2', 'ring-primary'), 1500);
+	}, 300);
+}
 </script>
+
+{#snippet linkedTypeText(text: string)}
+	<!-- Registered type names become jump links; everything else passes through verbatim. -->
+	{#each text.split(/([A-Za-z_$][A-Za-z0-9_$]*)/) as part, index (index)}
+		{#if data.registry[part]}
+			<button
+				type="button"
+				class="link cursor-pointer"
+				onclick={() => jumpToType(part)}
+			>{part}</button>
+		{:else}{part}{/if}
+	{/each}
+{/snippet}
 
 <h2 class="text-2xl font-bold">Type Index</h2>
 
@@ -47,7 +97,8 @@ const visibleDeclarationCount = $derived(
 	Every exported interface and type alias registered in <code
 		class="bg-base-200 rounded px-1 font-mono">src/lib/types/</code>, parsed live from source with
 	the TypeScript compiler — the index cannot drift from the code. Interfaces list their fields;
-	string-literal unions list their members.
+	string-literal unions list their members. Type names inside field types jump to their entry, and
+	each type can show its reference neighbourhood as a diagram.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -70,7 +121,17 @@ const visibleDeclarationCount = $derived(
 	{/if}
 </div>
 
-<div class="mt-6 flex max-w-4xl flex-col gap-2">
+<details class="collapse-arrow bg-base-200 border-base-300 collapse mt-6 max-w-4xl border" open>
+	<summary class="collapse-title">
+		<span class="font-semibold">Module dependency graph</span>
+		<span class="text-base-content/60 ml-2 text-sm">arrows point at the module being imported</span>
+	</summary>
+	<div class="collapse-content">
+		<MermaidDiagram source={moduleGraph} />
+	</div>
+</details>
+
+<div class="mt-4 flex max-w-4xl flex-col gap-2">
 	{#each visibleModules as module (module.fileName)}
 		<details class="collapse-arrow bg-base-200 border-base-300 collapse border" open={query !== ''}>
 			<summary class="collapse-title">
@@ -86,21 +147,48 @@ const visibleDeclarationCount = $derived(
 
 			<div class="collapse-content flex flex-col gap-4">
 				{#each module.declarations as declaration (declaration.name)}
-					<div class="bg-base-100 rounded-box p-3">
+					{@const inbound = inboundRefs.get(declaration.name) ?? []}
+					<div id="type-{declaration.name}" class="bg-base-100 rounded-box p-3">
 						<div class="flex flex-wrap items-center gap-2">
 							<span class="font-mono font-semibold">{declaration.name}</span>
 							{#if declaration.kind === 'interface'}
 								<span class="badge badge-primary badge-sm">interface</span>
 								{#each declaration.extends as parent (parent)}
-									<span class="badge badge-outline badge-sm">extends {parent}</span>
+									<button
+										type="button"
+										class="badge badge-outline badge-sm cursor-pointer"
+										onclick={() => jumpToType(parent)}
+									>
+										extends {parent}
+									</button>
 								{/each}
 							{:else}
 								<span class="badge badge-secondary badge-sm">type</span>
 							{/if}
+
+							<button
+								type="button"
+								class="btn btn-ghost btn-xs ml-auto"
+								disabled={declaration.references.length + inbound.length === 0}
+								onclick={() => {
+									selectedType = selectedType === declaration.name ? null : declaration.name;
+								}}
+							>
+								{selectedType === declaration.name ? 'hide graph' : 'graph'}
+								· {declaration.references.length} out · {inbound.length} in
+							</button>
 						</div>
 
 						{#if declaration.summary}
 							<p class="text-base-content/70 mt-1 max-w-prose text-sm">{declaration.summary}</p>
+						{/if}
+
+						{#if selectedType === declaration.name}
+							<div class="bg-base-200 rounded-box mt-2 p-2">
+								<MermaidDiagram
+									source={neighbourhoodSource(declaration.name, declaration.references, inbound)}
+								/>
+							</div>
 						{/if}
 
 						{#if declaration.kind === 'interface'}
@@ -121,7 +209,7 @@ const visibleDeclarationCount = $derived(
 													{/if}
 													{field.name}{#if field.optional}<span class="text-warning">?</span>{/if}
 												</td>
-												<td class="font-mono">{field.typeText}</td>
+												<td class="font-mono">{@render linkedTypeText(field.typeText)}</td>
 												<td class="text-base-content/70 max-w-xs truncate" title={field.summary}>
 													{field.summary}
 												</td>
@@ -140,7 +228,7 @@ const visibleDeclarationCount = $derived(
 							</div>
 						{:else}
 							<pre class="bg-base-200 mt-2 overflow-x-auto rounded p-2 text-xs"><code
-								>{declaration.typeText}</code></pre>
+								>{@render linkedTypeText(declaration.typeText)}</code></pre>
 						{/if}
 					</div>
 				{/each}
