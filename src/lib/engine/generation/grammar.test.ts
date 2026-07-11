@@ -6,7 +6,13 @@ import {
 	assertNotEquals,
 	assertThrows,
 } from '@std/assert';
-import { expandGrammar, phaseInfluence, selectGrammarOption } from './grammar.ts';
+import {
+	deriveComplexityBudget,
+	expandGrammar,
+	phaseInfluence,
+	resolveComplexityTier,
+	selectGrammarOption,
+} from './grammar.ts';
 import { createPrng } from '../prng.ts';
 import { CORE_GRAMMAR_RULES } from '../../data/grammars/core.ts';
 import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
@@ -297,6 +303,75 @@ Deno.test('selectGrammarOption: consumes exactly one draw per call', () => {
 	assertEquals(calls, 1);
 });
 
+Deno.test('resolveComplexityTier: boundary values promote to the higher tier', () => {
+	assertEquals(resolveComplexityTier(0), 'simple');
+	assertEquals(resolveComplexityTier(0.29), 'simple');
+	assertEquals(resolveComplexityTier(0.3), 'moderate');
+	assertEquals(resolveComplexityTier(0.59), 'moderate');
+	assertEquals(resolveComplexityTier(0.6), 'sophisticated');
+	assertEquals(resolveComplexityTier(1), 'sophisticated');
+});
+
+Deno.test('resolveComplexityTier: non-finite or out-of-range input throws', () => {
+	for (const invalid of [Number.NaN, -0.01, 1.01, Number.POSITIVE_INFINITY]) {
+		assertThrows(() => resolveComplexityTier(invalid), Error, 'must be in [0, 1]');
+	}
+});
+
+Deno.test('deriveComplexityBudget: group caps follow the doc 05 §5.5 tiers', () => {
+	assertEquals(deriveComplexityBudget(0.1).maxDistinctGroups, 2);
+	assertEquals(deriveComplexityBudget(0.5).maxDistinctGroups, 3);
+	assertEquals(deriveComplexityBudget(0.9).maxDistinctGroups, 4);
+});
+
+Deno.test('deriveComplexityBudget: pattern availability widens by tier', () => {
+	const patternTypes = (craftSpecialisation: number): string[] =>
+		deriveComplexityBudget(craftSpecialisation).patterns.map((pattern) => pattern.type);
+
+	assertEquals(patternTypes(0.1), ['symmetric', 'linear-array']);
+	assertEquals(patternTypes(0.5), ['symmetric', 'linear-array', 'radial', 'stacked']);
+	assertEquals(patternTypes(0.9), [
+		'symmetric',
+		'linear-array',
+		'radial',
+		'stacked',
+		'nested',
+		'branching',
+	]);
+
+	// Spot-check the doc-cited example counts on the symmetric pattern (doc 05 §5.5).
+	assertEquals(deriveComplexityBudget(0.1).patterns[0], {
+		type: 'symmetric',
+		validCounts: [2, 4, 6],
+	});
+});
+
+Deno.test('deriveComplexityBudget: provisional per-group limits are monotone across tiers', () => {
+	const simple = deriveComplexityBudget(0.1);
+	const moderate = deriveComplexityBudget(0.5);
+	const sophisticated = deriveComplexityBudget(0.9);
+
+	// Relative assertions only — the exact values are provisional tuning numbers.
+	assert(simple.maxComponentsPerGroup <= moderate.maxComponentsPerGroup);
+	assert(moderate.maxComponentsPerGroup <= sophisticated.maxComponentsPerGroup);
+	assertEquals(simple.noTwoGroupsSameType, true);
+	assertEquals(sophisticated.noTwoGroupsSameType, false);
+});
+
+Deno.test('deriveComplexityBudget: every call returns fresh mutable-safe objects', () => {
+	const first = deriveComplexityBudget(0.9);
+	first.patterns.pop();
+	const firstSymmetric = first.patterns[0];
+	assert(firstSymmetric.type === 'symmetric');
+	firstSymmetric.validCounts.push(99);
+
+	const second = deriveComplexityBudget(0.9);
+	assertEquals(second.patterns.length, 6);
+	const secondSymmetric = second.patterns[0];
+	assert(secondSymmetric.type === 'symmetric');
+	assertEquals(secondSymmetric.validCounts, [2, 4, 6]);
+});
+
 /** Walks a group tree, applying `visit` to every group and tracking recursion depth. */
 function walkGroups(
 	groups: ComponentGroupNode[],
@@ -364,55 +439,76 @@ Deno.test('expandGrammar: trees are structurally valid across seeds', () => {
 	}
 });
 
-Deno.test('expandGrammar: provisional repetition caps hold across seeds', () => {
+Deno.test('expandGrammar: complexity budget caps group count per tier across seeds', () => {
 	const culture = mockCulturalProfile();
-	const phase = mockPhaseCharacteristics();
+	const tiers: [craftSpecialisation: number, maxGroups: number][] = [[0.1, 2], [0.5, 3], [0.9, 4]];
 
-	for (let i = 0; i < 500; i++) {
-		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`caps-${i}`));
+	for (const [craftSpecialisation, maxGroups] of tiers) {
+		const phase = mockPhaseCharacteristics({ society: { craftSpecialisation } });
 
-		assert(tree.groups.length <= 4, `object grew ${tree.groups.length} groups, cap is 4`);
+		for (let i = 0; i < 500; i++) {
+			const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`caps-${i}`));
 
-		walkGroups(tree.groups, (group, depth) => {
-			assert(depth <= 3, `attachment recursion reached depth ${depth}, cap is 3`);
 			assert(
-				group.attachments.length <= 2,
-				`group carries ${group.attachments.length} attachments, cap is 2`,
+				tree.groups.length <= maxGroups,
+				`craftSpecialisation ${craftSpecialisation} grew ${tree.groups.length} groups, cap is ${maxGroups}`,
 			);
-		});
+
+			walkGroups(tree.groups, (group, depth) => {
+				assert(depth <= 3, `attachment recursion reached depth ${depth}, cap is 3`);
+				assert(
+					group.attachments.length <= 2,
+					`group carries ${group.attachments.length} attachments, cap is 2`,
+				);
+			});
+		}
 	}
 });
 
-Deno.test('expandGrammar: repetition distribution matches the provisional policy', () => {
+Deno.test('expandGrammar: craftSpecialisation shifts the group-count distribution', () => {
 	const culture = mockCulturalProfile();
-	const phase = mockPhaseCharacteristics();
-
 	const runs = 1000;
-	let singleGroup = 0;
-	let multiGroup = 0;
-	let withAttachments = 0;
 
-	for (let i = 0; i < runs; i++) {
-		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`dist-${i}`));
+	const tally = (craftSpecialisation: number) => {
+		const phase = mockPhaseCharacteristics({ society: { craftSpecialisation } });
+		let singleGroup = 0;
+		let multiGroup = 0;
+		let withAttachments = 0;
 
-		if (tree.groups.length === 1) singleGroup++;
-		else multiGroup++;
+		for (let i = 0; i < runs; i++) {
+			const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`dist-${i}`));
 
-		let attachmentCount = 0;
-		walkGroups(tree.groups, (group) => {
-			attachmentCount += group.attachments.length;
-		});
-		if (attachmentCount > 0) withAttachments++;
-	}
+			if (tree.groups.length === 1) singleGroup++;
+			else multiGroup++;
 
-	// The continuation probability is 0.3, so ~70% of objects should stay single-group.
-	const singleShare = singleGroup / runs;
+			let attachmentCount = 0;
+			walkGroups(tree.groups, (group) => {
+				attachmentCount += group.attachments.length;
+			});
+			if (attachmentCount > 0) withAttachments++;
+		}
+
+		return { singleGroup, multiGroup, withAttachments };
+	};
+
+	const simple = tally(0.1);
+	const sophisticated = tally(0.9);
+
+	// Ordering assertions only — the per-tier continuation probabilities are provisional tuning
+	// values, so the test pins the mechanism (more specialisation → more groups), not the numbers.
 	assert(
-		Math.abs(singleShare - 0.7) < 0.05,
-		`single-group share was ${singleShare}, expected ~0.7`,
+		simple.singleGroup > sophisticated.singleGroup,
+		`single-group count should fall with craftSpecialisation: ` +
+			`simple ${simple.singleGroup} vs sophisticated ${sophisticated.singleGroup}`,
 	);
-	assert(multiGroup > 0, 'no multi-group tree in 1 000 runs — group repetition never fired');
-	assert(withAttachments > 0, 'no attachments in 1 000 runs — the chain slot never filled');
+	assert(
+		sophisticated.multiGroup > 0,
+		'no multi-group tree in 1 000 sophisticated runs — group repetition never fired',
+	);
+	assert(
+		simple.withAttachments > 0,
+		'no attachments in 1 000 runs — the chain slot never filled',
+	);
 });
 
 Deno.test('expandGrammar: missing object rule throws', () => {

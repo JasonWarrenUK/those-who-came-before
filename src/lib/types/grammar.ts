@@ -66,8 +66,10 @@ export type ArrangementPattern =
 /**
  * Limits on how many, and how varied, the arrangement groups within one object may be (doc 05
  * §5.5). The culture's `craftSpecialisation` determines the complexity budget that populates
- * these fields: simple cultures get 1–2 groups and basic patterns only; sophisticated cultures
- * unlock nesting and branching. Enforced by accumulation checking (roadmap 2GN.6).
+ * these fields — `deriveComplexityBudget` (`engine/generation/grammar.ts`, roadmap 2GN.7):
+ * simple cultures get 1–2 groups and basic patterns only; sophisticated cultures unlock nesting
+ * and branching. `expandGrammar` consumes `maxDistinctGroups` as its group-repetition cap; the
+ * remaining fields await enforcement by accumulation checking (roadmap 2GN.6).
  */
 export interface AccumulationConstraints {
 	/** Maximum number of distinct arrangement groups in the object. From `craftSpecialisation`. */
@@ -194,8 +196,10 @@ export interface AttachmentBranch {
 
 /**
  * One expanded `<component-group>`: a primary component and the attachment chain hanging off it
- * (doc 05 §5.3). Recursion depth and breadth are bounded by `expandGrammar`'s provisional
- * repetition policy until accumulation constraints land (roadmap 2GN.6/2GN.7).
+ * (doc 05 §5.3). Group count per object is bounded by the `craftSpecialisation`-derived
+ * complexity budget (roadmap 2GN.7); attachment depth and breadth remain bounded by
+ * `expandGrammar`'s provisional repetition policy until accumulation constraints land (roadmap
+ * 2GN.6).
  */
 export interface ComponentGroupNode {
 	/** The group's primary component. */

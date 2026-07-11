@@ -1,16 +1,19 @@
 /**
- * Component grammar expansion engine (doc 05 §5.3–§5.4, roadmap 2GN.3–2GN.5).
+ * Component grammar expansion engine (doc 05 §5.3–§5.5, roadmap 2GN.3–2GN.5, 2GN.7).
  *
  * Runs the bottom-up structural grammar: weighted, culture- and phase-biased selection over the
  * production rules authored in `data/grammars/core.ts`, expanding them into a tree of geometric
- * components. The grammar produces physical structures, never functional categories (doc 05
- * §5.1) — nothing here branches by intent, only by weight.
+ * components, with group repetition bounded by the complexity budget the culture's
+ * `craftSpecialisation` derives (doc 05 §5.5). The grammar produces physical structures, never
+ * functional categories (doc 05 §5.1) — nothing here branches by intent, only by weight.
  *
  * Pure TypeScript with no framework or browser dependencies (doc 08 §2.1, the engine boundary),
  * matching `engine/prng.ts`. Determinism flows entirely from the injected PRNG.
  */
 
 import type {
+	AccumulationConstraints,
+	ArrangementPattern,
 	AttachmentBranch,
 	ComponentGroupNode,
 	ComponentNode,
@@ -136,18 +139,152 @@ export function selectGrammarOption(
 	);
 }
 
-/*
- * Provisional repetition policy (doc 05 §5.3's `+` and `*` are engine-owned, not data). These
- * constants bound expansion until accumulation constraints (roadmap 2GN.6) and complexity
- * budgets from `craftSpecialisation` (2GN.7) take over; the caps echo §5.5's sophisticated-tier
- * ceiling so nothing generated now would exceed the eventual budget's upper bound.
+/**
+ * The three complexity tiers of doc 05 §5.5, resolved from `craftSpecialisation` by
+ * `resolveComplexityTier`. Local to the engine rather than `types/grammar.ts` — that module is
+ * data shapes only, and the tier is a derivation detail between the scalar and the
+ * `AccumulationConstraints` it produces.
  */
+export type ComplexityTier = 'simple' | 'moderate' | 'sophisticated';
 
-/** Hard ceiling on `<component-group>+` repetitions per object (doc 05 §5.5's 3–4 group cap). */
-const MAX_COMPONENT_GROUPS = 4;
+/** One tier's row in the authored budget table, plus the engine-side repetition probability. */
+interface ComplexityTierSpec {
+	/** Hard ceiling on `<component-group>+` repetitions per object (doc 05 §5.5's group counts). */
+	maxDistinctGroups: number;
 
-/** Per-slot chance of adding another component group; ~70% of objects stay single-group. */
-const ADDITIONAL_GROUP_PROBABILITY = 0.3;
+	/** Cap on repeated components within one arrangement group; derived here, enforced at 2GN.6. */
+	maxComponentsPerGroup: number;
+
+	/** Whether arrangement groups must differ in component type; derived here, enforced at 2GN.6. */
+	noTwoGroupsSameType: boolean;
+
+	/**
+	 * Per-slot chance of drawing another component group. Deliberately engine-side rather than a
+	 * field of `AccumulationConstraints` — that type stays spec-verbatim (doc 05 §5.5). This is
+	 * how the doc's tier lower bounds ("1–2", "2–3", "3–4" groups) are honoured: as a distribution
+	 * shift rather than a hard floor, which `AccumulationConstraints` has no field for.
+	 */
+	additionalGroupProbability: number;
+
+	/** The arrangement patterns this tier unlocks, built fresh per budget by `buildPattern`. */
+	patternTypes: readonly ArrangementPattern['type'][];
+}
+
+/*
+ * Authored tier table (doc 05 §5.5). `maxDistinctGroups` and the pattern unlock order are
+ * doc-specified: simple gets basic patterns only (symmetric, linear), moderate most patterns,
+ * sophisticated all six including nesting and branching. `maxComponentsPerGroup`,
+ * `noTwoGroupsSameType` and `additionalGroupProbability` are MVP-provisional values per the
+ * 2GN.2 precedent — the spec names the fields but gives no numbers — to firm up when
+ * accumulation checking lands (2GN.6) and generation is observable in the Explorer: the
+ * per-group cap rises to cover radial's doc maximum of 12 only at the sophisticated tier, and
+ * only simple cultures are held to one group per component type.
+ */
+const COMPLEXITY_TIERS: Record<ComplexityTier, ComplexityTierSpec> = {
+	simple: {
+		maxDistinctGroups: 2,
+		maxComponentsPerGroup: 4,
+		noTwoGroupsSameType: true,
+		additionalGroupProbability: 0.2,
+		patternTypes: ['symmetric', 'linear-array'],
+	},
+	moderate: {
+		maxDistinctGroups: 3,
+		maxComponentsPerGroup: 8,
+		noTwoGroupsSameType: false,
+		additionalGroupProbability: 0.4,
+		patternTypes: ['symmetric', 'linear-array', 'radial', 'stacked'],
+	},
+	sophisticated: {
+		maxDistinctGroups: 4,
+		maxComponentsPerGroup: 12,
+		noTwoGroupsSameType: false,
+		additionalGroupProbability: 0.6,
+		patternTypes: ['symmetric', 'linear-array', 'radial', 'stacked', 'nested', 'branching'],
+	},
+};
+
+/**
+ * Builds one arrangement pattern carrying doc 05 §5.5's example counts as authored provisional
+ * data — the only numbers the doc supplies. Returns a fresh object (fresh inner arrays included)
+ * on every call so no two budgets share mutable innards.
+ */
+function buildPattern(type: ArrangementPattern['type']): ArrangementPattern {
+	switch (type) {
+		case 'symmetric':
+			return { type, validCounts: [2, 4, 6] };
+		case 'radial':
+			return { type, countRange: [3, 12] };
+		case 'linear-array':
+			return { type, countRange: [2, 8] };
+		case 'stacked':
+			return { type, countRange: [2, 5] };
+		case 'nested':
+			return { type, countRange: [2, 4] };
+		case 'branching':
+			return { type, countRange: [2, 6] };
+	}
+}
+
+/**
+ * Resolves a `craftSpecialisation` value to its complexity tier (doc 05 §5.5, roadmap 2GN.7).
+ * The doc's overlapping tier bounds resolve half-open upward — simple `[0, 0.3)`, moderate
+ * `[0.3, 0.6)`, sophisticated `[0.6, 1]` — so a boundary value promotes to the higher tier: more
+ * specialisation never means less complexity.
+ *
+ * Throws on a non-finite or out-of-range value: phase attributes are contractually 0–1 (doc 05
+ * §3.2), so anything else is a world-generation bug — better a loud failure than a silently
+ * mis-tiered budget, matching `resolvePhaseAttribute`.
+ *
+ * @param craftSpecialisation - `PhaseCharacteristics.society.craftSpecialisation`, 0–1.
+ * @returns The tier whose budget applies.
+ */
+export function resolveComplexityTier(craftSpecialisation: number): ComplexityTier {
+	if (
+		!Number.isFinite(craftSpecialisation) || craftSpecialisation < 0 || craftSpecialisation > 1
+	) {
+		throw new Error(
+			`resolveComplexityTier: craftSpecialisation must be in [0, 1], got ${craftSpecialisation}`,
+		);
+	}
+
+	if (craftSpecialisation < 0.3) return 'simple';
+	if (craftSpecialisation < 0.6) return 'moderate';
+	return 'sophisticated';
+}
+
+/**
+ * Derives the complexity budget a culture's `craftSpecialisation` affords (doc 05 §5.5, roadmap
+ * 2GN.7): simple cultures get 1–2 component groups and basic patterns only; sophisticated
+ * cultures unlock nesting and branching. `expandGrammar` consumes `maxDistinctGroups` as the
+ * group-repetition cap; the remaining fields are derived but unenforced until accumulation
+ * checking lands (2GN.6).
+ *
+ * Pure and PRNG-free — derivation consumes no draws, so it can never perturb the expansion draw
+ * sequence that carries the determinism contract. Every call returns fresh objects, pattern
+ * innards included, so callers may mutate their budget without corrupting later ones.
+ *
+ * @param craftSpecialisation - `PhaseCharacteristics.society.craftSpecialisation`, 0–1.
+ * @returns The tier's accumulation constraints, freshly constructed.
+ */
+export function deriveComplexityBudget(craftSpecialisation: number): AccumulationConstraints {
+	const spec = COMPLEXITY_TIERS[resolveComplexityTier(craftSpecialisation)];
+
+	return {
+		maxDistinctGroups: spec.maxDistinctGroups,
+		maxComponentsPerGroup: spec.maxComponentsPerGroup,
+		noTwoGroupsSameType: spec.noTwoGroupsSameType,
+		patterns: spec.patternTypes.map(buildPattern),
+	};
+}
+
+/*
+ * Provisional attachment repetition policy (doc 05 §5.3's `*` is engine-owned, not data). These
+ * constants bound the `[<attachment> <component-group>]*` slot until accumulation constraints
+ * (roadmap 2GN.6) take over — the group-count half of the old policy is budget-driven as of
+ * 2GN.7. The caps echo §5.5's sophisticated-tier ceiling so nothing generated now would exceed
+ * the eventual constraints' upper bound.
+ */
 
 /** Attachment recursion cut-off: groups at this depth take no further attachments. */
 const MAX_ATTACHMENT_DEPTH = 3;
@@ -164,12 +301,14 @@ const ATTACHMENT_DEPTH_DECAY = 0.5;
 /**
  * Expands the component grammar into the tree for one `<object>` (doc 05 §5.3, roadmap 2GN.3).
  *
- * Walks the BNF top-down: the object spine draws one-or-more `<component-group>`s, each group
- * selects a primary component, and the optional `[<attachment> <component-group>]*` slot fills
- * by depth-decayed probability draws — the `attachment` rule's options are consumed positionally
- * as edge labels, never expanded as components (the 2GN.2 data contract). Primitive terminals
- * roll their physical parameters here, uniformly per parameter from `PRIMITIVE_PARAMETERS`
- * registry order, so downstream normalisation (2GN.8) never touches the PRNG.
+ * Walks the BNF top-down: the object spine draws one-or-more `<component-group>`s — capped and
+ * paced by the complexity budget the phase's `craftSpecialisation` derives (doc 05 §5.5, roadmap
+ * 2GN.7; see `deriveComplexityBudget`) — each group selects a primary component, and the
+ * optional `[<attachment> <component-group>]*` slot fills by depth-decayed probability draws —
+ * the `attachment` rule's options are consumed positionally as edge labels, never expanded as
+ * components (the 2GN.2 data contract). Primitive terminals roll their physical parameters here,
+ * uniformly per parameter from `PRIMITIVE_PARAMETERS` registry order, so downstream
+ * normalisation (2GN.8) never touches the PRNG.
  *
  * Every selection routes through `selectGrammarOption`, including today's single-option
  * `object`/`component-group` rules — the sequence of `prng` draws is the determinism contract,
@@ -264,13 +403,19 @@ export function expandGrammar(
 		return { primary, attachments };
 	}
 
+	const tier = resolveComplexityTier(phase.society.craftSpecialisation);
+	const budget = deriveComplexityBudget(phase.society.craftSpecialisation);
+
 	const objectRule = mustGetRule('object');
 	const groups: ComponentGroupNode[] = [];
 
 	do {
 		const groupOption = selectGrammarOption(objectRule, culture, phase, prng);
 		groups.push(expandGroup(groupOption.expandsTo, 0));
-	} while (groups.length < MAX_COMPONENT_GROUPS && prng() < ADDITIONAL_GROUP_PROBABILITY);
+	} while (
+		groups.length < budget.maxDistinctGroups &&
+		prng() < COMPLEXITY_TIERS[tier].additionalGroupProbability
+	);
 
 	return { groups };
 }
