@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.30, 1FD.36, 1FD.40 | — |
+| **FD**   | In progress             | 1FD.30, 1FD.37, 1FD.40 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -63,7 +63,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Project Explorer shell**
 
-- [ ] 1FD.36. Create route `/dev/explorer` with layout and nav
 - [ ] 1FD.37. Seed input field component
 - [ ] 1FD.38. PRNG output display — generate N values, visual determinism check
 - [ ] 1FD.39. Type index panel — list all registered interfaces with field summaries
@@ -109,6 +108,10 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 - [x] 1FD.34. Configure `deno test`, verify runner executes against engine skeleton (`deno task test` wired in `deno.json`; `@std/assert@^1.0.19` added; `tsconfig.json` excludes `*.test.ts` from `svelte-check` since Deno test files use `Deno.ns`/`jsr:` specifiers svelte-check can't resolve)
 - [x] 1FD.35. Create test fixture helpers — mock culture, mock world seed, mock artefact factories (split per-domain, mirroring `src/lib/types/`: `tests/fixtures/world.ts` keeps `mockWorldSeed`, now returning the real `WorldSeed` instead of a local stand-in; `tests/fixtures/culture.ts` adds `mockCulture`; `tests/fixtures/artefact.ts` adds `mockNormalisedArtefact` and `mockArtefact`; each takes a shallow-merge `overrides` param that replaces whole top-level branches rather than deep-merging, since several fields are `Map`s or multi-level nested objects; `tsconfig.json`'s `exclude` extended to `tests/**/*.test.ts` alongside the existing `src/**/*.test.ts` for the same Deno-only reason)
+
+**Project Explorer shell**
+
+- [x] 1FD.36. Create route `/dev/explorer` with layout and nav (sub-route model: each future panel is a child route under `src/routes/dev/explorer/` plus one entry in the route-private `panels.ts` registry — `{id, label, path, milestone, status}` — which drives both the sidebar `menu` nav and the overview landing table; planned M1 panels render as `menu-disabled` placeholders until 1FD.38/39 flip their status; seed input, 1FD.37, is a shell control not a panel — the layout's header bar reserves its right-hand mount point; `src/routes/dev/+layout.ts` guards the whole `/dev` subtree with a 404 outside `dev` builds; also created the root `src/routes/+layout.svelte` as a prerequisite fix — nothing imported `app.css`, so Tailwind/DaisyUI styles never loaded anywhere)
 </details>
 
 <details>
@@ -700,8 +703,8 @@ graph TD
     1FD.33["`*1FD.33*<br/>types/save.ts`"]:::blocked
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
     1FD.35["`*1FD.35*<br/>Test fixture helpers (partial)`"]:::open
-    1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::open
-    1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::blocked
+    1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::done
+    1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::open
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
     1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::open
