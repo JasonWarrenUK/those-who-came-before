@@ -206,6 +206,17 @@ The graduated dissemination lens factor gains a 'presented' value of 0.15, so al
 |---|---|---|
 | 04 | Section 4 `LensStrength` dissemination comment updated with 0.15 (presented) | 2026-07-04 |
 
+### 2.17 Venue Temporal Model: Weeks Canonical (2026-07-11)
+**Origin:** Roadmap task 1FD.40 implementation (2026-07-11)
+**Source of truth:** Doc 10, Section 6.4
+
+Doc 10's week-denominated `VenueTemporalProfile` supersedes doc 07 Section 3.1's term-denominated `TemporalMode`/`SubmissionWindow`. The Section 2.9 week-conversion sweep updated doc 10's profile (openWeeks 0–47, cycle 48) but never doc 07, and `PeerReviewState` (doc 10, Section 6.4) already resolves reviews against absolute weeks. `VenueDefinition.temporalMode` becomes `temporalProfile: VenueTemporalProfile`. `TemporalMode.visibilityWindow` (terms a work remains "current" before fading into the backlist) has no week-denominated equivalent and no consumer in any doc or task; it is deferred post-MVP rather than converted.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 07 | Section 3.1 supersession note added under `TemporalMode`/`SubmissionWindow`; `visibilityWindow` marked deferred post-MVP | 2026-07-11 |
+| — | `src/lib/types/venues.ts` (1FD.23/1FD.40): `TemporalMode`/`SubmissionWindow` removed, `VenueTemporalProfile` added, `VenueDefinition.temporalProfile` repointed | 2026-07-11 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*
