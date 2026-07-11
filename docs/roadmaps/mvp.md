@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.39 | — |
+| **FD**   | Complete                | —      | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -63,7 +63,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Project Explorer shell**
 
-- [ ] 1FD.39. Type index panel — list all registered interfaces with field summaries
+- [x] 1FD.39. Type index panel — list all registered interfaces with field summaries (child route `types/+page.svelte` per the 1FD.36 sub-route model, `panels.ts` entry flipped to `available`; the index is parsed live from the type modules' raw sources — an `import.meta.glob` `?raw` sweep of `src/lib/types/*.ts` (test files excluded, `term.test.ts` lives there) feeds the route-private `typeIndex.ts` parser, built on the TypeScript compiler API (`ts.createSourceFile`, parse-only, no `Program`) since regex parsing can't survive `save.ts`'s recursive conditional `Serialised<T>` or fields wrapped across lines by deno fmt; parsing runs in a `+page.server.ts` load so the multi-megabyte `typescript` module (already a dependency via svelte-check) never reaches the client bundle, and the glob keeps the panel zero-maintenance — new type modules appear automatically, the index cannot drift from the code; interfaces render their extends clause and a field table (name, `?`, `readonly`, type text, first-sentence field JSDoc), string-literal-union aliases render member badges, other aliases raw type text, exported consts/functions land in a per-module "also exports" footnote; client-side filter matches type, field and union-member names and auto-expands matching modules; `deno task test` gained `--allow-env` because typescript reads `process.env` at module init; parser covered by 8 Deno tests, panel verified in-browser — 17 modules, 106 interfaces + 41 aliases, matching the source count exactly; extended post-completion with reference visualisations, since the reference graph — not inheritance, of which exactly one `extends` exists — is where the density lives: a mermaid module dependency graph (17 nodes), per-type reference-neighbourhood diagrams via a graph toggle on each card (the full ~150-node type graph is deliberately not drawn — unreadable hairball) and clickable cross-reference jumps on type names; mermaid renders client-side in its own lazy chunk, the parser additionally extracts raw type references and sibling-module imports, filtered against the name registry server-side)
 
 <a name="m1-blocked"><h4>Blocked (Milestone 1)</h4></a>
 
@@ -670,8 +670,8 @@ title: Progress Map
 graph TD
     m1{{"`<h2>Milestone 1</h2>`"}}:::mile
     m1A{"`<h3>1A</h3>Deno build configured`"}:::done
-    m1B{"`<h3>1B</h3>All types created`"}:::mile
-    m1C{"`<h3>1C</h3>M1 Explorer`"}:::mile
+    m1B{"`<h3>1B</h3>All types created`"}:::done
+    m1C{"`<h3>1C</h3>M1 Explorer`"}:::done
     m1D{"`<h3>1D</h3>Random Generation Util`"}:::done
     1FD.6["`*1FD.6*<br/>PRNG xoshiro128**`"]:::done
     1FD.7["`*1FD.7*<br/>weightedSelect util`"]:::done
@@ -706,7 +706,7 @@ graph TD
     1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::done
     1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::done
     1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::done
-    1FD.39["`*1FD.39*<br/>Explorer type index`"]:::open
+    1FD.39["`*1FD.39*<br/>Explorer type index`"]:::done
     1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::done
     1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
     1FD.7 --> m1D

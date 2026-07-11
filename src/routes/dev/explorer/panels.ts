@@ -26,6 +26,6 @@ export const panels: ExplorerPanel[] = [
 		label: 'Type Index',
 		path: '/dev/explorer/types',
 		milestone: 1,
-		status: 'planned',
+		status: 'available',
 	},
 ];
