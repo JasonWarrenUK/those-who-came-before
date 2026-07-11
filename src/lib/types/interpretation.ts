@@ -13,6 +13,7 @@
  * and the player store's `id`-keyed, `status`-filtered `Map` usage (doc 08 §3.4).
  */
 
+import type { ContradictionQueue, HypothesisStrain } from './contradiction.ts';
 import type { DescriptionRegister } from './lens.ts';
 import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
 
@@ -420,26 +421,6 @@ export interface MethodologicalProfile {
 		culturalEvidence: number;
 	};
 }
-
-/**
- * TODO(1FD.25): opaque placeholder for `HypothesisStrain`, owned by
- * `src/lib/types/contradiction.ts` (doc 06 §5) — the canonical strain type; the older name
- * `StrainScore` is retired in favour of it (roadmap 1FD.19 note). Nothing in this file
- * dereferences its fields, so an opaque `unknown` typechecks everywhere it is used
- * (`InterpretiveModel.strainScores`) while avoiding a duplicate definition that would conflict
- * when 1FD.25 lands. Swap for `import type { HypothesisStrain } from './contradiction.ts'` and
- * delete this line then.
- */
-type HypothesisStrain = unknown;
-
-/**
- * TODO(1FD.25): opaque placeholder for `ContradictionQueue`, owned by
- * `src/lib/types/contradiction.ts` (doc 06 §5). Nothing in this file dereferences its fields, so
- * an opaque `unknown` typechecks everywhere it is used (`InterpretiveModel.contradictionQueue`)
- * while avoiding a duplicate definition that would conflict when 1FD.25 lands. Swap for
- * `import type { ContradictionQueue } from './contradiction.ts'` and delete this line then.
- */
-type ContradictionQueue = unknown;
 
 /**
  * The agent-generic shape of an epistemic agent's subjective state (doc 08 §3.2) — claims about
