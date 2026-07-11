@@ -1,4 +1,5 @@
 <script lang="ts">
+import { page } from '$app/state';
 import { panels } from './panels';
 </script>
 
@@ -24,7 +25,8 @@ import { panels } from './panels';
 				<tr>
 					<td>
 						{#if panel.status === 'available'}
-							<a href={panel.path} class="link">{panel.label}</a>
+							<!-- Links carry the query string so the seed (1FD.37) survives panel switches -->
+							<a href={panel.path + page.url.search} class="link">{panel.label}</a>
 						{:else}
 							{panel.label}
 						{/if}

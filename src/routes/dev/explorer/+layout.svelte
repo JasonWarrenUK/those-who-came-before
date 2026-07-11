@@ -1,6 +1,7 @@
 <script lang="ts">
 import { page } from '$app/state';
 import { panels } from './panels';
+import SeedInput from './SeedInput.svelte';
 
 let { children } = $props();
 
@@ -13,8 +14,9 @@ const milestones = [...new Set(panels.map((panel) => panel.milestone))].sort((a,
 			<span class="text-lg font-bold">Project Explorer</span>
 			<span class="badge badge-neutral badge-sm">dev workbench</span>
 		</div>
-		<!-- Right-hand region reserved for shell controls (seed input, 1FD.37) -->
-		<div class="flex-none"></div>
+		<div class="flex-none">
+			<SeedInput />
+		</div>
 	</header>
 
 	<div class="flex flex-1">
@@ -25,7 +27,11 @@ const milestones = [...new Set(panels.map((panel) => panel.milestone))].sort((a,
 					{#each panels.filter((panel) => panel.milestone === milestone) as panel (panel.id)}
 						{#if panel.status === 'available'}
 							<li>
-								<a href={panel.path} class={page.url.pathname === panel.path ? 'menu-active' : ''}>
+								<!-- Links carry the query string so the seed (1FD.37) survives panel switches -->
+								<a
+									href={panel.path + page.url.search}
+									class={page.url.pathname === panel.path ? 'menu-active' : ''}
+								>
 									{panel.label}
 								</a>
 							</li>
