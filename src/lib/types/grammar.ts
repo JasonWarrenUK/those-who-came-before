@@ -26,6 +26,28 @@ export type AttachmentType =
 	| 'threaded'
 	| 'friction-fit';
 
+/** The attachment terminals as a runtime array, in union declaration order. */
+export const ATTACHMENT_TYPE_VALUES: readonly AttachmentType[] = [
+	'inline',
+	'perpendicular',
+	'socketed',
+	'riveted',
+	'wrapped',
+	'lashed',
+	'hinged',
+	'threaded',
+	'friction-fit',
+];
+
+/**
+ * Narrows an arbitrary string to `AttachmentType`. The runtime counterpart to the union per the
+ * `visibility.ts` trio precedent — `expandGrammar` (roadmap 2GN.3) uses it to validate that the
+ * `attachment` rule's selected option really is a join terminal before recording it as an edge.
+ */
+export function isAttachmentType(value: string): value is AttachmentType {
+	return (ATTACHMENT_TYPE_VALUES as readonly string[]).includes(value);
+}
+
 /**
  * How a repeated component type is laid out within a single object (doc 05 §5.5). A discriminated
  * union on `type`: `symmetric` enumerates the exact counts that read as deliberate (e.g. `[2, 4,
@@ -76,12 +98,13 @@ export interface AccumulationConstraints {
 export interface GrammarOption {
 	/**
 	 * The grammar symbol this option expands to — a primitive non-terminal (e.g. `'elongated'`),
-	 * another rule's `symbol`, or a terminal. `expandGrammar` (roadmap 2GN.3) resolves it: a
-	 * symbol matching another rule's `symbol` recurses; anything else is a leaf primitive whose
-	 * parameter set is defined in `data/grammars/primitives.ts` (roadmap 2GN.1).
-	 *
-	 * Provisional: doc 05 §5.4 never specifies how an option names its expansion target — this is
-	 * the minimal shape that lets `expandGrammar` do its job. Expect this to firm up at 2GN.3.
+	 * another rule's `symbol`, or a terminal. `expandGrammar` (roadmap 2GN.3) resolves it in that
+	 * order: a symbol matching another rule's `symbol` recurses; a primitive id becomes a leaf
+	 * `ComponentNode` with parameters drawn from `data/grammars/primitives.ts` (roadmap 2GN.1);
+	 * attachment terminals are consumed positionally as edge labels when filling the
+	 * `[<attachment> <component-group>]*` slot; anything else throws as a grammar authoring error.
+	 * (Doc 05 §5.4 never specifies how an option names its expansion target; this resolution
+	 * order, firmed at 2GN.3, is the contract.)
 	 */
 	expandsTo: string;
 
@@ -131,4 +154,66 @@ export interface GrammarRule {
 
 	/** The production alternatives, drawn from by weighted selection (doc 05 §5.4). Non-empty. */
 	options: GrammarOption[];
+}
+
+/**
+ * A leaf of the grammar tree: one geometric primitive with its physical parameters rolled (doc
+ * 05 §5.3 — "each terminal node produces a component with physical properties"). Produced by
+ * `expandGrammar` (roadmap 2GN.3), which draws each parameter value uniformly from the
+ * primitive's value lists in `data/grammars/primitives.ts` at expansion time, so normalisation
+ * (2GN.8) never rolls dice.
+ */
+export interface ComponentNode {
+	/**
+	 * The primitive's id (e.g. `'elongated'`). Typed as plain `string` rather than the data
+	 * layer's `PrimitiveType` because `types/` must not import from `data/` — the same precedent
+	 * as `NormalisedComponent.primitiveType` in `artefact.ts`.
+	 */
+	primitiveType: string;
+
+	/**
+	 * Selected parameter values, keyed by parameter name (e.g. `crossSection` → `'diamond'`).
+	 * Narrower than `NormalisedComponent.properties` (`Map<string, string | number>`) — numeric
+	 * properties like dimensions are derived at the 2GN.8 flatten, not rolled by the grammar.
+	 */
+	properties: Map<string, string>;
+}
+
+/**
+ * One expanded `[<attachment> <component-group>]` slot (doc 05 §5.3): the join terminal as an
+ * edge label plus the child group it fastens on. The attachment is purely physical — it carries
+ * no functional meaning (doc 05 §5.1).
+ */
+export interface AttachmentBranch {
+	/** How the child group fastens to the parent's primary component. */
+	type: AttachmentType;
+
+	/** The attached component group, itself possibly carrying further attachments. */
+	child: ComponentGroupNode;
+}
+
+/**
+ * One expanded `<component-group>`: a primary component and the attachment chain hanging off it
+ * (doc 05 §5.3). Recursion depth and breadth are bounded by `expandGrammar`'s provisional
+ * repetition policy until accumulation constraints land (roadmap 2GN.6/2GN.7).
+ */
+export interface ComponentGroupNode {
+	/** The group's primary component. */
+	primary: ComponentNode;
+
+	/** Zero or more attached child groups, in expansion order. */
+	attachments: AttachmentBranch[];
+}
+
+/**
+ * The grammar tree for one `<object>` (doc 05 §5.3, §6.1): the raw output of `expandGrammar`
+ * (roadmap 2GN.3), before accumulation checking (2GN.6) and normalisation (2GN.8).
+ *
+ * Deliberately carries no ids, dimensions or portability — those are the 2GN.8 flatten's
+ * concerns. Keeping the tree this thin makes it a cheap, re-rollable intermediate: when
+ * plausibility checking fails, the pipeline just expands again (doc 05 §6.2, roadmap 2GN.16).
+ */
+export interface ExpandedObject {
+	/** The object's component groups, in expansion order. Non-empty (`<component-group>+`). */
+	groups: ComponentGroupNode[];
 }
