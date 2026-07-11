@@ -10,8 +10,9 @@
  * matching `engine/prng.ts`. Determinism flows entirely from the injected PRNG.
  */
 
-import type { GrammarOption } from '../../types/grammar.ts';
-import type { PhaseCharacteristics } from '../../types/world.ts';
+import type { GrammarOption, GrammarRule } from '../../types/grammar.ts';
+import type { CulturalProfile, PhaseCharacteristics } from '../../types/world.ts';
+import { weightedSelect } from '../prng.ts';
 
 /**
  * Resolves a dotted `PhaseCharacteristics` path (e.g. `'technology.metallurgy'`) to its numeric
@@ -68,4 +69,60 @@ export function phaseInfluence(option: GrammarOption, phase: PhaseCharacteristic
 	}
 
 	return factor;
+}
+
+/**
+ * The doc 05 §5.4 weight formula: `baseWeight`, shifted additively by each cultural modifier
+ * against the culture's material affinities (a missing affinity reads as 0), scaled by
+ * `phaseInfluence`, floored at 0.01. The floor ensures nothing is completely impossible — even a
+ * deeply pacifist culture occasionally produces a blade. Because archaeology.
+ */
+function effectiveOptionWeight(
+	option: GrammarOption,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+): number {
+	let weight = option.baseWeight;
+
+	for (const [tag, modifier] of option.culturalModifiers) {
+		weight += (culture.materialAffinities.get(tag) ?? 0) * modifier;
+	}
+
+	weight *= phaseInfluence(option, phase);
+
+	return Math.max(0.01, weight);
+}
+
+/**
+ * Draws one production alternative from a rule, biased by culture and phase (doc 05 §5.4,
+ * roadmap 2GN.4). Culture doesn't dictate what the grammar produces — it biases the
+ * probabilities; the 0.01 floor keeps every option reachable, however unlikely.
+ *
+ * Adapts the doc's pseudocode (a two-arg `weightedSelect` over precomputed pairs) to the real
+ * callback-shaped utility in `engine/prng.ts`: effective weights are computed transiently in the
+ * `getWeight` callback, never stored. Because the floor keeps every weight positive,
+ * `weightedSelect`'s zero-total uniform fallback is unreachable from here.
+ *
+ * Consumes exactly one `prng()` draw per call regardless of option count — draw ordering is part
+ * of the engine's determinism contract, so callers can rely on a fixed number of draws per
+ * selection.
+ *
+ * @param rule - The rule whose options are drawn from. Options must be non-empty.
+ * @param culture - The producing culture's profile (`Culture.baseProfile`, not the whole
+ *   `Culture`), supplying `materialAffinities`.
+ * @param phase - The phase profile in force when the artefact is made.
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
+ * @returns The selected option.
+ */
+export function selectGrammarOption(
+	rule: GrammarRule,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	prng: () => number,
+): GrammarOption {
+	return weightedSelect(
+		rule.options,
+		prng,
+		(option) => effectiveOptionWeight(option, culture, phase),
+	);
 }
