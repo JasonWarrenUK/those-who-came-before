@@ -6,7 +6,7 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 |          | Status                  | Next Up           | Blocked           |
 | -------- | ----------------------- | ----------------- | ----------------- |
-| **FD**   | In progress             | 1FD.30, 1FD.37, 1FD.40 | — |
+| **FD**   | In progress             | 1FD.30, 1FD.40 | — |
 | **GN**   | Not started             | 2GN.1, 2GN.2, 2GN.17, 2GN.22 | —      |
 | **WS**   | Not started             | —                 | 2GN.56            |
 | **UI**   | Not started             | —                 | 3WS.15            |
@@ -63,8 +63,6 @@ description: MVP implementation roadmap from foundation through NPC social syste
 
 **Project Explorer shell**
 
-- [ ] 1FD.37. Seed input field component
-- [ ] 1FD.38. PRNG output display — generate N values, visual determinism check
 - [ ] 1FD.39. Type index panel — list all registered interfaces with field summaries
 
 <a name="m1-blocked"><h4>Blocked (Milestone 1)</h4></a>
@@ -112,6 +110,8 @@ description: MVP implementation roadmap from foundation through NPC social syste
 **Project Explorer shell**
 
 - [x] 1FD.36. Create route `/dev/explorer` with layout and nav (sub-route model: each future panel is a child route under `src/routes/dev/explorer/` plus one entry in the route-private `panels.ts` registry — `{id, label, path, milestone, status}` — which drives both the sidebar `menu` nav and the overview landing table; planned M1 panels render as `menu-disabled` placeholders until 1FD.38/39 flip their status; seed input, 1FD.37, is a shell control not a panel — the layout's header bar reserves its right-hand mount point; `src/routes/dev/+layout.ts` guards the whole `/dev` subtree with a 404 outside `dev` builds; also created the root `src/routes/+layout.svelte` as a prerequisite fix — nothing imported `app.css`, so Tailwind/DaisyUI styles never loaded anywhere)
+- [x] 1FD.37. Seed input field component (route-private `SeedInput.svelte` mounted in the layout header's reserved slot; the seed lives in the `?seed=` URL query param so it survives reload and repro cases are shareable via link — `seed.ts` owns `DEFAULT_SEED` and `getSeed(url)`, with absent/empty falling back to the default and committing the default or an empty value removing the param; the layout nav and overview table links now carry `page.url.search` so the seed survives panel switches)
+- [x] 1FD.38. PRNG output display (child route `prng/+page.svelte` per the 1FD.36 sub-route model, `panels.ts` entry flipped to `available`; draws N values — default 20, clamped 1–1000 — from two *independent* `createPrng(seed)` instances and compares index-by-index with exact float equality; the visual determinism check is a badge verdict plus per-row ✓/✗ over full-precision values; everything is `$derived` from the URL seed and N, so changing the header seed regenerates the panel live with no generate button)
 </details>
 
 <details>
@@ -704,8 +704,8 @@ graph TD
     1FD.34["`*1FD.34*<br/>Configure deno test`"]:::done
     1FD.35["`*1FD.35*<br/>Test fixture helpers (partial)`"]:::open
     1FD.36["`*1FD.36*<br/>Explorer route + layout`"]:::done
-    1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::open
-    1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::blocked
+    1FD.37["`*1FD.37*<br/>Explorer seed input`"]:::done
+    1FD.38["`*1FD.38*<br/>Explorer PRNG display`"]:::done
     1FD.39["`*1FD.39*<br/>Explorer type index`"]:::blocked
     1FD.40["`*1FD.40*<br/>types/venues temporal`"]:::open
     1FD.6 --> 1FD.7 & 1FD.8 & 1FD.9
