@@ -10,8 +10,17 @@
  * matching `engine/prng.ts`. Determinism flows entirely from the injected PRNG.
  */
 
-import type { GrammarOption, GrammarRule } from '../../types/grammar.ts';
+import type {
+	AttachmentBranch,
+	ComponentGroupNode,
+	ComponentNode,
+	ExpandedObject,
+	GrammarOption,
+	GrammarRule,
+} from '../../types/grammar.ts';
+import { isAttachmentType } from '../../types/grammar.ts';
 import type { CulturalProfile, PhaseCharacteristics } from '../../types/world.ts';
+import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
 import { weightedSelect } from '../prng.ts';
 
 /**
@@ -125,4 +134,143 @@ export function selectGrammarOption(
 		prng,
 		(option) => effectiveOptionWeight(option, culture, phase),
 	);
+}
+
+/*
+ * Provisional repetition policy (doc 05 §5.3's `+` and `*` are engine-owned, not data). These
+ * constants bound expansion until accumulation constraints (roadmap 2GN.6) and complexity
+ * budgets from `craftSpecialisation` (2GN.7) take over; the caps echo §5.5's sophisticated-tier
+ * ceiling so nothing generated now would exceed the eventual budget's upper bound.
+ */
+
+/** Hard ceiling on `<component-group>+` repetitions per object (doc 05 §5.5's 3–4 group cap). */
+const MAX_COMPONENT_GROUPS = 4;
+
+/** Per-slot chance of adding another component group; ~70% of objects stay single-group. */
+const ADDITIONAL_GROUP_PROBABILITY = 0.3;
+
+/** Attachment recursion cut-off: groups at this depth take no further attachments. */
+const MAX_ATTACHMENT_DEPTH = 3;
+
+/** Breadth cap on the `[<attachment> <component-group>]*` slot within one group. */
+const MAX_ATTACHMENTS_PER_GROUP = 2;
+
+/** Base per-slot chance of filling an attachment slot at depth 0. */
+const ATTACHMENT_PROBABILITY = 0.4;
+
+/** Halves the attachment chance per recursion level: depth d draws at 0.4 × 0.5^d. */
+const ATTACHMENT_DEPTH_DECAY = 0.5;
+
+/**
+ * Expands the component grammar into the tree for one `<object>` (doc 05 §5.3, roadmap 2GN.3).
+ *
+ * Walks the BNF top-down: the object spine draws one-or-more `<component-group>`s, each group
+ * selects a primary component, and the optional `[<attachment> <component-group>]*` slot fills
+ * by depth-decayed probability draws — the `attachment` rule's options are consumed positionally
+ * as edge labels, never expanded as components (the 2GN.2 data contract). Primitive terminals
+ * roll their physical parameters here, uniformly per parameter from `PRIMITIVE_PARAMETERS`
+ * registry order, so downstream normalisation (2GN.8) never touches the PRNG.
+ *
+ * Every selection routes through `selectGrammarOption`, including today's single-option
+ * `object`/`component-group` rules — the sequence of `prng` draws is the determinism contract,
+ * and uniform routing means a future multi-option rule changes distributions, not draw
+ * structure. The tree is cheap and side-effect-free to produce: when plausibility checking
+ * fails, the re-expansion loop (doc 05 §6.2, roadmap 2GN.16) simply calls this again.
+ *
+ * Throws on malformed grammar data — a missing rule, an `expandsTo` that is neither a rule
+ * symbol nor a primitive, or a non-attachment terminal in the attachment slot — and guards rule
+ * cycles with a hop budget so authoring errors fail loudly rather than overflowing the stack.
+ *
+ * @param rules - The production rules (e.g. `CORE_GRAMMAR_RULES`), looked up by `symbol`. Must
+ *   include an `'object'` rule (the start symbol) and an `'attachment'` rule if any expansion
+ *   path fills attachment slots.
+ * @param culture - The producing culture's profile (`Culture.baseProfile`), biasing selection.
+ * @param phase - The phase profile in force when the artefact is made.
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
+ * @returns The raw grammar tree, ready for accumulation checking (2GN.6) and normalisation
+ *   (2GN.8).
+ */
+export function expandGrammar(
+	rules: readonly GrammarRule[],
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	prng: () => number,
+): ExpandedObject {
+	const ruleIndex = new Map(rules.map((rule) => [rule.symbol, rule]));
+
+	function mustGetRule(symbol: string): GrammarRule {
+		const rule = ruleIndex.get(symbol);
+		if (rule === undefined) {
+			throw new Error(`expandGrammar: no rule for symbol '${symbol}'`);
+		}
+		return rule;
+	}
+
+	/** Rolls a primitive terminal's parameters, one uniform draw per parameter in registry order. */
+	function buildComponentNode(primitive: keyof typeof PRIMITIVE_PARAMETERS): ComponentNode {
+		const properties = new Map<string, string>();
+
+		for (const [parameter, values] of Object.entries(PRIMITIVE_PARAMETERS[primitive])) {
+			const index = Math.min(values.length - 1, Math.floor(prng() * values.length));
+			properties.set(parameter, values[index]);
+		}
+
+		return { primitiveType: primitive, properties };
+	}
+
+	/**
+	 * Resolves a symbol to a leaf component: rule symbols recurse (with a hop budget so a rule
+	 * cycle throws instead of overflowing the stack), primitive ids become components, anything
+	 * else is a grammar authoring error.
+	 */
+	function expandPrimary(symbol: string, hops: number): ComponentNode {
+		if (ruleIndex.has(symbol)) {
+			if (hops <= 0) {
+				throw new Error(`expandGrammar: rule cycle detected while resolving '${symbol}'`);
+			}
+			const option = selectGrammarOption(mustGetRule(symbol), culture, phase, prng);
+			return expandPrimary(option.expandsTo, hops - 1);
+		}
+
+		if (isPrimitiveType(symbol)) {
+			return buildComponentNode(symbol);
+		}
+
+		throw new Error(`expandGrammar: unknown grammar symbol '${symbol}'`);
+	}
+
+	/** Expands one `<component-group>`: primary component plus its attachment chain. */
+	function expandGroup(symbol: string, depth: number): ComponentGroupNode {
+		const groupRule = mustGetRule(symbol);
+		const primaryOption = selectGrammarOption(groupRule, culture, phase, prng);
+		const primary = expandPrimary(primaryOption.expandsTo, rules.length);
+
+		const attachments: AttachmentBranch[] = [];
+		while (
+			attachments.length < MAX_ATTACHMENTS_PER_GROUP &&
+			depth < MAX_ATTACHMENT_DEPTH &&
+			prng() < ATTACHMENT_PROBABILITY * ATTACHMENT_DEPTH_DECAY ** depth
+		) {
+			const joinOption = selectGrammarOption(mustGetRule('attachment'), culture, phase, prng);
+			if (!isAttachmentType(joinOption.expandsTo)) {
+				throw new Error(
+					`expandGrammar: attachment option expands to non-attachment terminal '${joinOption.expandsTo}'`,
+				);
+			}
+
+			attachments.push({ type: joinOption.expandsTo, child: expandGroup(symbol, depth + 1) });
+		}
+
+		return { primary, attachments };
+	}
+
+	const objectRule = mustGetRule('object');
+	const groups: ComponentGroupNode[] = [];
+
+	do {
+		const groupOption = selectGrammarOption(objectRule, culture, phase, prng);
+		groups.push(expandGroup(groupOption.expandsTo, 0));
+	} while (groups.length < MAX_COMPONENT_GROUPS && prng() < ADDITIONAL_GROUP_PROBABILITY);
+
+	return { groups };
 }

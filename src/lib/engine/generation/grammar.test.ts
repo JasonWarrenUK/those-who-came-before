@@ -1,9 +1,17 @@
 /// <reference lib="deno.ns" />
-import { assert, assertAlmostEquals, assertEquals, assertThrows } from '@std/assert';
-import { phaseInfluence, selectGrammarOption } from './grammar.ts';
+import {
+	assert,
+	assertAlmostEquals,
+	assertEquals,
+	assertNotEquals,
+	assertThrows,
+} from '@std/assert';
+import { expandGrammar, phaseInfluence, selectGrammarOption } from './grammar.ts';
 import { createPrng } from '../prng.ts';
 import { CORE_GRAMMAR_RULES } from '../../data/grammars/core.ts';
-import type { GrammarOption, GrammarRule } from '../../types/grammar.ts';
+import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
+import type { ComponentGroupNode, GrammarOption, GrammarRule } from '../../types/grammar.ts';
+import { isAttachmentType } from '../../types/grammar.ts';
 import type { MaterialTag } from '../../types/tags.ts';
 import {
 	mockCulturalProfile,
@@ -287,4 +295,242 @@ Deno.test('selectGrammarOption: consumes exactly one draw per call', () => {
 
 	assertEquals(picked.expandsTo, 'only');
 	assertEquals(calls, 1);
+});
+
+/** Walks a group tree, applying `visit` to every group and tracking recursion depth. */
+function walkGroups(
+	groups: ComponentGroupNode[],
+	visit: (group: ComponentGroupNode, depth: number) => void,
+	depth = 0,
+): void {
+	for (const group of groups) {
+		visit(group, depth);
+		walkGroups(group.attachments.map((branch) => branch.child), visit, depth + 1);
+	}
+}
+
+Deno.test('expandGrammar: same seed produces the same tree', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+
+	const expand = (): ReturnType<typeof expandGrammar> =>
+		expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng('tree-determinism'));
+
+	assertEquals(expand(), expand());
+});
+
+Deno.test('expandGrammar: different seeds diverge', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+
+	const first = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng('seed-alpha'));
+	const second = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng('seed-beta'));
+
+	assertNotEquals(first, second);
+});
+
+Deno.test('expandGrammar: trees are structurally valid across seeds', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+
+	for (let i = 0; i < 200; i++) {
+		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`validity-${i}`));
+
+		assert(tree.groups.length >= 1, 'object must expand to at least one component group');
+
+		walkGroups(tree.groups, (group) => {
+			const { primitiveType, properties } = group.primary;
+
+			assert(isPrimitiveType(primitiveType), `unknown primitive '${primitiveType}'`);
+
+			const parameters = PRIMITIVE_PARAMETERS[primitiveType as keyof typeof PRIMITIVE_PARAMETERS];
+			assertEquals(
+				[...properties.keys()],
+				Object.keys(parameters),
+				`property keys for '${primitiveType}' must match the registry's parameters in order`,
+			);
+			for (const [parameter, value] of properties) {
+				const allowed = parameters[parameter as keyof typeof parameters] as readonly string[];
+				assert(
+					allowed.includes(value),
+					`value '${value}' not in '${primitiveType}.${parameter}' value list`,
+				);
+			}
+
+			for (const branch of group.attachments) {
+				assert(isAttachmentType(branch.type), `unknown attachment type '${branch.type}'`);
+			}
+		});
+	}
+});
+
+Deno.test('expandGrammar: provisional repetition caps hold across seeds', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+
+	for (let i = 0; i < 500; i++) {
+		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`caps-${i}`));
+
+		assert(tree.groups.length <= 4, `object grew ${tree.groups.length} groups, cap is 4`);
+
+		walkGroups(tree.groups, (group, depth) => {
+			assert(depth <= 3, `attachment recursion reached depth ${depth}, cap is 3`);
+			assert(
+				group.attachments.length <= 2,
+				`group carries ${group.attachments.length} attachments, cap is 2`,
+			);
+		});
+	}
+});
+
+Deno.test('expandGrammar: repetition distribution matches the provisional policy', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+
+	const runs = 1000;
+	let singleGroup = 0;
+	let multiGroup = 0;
+	let withAttachments = 0;
+
+	for (let i = 0; i < runs; i++) {
+		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`dist-${i}`));
+
+		if (tree.groups.length === 1) singleGroup++;
+		else multiGroup++;
+
+		let attachmentCount = 0;
+		walkGroups(tree.groups, (group) => {
+			attachmentCount += group.attachments.length;
+		});
+		if (attachmentCount > 0) withAttachments++;
+	}
+
+	// The continuation probability is 0.3, so ~70% of objects should stay single-group.
+	const singleShare = singleGroup / runs;
+	assert(
+		Math.abs(singleShare - 0.7) < 0.05,
+		`single-group share was ${singleShare}, expected ~0.7`,
+	);
+	assert(multiGroup > 0, 'no multi-group tree in 1 000 runs — group repetition never fired');
+	assert(withAttachments > 0, 'no attachments in 1 000 runs — the chain slot never filled');
+});
+
+Deno.test('expandGrammar: missing object rule throws', () => {
+	const withoutObject = CORE_GRAMMAR_RULES.filter((grammarRule) => grammarRule.symbol !== 'object');
+
+	assertThrows(
+		() =>
+			expandGrammar(
+				withoutObject,
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				createPrng('missing-object'),
+			),
+		Error,
+		"no rule for symbol 'object'",
+	);
+});
+
+Deno.test('expandGrammar: unknown expandsTo throws', () => {
+	const malformed: GrammarRule[] = [
+		{ symbol: 'object', options: [option({ expandsTo: 'component-group' })] },
+		{ symbol: 'component-group', options: [option({ expandsTo: 'levitating-orb' })] },
+	];
+
+	assertThrows(
+		() =>
+			expandGrammar(
+				malformed,
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				createPrng('unknown-symbol'),
+			),
+		Error,
+		"unknown grammar symbol 'levitating-orb'",
+	);
+});
+
+Deno.test('expandGrammar: rule cycles throw instead of overflowing the stack', () => {
+	const cyclic: GrammarRule[] = [
+		{ symbol: 'object', options: [option({ expandsTo: 'component-group' })] },
+		{ symbol: 'component-group', options: [option({ expandsTo: 'loop-a' })] },
+		{ symbol: 'loop-a', options: [option({ expandsTo: 'loop-b' })] },
+		{ symbol: 'loop-b', options: [option({ expandsTo: 'loop-a' })] },
+	];
+
+	assertThrows(
+		() =>
+			expandGrammar(
+				cyclic,
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				createPrng('rule-cycle'),
+			),
+		Error,
+		'rule cycle detected',
+	);
+});
+
+Deno.test('expandGrammar: non-attachment terminal in the attachment slot throws', () => {
+	// An attachment rule whose option expands to a primitive id, not a join terminal. The
+	// attachment slot fills probabilistically, so scan seeds until the draw path reaches it.
+	const malformed: GrammarRule[] = [
+		{ symbol: 'object', options: [option({ expandsTo: 'component-group' })] },
+		{ symbol: 'component-group', options: [option({ expandsTo: 'elongated' })] },
+		{ symbol: 'attachment', options: [option({ expandsTo: 'elongated' })] },
+	];
+
+	let threw = false;
+	for (let i = 0; i < 50 && !threw; i++) {
+		try {
+			expandGrammar(
+				malformed,
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				createPrng(`bad-attachment-${i}`),
+			);
+		} catch (error) {
+			threw = true;
+			assert(
+				error instanceof Error &&
+					error.message.includes('non-attachment terminal'),
+				`unexpected error: ${error}`,
+			);
+		}
+	}
+
+	assert(threw, 'no seed in 50 reached the attachment slot — cannot verify the guard');
+});
+
+Deno.test('expandGrammar: material affinity biases primary selection end to end', () => {
+	const phase = mockPhaseCharacteristics();
+	const indifferent = mockCulturalProfile({ materialAffinities: new Map() });
+	const metalworkers = mockCulturalProfile({
+		materialAffinities: new Map<MaterialTag, number>([['metal', 3]]),
+	});
+
+	const runs = 1000;
+	const countMetalLeaning = (culture: ReturnType<typeof mockCulturalProfile>): number => {
+		let count = 0;
+		for (let i = 0; i < runs; i++) {
+			const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`bias-${i}`));
+			walkGroups(tree.groups, (group) => {
+				if (
+					group.primary.primitiveType === 'elongated' ||
+					group.primary.primitiveType === 'bar-form'
+				) {
+					count++;
+				}
+			});
+		}
+		return count;
+	};
+
+	const baseline = countMetalLeaning(indifferent);
+	const shifted = countMetalLeaning(metalworkers);
+
+	assert(
+		shifted > baseline,
+		`metal-affine culture produced ${shifted} metal-leaning primaries vs baseline ${baseline}`,
+	);
 });
