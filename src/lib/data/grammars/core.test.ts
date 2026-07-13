@@ -2,21 +2,8 @@
 import { assert, assertEquals } from '@std/assert';
 import { CORE_GRAMMAR_RULES } from './core.ts';
 import { isPrimitiveType, PRIMITIVE_TYPES } from './primitives.ts';
-import type { AttachmentType } from '../../types/grammar.ts';
+import { ATTACHMENT_TYPE_VALUES } from '../../types/grammar.ts';
 import type { MaterialTag } from '../../types/tags.ts';
-
-/** The nine `<attachment>` terminals in union order — typed so the compiler catches drift. */
-const ATTACHMENT_TYPES: AttachmentType[] = [
-	'inline',
-	'perpendicular',
-	'socketed',
-	'riveted',
-	'wrapped',
-	'lashed',
-	'hinged',
-	'threaded',
-	'friction-fit',
-];
 
 /** The ten material tags — typed so the compiler catches drift against `MaterialTag`. */
 const MATERIAL_TAGS: MaterialTag[] = [
@@ -80,18 +67,19 @@ Deno.test('primary-component: options cover the eight primitives exactly, in reg
 
 Deno.test('attachment: options cover the nine attachment types exactly, in union order', () => {
 	const options = ruleBySymbol('attachment').options;
-	assertEquals(options.map((o) => o.expandsTo), ATTACHMENT_TYPES);
+	assertEquals(options.map((o) => o.expandsTo), [...ATTACHMENT_TYPE_VALUES]);
 });
 
-Deno.test('rules: every expandsTo resolves to a rule symbol, a primitive or an attachment terminal', () => {
+Deno.test('rules: every expandsTo resolves to a rule symbol, a primitive, or (attachment rule only) an attachment terminal', () => {
 	const symbols = new Set(CORE_GRAMMAR_RULES.map((r) => r.symbol));
-	const terminals = new Set<string>(ATTACHMENT_TYPES);
+	const terminals = new Set<string>(ATTACHMENT_TYPE_VALUES);
 
 	for (const rule of CORE_GRAMMAR_RULES) {
 		for (const option of rule.options) {
 			const target = option.expandsTo;
+			const validAttachmentTerminal = rule.symbol === 'attachment' && terminals.has(target);
 			assert(
-				symbols.has(target) || isPrimitiveType(target) || terminals.has(target),
+				symbols.has(target) || isPrimitiveType(target) || validAttachmentTerminal,
 				`${rule.symbol} → ${target} resolves to nothing`,
 			);
 		}
@@ -121,6 +109,7 @@ Deno.test('rules: phaseModifiers use known PhaseCharacteristics paths with posit
 			for (const [path, multiplier] of option.phaseModifiers) {
 				const label = `${rule.symbol} → ${option.expandsTo} [${path}]`;
 				assert(PHASE_PATHS.includes(path), `${label} is not a known phase path`);
+				assert(Number.isFinite(multiplier), `${label} multiplier is not finite`);
 				assert(multiplier > 0, `${label} multiplier is not positive`);
 			}
 		}

@@ -14,20 +14,12 @@ import type { MaterialTag } from './tags.ts';
 /**
  * The nine ways one component fastens to another — the terminals of the grammar's `<attachment>`
  * production (doc 05 §5.3). Purely physical join descriptions; they carry no functional meaning.
+ *
+ * Authored once as a runtime tuple so the type and the `ATTACHMENT_TYPE_VALUES` array can never
+ * drift apart — `AttachmentType` is derived from the tuple's literal elements rather than the
+ * reverse.
  */
-export type AttachmentType =
-	| 'inline'
-	| 'perpendicular'
-	| 'socketed'
-	| 'riveted'
-	| 'wrapped'
-	| 'lashed'
-	| 'hinged'
-	| 'threaded'
-	| 'friction-fit';
-
-/** The attachment terminals as a runtime array, in union declaration order. */
-export const ATTACHMENT_TYPE_VALUES: readonly AttachmentType[] = [
+export const ATTACHMENT_TYPE_VALUES = [
 	'inline',
 	'perpendicular',
 	'socketed',
@@ -37,7 +29,10 @@ export const ATTACHMENT_TYPE_VALUES: readonly AttachmentType[] = [
 	'hinged',
 	'threaded',
 	'friction-fit',
-];
+] as const;
+
+/** The nine `<attachment>` terminals, in union declaration order. */
+export type AttachmentType = typeof ATTACHMENT_TYPE_VALUES[number];
 
 /**
  * Narrows an arbitrary string to `AttachmentType`. The runtime counterpart to the union per the

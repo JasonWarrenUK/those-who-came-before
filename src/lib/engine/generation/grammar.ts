@@ -50,6 +50,12 @@ function resolvePhaseAttribute(phase: PhaseCharacteristics, path: string): numbe
 		);
 	}
 
+	if (!Number.isFinite(current) || current < 0 || current > 1) {
+		throw new Error(
+			`phaseInfluence: phase characteristic path '${path}' must be in [0, 1], got ${current}`,
+		);
+	}
+
 	return current;
 }
 
@@ -76,6 +82,11 @@ export function phaseInfluence(option: GrammarOption, phase: PhaseCharacteristic
 
 	let factor = 1;
 	for (const [path, multiplier] of option.phaseModifiers) {
+		if (!Number.isFinite(multiplier) || multiplier <= 0) {
+			throw new Error(
+				`phaseInfluence: phase modifier multiplier for '${path}' must be finite and positive, got ${multiplier}`,
+			);
+		}
 		const attribute = resolvePhaseAttribute(phase, path);
 		factor *= 1 + (multiplier - 1) * attribute;
 	}
@@ -149,6 +160,9 @@ export type ComplexityTier = 'simple' | 'moderate' | 'sophisticated';
 
 /** One tier's row in the authored budget table, plus the engine-side repetition probability. */
 interface ComplexityTierSpec {
+	/** Hard floor on `<component-group>+` repetitions per object (doc 05 §5.5's group counts). */
+	minDistinctGroups: number;
+
 	/** Hard ceiling on `<component-group>+` repetitions per object (doc 05 §5.5's group counts). */
 	maxDistinctGroups: number;
 
@@ -159,10 +173,10 @@ interface ComplexityTierSpec {
 	noTwoGroupsSameType: boolean;
 
 	/**
-	 * Per-slot chance of drawing another component group. Deliberately engine-side rather than a
-	 * field of `AccumulationConstraints` — that type stays spec-verbatim (doc 05 §5.5). This is
-	 * how the doc's tier lower bounds ("1–2", "2–3", "3–4" groups) are honoured: as a distribution
-	 * shift rather than a hard floor, which `AccumulationConstraints` has no field for.
+	 * Per-slot chance of drawing another component group once `minDistinctGroups` is met.
+	 * Deliberately engine-side rather than a field of `AccumulationConstraints` — that type stays
+	 * spec-verbatim (doc 05 §5.5). Below the minimum, expansion continues unconditionally; this
+	 * probability only governs additions between the minimum and `maxDistinctGroups`.
 	 */
 	additionalGroupProbability: number;
 
@@ -171,17 +185,18 @@ interface ComplexityTierSpec {
 }
 
 /*
- * Authored tier table (doc 05 §5.5). `maxDistinctGroups` and the pattern unlock order are
- * doc-specified: simple gets basic patterns only (symmetric, linear), moderate most patterns,
- * sophisticated all six including nesting and branching. `maxComponentsPerGroup`,
- * `noTwoGroupsSameType` and `additionalGroupProbability` are MVP-provisional values per the
- * 2GN.2 precedent — the spec names the fields but gives no numbers — to firm up when
- * accumulation checking lands (2GN.6) and generation is observable in the Explorer: the
- * per-group cap rises to cover radial's doc maximum of 12 only at the sophisticated tier, and
- * only simple cultures are held to one group per component type.
+ * Authored tier table (doc 05 §5.5). `minDistinctGroups`/`maxDistinctGroups` and the pattern
+ * unlock order are doc-specified: simple 1–2 groups with basic patterns only (symmetric, linear),
+ * moderate 2–3 groups with most patterns, sophisticated 3–4 groups with all six including nesting
+ * and branching. `maxComponentsPerGroup`, `noTwoGroupsSameType` and `additionalGroupProbability`
+ * are MVP-provisional values per the 2GN.2 precedent — the spec names the fields but gives no
+ * numbers — to firm up when accumulation checking lands (2GN.6) and generation is observable in
+ * the Explorer: the per-group cap rises to cover radial's doc maximum of 12 only at the
+ * sophisticated tier, and only simple cultures are held to one group per component type.
  */
 const COMPLEXITY_TIERS: Record<ComplexityTier, ComplexityTierSpec> = {
 	simple: {
+		minDistinctGroups: 1,
 		maxDistinctGroups: 2,
 		maxComponentsPerGroup: 4,
 		noTwoGroupsSameType: true,
@@ -189,6 +204,7 @@ const COMPLEXITY_TIERS: Record<ComplexityTier, ComplexityTierSpec> = {
 		patternTypes: ['symmetric', 'linear-array'],
 	},
 	moderate: {
+		minDistinctGroups: 2,
 		maxDistinctGroups: 3,
 		maxComponentsPerGroup: 8,
 		noTwoGroupsSameType: false,
@@ -196,6 +212,7 @@ const COMPLEXITY_TIERS: Record<ComplexityTier, ComplexityTierSpec> = {
 		patternTypes: ['symmetric', 'linear-array', 'radial', 'stacked'],
 	},
 	sophisticated: {
+		minDistinctGroups: 3,
 		maxDistinctGroups: 4,
 		maxComponentsPerGroup: 12,
 		noTwoGroupsSameType: false,
@@ -257,8 +274,8 @@ export function resolveComplexityTier(craftSpecialisation: number): ComplexityTi
  * Derives the complexity budget a culture's `craftSpecialisation` affords (doc 05 §5.5, roadmap
  * 2GN.7): simple cultures get 1–2 component groups and basic patterns only; sophisticated
  * cultures unlock nesting and branching. `expandGrammar` consumes `maxDistinctGroups` as the
- * group-repetition cap; the remaining fields are derived but unenforced until accumulation
- * checking lands (2GN.6).
+ * group-repetition cap and the tier table's `minDistinctGroups` as the enforced floor; the
+ * remaining fields are derived but unenforced until accumulation checking lands (2GN.6).
  *
  * Pure and PRNG-free — derivation consumes no draws, so it can never perturb the expansion draw
  * sequence that carries the determinism contract. Every call returns fresh objects, pattern
@@ -301,10 +318,11 @@ const ATTACHMENT_DEPTH_DECAY = 0.5;
 /**
  * Expands the component grammar into the tree for one `<object>` (doc 05 §5.3, roadmap 2GN.3).
  *
- * Walks the BNF top-down: the object spine draws one-or-more `<component-group>`s — capped and
- * paced by the complexity budget the phase's `craftSpecialisation` derives (doc 05 §5.5, roadmap
- * 2GN.7; see `deriveComplexityBudget`) — each group selects a primary component, and the
- * optional `[<attachment> <component-group>]*` slot fills by depth-decayed probability draws —
+ * Walks the BNF top-down: the object spine draws one-or-more `<component-group>`s, filling the
+ * complexity budget's `minDistinctGroups` unconditionally (no `prng()` draw — there's no decision
+ * to make below the floor) before continuing probabilistically up to `maxDistinctGroups` (doc 05
+ * §5.5, roadmap 2GN.7; see `deriveComplexityBudget`) — each group selects a primary component, and
+ * the optional `[<attachment> <component-group>]*` slot fills by depth-decayed probability draws —
  * the `attachment` rule's options are consumed positionally as edge labels, never expanded as
  * components (the 2GN.2 data contract). Primitive terminals roll their physical parameters here,
  * uniformly per parameter from `PRIMITIVE_PARAMETERS` registry order, so downstream
@@ -403,19 +421,24 @@ export function expandGrammar(
 		return { primary, attachments };
 	}
 
-	const tier = resolveComplexityTier(phase.society.craftSpecialisation);
+	const tierSpec = COMPLEXITY_TIERS[resolveComplexityTier(phase.society.craftSpecialisation)];
 	const budget = deriveComplexityBudget(phase.society.craftSpecialisation);
 
 	const objectRule = mustGetRule('object');
 	const groups: ComponentGroupNode[] = [];
 
-	do {
+	while (groups.length < tierSpec.minDistinctGroups) {
 		const groupOption = selectGrammarOption(objectRule, culture, phase, prng);
 		groups.push(expandGroup(groupOption.expandsTo, 0));
-	} while (
+	}
+
+	while (
 		groups.length < budget.maxDistinctGroups &&
-		prng() < COMPLEXITY_TIERS[tier].additionalGroupProbability
-	);
+		prng() < tierSpec.additionalGroupProbability
+	) {
+		const groupOption = selectGrammarOption(objectRule, culture, phase, prng);
+		groups.push(expandGroup(groupOption.expandsTo, 0));
+	}
 
 	return { groups };
 }

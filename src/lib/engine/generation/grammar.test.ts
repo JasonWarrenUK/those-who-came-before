@@ -111,6 +111,39 @@ Deno.test('phaseInfluence: unknown dotted path throws', () => {
 	);
 });
 
+Deno.test('phaseInfluence: non-finite or out-of-range resolved attribute throws', () => {
+	for (
+		const invalid of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -0.01, 1.01]
+	) {
+		const phase = mockPhaseCharacteristics({ technology: { metallurgy: invalid } });
+		assertThrows(
+			() =>
+				phaseInfluence(
+					option({ phaseModifiers: new Map([['technology.metallurgy', 1.5]]) }),
+					phase,
+				),
+			Error,
+			'must be in [0, 1]',
+		);
+	}
+});
+
+Deno.test('phaseInfluence: non-finite or non-positive multiplier throws', () => {
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 0.5 } });
+
+	for (const invalid of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0, -1]) {
+		assertThrows(
+			() =>
+				phaseInfluence(
+					option({ phaseModifiers: new Map([['technology.metallurgy', invalid]]) }),
+					phase,
+				),
+			Error,
+			'must be finite and positive',
+		);
+	}
+});
+
 Deno.test('phaseInfluence: every shipped phase modifier evaluates finite and positive', () => {
 	const phase = mockPhaseCharacteristics();
 
@@ -439,16 +472,24 @@ Deno.test('expandGrammar: trees are structurally valid across seeds', () => {
 	}
 });
 
-Deno.test('expandGrammar: complexity budget caps group count per tier across seeds', () => {
+Deno.test('expandGrammar: complexity budget bounds group count per tier across seeds', () => {
 	const culture = mockCulturalProfile();
-	const tiers: [craftSpecialisation: number, maxGroups: number][] = [[0.1, 2], [0.5, 3], [0.9, 4]];
+	const tiers: [craftSpecialisation: number, minGroups: number, maxGroups: number][] = [
+		[0.1, 1, 2],
+		[0.5, 2, 3],
+		[0.9, 3, 4],
+	];
 
-	for (const [craftSpecialisation, maxGroups] of tiers) {
+	for (const [craftSpecialisation, minGroups, maxGroups] of tiers) {
 		const phase = mockPhaseCharacteristics({ society: { craftSpecialisation } });
 
 		for (let i = 0; i < 500; i++) {
 			const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`caps-${i}`));
 
+			assert(
+				tree.groups.length >= minGroups,
+				`craftSpecialisation ${craftSpecialisation} grew ${tree.groups.length} groups, floor is ${minGroups}`,
+			);
 			assert(
 				tree.groups.length <= maxGroups,
 				`craftSpecialisation ${craftSpecialisation} grew ${tree.groups.length} groups, cap is ${maxGroups}`,
