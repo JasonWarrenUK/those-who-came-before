@@ -14,17 +14,34 @@ import type { MaterialTag } from './tags.ts';
 /**
  * The nine ways one component fastens to another — the terminals of the grammar's `<attachment>`
  * production (doc 05 §5.3). Purely physical join descriptions; they carry no functional meaning.
+ *
+ * Authored once as a runtime tuple so the type and the `ATTACHMENT_TYPE_VALUES` array can never
+ * drift apart — `AttachmentType` is derived from the tuple's literal elements rather than the
+ * reverse.
  */
-export type AttachmentType =
-	| 'inline'
-	| 'perpendicular'
-	| 'socketed'
-	| 'riveted'
-	| 'wrapped'
-	| 'lashed'
-	| 'hinged'
-	| 'threaded'
-	| 'friction-fit';
+export const ATTACHMENT_TYPE_VALUES = [
+	'inline',
+	'perpendicular',
+	'socketed',
+	'riveted',
+	'wrapped',
+	'lashed',
+	'hinged',
+	'threaded',
+	'friction-fit',
+] as const;
+
+/** The nine `<attachment>` terminals, in union declaration order. */
+export type AttachmentType = typeof ATTACHMENT_TYPE_VALUES[number];
+
+/**
+ * Narrows an arbitrary string to `AttachmentType`. The runtime counterpart to the union per the
+ * `visibility.ts` trio precedent — `expandGrammar` (roadmap 2GN.3) uses it to validate that the
+ * `attachment` rule's selected option really is a join terminal before recording it as an edge.
+ */
+export function isAttachmentType(value: string): value is AttachmentType {
+	return (ATTACHMENT_TYPE_VALUES as readonly string[]).includes(value);
+}
 
 /**
  * How a repeated component type is laid out within a single object (doc 05 §5.5). A discriminated
@@ -44,8 +61,10 @@ export type ArrangementPattern =
 /**
  * Limits on how many, and how varied, the arrangement groups within one object may be (doc 05
  * §5.5). The culture's `craftSpecialisation` determines the complexity budget that populates
- * these fields: simple cultures get 1–2 groups and basic patterns only; sophisticated cultures
- * unlock nesting and branching. Enforced by accumulation checking (roadmap 2GN.6).
+ * these fields — `deriveComplexityBudget` (`engine/generation/grammar.ts`, roadmap 2GN.7):
+ * simple cultures get 1–2 groups and basic patterns only; sophisticated cultures unlock nesting
+ * and branching. `expandGrammar` consumes `maxDistinctGroups` as its group-repetition cap; the
+ * remaining fields await enforcement by accumulation checking (roadmap 2GN.6).
  */
 export interface AccumulationConstraints {
 	/** Maximum number of distinct arrangement groups in the object. From `craftSpecialisation`. */
@@ -76,12 +95,13 @@ export interface AccumulationConstraints {
 export interface GrammarOption {
 	/**
 	 * The grammar symbol this option expands to — a primitive non-terminal (e.g. `'elongated'`),
-	 * another rule's `symbol`, or a terminal. `expandGrammar` (roadmap 2GN.3) resolves it: a
-	 * symbol matching another rule's `symbol` recurses; anything else is a leaf primitive whose
-	 * parameter set is defined in `data/grammars/primitives.ts` (roadmap 2GN.1).
-	 *
-	 * Provisional: doc 05 §5.4 never specifies how an option names its expansion target — this is
-	 * the minimal shape that lets `expandGrammar` do its job. Expect this to firm up at 2GN.3.
+	 * another rule's `symbol`, or a terminal. `expandGrammar` (roadmap 2GN.3) resolves it in that
+	 * order: a symbol matching another rule's `symbol` recurses; a primitive id becomes a leaf
+	 * `ComponentNode` with parameters drawn from `data/grammars/primitives.ts` (roadmap 2GN.1);
+	 * attachment terminals are consumed positionally as edge labels when filling the
+	 * `[<attachment> <component-group>]*` slot; anything else throws as a grammar authoring error.
+	 * (Doc 05 §5.4 never specifies how an option names its expansion target; this resolution
+	 * order, firmed at 2GN.3, is the contract.)
 	 */
 	expandsTo: string;
 
@@ -97,15 +117,17 @@ export interface GrammarOption {
 	culturalModifiers: Map<MaterialTag, number>;
 
 	/**
-	 * Optional phase-characteristic weight multipliers, read by `phaseInfluence` (roadmap 2GN.5)
-	 * to scale the option against a `PhaseCharacteristics` profile (doc 05 §3.2) — e.g. a
-	 * metal-bearing primitive keyed on `'technology.metallurgy'`.
+	 * Optional phase-characteristic weight multipliers, read by `phaseInfluence`
+	 * (`engine/generation/grammar.ts`, roadmap 2GN.5) to scale the option against a
+	 * `PhaseCharacteristics` profile (doc 05 §3.2) — e.g. a metal-bearing primitive keyed on
+	 * `'technology.metallurgy'`.
 	 *
-	 * Provisional: doc 05 §5.4 shows only the call `phaseInfluence(option, phase)` and never
-	 * specifies the field it reads. Keyed by dotted `PhaseCharacteristics` path as the minimal
-	 * shape that lets 2GN.5 look up an attribute and multiply; expect this to firm up there.
-	 * Optional so an option can opt out of phase bias (`phaseInfluence` returns a neutral `1` when
-	 * absent).
+	 * Contract (firmed at 2GN.5): each `[dottedPath, multiplier]` entry resolves its attribute
+	 * `a` (0–1) and contributes the factor `1 + (multiplier − 1) × a` — neutral at `a = 0`, the
+	 * full multiplier at `a = 1`, with `multiplier < 1` suppressing in proportion to the
+	 * attribute. Entries combine by product; an unresolvable path throws (authoring typo, caught
+	 * loudly). Optional so an option can opt out of phase bias (`phaseInfluence` returns a
+	 * neutral `1` when absent).
 	 */
 	phaseModifiers?: Map<string, number>;
 }
@@ -129,4 +151,68 @@ export interface GrammarRule {
 
 	/** The production alternatives, drawn from by weighted selection (doc 05 §5.4). Non-empty. */
 	options: GrammarOption[];
+}
+
+/**
+ * A leaf of the grammar tree: one geometric primitive with its physical parameters rolled (doc
+ * 05 §5.3 — "each terminal node produces a component with physical properties"). Produced by
+ * `expandGrammar` (roadmap 2GN.3), which draws each parameter value uniformly from the
+ * primitive's value lists in `data/grammars/primitives.ts` at expansion time, so normalisation
+ * (2GN.8) never rolls dice.
+ */
+export interface ComponentNode {
+	/**
+	 * The primitive's id (e.g. `'elongated'`). Typed as plain `string` rather than the data
+	 * layer's `PrimitiveType` because `types/` must not import from `data/` — the same precedent
+	 * as `NormalisedComponent.primitiveType` in `artefact.ts`.
+	 */
+	primitiveType: string;
+
+	/**
+	 * Selected parameter values, keyed by parameter name (e.g. `crossSection` → `'diamond'`).
+	 * Narrower than `NormalisedComponent.properties` (`Map<string, string | number>`) — numeric
+	 * properties like dimensions are derived at the 2GN.8 flatten, not rolled by the grammar.
+	 */
+	properties: Map<string, string>;
+}
+
+/**
+ * One expanded `[<attachment> <component-group>]` slot (doc 05 §5.3): the join terminal as an
+ * edge label plus the child group it fastens on. The attachment is purely physical — it carries
+ * no functional meaning (doc 05 §5.1).
+ */
+export interface AttachmentBranch {
+	/** How the child group fastens to the parent's primary component. */
+	type: AttachmentType;
+
+	/** The attached component group, itself possibly carrying further attachments. */
+	child: ComponentGroupNode;
+}
+
+/**
+ * One expanded `<component-group>`: a primary component and the attachment chain hanging off it
+ * (doc 05 §5.3). Group count per object is bounded by the `craftSpecialisation`-derived
+ * complexity budget (roadmap 2GN.7); attachment depth and breadth remain bounded by
+ * `expandGrammar`'s provisional repetition policy until accumulation constraints land (roadmap
+ * 2GN.6).
+ */
+export interface ComponentGroupNode {
+	/** The group's primary component. */
+	primary: ComponentNode;
+
+	/** Zero or more attached child groups, in expansion order. */
+	attachments: AttachmentBranch[];
+}
+
+/**
+ * The grammar tree for one `<object>` (doc 05 §5.3, §6.1): the raw output of `expandGrammar`
+ * (roadmap 2GN.3), before accumulation checking (2GN.6) and normalisation (2GN.8).
+ *
+ * Deliberately carries no ids, dimensions or portability — those are the 2GN.8 flatten's
+ * concerns. Keeping the tree this thin makes it a cheap, re-rollable intermediate: when
+ * plausibility checking fails, the pipeline just expands again (doc 05 §6.2, roadmap 2GN.16).
+ */
+export interface ExpandedObject {
+	/** The object's component groups, in expansion order. Non-empty (`<component-group>+`). */
+	groups: ComponentGroupNode[];
 }
