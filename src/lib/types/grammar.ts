@@ -64,7 +64,7 @@ export type ArrangementPattern =
  * these fields — `deriveComplexityBudget` (`engine/generation/grammar.ts`, roadmap 2GN.7):
  * simple cultures get 1–2 groups and basic patterns only; sophisticated cultures unlock nesting
  * and branching. `expandGrammar` consumes `maxDistinctGroups` as its group-repetition cap; the
- * remaining fields await enforcement by accumulation checking (roadmap 2GN.6).
+ * remaining fields are enforced post-expansion by `checkAccumulation` (roadmap 2GN.6).
  */
 export interface AccumulationConstraints {
 	/** Maximum number of distinct arrangement groups in the object. From `craftSpecialisation`. */

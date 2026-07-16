@@ -1,11 +1,12 @@
 /**
- * Component grammar expansion engine (doc 05 §5.3–§5.5, roadmap 2GN.3–2GN.5, 2GN.7).
+ * Component grammar expansion engine (doc 05 §5.3–§5.5, roadmap 2GN.3–2GN.7).
  *
  * Runs the bottom-up structural grammar: weighted, culture- and phase-biased selection over the
  * production rules authored in `data/grammars/core.ts`, expanding them into a tree of geometric
  * components, with group repetition bounded by the complexity budget the culture's
- * `craftSpecialisation` derives (doc 05 §5.5). The grammar produces physical structures, never
- * functional categories (doc 05 §5.1) — nothing here branches by intent, only by weight.
+ * `craftSpecialisation` derives (doc 05 §5.5) and validated post-expansion by accumulation
+ * checking (`checkAccumulation`). The grammar produces physical structures, never functional
+ * categories (doc 05 §5.1) — nothing here branches by intent, only by weight.
  *
  * Pure TypeScript with no framework or browser dependencies (doc 08 §2.1, the engine boundary),
  * matching `engine/prng.ts`. Determinism flows entirely from the injected PRNG.
@@ -166,10 +167,10 @@ interface ComplexityTierSpec {
 	/** Hard ceiling on `<component-group>+` repetitions per object (doc 05 §5.5's group counts). */
 	maxDistinctGroups: number;
 
-	/** Cap on repeated components within one arrangement group; derived here, enforced at 2GN.6. */
+	/** Cap on repeated components within one arrangement group; enforced by `checkAccumulation`. */
 	maxComponentsPerGroup: number;
 
-	/** Whether arrangement groups must differ in component type; derived here, enforced at 2GN.6. */
+	/** Whether arrangement groups must differ in component type; enforced by `checkAccumulation`. */
 	noTwoGroupsSameType: boolean;
 
 	/**
@@ -275,7 +276,7 @@ export function resolveComplexityTier(craftSpecialisation: number): ComplexityTi
  * 2GN.7): simple cultures get 1–2 component groups and basic patterns only; sophisticated
  * cultures unlock nesting and branching. `expandGrammar` consumes `maxDistinctGroups` as the
  * group-repetition cap and the tier table's `minDistinctGroups` as the enforced floor; the
- * remaining fields are derived but unenforced until accumulation checking lands (2GN.6).
+ * remaining fields are enforced post-expansion by `checkAccumulation` (roadmap 2GN.6).
  *
  * Pure and PRNG-free — derivation consumes no draws, so it can never perturb the expansion draw
  * sequence that carries the determinism contract. Every call returns fresh objects, pattern
@@ -295,12 +296,135 @@ export function deriveComplexityBudget(craftSpecialisation: number): Accumulatio
 	};
 }
 
+/**
+ * The verdict of accumulation checking (doc 05 §5.5, roadmap 2GN.6). Engine-local per the
+ * `ComplexityTier` precedent — `types/grammar.ts` is data shapes only, and a check verdict is
+ * engine behaviour, not world data. The shape mirrors the planned `checkPlausibility` result
+ * (doc 05 §6.2, roadmap 2GN.12) so the re-expansion loop (2GN.16) can treat both uniformly.
+ */
+export interface AccumulationCheckResult {
+	/** True when the tree satisfies every accumulation constraint. */
+	valid: boolean;
+
+	/** Human-readable reasons for rejection, naming the type, count and violated bound. Empty when valid. */
+	failures: string[];
+}
+
+/**
+ * Tallies the components of one top-level group — primary plus every attachment descendant,
+ * recursively — by `primitiveType`. Same-type components within one top-level group form one
+ * arrangement group; that boundary is the detection contract `checkAccumulation` enforces and
+ * normalisation's `arrangementGroup` annotation (doc 05 §6.1, roadmap 2GN.8) will follow.
+ */
+function tallyArrangements(group: ComponentGroupNode): Map<string, number> {
+	const counts = new Map<string, number>();
+
+	function visit(node: ComponentGroupNode): void {
+		counts.set(node.primary.primitiveType, (counts.get(node.primary.primitiveType) ?? 0) + 1);
+		for (const attachment of node.attachments) {
+			visit(attachment.child);
+		}
+	}
+
+	visit(group);
+	return counts;
+}
+
+/** Whether any available pattern admits a repetition of `count` components (doc 05 §5.5). */
+function isCountAdmissible(count: number, patterns: readonly ArrangementPattern[]): boolean {
+	return patterns.some((pattern) =>
+		pattern.type === 'symmetric'
+			? pattern.validCounts.includes(count)
+			: pattern.countRange[0] <= count && count <= pattern.countRange[1]
+	);
+}
+
+/**
+ * Checks an expanded grammar tree against its culture's accumulation constraints (doc 05 §5.5,
+ * roadmap 2GN.6). Repetition isn't wrong — real objects repeat components in deliberate
+ * arrangements — but uncontrolled repetition produces nonsense, so every repetition must read as
+ * a deliberate arrangement the culture's complexity budget allows.
+ *
+ * An arrangement group is the set of same-`primitiveType` components within one top-level group
+ * (primary plus attachment descendants); repetition never pools across top-level groups. Four
+ * constraints apply:
+ *
+ * - the tree's top-level group count must not exceed `maxDistinctGroups` — a defensive re-check,
+ *   since `expandGrammar` already enforces it, that keeps the validator authoritative over
+ *   hand-built or deserialised trees;
+ * - no arrangement group may exceed `maxComponentsPerGroup` components;
+ * - every repetition (two or more of a type) must be admissible under at least one available
+ *   pattern — `symmetric` as an exact-count allow-list, the rest as inclusive ranges. A single
+ *   component is not an arrangement and needs no pattern;
+ * - under `noTwoGroupsSameType`, no two top-level groups may each carry an arrangement of the
+ *   same component type. Same-type singles across groups never trigger it.
+ *
+ * Pure and PRNG-free: same inputs, same verdict, no input mutation. A failed check is not an
+ * error — the pipeline simply re-expands (doc 05 §6.2, roadmap 2GN.16); expansion is cheap.
+ *
+ * @param object - The raw grammar tree from `expandGrammar`.
+ * @param constraints - The complexity budget to check against, from `deriveComplexityBudget`.
+ * @returns The verdict, with a failure message per violated constraint.
+ */
+export function checkAccumulation(
+	object: ExpandedObject,
+	constraints: AccumulationConstraints,
+): AccumulationCheckResult {
+	const failures: string[] = [];
+
+	if (object.groups.length > constraints.maxDistinctGroups) {
+		failures.push(
+			`object has ${object.groups.length} component groups, exceeding maxDistinctGroups ${constraints.maxDistinctGroups}`,
+		);
+	}
+
+	/** Top-level group indices carrying an arrangement (count >= 2), keyed by primitive type. */
+	const arrangementsByType = new Map<string, number[]>();
+
+	object.groups.forEach((group, groupIndex) => {
+		for (const [primitiveType, count] of tallyArrangements(group)) {
+			if (count > constraints.maxComponentsPerGroup) {
+				failures.push(
+					`arrangement of ${count} '${primitiveType}' components in group ${groupIndex} exceeds maxComponentsPerGroup ${constraints.maxComponentsPerGroup}`,
+				);
+			}
+
+			if (count < 2) continue;
+
+			if (!isCountAdmissible(count, constraints.patterns)) {
+				failures.push(
+					`arrangement of ${count} '${primitiveType}' components in group ${groupIndex} fits no available pattern`,
+				);
+			}
+
+			const indices = arrangementsByType.get(primitiveType) ?? [];
+			indices.push(groupIndex);
+			arrangementsByType.set(primitiveType, indices);
+		}
+	});
+
+	if (constraints.noTwoGroupsSameType) {
+		for (const [primitiveType, indices] of arrangementsByType) {
+			if (indices.length > 1) {
+				failures.push(
+					`groups ${
+						indices.join(', ')
+					} each carry an arrangement of '${primitiveType}' components, violating noTwoGroupsSameType`,
+				);
+			}
+		}
+	}
+
+	return { valid: failures.length === 0, failures };
+}
+
 /*
  * Provisional attachment repetition policy (doc 05 §5.3's `*` is engine-owned, not data). These
- * constants bound the `[<attachment> <component-group>]*` slot until accumulation constraints
- * (roadmap 2GN.6) take over — the group-count half of the old policy is budget-driven as of
- * 2GN.7. The caps echo §5.5's sophisticated-tier ceiling so nothing generated now would exceed
- * the eventual constraints' upper bound.
+ * constants are generation-side heuristics bounding the `[<attachment> <component-group>]*` slot;
+ * accumulation checking (`checkAccumulation`, roadmap 2GN.6) is the validation authority over
+ * what expansion produces — the group-count half of the old policy is budget-driven as of 2GN.7.
+ * The caps echo §5.5's sophisticated-tier ceiling so nothing generated here should exceed the
+ * constraints' upper bound.
  */
 
 /** Attachment recursion cut-off: groups at this depth take no further attachments. */

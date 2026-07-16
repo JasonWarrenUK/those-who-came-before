@@ -7,6 +7,7 @@ import {
 	assertThrows,
 } from '@std/assert';
 import {
+	checkAccumulation,
 	deriveComplexityBudget,
 	expandGrammar,
 	phaseInfluence,
@@ -16,7 +17,13 @@ import {
 import { createPrng } from '../prng.ts';
 import { CORE_GRAMMAR_RULES } from '../../data/grammars/core.ts';
 import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
-import type { ComponentGroupNode, GrammarOption, GrammarRule } from '../../types/grammar.ts';
+import type {
+	AccumulationConstraints,
+	ComponentGroupNode,
+	ComponentNode,
+	GrammarOption,
+	GrammarRule,
+} from '../../types/grammar.ts';
 import { isAttachmentType } from '../../types/grammar.ts';
 import type { MaterialTag } from '../../types/tags.ts';
 import {
@@ -670,4 +677,236 @@ Deno.test('expandGrammar: material affinity biases primary selection end to end'
 		shifted > baseline,
 		`metal-affine culture produced ${shifted} metal-leaning primaries vs baseline ${baseline}`,
 	);
+});
+
+/** Builds a bare component; accumulation checking reads only the primitive type. */
+function component(primitiveType: string): ComponentNode {
+	return { primitiveType, properties: new Map() };
+}
+
+/** Builds a top-level group: a primary with childless child groups attached directly to it. */
+function group(primaryType: string, attachedTypes: string[] = []): ComponentGroupNode {
+	return {
+		primary: component(primaryType),
+		attachments: attachedTypes.map((attachedType) => ({
+			type: 'inline' as const,
+			child: { primary: component(attachedType), attachments: [] },
+		})),
+	};
+}
+
+/** Builds crafted constraints; tests never assert against the provisional tier numbers. */
+function accumulation(
+	overrides: Partial<AccumulationConstraints> = {},
+): AccumulationConstraints {
+	return {
+		maxDistinctGroups: 4,
+		maxComponentsPerGroup: 12,
+		noTwoGroupsSameType: false,
+		patterns: [
+			{ type: 'symmetric', validCounts: [2, 4, 6] },
+			{ type: 'linear-array', countRange: [2, 8] },
+		],
+		...overrides,
+	};
+}
+
+Deno.test('checkAccumulation: an object without repetition passes', () => {
+	const subject = { groups: [group('elongated', ['disc-form']), group('hollow-enclosed')] };
+
+	assertEquals(checkAccumulation(subject, accumulation()), { valid: true, failures: [] });
+});
+
+Deno.test('checkAccumulation: symmetric admits exact counts only', () => {
+	const patterns = accumulation({
+		patterns: [{ type: 'symmetric', validCounts: [2, 4, 6] }],
+	});
+
+	const admitted = { groups: [group('elongated', ['disc-form', 'disc-form'])] }; // 2 discs
+	assertEquals(checkAccumulation(admitted, patterns).valid, true);
+
+	const rejected = { groups: [group('elongated', ['disc-form', 'disc-form', 'disc-form'])] }; // 3
+	const verdict = checkAccumulation(rejected, patterns);
+	assertEquals(verdict.valid, false);
+	assertEquals(verdict.failures.length, 1);
+	assert(
+		verdict.failures[0].includes("3 'disc-form'") &&
+			verdict.failures[0].includes('fits no available pattern'),
+		`unexpected failure message: ${verdict.failures[0]}`,
+	);
+});
+
+Deno.test('checkAccumulation: range patterns are inclusive of both bounds', () => {
+	const patterns = accumulation({
+		patterns: [{ type: 'stacked', countRange: [2, 5] }],
+	});
+	const stacked = (count: number) => ({
+		groups: [group('elongated', Array.from({ length: count }, () => 'ring-form'))],
+	});
+
+	assertEquals(checkAccumulation(stacked(2), patterns).valid, true);
+	assertEquals(checkAccumulation(stacked(5), patterns).valid, true);
+	assertEquals(checkAccumulation(stacked(6), patterns).valid, false);
+});
+
+Deno.test('checkAccumulation: an admissible repetition still fails when it exceeds maxComponentsPerGroup', () => {
+	const subject = {
+		groups: [group('elongated', ['disc-form', 'disc-form', 'disc-form', 'disc-form', 'disc-form'])],
+	};
+	const verdict = checkAccumulation(
+		subject,
+		accumulation({
+			maxComponentsPerGroup: 4,
+			patterns: [{ type: 'linear-array', countRange: [2, 8] }], // admits 5
+		}),
+	);
+
+	assertEquals(verdict.valid, false);
+	assertEquals(verdict.failures.length, 1);
+	assert(
+		verdict.failures[0].includes('maxComponentsPerGroup 4'),
+		`unexpected failure message: ${verdict.failures[0]}`,
+	);
+});
+
+Deno.test('checkAccumulation: arrangements never pool across top-level groups', () => {
+	// Each group carries two disc-forms; pooling to four would violate the [2]-only allow-list.
+	const subject = {
+		groups: [
+			group('elongated', ['disc-form', 'disc-form']),
+			group('hollow-enclosed', ['disc-form', 'disc-form']),
+		],
+	};
+	const verdict = checkAccumulation(
+		subject,
+		accumulation({ patterns: [{ type: 'symmetric', validCounts: [2] }] }),
+	);
+
+	assertEquals(verdict, { valid: true, failures: [] });
+});
+
+Deno.test('checkAccumulation: counting spans the primary and nested attachment descendants', () => {
+	// Two disc-forms at different depths of one top-level group form one arrangement of 2.
+	const nested: ComponentGroupNode = {
+		primary: component('elongated'),
+		attachments: [{
+			type: 'socketed',
+			child: {
+				primary: component('disc-form'),
+				attachments: [{
+					type: 'inline',
+					child: { primary: component('disc-form'), attachments: [] },
+				}],
+			},
+		}],
+	};
+
+	const admitsPairs = accumulation({ patterns: [{ type: 'symmetric', validCounts: [2] }] });
+	assertEquals(checkAccumulation({ groups: [nested] }, admitsPairs).valid, true);
+
+	const admitsTriplesOnly = accumulation({ patterns: [{ type: 'symmetric', validCounts: [3] }] });
+	assertEquals(checkAccumulation({ groups: [nested] }, admitsTriplesOnly).valid, false);
+});
+
+Deno.test('checkAccumulation: noTwoGroupsSameType rejects same-type arrangements in two groups', () => {
+	const subject = {
+		groups: [
+			group('elongated', ['disc-form', 'disc-form']),
+			group('hollow-enclosed', ['disc-form', 'disc-form']),
+		],
+	};
+
+	assertEquals(checkAccumulation(subject, accumulation()).valid, true);
+
+	const verdict = checkAccumulation(subject, accumulation({ noTwoGroupsSameType: true }));
+	assertEquals(verdict.valid, false);
+	assertEquals(verdict.failures.length, 1);
+	assert(
+		verdict.failures[0].includes('noTwoGroupsSameType') &&
+			verdict.failures[0].includes("'disc-form'"),
+		`unexpected failure message: ${verdict.failures[0]}`,
+	);
+});
+
+Deno.test('checkAccumulation: same-type singles across groups never trigger noTwoGroupsSameType', () => {
+	// Both groups contain one ring-form; a single component is not an arrangement.
+	const subject = {
+		groups: [group('elongated', ['ring-form']), group('hollow-enclosed', ['ring-form'])],
+	};
+
+	assertEquals(
+		checkAccumulation(subject, accumulation({ noTwoGroupsSameType: true })),
+		{ valid: true, failures: [] },
+	);
+});
+
+Deno.test('checkAccumulation: too many top-level groups fails the defensive group-count check', () => {
+	const subject = { groups: [group('elongated'), group('disc-form'), group('ring-form')] };
+	const verdict = checkAccumulation(subject, accumulation({ maxDistinctGroups: 2 }));
+
+	assertEquals(verdict.valid, false);
+	assertEquals(verdict.failures.length, 1);
+	assert(
+		verdict.failures[0].includes('maxDistinctGroups 2'),
+		`unexpected failure message: ${verdict.failures[0]}`,
+	);
+});
+
+Deno.test('checkAccumulation: simultaneous violations are all reported', () => {
+	// Two groups against a cap of one; five disc-forms exceed the per-group cap of four and fit
+	// no pattern under a pairs-only allow-list — three distinct failures.
+	const subject = {
+		groups: [
+			group('elongated', ['disc-form', 'disc-form', 'disc-form', 'disc-form', 'disc-form']),
+			group('hollow-enclosed'),
+		],
+	};
+	const verdict = checkAccumulation(
+		subject,
+		accumulation({
+			maxDistinctGroups: 1,
+			maxComponentsPerGroup: 4,
+			patterns: [{ type: 'symmetric', validCounts: [2] }],
+		}),
+	);
+
+	assertEquals(verdict.valid, false);
+	assertEquals(verdict.failures.length, 3);
+});
+
+Deno.test('checkAccumulation: is pure — same verdict on repeat calls, inputs unmutated', () => {
+	const subject = {
+		groups: [
+			group('elongated', ['disc-form', 'disc-form', 'disc-form']),
+			group('hollow-enclosed'),
+		],
+	};
+	const constraints = accumulation({ noTwoGroupsSameType: true });
+	const subjectSnapshot = structuredClone(subject);
+	const constraintsSnapshot = structuredClone(constraints);
+
+	const first = checkAccumulation(subject, constraints);
+	const second = checkAccumulation(subject, constraints);
+
+	assertEquals(first, second);
+	assertEquals(subject, subjectSnapshot);
+	assertEquals(constraints, constraintsSnapshot);
+});
+
+Deno.test('checkAccumulation: expanded trees mostly satisfy their own derived budget', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics({ society: { craftSpecialisation: 0.5 } });
+	const budget = deriveComplexityBudget(0.5);
+
+	const runs = 500;
+	let passes = 0;
+	for (let i = 0; i < runs; i++) {
+		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`accumulation-${i}`));
+		if (checkAccumulation(tree, budget).valid) passes++;
+	}
+
+	// Expansion can legitimately produce trees the checker rejects — that's what the re-expansion
+	// loop (2GN.16) is for — but a majority must pass or generation would thrash. Loose bound; the
+	// exact rate depends on provisional tuning numbers.
+	assert(passes > runs / 2, `only ${passes}/${runs} moderate-tier trees passed their own budget`);
 });
