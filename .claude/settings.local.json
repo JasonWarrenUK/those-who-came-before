@@ -11,7 +11,8 @@
       "Bash(deno install:*)",
       "Bash(timeout 20 deno task:*)",
       "Bash(deno task check:*)",
-      "Bash(deno task build:*)"
+      "Bash(deno task build:*)",
+      "Bash(python3 /Users/jasonwarren/.claude/library/scripts/roadmap.py detect)"
     ],
     "deny": [],
     "ask": []
