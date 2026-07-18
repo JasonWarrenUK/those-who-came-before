@@ -314,7 +314,7 @@ export interface AccumulationCheckResult {
  * Tallies the components of one top-level group — primary plus every attachment descendant,
  * recursively — by `primitiveType`. Same-type components within one top-level group form one
  * arrangement group; that boundary is the detection contract `checkAccumulation` enforces and
- * normalisation's `arrangementGroup` annotation (doc 05 §6.1, roadmap 2GN.8) will follow.
+ * normalisation's `arrangementGroup` annotation (doc 05 §6.1, roadmap 2GN.67) will follow.
  */
 function tallyArrangements(group: ComponentGroupNode): Map<string, number> {
 	const counts = new Map<string, number>();
