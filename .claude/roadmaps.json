@@ -352,8 +352,8 @@
 					},
 					{
 						"id": "2GN.11",
-						"description": "`src/lib/data/plausibility.ts` — plausibility rule definitions: requires, excludes, ordering, material-physics, ergonomic predicates",
-						"status": "todo",
+						"description": "`src/lib/data/plausibility.ts` — plausibility rule definitions: requires, excludes, ordering, material-physics, ergonomic predicates (authored `PlausibilityRule` as a new discriminated union in `types/plausibility.ts`, interfaces-first per the `ClassificationRule`/`GrammarRule` precedent rather than co-located with the data — the union didn't exist anywhere in the codebase before this task, only inline in doc 05 §6.2; predicate variants (`material-physics`, `ergonomic`) fixed a convention doc 05 leaves ambiguous: `predicate(artefact)` returns `true` when the artefact VIOLATES the rule, so `checkPlausibility` (2GN.12) can collect every violated rule's `reason` directly into `failures`; shipped all four doc 05 §6.2 worked examples as predicates in `data/plausibility.ts` — edged-blade-needs-a-grip, long-blade-needs-grip-length, heavy-perpendicular-attachment-needs-rigid-shaft, heavy-component-on-thin-walled-hollow — since each turns on a component property (`edge`, `length`, `wall`, `flexibility`, attachment `type`) rather than a primitive-to-primitive relationship, so only the predicate variants could express them faithfully; the declarative `requires`/`excludes`/`ordering` variants ship in the type union with zero MVP instances, commented as awaiting a component-role/classification vocabulary this project doesn't have yet — a bare `primitiveType` string can't express \"a grippable component\"; every proxy (grip = a second component exists, rigid shaft = `bar-form` or `flexibility: 'rigid'` `sheet-form`) is commented as an MVP stand-in pending 2GN.23 material assignment; covered by 18 new Deno tests in `plausibility.test.ts` — discriminant validity, non-empty/unique `reason`s, an every-shipped-predicate sweep against the `mockNormalisedArtefact` fixture, three violate/satisfy cases per rule using crafted artefacts, and a cross-reference check that every `primitiveType`/`AttachmentType` string literal the predicates key off resolves against the real `PRIMITIVE_TYPES`/`ATTACHMENT_TYPE_VALUES` vocabularies)",
+						"status": "done",
 						"dependsOn": [
 							"M1"
 						]
@@ -361,7 +361,7 @@
 					{
 						"id": "2GN.12",
 						"description": "`engine/generation/plausibility.ts` — `checkPlausibility(artefact): { valid, failures }`",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.11",
