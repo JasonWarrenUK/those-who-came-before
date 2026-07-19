@@ -9,7 +9,9 @@ import {
 import {
 	checkAccumulation,
 	deriveComplexityBudget,
+	deriveInspectionDepth,
 	expandGrammar,
+	normaliseArtefact,
 	phaseInfluence,
 	resolveComplexityTier,
 	selectGrammarOption,
@@ -21,11 +23,13 @@ import type {
 	AccumulationConstraints,
 	ComponentGroupNode,
 	ComponentNode,
+	ExpandedObject,
 	GrammarOption,
 	GrammarRule,
 } from '../../types/grammar.ts';
 import { isAttachmentType } from '../../types/grammar.ts';
 import type { MaterialTag } from '../../types/tags.ts';
+import type { ObjectDimensions } from '../../types/artefact.ts';
 import {
 	mockCulturalProfile,
 	mockPhaseCharacteristics,
@@ -909,4 +913,332 @@ Deno.test('checkAccumulation: expanded trees mostly satisfy their own derived bu
 	// loop (2GN.16) is for — but a majority must pass or generation would thrash. Loose bound; the
 	// exact rate depends on provisional tuning numbers.
 	assert(passes > runs / 2, `only ${passes}/${runs} moderate-tier trees passed their own budget`);
+});
+
+// --- normaliseArtefact / deriveInspectionDepth (roadmap 2GN.8) ---------------------------------
+
+/** Builds a bare component with size properties set, for dimension-derivation tests. */
+function sizedComponent(
+	primitiveType: string,
+	properties: Record<string, string> = {},
+): ComponentNode {
+	return { primitiveType, properties: new Map(Object.entries(properties)) };
+}
+
+/** Builds a top-level group whose primary and directly-attached children carry size properties. */
+function sizedGroup(
+	primary: ComponentNode,
+	attachments: Array<{ type: string; child: ComponentNode }> = [],
+): ComponentGroupNode {
+	return {
+		primary,
+		attachments: attachments.map(({ type, child }) => ({
+			type: type as ComponentGroupNode['attachments'][number]['type'],
+			child: { primary: child, attachments: [] },
+		})),
+	};
+}
+
+/** Ordinal index for comparing provisional mass bands without asserting exact thresholds. */
+function massRank(mass: ObjectDimensions['mass']): number {
+	return ['negligible', 'light', 'moderate', 'heavy', 'very-heavy'].indexOf(mass);
+}
+
+/** Ordinal index for comparing provisional portability bands without asserting exact thresholds. */
+function portabilityRank(portability: ReturnType<typeof normaliseArtefact>['portability']): number {
+	return ['pocketable', 'one-hand', 'two-hand', 'team-lift', 'major-effort'].indexOf(portability);
+}
+
+function dimensionsOf(primaryExtent: number, secondaryExtent: number): ObjectDimensions {
+	return { primaryExtent, secondaryExtent, mass: 'negligible' };
+}
+
+Deno.test('normaliseArtefact: same input produces the same output', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+
+	const first = normaliseArtefact(object, 'artefact-1');
+	const second = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(first, second);
+});
+
+Deno.test('normaliseArtefact: does not mutate the input tree', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+	const snapshot = structuredClone(object);
+
+	normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(object, snapshot);
+});
+
+Deno.test('normaliseArtefact: flattens depth-first, primary before attachments', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+			sizedGroup(component('ring-form')),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.components.map((c) => c.primitiveType), [
+		'elongated',
+		'disc-form',
+		'ring-form',
+	]);
+});
+
+Deno.test('normaliseArtefact: position is a 0..n-1 sequence matching traversal order', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.components.map((c) => c.position), [0, 1]);
+});
+
+Deno.test('normaliseArtefact: component ids are deterministic positional strings', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+	assertEquals(result.components.map((c) => c.id), ['artefact-1-c0', 'artefact-1-c1']);
+
+	const renamed = normaliseArtefact(object, 'artefact-2');
+	assertEquals(renamed.components.map((c) => c.id), ['artefact-2-c0', 'artefact-2-c1']);
+});
+
+Deno.test('normaliseArtefact: component count matches tree node count', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+			sizedGroup(component('ring-form'), [{ type: 'socketed', child: component('bar-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.components.length, 4);
+});
+
+Deno.test('normaliseArtefact: each attachment links parent primary to child primary with the branch type', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'riveted', child: component('disc-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+	const [primary, child] = result.components;
+
+	assertEquals(result.attachments, [
+		{ fromComponentId: primary.id, toComponentId: child.id, type: 'riveted' },
+	]);
+});
+
+Deno.test('normaliseArtefact: a deep attachment chain preserves each link', () => {
+	// elongated -[inline]-> cylindrical -[socketed]-> disc-form
+	const object: ExpandedObject = {
+		groups: [{
+			primary: component('elongated'),
+			attachments: [{
+				type: 'inline',
+				child: {
+					primary: component('cylindrical'),
+					attachments: [{
+						type: 'socketed',
+						child: { primary: component('disc-form'), attachments: [] },
+					}],
+				},
+			}],
+		}],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+	const [elongated, cylindrical, disc] = result.components;
+
+	assertEquals(result.attachments, [
+		{ fromComponentId: cylindrical.id, toComponentId: disc.id, type: 'socketed' },
+		{ fromComponentId: elongated.id, toComponentId: cylindrical.id, type: 'inline' },
+	]);
+});
+
+Deno.test('normaliseArtefact: attachment count matches branch count', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+			sizedGroup(component('ring-form'), [{ type: 'socketed', child: component('bar-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.attachments.length, 2);
+});
+
+Deno.test('normaliseArtefact: allowedMaterialTags is stubbed empty (roadmap 2GN.10)', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	for (const c of result.components) {
+		assertEquals(c.allowedMaterialTags, []);
+	}
+});
+
+Deno.test('normaliseArtefact: arrangementGroup is omitted (roadmap 2GN.67)', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	for (const c of result.components) {
+		assertEquals(c.arrangementGroup, undefined);
+	}
+});
+
+Deno.test('normaliseArtefact: properties are copied, not aliased', () => {
+	const source = sizedComponent('elongated', { length: 'long' });
+	const object: ExpandedObject = { groups: [{ primary: source, attachments: [] }] };
+
+	const result = normaliseArtefact(object, 'artefact-1');
+	source.properties.set('length', 'short');
+
+	assertEquals(result.components[0].properties.get('length'), 'long');
+});
+
+Deno.test('normaliseArtefact: dimensions grow monotonically across size bands', () => {
+	const extentFor = (length: string) =>
+		normaliseArtefact({
+			groups: [{ primary: sizedComponent('elongated', { length }), attachments: [] }],
+		}, 'a')
+			.dimensions.primaryExtent;
+
+	const short = extentFor('short');
+	const medium = extentFor('medium');
+	const long = extentFor('long');
+
+	assert(short < medium, `expected short (${short}) < medium (${medium})`);
+	assert(medium < long, `expected medium (${medium}) < long (${long})`);
+});
+
+Deno.test('normaliseArtefact: mass band is monotone in size', () => {
+	const massFor = (length: string) =>
+		normaliseArtefact({
+			groups: [{ primary: sizedComponent('elongated', { length }), attachments: [] }],
+		}, 'a')
+			.dimensions.mass;
+
+	assert(massRank(massFor('short')) <= massRank(massFor('medium')));
+	assert(massRank(massFor('medium')) <= massRank(massFor('long')));
+});
+
+Deno.test('deriveInspectionDepth: boundary cases match doc 05 §5.2 verbatim', () => {
+	assertEquals(deriveInspectionDepth(dimensionsOf(30, 0)), 'full');
+	assertEquals(deriveInspectionDepth(dimensionsOf(31, 0)), 'detailed');
+	assertEquals(deriveInspectionDepth(dimensionsOf(150, 0)), 'detailed');
+	assertEquals(deriveInspectionDepth(dimensionsOf(151, 0)), 'observational');
+});
+
+Deno.test('deriveInspectionDepth: uses the larger of the two extents', () => {
+	assertEquals(deriveInspectionDepth(dimensionsOf(10, 200)), 'observational');
+});
+
+Deno.test('normaliseArtefact: portability never improves as size and mass grow', () => {
+	const portabilityFor = (length: string) =>
+		normaliseArtefact({
+			groups: [{ primary: sizedComponent('elongated', { length }), attachments: [] }],
+		}, 'a')
+			.portability;
+
+	const short = portabilityRank(portabilityFor('short'));
+	const medium = portabilityRank(portabilityFor('medium'));
+	const long = portabilityRank(portabilityFor('long'));
+
+	assert(short <= medium, `expected short rank (${short}) <= medium rank (${medium})`);
+	assert(medium <= long, `expected medium rank (${medium}) <= long rank (${long})`);
+});
+
+Deno.test('normaliseArtefact: a single-component object has no attachments', () => {
+	const object: ExpandedObject = { groups: [{ primary: component('ring-form'), attachments: [] }] };
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.components.length, 1);
+	assertEquals(result.attachments, []);
+	assert(result.dimensions.primaryExtent > 0);
+});
+
+Deno.test('normaliseArtefact: multiple top-level groups flatten in group order then within-group', () => {
+	const object: ExpandedObject = {
+		groups: [
+			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
+			sizedGroup(component('ring-form'), [{ type: 'socketed', child: component('bar-form') }]),
+		],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assertEquals(result.components.map((c) => c.primitiveType), [
+		'elongated',
+		'disc-form',
+		'ring-form',
+		'bar-form',
+	]);
+});
+
+Deno.test('normaliseArtefact: an unrecognised primitive still yields finite dimensions', () => {
+	const object: ExpandedObject = {
+		groups: [{ primary: component('made-up-primitive'), attachments: [] }],
+	};
+
+	const result = normaliseArtefact(object, 'artefact-1');
+
+	assert(Number.isFinite(result.dimensions.primaryExtent));
+	assert(Number.isFinite(result.dimensions.secondaryExtent));
+});
+
+Deno.test('normaliseArtefact: accepts real expandGrammar output end to end', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics({ society: { craftSpecialisation: 0.5 } });
+
+	for (let i = 0; i < 20; i++) {
+		const tree = expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(`normalise-${i}`));
+		const result = normaliseArtefact(tree, `artefact-${i}`);
+
+		const ids = new Set(result.components.map((c) => c.id));
+		assertEquals(ids.size, result.components.length, 'component ids must be unique');
+
+		for (const attachment of result.attachments) {
+			assert(
+				ids.has(attachment.fromComponentId),
+				'attachment.fromComponentId must reference a real component',
+			);
+			assert(
+				ids.has(attachment.toComponentId),
+				'attachment.toComponentId must reference a real component',
+			);
+		}
+	}
 });

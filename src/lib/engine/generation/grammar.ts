@@ -24,6 +24,15 @@ import type {
 } from '../../types/grammar.ts';
 import { isAttachmentType } from '../../types/grammar.ts';
 import type { CulturalProfile, PhaseCharacteristics } from '../../types/world.ts';
+import type {
+	Attachment,
+	InspectionDepth,
+	NormalisedArtefact,
+	NormalisedComponent,
+	ObjectDimensions,
+	Portability,
+} from '../../types/artefact.ts';
+import type { MaterialTag } from '../../types/tags.ts';
 import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -565,4 +574,225 @@ export function expandGrammar(
 	}
 
 	return { groups };
+}
+
+/*
+ * Structural normalisation (doc 05 §6.1, roadmap 2GN.8): flattens the grammar's node tree into a
+ * `NormalisedArtefact` — ordered components, their attachments, and whole-object dimensions and
+ * portability. Pure and PRNG-free: `expandGrammar` already rolled every physical parameter, so
+ * normalisation only restructures and derives, never draws.
+ *
+ * Two fields normalisation cannot honestly fill are stubbed rather than fabricated:
+ * `allowedMaterialTags` needs the primitive+property material-compatibility table (roadmap
+ * 2GN.10) and stays `[]` until then; `arrangementGroup` needs a pattern-assignment decision the
+ * grammar doesn't make yet (roadmap 2GN.67, descoped out of this task) and is simply omitted.
+ * `deriveInspectionDepth` (originally roadmap 2GN.9) is folded in here since it is a three-line
+ * function over dimensions this task already computes.
+ */
+
+/**
+ * Provisional ordinal-band-to-centimetre tables (MVP-provisional per the 2GN.2 precedent — no
+ * primitive registry carries numeric sizes, so these are authored fresh and tuned once generation
+ * is observable in the Explorer). The grammar uses three distinct ordinal vocabularies for size
+ * across primitives (`data/grammars/primitives.ts`), each mapped to its own band table so a
+ * primitive's `length` is never confused with another's `diameter`.
+ */
+const SHORT_MEDIUM_LONG_CM: Record<string, number> = { short: 4, medium: 14, long: 40 };
+const SMALL_MEDIUM_LARGE_CM: Record<string, number> = { small: 5, medium: 15, large: 45 };
+const NARROW_MEDIUM_WIDE_CM: Record<string, number> = { narrow: 3, medium: 8, wide: 18 };
+
+/** Fallback extent for a primitive this table doesn't recognise — keeps extraction total. */
+const DEFAULT_EXTENT_CM = 5;
+
+/** A slender primitive's minor axis when no cross-axis parameter exists (e.g. elongated, bar-form). */
+const SLENDER_MINOR_CM = 2;
+
+/**
+ * Reads a named property band off a component and maps it through a band table, falling back to
+ * `DEFAULT_EXTENT_CM` when the property is absent or the value isn't in the table — normalisation
+ * degrades gracefully rather than throwing, since the primitive vocabulary may grow.
+ */
+function bandExtentCm(
+	component: NormalisedComponent,
+	parameter: string,
+	table: Record<string, number>,
+): number {
+	const value = component.properties.get(parameter);
+	return typeof value === 'string' ? table[value] ?? DEFAULT_EXTENT_CM : DEFAULT_EXTENT_CM;
+}
+
+/**
+ * Derives one component's `{major, minor}` extent in centimetres from its primitive type and
+ * rolled properties (doc 05 §6.1's dimension derivation, provisional per the module comment
+ * above). Each primitive maps its own size-relevant parameter(s):
+ *
+ * - `elongated`/`bar-form`: major from `length`; minor is a fixed slender default (no cross-axis
+ *   parameter in the registry).
+ * - `cylindrical`: major from `length`, minor from `diameter`.
+ * - `flat-broad`/`hollow-enclosed`/`sheet-form`: planar/volumetric, major and minor both from
+ *   `size`.
+ * - `disc-form`/`ring-form`: circular, major and minor both from `diameter`.
+ * - anything else: both axes fall back to `DEFAULT_EXTENT_CM`.
+ */
+function extractComponentExtents(component: NormalisedComponent): { major: number; minor: number } {
+	switch (component.primitiveType) {
+		case 'elongated':
+		case 'bar-form':
+			return {
+				major: bandExtentCm(component, 'length', SHORT_MEDIUM_LONG_CM),
+				minor: SLENDER_MINOR_CM,
+			};
+		case 'cylindrical':
+			return {
+				major: bandExtentCm(component, 'length', SHORT_MEDIUM_LONG_CM),
+				minor: bandExtentCm(component, 'diameter', NARROW_MEDIUM_WIDE_CM),
+			};
+		case 'flat-broad':
+		case 'hollow-enclosed':
+		case 'sheet-form': {
+			const extent = bandExtentCm(component, 'size', SMALL_MEDIUM_LARGE_CM);
+			return { major: extent, minor: extent };
+		}
+		case 'disc-form':
+		case 'ring-form': {
+			const extent = bandExtentCm(component, 'diameter', SMALL_MEDIUM_LARGE_CM);
+			return { major: extent, minor: extent };
+		}
+		default:
+			return { major: DEFAULT_EXTENT_CM, minor: DEFAULT_EXTENT_CM };
+	}
+}
+
+/**
+ * Derives whole-object dimensions from its flattened components (doc 05 §6.1). `primaryExtent`
+ * and `secondaryExtent` are each the largest single-component axis found anywhere in the object —
+ * a deliberate MVP simplification (a true assembled bounding box across joined components is
+ * deferred), documented rather than silently approximated. `mass` is a provisional band over a
+ * coarse size-times-part-count proxy; thresholds are MVP-provisional like the extent tables above.
+ */
+function deriveDimensions(components: readonly NormalisedComponent[]): ObjectDimensions {
+	let primaryExtent = 0;
+	let secondaryExtent = 0;
+
+	for (const component of components) {
+		const { major, minor } = extractComponentExtents(component);
+		primaryExtent = Math.max(primaryExtent, major);
+		secondaryExtent = Math.max(secondaryExtent, minor);
+	}
+
+	const sizeScore = primaryExtent * secondaryExtent * (1 + 0.1 * (components.length - 1));
+	const mass: ObjectDimensions['mass'] = sizeScore < 60
+		? 'negligible'
+		: sizeScore < 300
+		? 'light'
+		: sizeScore < 1500
+		? 'moderate'
+		: sizeScore < 5000
+		? 'heavy'
+		: 'very-heavy';
+
+	return { primaryExtent, secondaryExtent, mass };
+}
+
+/**
+ * Derives the portability band from dimensions (doc 05 §5.2: "derived from dimensions and
+ * structure" — mass stands in for structural heft here). Provisional thresholds, falling through
+ * from most to least portable so the function is total; tuned once generation is observable.
+ */
+function derivePortability(dimensions: ObjectDimensions): Portability {
+	const maxExtent = Math.max(dimensions.primaryExtent, dimensions.secondaryExtent);
+	const { mass } = dimensions;
+
+	if (maxExtent <= 8 && mass === 'negligible') return 'pocketable';
+	if (maxExtent <= 30 && (mass === 'negligible' || mass === 'light')) return 'one-hand';
+	if (maxExtent <= 90 && mass !== 'heavy' && mass !== 'very-heavy') return 'two-hand';
+	if (mass === 'very-heavy' || maxExtent > 200) return 'major-effort';
+	return 'team-lift';
+}
+
+/**
+ * Maps physical size to inspection depth (doc 05 §5.2, verbatim thresholds — originally roadmap
+ * 2GN.9, folded into 2GN.8 since it is a small pure function over dimensions this task already
+ * computes): a player can hold and examine closely up to 30cm, only observe-but-not-manipulate up
+ * to 150cm, and must observe in situ beyond that.
+ */
+export function deriveInspectionDepth(dimensions: ObjectDimensions): InspectionDepth {
+	const maxExtent = Math.max(dimensions.primaryExtent, dimensions.secondaryExtent);
+	if (maxExtent <= 30) return 'full';
+	if (maxExtent <= 150) return 'detailed';
+	return 'observational';
+}
+
+/**
+ * Flattens an `ExpandedObject` grammar tree into a `NormalisedArtefact` (doc 05 §6.1, roadmap
+ * 2GN.8) — the standardised structure every downstream pipeline stage builds on.
+ *
+ * Walks the tree depth-first, primary-before-attachments, mirroring `expandGroup`'s emission order
+ * and `tallyArrangements`' recursion shape: each top-level group's primary is flattened before its
+ * attachment chain, and each chain is flattened before the group returns. `position` is the
+ * resulting 0-based traversal index; component ids are minted positionally as `` `${id}-c${n}` ``
+ * so the whole function stays deterministic and PRNG-free — no random or time-based id source is
+ * ever touched.
+ *
+ * Each `AttachmentBranch` becomes one `Attachment` linking its parent group's primary component to
+ * its child group's primary component, carrying the branch's join type; the recursive walk always
+ * has both endpoint ids in hand because visiting a child group returns its primary's id before the
+ * parent records the join.
+ *
+ * `allowedMaterialTags` is stubbed `[]` (roadmap 2GN.10) and `arrangementGroup` is omitted
+ * (roadmap 2GN.67) — see the module comment above. `properties` is defensively copied so the
+ * artefact never aliases the source tree's maps.
+ *
+ * @param object - The raw grammar tree from `expandGrammar` (2GN.3), typically post accumulation
+ *   checking (2GN.6).
+ * @param id - The artefact's stable id, supplied by the caller (seed→id is a pipeline concern, not
+ *   normalisation's — this function never mints ids from anything but tree position).
+ * @returns The flattened, standardised artefact structure.
+ */
+export function normaliseArtefact(object: ExpandedObject, id: string): NormalisedArtefact {
+	const components: NormalisedComponent[] = [];
+	const attachments: Attachment[] = [];
+	let next = 0;
+
+	function mint(node: ComponentNode): string {
+		const componentId = `${id}-c${next}`;
+		components.push({
+			id: componentId,
+			primitiveType: node.primitiveType,
+			properties: new Map(node.properties),
+			allowedMaterialTags: [] as MaterialTag[], // STUB — owned by roadmap 2GN.10
+			position: next,
+			// arrangementGroup intentionally omitted — owned by roadmap 2GN.67
+		});
+		next++;
+		return componentId;
+	}
+
+	function visit(group: ComponentGroupNode): string {
+		const primaryId = mint(group.primary);
+		for (const branch of group.attachments) {
+			const childPrimaryId = visit(branch.child);
+			attachments.push({
+				fromComponentId: primaryId,
+				toComponentId: childPrimaryId,
+				type: branch.type,
+			});
+		}
+		return primaryId;
+	}
+
+	for (const group of object.groups) {
+		visit(group);
+	}
+
+	const dimensions = deriveDimensions(components);
+
+	return {
+		id,
+		components,
+		attachments,
+		dimensions,
+		portability: derivePortability(dimensions),
+		inspectionDepth: deriveInspectionDepth(dimensions),
+	};
 }

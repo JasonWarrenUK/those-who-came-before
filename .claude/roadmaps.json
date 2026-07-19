@@ -328,7 +328,7 @@
 					{
 						"id": "2GN.8",
 						"description": "`engine/generation/grammar.ts` — normalisation: flatten grammar tree → `NormalisedArtefact` with ordered components, computed dimensions, derived portability",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.4",
 							"2GN.6"
@@ -337,7 +337,7 @@
 					{
 						"id": "2GN.9",
 						"description": "`engine/generation/grammar.ts` — `deriveInspectionDepth(dimensions)` util",
-						"status": "blocked",
+						"status": "done",
 						"dependsOn": [
 							"2GN.8"
 						]
@@ -345,7 +345,7 @@
 					{
 						"id": "2GN.10",
 						"description": "`engine/generation/grammar.ts` — `allowedMaterialTags` derivation per component from primitive type + properties compatibility",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8"
 						]
@@ -732,7 +732,7 @@
 					{
 						"id": "2GN.67",
 						"description": "`engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8"
 						]
@@ -748,7 +748,7 @@
 					{
 						"id": "2GN.57",
 						"description": "Explorer: structure viewer tab — generate from seed + culture selector, component tree with join types",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8"
 						]
