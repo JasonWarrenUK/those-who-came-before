@@ -48,14 +48,17 @@ function hasGrippableSecondComponent(artefact: NormalisedArtefact): boolean {
 }
 
 /**
- * MVP long-grip proxy: whether some OTHER component (any primitive type, at `length` `'medium'`
- * or `'long'` if it's `elongated`) exists besides the long edged blade itself — a blade cannot
- * satisfy its own grip requirement by counting itself.
+ * MVP long-grip proxy: whether some OTHER component with a `length` of `'medium'` or `'long'`
+ * exists besides the long edged blade itself — a blade cannot satisfy its own grip requirement by
+ * counting itself. Restricted to `elongated`, `cylindrical` and `bar-form` components since those
+ * are the only primitives with a haft-shaped long axis; a `disc-form` or `ring-form` component
+ * existing elsewhere on the artefact says nothing about grip length.
  */
 function hasAdequateGripLength(artefact: NormalisedArtefact, blade: NormalisedComponent): boolean {
+	const GRIP_SHAPED_PRIMITIVES = new Set(['elongated', 'cylindrical', 'bar-form']);
 	return artefact.components.some((component) => {
 		if (component === blade) return false;
-		if (component.primitiveType !== 'elongated') return true;
+		if (!GRIP_SHAPED_PRIMITIVES.has(component.primitiveType)) return false;
 		const length = component.properties.get('length');
 		return length === 'medium' || length === 'long';
 	});
@@ -115,13 +118,13 @@ export const PLAUSIBILITY_RULES: readonly PlausibilityRule[] = [
 	 */
 	{
 		type: 'ergonomic',
-		predicate: (artefact) => {
-			const blade = componentsOf(artefact, 'elongated').find((c) => {
+		predicate: (artefact) =>
+			componentsOf(artefact, 'elongated').some((c) => {
 				const edge = c.properties.get('edge');
-				return (edge === 'single' || edge === 'double') && c.properties.get('length') === 'long';
-			});
-			return blade !== undefined && !hasAdequateGripLength(artefact, blade);
-		},
+				return (edge === 'single' || edge === 'double') &&
+					c.properties.get('length') === 'long' &&
+					!hasAdequateGripLength(artefact, c);
+			}),
 		reason: 'a long blade needs at least a medium-length grip',
 	},
 

@@ -109,6 +109,16 @@ Deno.test('R2: a short edged blade never violates the rule', () => {
 	assert(!R2.predicate(artefact));
 });
 
+Deno.test('R2: a long edged blade plus a non-grip-shaped second component still violates the rule', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated', { edge: 'double', length: 'long' }),
+			component('c1', 'disc-form'),
+		],
+	});
+	assert(R2.predicate(artefact));
+});
+
 // --- R3: heavy perpendicular/lashed attachment needs a rigid shaft (doc 05 §6.2 example 3) ------
 
 const R3 = PLAUSIBILITY_RULES[2];
