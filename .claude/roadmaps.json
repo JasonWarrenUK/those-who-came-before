@@ -361,7 +361,7 @@
 					{
 						"id": "2GN.12",
 						"description": "`engine/generation/plausibility.ts` — `checkPlausibility(artefact): { valid, failures }`",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.11",
@@ -371,7 +371,7 @@
 					{
 						"id": "2GN.13",
 						"description": "`engine/generation/plausibility.ts` — physical viability rules (structural integrity, load paths, cantilever limits)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
@@ -379,7 +379,7 @@
 					{
 						"id": "2GN.14",
 						"description": "`engine/generation/plausibility.ts` — ergonomic rules (grip length for edged forms, handleability)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
@@ -387,7 +387,7 @@
 					{
 						"id": "2GN.15",
 						"description": "`engine/generation/plausibility.ts` — material-structural compatibility (material tags constrain joins/forms)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
@@ -395,7 +395,7 @@
 					{
 						"id": "2GN.16",
 						"description": "`engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
@@ -403,7 +403,7 @@
 					{
 						"id": "2GN.17",
 						"description": "`src/lib/data/classification.ts` — classification rules: feature→tag scoring, structural/container/decorative/cross-layer contributions",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"1FD.12",
 							"2GN.12"
@@ -412,7 +412,7 @@
 					{
 						"id": "2GN.19",
 						"description": "`engine/generation/classification.ts` — `extractFeatures(artefact): ExtractedFeatures` — unified feature extraction from components (initially structural features only; 2GN.27 and 2GN.34 complete the doc 05 stage-8 `ExtractedFeatures` contract with material and decorative fields)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
@@ -756,7 +756,7 @@
 					{
 						"id": "2GN.58",
 						"description": "Explorer: plausibility panel — generate N structures, show pass/fail with rejection reasons, running rejection rate",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
 						]
