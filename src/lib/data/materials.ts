@@ -107,10 +107,8 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'bone',
 		displayName: 'Bone',
-		// No dedicated bone-working axis exists on `PhaseCharacteristics.technology` (doc 05 §3.2);
-		// `woodWorking` is the nearest doc-defined proxy for hand-tool-worked organic material.
 		tags: ['bone'],
-		craftDomain: 'woodWorking',
+		craftDomain: 'boneWorking',
 		physicalProperties: { hardness: 'medium' },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
@@ -118,7 +116,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		id: 'antler',
 		displayName: 'Antler',
 		tags: ['bone'],
-		craftDomain: 'woodWorking',
+		craftDomain: 'boneWorking',
 		physicalProperties: { hardness: 'hard' },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},

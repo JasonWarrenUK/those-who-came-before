@@ -53,6 +53,7 @@ export function mockPhaseCharacteristics(
 			stoneWorking: 0.5,
 			glassWorking: 0.5,
 			woodWorking: 0.5,
+			boneWorking: 0.5,
 			...overrides.technology,
 		},
 		economy: {

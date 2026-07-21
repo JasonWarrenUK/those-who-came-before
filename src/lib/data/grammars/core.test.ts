@@ -27,6 +27,7 @@ const PHASE_PATHS = [
 	'technology.stoneWorking',
 	'technology.glassWorking',
 	'technology.woodWorking',
+	'technology.boneWorking',
 ];
 
 function ruleBySymbol(symbol: string) {

@@ -23,6 +23,7 @@ const VALID_CRAFT_DOMAINS = new Set([
 	'stoneWorking',
 	'glassWorking',
 	'woodWorking',
+	'boneWorking',
 ]);
 
 const VALID_HARDNESS = new Set(['soft', 'medium', 'hard']);

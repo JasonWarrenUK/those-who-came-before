@@ -62,6 +62,9 @@ export interface PhaseCharacteristics {
 
 		/** Wood-working technology sophistication. */
 		woodWorking: number;
+
+		/** Bone/antler-working technology sophistication. */
+		boneWorking: number;
 	};
 
 	/** Economic structure, each 0–1. */

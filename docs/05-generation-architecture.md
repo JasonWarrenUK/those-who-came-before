@@ -104,6 +104,7 @@ interface PhaseCharacteristics {
     stoneWorking: number;
     glassWorking: number;
     woodWorking: number;
+    boneWorking: number;
   };
   economy: {
     tradeOpenness: number;            // Affects foreign material availability

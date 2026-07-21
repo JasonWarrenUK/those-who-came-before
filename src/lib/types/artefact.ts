@@ -163,7 +163,8 @@ export interface MaterialDefinition {
 		| 'textiles'
 		| 'stoneWorking'
 		| 'glassWorking'
-		| 'woodWorking';
+		| 'woodWorking'
+		| 'boneWorking';
 
 	/**
 	 * Baseline physical properties consulted by the (future, 2GN.28) decorative grammar when
