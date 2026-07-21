@@ -17,6 +17,7 @@ import type {
 	PhaseCharacteristics,
 } from '../../src/lib/types/world.ts';
 import type { MaterialTag } from '../../src/lib/types/tags.ts';
+import type { DecorativeTechnique } from '../../src/lib/types/decoration.ts';
 
 /**
  * Per-branch partial overrides for `mockPhaseCharacteristics`. Explicit rather than a generic
@@ -86,6 +87,21 @@ function mockMotifVocabulary(cultureId: string): MotifSet {
 	};
 }
 
+/**
+ * A metal-leaning technique preference (engraving, inlay, gilding — all metal-substrate
+ * applied/surface techniques), matching `mockCulturalProfile`'s metal-leaning `materialAffinities`
+ * so the two signals agree by default rather than accidentally contradicting each other. Callers
+ * exercising the four-quadrant technique/motif independence (roadmap 2GN.29) should pass an explicit
+ * replacement `Map`.
+ */
+function mockTechniqueAffinities(): Map<DecorativeTechnique, number> {
+	return new Map<DecorativeTechnique, number>([
+		['engraving', 1.5],
+		['inlay', 1.5],
+		['gilding', 1.2],
+	]);
+}
+
 function mockCraftInvestment(): CraftInvestmentProfile {
 	return {
 		contextWeights: new Map([
@@ -100,12 +116,15 @@ function mockCraftInvestment(): CraftInvestmentProfile {
 }
 
 /**
- * Builds a mock `CulturalProfile`: metal-leaning `materialAffinities`, a single-motif vocabulary
- * and a populated craft-investment profile.
+ * Builds a mock `CulturalProfile`: metal-leaning `materialAffinities`, a matching metal-leaning
+ * `techniqueAffinities` (engraving/inlay/gilding), a single-motif vocabulary and a populated
+ * craft-investment profile.
  *
- * Overrides merge shallowly per the `mockCulture` convention — `materialAffinities` is a `Map`,
- * so callers wanting different affinities pass a whole replacement `Map` (e.g.
- * `{ materialAffinities: new Map() }` for a culture with no leanings at all).
+ * Overrides merge shallowly per the `mockCulture` convention — `materialAffinities` and
+ * `techniqueAffinities` are `Map`s, so callers wanting different affinities pass a whole
+ * replacement `Map` (e.g. `{ materialAffinities: new Map() }` for a culture with no leanings at
+ * all, or `{ techniqueAffinities: new Map() }` to isolate technique selection from motif/material
+ * signals when exercising the four-quadrant independence roadmap 2GN.29 requires).
  *
  * @param overrides - Partial `CulturalProfile` merged shallowly over the defaults.
  */
@@ -115,6 +134,7 @@ export function mockCulturalProfile(overrides: Partial<CulturalProfile> = {}): C
 			['metal', 1.5],
 			['stone', 1.0],
 		]),
+		techniqueAffinities: mockTechniqueAffinities(),
 		motifVocabulary: mockMotifVocabulary('test-culture'),
 		craftInvestment: mockCraftInvestment(),
 	};
