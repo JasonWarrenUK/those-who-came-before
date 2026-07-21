@@ -436,8 +436,8 @@
 					},
 					{
 						"id": "2GN.22",
-						"description": "`src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, geological scarcity, cultural affinity modifiers, decorability",
-						"status": "todo",
+						"description": "`src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, decorability (geological scarcity and cultural affinity modifiers deliberately kept in `world.ts`'s `GeologicalContext.materialAvailability`/`CulturalProfile.materialAffinities` rather than duplicated here — both are already keyed by `id`/`tags`, the join keys this file provides; `craftDomain` added instead, resolving `MaterialDefinition`'s own doc 05 §15 follow-up note per which `PhaseCharacteristics.technology` axis governs working each material)",
+						"status": "done",
 						"dependsOn": [
 							"1FD.12",
 							"M1"
@@ -446,7 +446,7 @@
 					{
 						"id": "2GN.23",
 						"description": "`engine/generation/materials.ts` — `assignMaterial(component, culture, phase, geology, trade, materials, prng): MaterialDefinition` — per-component assignment",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12",
 							"2GN.22"
