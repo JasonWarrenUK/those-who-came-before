@@ -23,6 +23,7 @@
 
 import type { MaterialDefinition, NormalisedComponent } from '../../types/artefact.ts';
 import type {
+	AvailabilityLevel,
 	CulturalProfile,
 	GeologicalContext,
 	MaterialFlow,
@@ -55,12 +56,15 @@ const SCARCITY_WEIGHT: Record<string, number> = {
 };
 
 /** The best (most abundant) availability level for `materialId` across every region in `geology`. */
-function bestAvailabilityLevel(materialId: string, geology: GeologicalContext): string | undefined {
+function bestAvailabilityLevel(
+	materialId: string,
+	geology: GeologicalContext,
+): AvailabilityLevel | undefined {
 	const regional = geology.materialAvailability.get(materialId);
 	if (!regional || regional.regions.size === 0) return undefined;
 
-	const order = ['abundant', 'available', 'scarce', 'trade-only', 'absent'];
-	let best: string | undefined;
+	const order: AvailabilityLevel[] = ['abundant', 'available', 'scarce', 'trade-only', 'absent'];
+	let best: AvailabilityLevel | undefined;
 
 	for (const level of regional.regions.values()) {
 		if (best === undefined || order.indexOf(level) < order.indexOf(best)) {
@@ -190,8 +194,11 @@ export function computeMaterialWeight(
  *   constraints, an empty array becomes genuinely rare and this fallback stays correct either way.
  * - Availability excludes every compatible material — availability is a *preference* at MVP, not a
  *   hard requirement, so the compatible set is used unfiltered rather than failing generation.
- * - Both filters exhausted (pathological, e.g. an empty `materials` catalogue slice passed in) —
- *   falls back to the full `materials` list so the function always returns a definition.
+ * - Both filters exhausted (pathological, e.g. a non-empty but incompatible `materials` slice
+ *   passed in) — falls back to the full `materials` list so the function always returns a
+ *   definition. This does not cover a `materials` argument that is itself empty — there is no
+ *   candidate left to fall back to, so `weightedSelect` still throws; callers are expected to
+ *   pass a non-empty catalogue (the default `MATERIALS` always is).
  *
  * @param component - The component receiving a material.
  * @param culture - The culture whose material affinities apply.
