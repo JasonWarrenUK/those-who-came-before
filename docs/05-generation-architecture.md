@@ -104,6 +104,7 @@ interface PhaseCharacteristics {
     stoneWorking: number;
     glassWorking: number;
     woodWorking: number;
+    boneWorking: number;
   };
   economy: {
     tradeOpenness: number;            // Affects foreign material availability
@@ -767,6 +768,8 @@ Decoration is a separate generative step with its own grammar, but it doesn't li
 ```
 
 Material prerequisites are enforced: the grammar checks what material the target surface has before offering decorative options. You don't engrave fired clay the same way you engrave bronze. You don't gild wood.
+
+Engraving's `[requires: hard material]` prerequisite is resolved by workability, not raw structural hardness: a material qualifies if it can hold an incised line, which soft precious metals do via chasing and repoussé even though they aren't structurally hard. `MaterialDefinition.physicalProperties` keeps `hardness` and `workable` as independent axes for this reason — see `src/lib/data/materials.ts`.
 
 ### 8.3 Layered Decoration
 

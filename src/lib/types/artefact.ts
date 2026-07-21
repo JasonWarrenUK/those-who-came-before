@@ -18,7 +18,7 @@
 import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
 import type { DecorativeLayer } from './decoration.ts';
-import type { Provenance } from './world.ts';
+import type { PhaseCharacteristics, Provenance } from './world.ts';
 
 /**
  * Where an object sits on the single portability axis (doc 05 §5.2) — the one unambiguous
@@ -125,24 +125,78 @@ export interface NormalisedComponent {
 
 /**
  * A named material the pipeline can assign to a component (doc 05 §7). `assignMaterial` (roadmap
- * 2GN.*) filters candidates by `tags` against a component's `allowedMaterialTags`, then weights
- * the survivors. `MaterialAssignment.materialId` references `id`; `displayName` is the observable
- * material identity (doc 05 §1.1). Visibility: observable (material identity).
+ * 2GN.23) filters candidates by `tags` against a component's `allowedMaterialTags`, then weights
+ * the survivors by geological availability, cultural affinity and phase technology.
+ * `MaterialAssignment.materialId` references `id`; `displayName` is the observable material
+ * identity (doc 05 §1.1). Visibility: observable (material identity).
  *
  * Doc 05 §15 envisions a richer definition carrying geological availability and cultural
- * affinities. `GeologicalContext` (world.ts, roadmap 1FD.16) and `CulturalProfile` (world.ts,
- * roadmap 1FD.14) now exist to type those fields, but adding them here is a deliberate follow-up,
- * not part of building `world.ts` itself — this interface is unchanged for now.
+ * affinities. Resolved by roadmap 2GN.22: `GeologicalContext.materialAvailability` (world.ts) is
+ * already keyed by `id`, and `CulturalProfile.materialAffinities` (world.ts) is already keyed by
+ * `MaterialTag` — both are world-generated per-region/per-culture state, so `id` and `tags` are
+ * already the join keys those structures need, and duplicating scarcity or affinity values here
+ * would create a second source of truth doc 05 never asks for. The one genuinely static
+ * per-material fact doc 05 §7/§3.2 implies but doesn't yet type is which
+ * `PhaseCharacteristics.technology` axis governs working this material (`craftDomain`) and its
+ * baseline workability for decoration prerequisites (`physicalProperties`, `decorability`), both
+ * added below. `assignMaterial`/`computeMaterialWeight`/`isAvailable` (2GN.23–25) and decoration
+ * prerequisite-checking (2GN.28) remain engine logic and are not implemented here.
  */
 export interface MaterialDefinition {
-	/** Stable id, referenced by `MaterialAssignment.materialId`. */
+	/** Stable id, referenced by `MaterialAssignment.materialId` and as the key into `GeologicalContext.materialAvailability`. */
 	id: string;
 
 	/** Human-readable material name shown to the player (e.g. 'bronze', 'obsidian'). */
 	displayName: string;
 
-	/** What this material is, for compatibility filtering against components (doc 05 §7). */
+	/** What this material is, for compatibility filtering against components (doc 05 §7) and as the join key into `CulturalProfile.materialAffinities`. */
 	tags: MaterialTag[];
+
+	/**
+	 * Which `PhaseCharacteristics.technology` axis (world.ts) governs a culture's capability to
+	 * work this material (doc 05 §3.2, §7 point 3 "phase technology"). `computeMaterialWeight`
+	 * (2GN.25) reads `phase.technology[craftDomain]` to gate/weight assignment.
+	 */
+	craftDomain: keyof PhaseCharacteristics['technology'];
+
+	/**
+	 * Baseline physical properties consulted by the (future, 2GN.28) decorative grammar when
+	 * checking doc 05 §8.2 material prerequisites not already expressible via `tags` alone.
+	 *
+	 * `hardness` and `workable` are deliberately independent axes: `hardness` is structural
+	 * resistance to denting/scratching, `workable` is whether the material can take an incised
+	 * line at all. They diverge for soft precious metals, which is why they aren't collapsed
+	 * into one property — see `workable`.
+	 */
+	physicalProperties: {
+		/** Structural resistance to denting/scratching. Not itself an engraving prerequisite — see `workable`. */
+		hardness: 'soft' | 'medium' | 'hard';
+
+		/**
+		 * Whether the material can hold an incised line, satisfying engraving's
+		 * `[requires: hard material]` prerequisite (doc 05 §8.2) despite the prerequisite's name.
+		 * Independent of `hardness`: gold is `hardness: 'soft'` but `workable: true` (chasing,
+		 * repoussé and engraving all work gold fine), while brittle stone like flint stays
+		 * `workable: false` regardless of hardness.
+		 */
+		workable: boolean;
+	};
+
+	/**
+	 * Which doc 05 §8.2 surface-treatment prerequisite categories this material satisfies,
+	 * pre-resolved so a future `decorations.ts` (2GN.28) can check `requires:` clauses without
+	 * re-deriving them from `tags`/`physicalProperties` itself.
+	 */
+	decorability: {
+		/** Satisfies engraving's `[requires: hard material]` (doc 05 §8.2). */
+		engravable: boolean;
+
+		/** Satisfies painting's `[requires: solid surface]` (doc 05 §8.2). */
+		paintable: boolean;
+
+		/** Satisfies glaze's `[requires: ceramic]` (doc 05 §8.2). */
+		glazeable: boolean;
+	};
 }
 
 /**

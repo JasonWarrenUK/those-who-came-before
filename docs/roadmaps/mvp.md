@@ -70,8 +70,8 @@ Artefact generation game roadmap: foundation through NPC social systems, ten mil
 - [ ] **2GN.19** — `engine/generation/classification.ts` — `extractFeatures(artefact): ExtractedFeatures` — unified feature extraction from components (initially structural features only; 2GN.27 and 2GN.34 complete the doc 05 stage-8 `ExtractedFeatures` contract with material and decorative fields) _(depends on 2GN.12 — unblocked)_
 - [ ] **2GN.20** — `engine/generation/classification.ts` — `classifyArtefact(features, rules): Map<FunctionTag|ContextTag, number>` — rule-based scoring _(blocked — depends on 2GN.17, 2GN.19)_
 - [ ] **2GN.21** — `engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive) _(blocked — depends on 2GN.20)_
-- [ ] **2GN.22** — `src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, geological scarcity, cultural affinity modifiers, decorability _(depends on 1FD.12, M1)_
-- [ ] **2GN.23** — `engine/generation/materials.ts` — `assignMaterial(component, culture, phase, geology, trade, materials, prng): MaterialDefinition` — per-component assignment _(blocked — depends on 2GN.12, 2GN.22)_
+- [x] **2GN.22** — `src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, decorability (geological scarcity and cultural affinity modifiers deliberately kept in `world.ts`'s `GeologicalContext.materialAvailability`/`CulturalProfile.materialAffinities` rather than duplicated here — both are already keyed by `id`/`tags`, the join keys this file provides; `craftDomain` added instead, resolving `MaterialDefinition`'s own doc 05 §15 follow-up note per which `PhaseCharacteristics.technology` axis governs working each material)
+- [ ] **2GN.23** — `engine/generation/materials.ts` — `assignMaterial(component, culture, phase, geology, trade, materials, prng): MaterialDefinition` — per-component assignment _(depends on 2GN.12, 2GN.22)_
 - [ ] **2GN.24** — `engine/generation/materials.ts` — `isAvailable(material, geology, trade): boolean` — local + trade availability check _(blocked — depends on 2GN.23)_
 - [ ] **2GN.25** — `engine/generation/materials.ts` — `computeMaterialWeight(material, culture, phase): number` — cultural affinity × phase technology _(blocked — depends on 2GN.23)_
 - [ ] **2GN.26** — `engine/generation/materials.ts` — `MaterialProvenance` metadata generation (source, origin region, trade path) _(blocked — depends on 2GN.23)_
@@ -370,27 +370,6 @@ graph LR
 	classDef outOfScope fill:#f6f6f6,stroke:#e2e2e2,color:#e2e2e2,stroke-dasharray:2 2
 	classDef mile fill:#e3f7ff,stroke:#007590,color:#007590,font-weight:bold
 	classDef external fill:#fff9e5,stroke:#7d6f00,color:#7d6f00,stroke-dasharray:4 3,font-style:italic
-	M1["M1: Foundation"]:::mile
-	M2["M2: Generation Pipeline"]:::mile
-	M3["M3: World State & Integration"]:::mile
-	M4["M4: Player Interface"]:::mile
-	M5["M5: Knowledge Model"]:::mile
-	M6["M6: Lens System"]:::mile
-	M7["M7: Contradictions"]:::mile
-	M8["M8: Persistence"]:::mile
-	M9["M9: Career & Publication"]:::mile
-	M10["M10: NPC Systems"]:::mile
-	1FD.21["1FD.21: `src/lib/types/documents.ts` — `Documen…"]
-	1FD.22["1FD.22: `src/lib/types/documents.ts` — `Dissemi…"]
-	1FD.23["1FD.23: `src/lib/types/venues.ts` — `VenueDefin…"]
-	1FD.24["1FD.24: `src/lib/types/contradiction.ts` — `Con…"]
-	1FD.25["1FD.25: `src/lib/types/contradiction.ts` — `Con…"]
-	1FD.27["1FD.27: `src/lib/types/career.ts` — `RoleRequir…"]
-	1FD.29["1FD.29: `src/lib/types/scholars.ts` — `MinimalS…"]
-	1FD.30["1FD.30: `src/lib/types/corpus.ts` — `Profession…"]
-	1FD.33["1FD.33: `src/lib/types/save.ts` — `SaveFile`, `…"]
-	1FD.40["1FD.40: `src/lib/types/venues.ts` — `VenueTempo…"]
-	1FD.39["1FD.39: Type index panel — list all registered…"]
 	1FD.1["1FD.1: Create `deno.json` with tasks, compilerO…"]
 	1FD.2["1FD.2: Swap `adapter-node` for `@deno/svelte-ad…"]
 	1FD.3["1FD.3: Strip Node tooling (`.prettierrc`, `.pre…"]
@@ -409,21 +388,46 @@ graph LR
 	1FD.16["1FD.16: `src/lib/types/world.ts` — `SiteType`,…"]
 	1FD.18["1FD.18: `src/lib/types/interpretation.ts` — `Co…"]
 	1FD.19["1FD.19: `src/lib/types/interpretation.ts` — `Me…"]
+	1FD.21["1FD.21: `src/lib/types/documents.ts` — `Documen…"]
+	1FD.23["1FD.23: `src/lib/types/venues.ts` — `VenueDefin…"]
+	1FD.40["1FD.40: `src/lib/types/venues.ts` — `VenueTempo…"]
 	1FD.26["1FD.26: `src/lib/types/career.ts` — `Reputation…"]
 	1FD.32["1FD.32: `src/lib/types/visibility.ts` — `Proper…"]
 	1FD.17["1FD.17: `src/lib/types/world.ts` — `DatingFrame…"]
 	1FD.28["1FD.28: `src/lib/types/term.ts` — `TermType`, `…"]
 	1FD.20["1FD.20: `src/lib/types/lens.ts` — `LensStrength…"]
+	1FD.24["1FD.24: `src/lib/types/contradiction.ts` — `Con…"]
+	1FD.25["1FD.25: `src/lib/types/contradiction.ts` — `Con…"]
+	1FD.29["1FD.29: `src/lib/types/scholars.ts` — `MinimalS…"]
+	1FD.30["1FD.30: `src/lib/types/corpus.ts` — `Profession…"]
 	1FD.31["1FD.31: `src/lib/types/description.ts` — `Descr…"]
+	1FD.22["1FD.22: `src/lib/types/documents.ts` — `Dissemi…"]
+	1FD.27["1FD.27: `src/lib/types/career.ts` — `RoleRequir…"]
+	1FD.33["1FD.33: `src/lib/types/save.ts` — `SaveFile`, `…"]
 	1FD.34["1FD.34: Configure `deno test`, verify runner ex…"]
 	1FD.35["1FD.35: Create test fixture helpers — mock cult…"]
 	1FD.36["1FD.36: Create route `/dev/explorer` with layou…"]
+	1FD.39["1FD.39: Type index panel — list all registered…"]
 	1FD.37["1FD.37: Seed input field component (route-priva…"]
 	1FD.38["1FD.38: PRNG output display (child route `prng/…"]
+	M1["M1: Foundation"]:::mile
+	2GN.11["2GN.11: `src/lib/data/plausibility.ts` — plausi…"]
+	2GN.22["2GN.22: `src/lib/data/materials.ts` — material…"]
+	2GN.28["2GN.28: `src/lib/data/decorations.ts` — decorat…"]
+	2GN.35["2GN.35: `src/lib/data/descriptions/observationa…"]
+	2GN.36["2GN.36: `src/lib/data/descriptions/interpretive…"]
+	2GN.37["2GN.37: `src/lib/data/descriptions/technical/`…"]
+	2GN.66["2GN.66: `src/lib/data/names/` — naming grammars…"]
+	2GN.1["2GN.1: `src/lib/data/grammars/primitives.ts` —…"]
+	2GN.2["2GN.2: `src/lib/data/grammars/core.ts` — MVP co…"]
+	2GN.3["2GN.3: `engine/generation/grammar.ts` — `expand…"]
+	2GN.4["2GN.4: `engine/generation/grammar.ts` — `select…"]
+	2GN.5["2GN.5: `engine/generation/grammar.ts` — `phaseI…"]
+	2GN.7["2GN.7: `engine/generation/grammar.ts` — complex…"]
+	2GN.6["2GN.6: `engine/generation/grammar.ts` — accumul…"]
 	2GN.8["2GN.8: `engine/generation/grammar.ts` — normali…"]
 	2GN.9["2GN.9: `engine/generation/grammar.ts` — `derive…"]
 	2GN.10["2GN.10: `engine/generation/grammar.ts` — `allow…"]
-	2GN.11["2GN.11: `src/lib/data/plausibility.ts` — plausi…"]
 	2GN.12["2GN.12: `engine/generation/plausibility.ts` — `…"]
 	2GN.13["2GN.13: `engine/generation/plausibility.ts` — p…"]
 	2GN.14["2GN.14: `engine/generation/plausibility.ts` — e…"]
@@ -433,22 +437,17 @@ graph LR
 	2GN.19["2GN.19: `engine/generation/classification.ts` —…"]
 	2GN.20["2GN.20: `engine/generation/classification.ts` —…"]
 	2GN.21["2GN.21: `engine/generation/classification.ts` —…"]
-	2GN.22["2GN.22: `src/lib/data/materials.ts` — material…"]
 	2GN.23["2GN.23: `engine/generation/materials.ts` — `ass…"]
 	2GN.24["2GN.24: `engine/generation/materials.ts` — `isA…"]
 	2GN.25["2GN.25: `engine/generation/materials.ts` — `com…"]
 	2GN.26["2GN.26: `engine/generation/materials.ts` — `Mat…"]
 	2GN.27["2GN.27: `engine/generation/materials.ts` — mate…"]
-	2GN.28["2GN.28: `src/lib/data/decorations.ts` — decorat…"]
 	2GN.29["2GN.29: `engine/generation/decoration.ts` — dec…"]
 	2GN.30["2GN.30: `engine/generation/decoration.ts` — mat…"]
 	2GN.31["2GN.31: `engine/generation/decoration.ts` — lay…"]
 	2GN.32["2GN.32: `engine/generation/decoration.ts` — rec…"]
 	2GN.33["2GN.33: `engine/generation/decoration.ts` — mot…"]
 	2GN.34["2GN.34: `engine/generation/classification.ts` —…"]
-	2GN.35["2GN.35: `src/lib/data/descriptions/observationa…"]
-	2GN.36["2GN.36: `src/lib/data/descriptions/interpretive…"]
-	2GN.37["2GN.37: `src/lib/data/descriptions/technical/`…"]
 	2GN.38["2GN.38: `engine/generation/description.ts` — `g…"]
 	2GN.39["2GN.39: `engine/generation/description.ts` — te…"]
 	2GN.40["2GN.40: `engine/generation/description.ts` — pe…"]
@@ -467,7 +466,6 @@ graph LR
 	2GN.53["2GN.53: `engine/generation/corpus.ts` — `aggreg…"]
 	2GN.54["2GN.54: `engine/generation/corpus.ts` — dating…"]
 	2GN.55["2GN.55: `engine/generation/corpus.ts` — calibra…"]
-	2GN.66["2GN.66: `src/lib/data/names/` — naming grammars…"]
 	2GN.67["2GN.67: `engine/generation/grammar.ts` — arrang…"]
 	2GN.56["2GN.56: `engine/generation/pipeline.ts` — `runG…"]
 	2GN.57["2GN.57: Explorer: structure viewer tab — genera…"]
@@ -479,13 +477,7 @@ graph LR
 	2GN.63["2GN.63: Explorer: excavation viewer — artefacts…"]
 	2GN.64["2GN.64: Explorer: corpus browser — NPC research…"]
 	2GN.65["2GN.65: Explorer: pipeline stage viewer — stage…"]
-	2GN.1["2GN.1: `src/lib/data/grammars/primitives.ts` —…"]
-	2GN.2["2GN.2: `src/lib/data/grammars/core.ts` — MVP co…"]
-	2GN.3["2GN.3: `engine/generation/grammar.ts` — `expand…"]
-	2GN.4["2GN.4: `engine/generation/grammar.ts` — `select…"]
-	2GN.5["2GN.5: `engine/generation/grammar.ts` — `phaseI…"]
-	2GN.7["2GN.7: `engine/generation/grammar.ts` — complex…"]
-	2GN.6["2GN.6: `engine/generation/grammar.ts` — accumul…"]
+	M2["M2: Generation Pipeline"]:::mile
 	3WS.1["3WS.1: `engine/world/seed.ts` — `createWorldSee…"]
 	3WS.2["3WS.2: `engine/world/chronology.ts` — `generate…"]
 	3WS.3["3WS.3: `engine/world/culture.ts` — `generateCul…"]
@@ -506,6 +498,7 @@ graph LR
 	3WS.18["3WS.18: Explorer: culture profiles with bias su…"]
 	3WS.19["3WS.19: Explorer: culture relationship graph vi…"]
 	3WS.20["3WS.20: Explorer: store inspector panel — live…"]
+	M3["M3: World State & Integration"]:::mile
 	4UI.1["4UI.1: `components/study/ArtefactInspector.svel…"]
 	4UI.2["4UI.2: `components/study/PropertyList.svelte` —…"]
 	4UI.3["4UI.3: `components/shared/TagBadge.svelte` — ta…"]
@@ -515,6 +508,7 @@ graph LR
 	4UI.7["4UI.7: `routes/study/+page.svelte` — artefact s…"]
 	4UI.8["4UI.8: Register switching UI — toggle between o…"]
 	4UI.9["4UI.9: #quot;Generate New Artefact#quot; action wired thr…"]
+	M4["M4: Player Interface"]:::mile
 	5KN.1["5KN.1: `engine/interpretation/claims.ts` — `cre…"]
 	5KN.2["5KN.2: `engine/interpretation/claims.ts` — `rev…"]
 	5KN.3["5KN.3: `engine/interpretation/claims.ts` — `Art…"]
@@ -541,6 +535,7 @@ graph LR
 	5KN.24["5KN.24: `routes/library/[documentId]/+page.svel…"]
 	5KN.25["5KN.25: Explorer: interpretive model viewer — b…"]
 	5KN.26["5KN.26: Explorer: evidence graph — observations…"]
+	M5["M5: Knowledge Model"]:::mile
 	6LS.1["6LS.1: `engine/lens/strength.ts` — `computeLens…"]
 	6LS.2["6LS.2: `engine/lens/strength.ts` — `computeLens…"]
 	6LS.3["6LS.3: `engine/lens/strength.ts` — per-tag lens…"]
@@ -558,6 +553,7 @@ graph LR
 	6LS.15["6LS.15: Raw data drill-down toggle — bypass len…"]
 	6LS.16["6LS.16: Explorer: lens state panel — current we…"]
 	6LS.17["6LS.17: Explorer: lens diff panel — side-by-sid…"]
+	M6["M6: Lens System"]:::mile
 	7CD.1["7CD.1: `engine/contradiction/detection.ts` — `d…"]
 	7CD.2["7CD.2: `engine/contradiction/detection.ts` — ma…"]
 	7CD.3["7CD.3: `engine/contradiction/detection.ts` — te…"]
@@ -590,6 +586,7 @@ graph LR
 	7CD.30["7CD.30: Resolution outcome display — what chang…"]
 	7CD.31["7CD.31: Explorer: contradiction inspector — que…"]
 	7CD.32["7CD.32: Explorer: surfacing log — chronological…"]
+	M7["M7: Contradictions"]:::mile
 	8PS.1["8PS.1: `persistence/serialisation.ts` — `serial…"]
 	8PS.2["8PS.2: `persistence/serialisation.ts` — `serial…"]
 	8PS.3["8PS.3: `persistence/serialisation.ts` — `deseri…"]
@@ -600,6 +597,7 @@ graph LR
 	8PS.8["8PS.8: Save/load UI — save button, load button,…"]
 	8PS.9["8PS.9: Auto-save indicator"]
 	8PS.10["8PS.10: Explorer: persistence inspector — seria…"]
+	M8["M8: Persistence"]:::mile
 	9CR.1["9CR.1: `engine/documents/lineage.ts` — document…"]
 	9CR.2["9CR.2: `engine/documents/dissemination.ts` — `a…"]
 	9CR.3["9CR.3: `engine/documents/commitments.ts` — `ext…"]
@@ -639,6 +637,7 @@ graph LR
 	9CR.32["9CR.32: Role advancement notification (diegetic…"]
 	9CR.33["9CR.33: Explorer: reputation dashboard — five d…"]
 	9CR.34["9CR.34: Explorer: career state panel — current…"]
+	M9["M9: Career & Publication"]:::mile
 	10NP.1["10NP.1: `engine/career/peerReview.ts` — `genera…"]
 	10NP.2["10NP.2: `engine/career/peerReview.ts` — `Review…"]
 	10NP.3["10NP.3: `engine/career/peerReview.ts` — review…"]
@@ -662,227 +661,307 @@ graph LR
 	10NP.21["10NP.21: Explorer: NPC panel — reviewer pool wi…"]
 	10NP.22["10NP.22: Explorer: citation balance tracker, re…"]
 	10NP.23["10NP.23: Explorer: student question targeting v…"]
-	1FD.19 --> 1FD.21
-	1FD.23 --> 1FD.22
-	1FD.31 --> 1FD.22
-	1FD.21 --> 1FD.23
-	1FD.19 --> 1FD.24
-	1FD.20 --> 1FD.24
-	1FD.24 --> 1FD.25
-	1FD.25 --> 1FD.27
-	1FD.22 --> 1FD.27
-	1FD.28 --> 1FD.27
-	1FD.19 --> 1FD.29
-	1FD.20 --> 1FD.29
-	1FD.29 --> 1FD.30
-	1FD.15 --> 1FD.30
-	1FD.16 --> 1FD.30
-	1FD.17 --> 1FD.30
-	1FD.27 --> 1FD.33
-	1FD.30 --> 1FD.33
-	1FD.23 --> 1FD.40
-	1FD.36 --> 1FD.39
+	M10["M10: NPC Systems"]:::mile
+	1FD.1 --> M1
+	1FD.2 --> M1
+	1FD.3 --> M1
+	1FD.4 --> M1
+	1FD.5 --> M1
 	1FD.6 --> 1FD.7
 	1FD.6 --> 1FD.8
 	1FD.6 --> 1FD.9
+	1FD.7 --> M1
+	1FD.8 --> M1
+	1FD.9 --> M1
+	1FD.12 --> 1FD.18
+	1FD.12 --> 1FD.32
+	1FD.12 --> 2GN.22
+	1FD.12 --> 2GN.17
 	1FD.10 --> 1FD.11
+	1FD.10 --> 2GN.1
+	1FD.10 --> 2GN.2
 	1FD.11 --> 1FD.13
+	1FD.13 --> 1FD.31
+	1FD.13 --> 2GN.28
 	1FD.14 --> 1FD.15
 	1FD.14 --> 1FD.16
-	1FD.12 --> 1FD.18
-	1FD.18 --> 1FD.19
-	1FD.12 --> 1FD.32
 	1FD.14 --> 1FD.17
+	1FD.14 --> 2GN.66
+	1FD.15 --> 1FD.30
+	1FD.16 --> 1FD.30
+	1FD.18 --> 1FD.19
+	1FD.18 --> 1FD.20
+	1FD.19 --> 1FD.21
+	1FD.19 --> 1FD.24
+	1FD.19 --> 1FD.29
+	1FD.21 --> 1FD.23
+	1FD.23 --> 1FD.40
+	1FD.23 --> 1FD.22
+	1FD.40 --> M1
 	1FD.26 --> 1FD.28
 	1FD.32 --> 1FD.20
-	1FD.18 --> 1FD.20
-	1FD.20 --> 1FD.31
-	1FD.13 --> 1FD.31
+	1FD.17 --> 1FD.30
 	1FD.17 --> 1FD.31
+	1FD.28 --> 1FD.27
+	1FD.20 --> 1FD.24
+	1FD.20 --> 1FD.29
+	1FD.20 --> 1FD.31
+	1FD.24 --> 1FD.25
+	1FD.25 --> 1FD.27
+	1FD.29 --> 1FD.30
+	1FD.30 --> 1FD.33
+	1FD.31 --> 1FD.22
+	1FD.31 --> 2GN.35
+	1FD.31 --> 2GN.36
+	1FD.31 --> 2GN.37
+	1FD.22 --> 1FD.27
+	1FD.27 --> 1FD.33
+	1FD.33 --> M1
 	1FD.34 --> 1FD.35
+	1FD.35 --> M1
+	1FD.36 --> 1FD.39
 	1FD.36 --> 1FD.37
+	1FD.39 --> M1
 	1FD.37 --> 1FD.38
+	1FD.38 --> M1
+	M1 --> 2GN.11
+	M1 --> 2GN.22
+	M1 --> 2GN.28
+	M1 --> 2GN.35
+	M1 --> 2GN.36
+	M1 --> 2GN.37
+	M1 --> 2GN.66
+	M1 --> 2GN.1
+	M1 --> 2GN.2
+	2GN.11 --> 2GN.12
+	2GN.22 --> 2GN.23
+	2GN.28 --> 2GN.29
+	2GN.35 --> 2GN.38
+	2GN.36 --> 2GN.38
+	2GN.37 --> 2GN.38
+	2GN.66 --> 2GN.47
+	2GN.66 --> 2GN.48
+	2GN.1 --> 2GN.12
+	2GN.2 --> 2GN.3
+	2GN.3 --> 2GN.4
+	2GN.3 --> 2GN.5
+	2GN.3 --> 2GN.7
+	2GN.3 --> 2GN.6
 	2GN.4 --> 2GN.8
+	2GN.5 --> M2
+	2GN.7 --> 2GN.6
 	2GN.6 --> 2GN.8
 	2GN.8 --> 2GN.9
 	2GN.8 --> 2GN.10
-	M1 --> 2GN.11
 	2GN.8 --> 2GN.12
-	2GN.11 --> 2GN.12
-	2GN.1 --> 2GN.12
+	2GN.8 --> 2GN.67
+	2GN.8 --> 2GN.57
+	2GN.9 --> M2
+	2GN.10 --> M2
 	2GN.12 --> 2GN.13
 	2GN.12 --> 2GN.14
 	2GN.12 --> 2GN.15
 	2GN.12 --> 2GN.16
-	1FD.12 --> 2GN.17
 	2GN.12 --> 2GN.17
 	2GN.12 --> 2GN.19
+	2GN.12 --> 2GN.23
+	2GN.12 --> 2GN.58
+	2GN.13 --> M2
+	2GN.14 --> M2
+	2GN.15 --> M2
+	2GN.16 --> M2
 	2GN.17 --> 2GN.20
 	2GN.19 --> 2GN.20
 	2GN.20 --> 2GN.21
-	1FD.12 --> 2GN.22
-	M1 --> 2GN.22
-	2GN.12 --> 2GN.23
-	2GN.22 --> 2GN.23
+	2GN.20 --> 2GN.27
+	2GN.20 --> 2GN.34
+	2GN.20 --> 2GN.59
+	2GN.21 --> M2
 	2GN.23 --> 2GN.24
 	2GN.23 --> 2GN.25
 	2GN.23 --> 2GN.26
-	2GN.20 --> 2GN.27
 	2GN.23 --> 2GN.27
-	1FD.13 --> 2GN.28
-	M1 --> 2GN.28
 	2GN.23 --> 2GN.29
-	2GN.28 --> 2GN.29
+	2GN.23 --> 2GN.60
+	2GN.24 --> M2
+	2GN.25 --> M2
+	2GN.26 --> M2
+	2GN.27 --> M2
 	2GN.29 --> 2GN.30
 	2GN.29 --> 2GN.31
 	2GN.29 --> 2GN.32
 	2GN.29 --> 2GN.33
 	2GN.29 --> 2GN.34
-	2GN.20 --> 2GN.34
-	1FD.31 --> 2GN.35
-	M1 --> 2GN.35
-	1FD.31 --> 2GN.36
-	M1 --> 2GN.36
-	1FD.31 --> 2GN.37
-	M1 --> 2GN.37
+	2GN.29 --> 2GN.61
+	2GN.30 --> M2
+	2GN.31 --> M2
+	2GN.32 --> M2
+	2GN.33 --> M2
 	2GN.34 --> 2GN.38
-	2GN.35 --> 2GN.38
-	2GN.36 --> 2GN.38
-	2GN.37 --> 2GN.38
 	2GN.38 --> 2GN.39
+	2GN.38 --> 2GN.44
 	2GN.39 --> 2GN.40
 	2GN.39 --> 2GN.41
 	2GN.39 --> 2GN.42
 	2GN.39 --> 2GN.43
-	2GN.38 --> 2GN.44
+	2GN.40 --> 2GN.62
+	2GN.41 --> M2
+	2GN.42 --> M2
+	2GN.43 --> M2
 	2GN.44 --> 2GN.45
 	2GN.44 --> 2GN.46
-	2GN.66 --> 2GN.47
 	2GN.44 --> 2GN.47
 	2GN.44 --> 2GN.48
-	2GN.66 --> 2GN.48
-	2GN.48 --> 2GN.49
-	2GN.49 --> 2GN.50
-	2GN.50 --> 2GN.51
-	2GN.50 --> 2GN.52
-	2GN.51 --> 2GN.53
-	2GN.50 --> 2GN.54
-	2GN.49 --> 2GN.55
-	1FD.14 --> 2GN.66
-	M1 --> 2GN.66
-	2GN.8 --> 2GN.67
-	2GN.53 --> 2GN.56
-	2GN.8 --> 2GN.57
-	2GN.12 --> 2GN.58
-	2GN.20 --> 2GN.59
-	2GN.23 --> 2GN.60
-	2GN.29 --> 2GN.61
-	2GN.40 --> 2GN.62
 	2GN.44 --> 2GN.63
 	2GN.45 --> 2GN.63
-	2GN.54 --> 2GN.64
+	2GN.46 --> M2
+	2GN.47 --> M2
+	2GN.48 --> 2GN.49
+	2GN.49 --> 2GN.50
+	2GN.49 --> 2GN.55
+	2GN.50 --> 2GN.51
+	2GN.50 --> 2GN.52
+	2GN.50 --> 2GN.54
+	2GN.51 --> 2GN.53
+	2GN.52 --> M2
+	2GN.53 --> 2GN.56
 	2GN.53 --> 2GN.64
+	2GN.54 --> 2GN.64
+	2GN.55 --> M2
+	2GN.67 --> M2
 	2GN.56 --> 2GN.65
-	1FD.10 --> 2GN.1
-	M1 --> 2GN.1
-	1FD.10 --> 2GN.2
-	M1 --> 2GN.2
-	2GN.2 --> 2GN.3
-	2GN.3 --> 2GN.4
-	2GN.3 --> 2GN.5
-	2GN.3 --> 2GN.7
-	2GN.7 --> 2GN.6
-	2GN.3 --> 2GN.6
 	2GN.56 --> 3WS.1
+	2GN.57 --> M2
+	2GN.58 --> M2
+	2GN.59 --> M2
+	2GN.60 --> M2
+	2GN.61 --> M2
+	2GN.62 --> M2
+	2GN.63 --> M2
+	2GN.64 --> M2
+	2GN.65 --> M2
 	M2 --> 3WS.1
 	3WS.1 --> 3WS.2
+	3WS.1 --> 3WS.7
 	3WS.2 --> 3WS.3
 	3WS.3 --> 3WS.4
 	3WS.3 --> 3WS.5
-	3WS.5 --> 3WS.6
-	3WS.1 --> 3WS.7
 	3WS.3 --> 3WS.8
 	3WS.4 --> 3WS.9
-	3WS.7 --> 3WS.9
+	3WS.5 --> 3WS.6
 	3WS.5 --> 3WS.9
+	3WS.6 --> M3
+	3WS.7 --> 3WS.9
+	3WS.8 --> M3
 	3WS.9 --> 3WS.10
 	3WS.10 --> 3WS.11
 	3WS.10 --> 3WS.12
 	3WS.10 --> 3WS.13
-	3WS.12 --> 3WS.14
 	3WS.10 --> 3WS.14
-	3WS.11 --> 3WS.14
-	3WS.13 --> 3WS.14
-	3WS.14 --> 3WS.15
-	3WS.15 --> 3WS.16
 	3WS.10 --> 3WS.17
 	3WS.10 --> 3WS.18
 	3WS.10 --> 3WS.19
+	3WS.11 --> 3WS.14
+	3WS.12 --> 3WS.14
+	3WS.13 --> 3WS.14
+	3WS.14 --> 3WS.15
 	3WS.14 --> 3WS.20
-	3WS.19 --> 3WS.20
-	3WS.18 --> 3WS.20
-	3WS.17 --> 3WS.20
+	3WS.15 --> 3WS.16
 	3WS.15 --> 4UI.1
+	3WS.16 --> M3
+	3WS.17 --> 3WS.20
+	3WS.18 --> 3WS.20
+	3WS.19 --> 3WS.20
+	3WS.20 --> M3
 	M3 --> 4UI.1
 	4UI.1 --> 4UI.2
 	4UI.1 --> 4UI.3
 	4UI.1 --> 4UI.4
 	4UI.1 --> 4UI.5
+	4UI.2 --> M4
+	4UI.3 --> M4
+	4UI.4 --> M4
 	4UI.5 --> 4UI.6
 	4UI.6 --> 4UI.7
 	4UI.6 --> 4UI.8
 	4UI.6 --> 4UI.9
 	4UI.6 --> 5KN.1
+	4UI.7 --> M4
+	4UI.8 --> M4
+	4UI.9 --> M4
 	M4 --> 5KN.1
 	5KN.1 --> 5KN.2
 	5KN.1 --> 5KN.3
 	5KN.1 --> 5KN.4
+	5KN.1 --> 5KN.10
+	5KN.2 --> M5
+	5KN.3 --> M5
 	5KN.4 --> 5KN.5
+	5KN.4 --> 5KN.25
 	5KN.5 --> 5KN.6
 	5KN.5 --> 5KN.7
 	5KN.5 --> 5KN.8
 	5KN.5 --> 5KN.9
-	5KN.1 --> 5KN.10
+	5KN.5 --> 5KN.16
+	5KN.6 --> M5
+	5KN.7 --> M5
+	5KN.8 --> M5
+	5KN.9 --> M5
 	5KN.10 --> 5KN.11
 	5KN.10 --> 5KN.12
-	5KN.12 --> 5KN.13
 	5KN.10 --> 5KN.14
 	5KN.10 --> 5KN.15
-	5KN.5 --> 5KN.16
+	5KN.11 --> M5
+	5KN.12 --> 5KN.13
+	5KN.12 --> 5KN.20
+	5KN.12 --> 5KN.26
+	5KN.12 --> 6LS.1
+	5KN.13 --> M5
+	5KN.14 --> M5
 	5KN.15 --> 5KN.17
+	5KN.16 --> M5
 	5KN.17 --> 5KN.18
 	5KN.17 --> 5KN.19
-	5KN.12 --> 5KN.20
+	5KN.18 --> M5
+	5KN.19 --> M5
 	5KN.20 --> 5KN.21
 	5KN.20 --> 5KN.22
 	5KN.21 --> 5KN.23
 	5KN.22 --> 5KN.24
-	5KN.4 --> 5KN.25
-	5KN.12 --> 5KN.26
-	5KN.12 --> 6LS.1
+	5KN.23 --> M5
+	5KN.24 --> M5
+	5KN.25 --> M5
+	5KN.26 --> M5
 	M5 --> 6LS.1
 	6LS.1 --> 6LS.2
 	6LS.1 --> 6LS.3
 	6LS.2 --> 6LS.4
 	6LS.2 --> 6LS.5
+	6LS.3 --> 6LS.16
+	6LS.4 --> M6
 	6LS.5 --> 6LS.6
 	6LS.5 --> 6LS.7
 	6LS.5 --> 6LS.8
 	6LS.5 --> 6LS.9
 	6LS.5 --> 6LS.10
+	6LS.5 --> 6LS.16
+	6LS.5 --> 7CD.1
 	6LS.6 --> 6LS.11
 	6LS.7 --> 6LS.11
 	6LS.8 --> 6LS.11
+	6LS.8 --> 6LS.14
 	6LS.9 --> 6LS.11
 	6LS.10 --> 6LS.11
 	6LS.11 --> 6LS.12
 	6LS.11 --> 6LS.13
-	6LS.8 --> 6LS.14
 	6LS.11 --> 6LS.15
-	6LS.5 --> 6LS.16
-	6LS.3 --> 6LS.16
 	6LS.11 --> 6LS.17
-	6LS.5 --> 7CD.1
+	6LS.12 --> M6
+	6LS.13 --> M6
+	6LS.14 --> M6
+	6LS.15 --> M6
+	6LS.16 --> M6
+	6LS.17 --> M6
 	M6 --> 7CD.1
 	7CD.1 --> 7CD.2
 	7CD.1 --> 7CD.3
@@ -895,239 +974,160 @@ graph LR
 	7CD.1 --> 7CD.10
 	7CD.1 --> 7CD.11
 	7CD.1 --> 7CD.12
-	7CD.12 --> 7CD.13
-	7CD.12 --> 7CD.14
-	7CD.10 --> 7CD.15
-	7CD.15 --> 7CD.16
-	7CD.15 --> 7CD.17
-	7CD.15 --> 7CD.18
-	7CD.15 --> 7CD.19
-	7CD.19 --> 7CD.20
-	7CD.20 --> 7CD.21
-	7CD.20 --> 7CD.22
-	7CD.20 --> 7CD.23
-	7CD.20 --> 7CD.24
-	7CD.12 --> 7CD.25
-	7CD.25 --> 7CD.26
-	7CD.19 --> 7CD.27
-	7CD.20 --> 7CD.28
-	7CD.28 --> 7CD.29
-	7CD.28 --> 7CD.30
-	7CD.25 --> 7CD.31
-	7CD.15 --> 7CD.32
-	7CD.22 --> 7CD.32
-	7CD.25 --> 8PS.1
-	M7 --> 8PS.1
-	8PS.1 --> 8PS.2
-	8PS.2 --> 8PS.3
-	8PS.1 --> 8PS.4
-	8PS.4 --> 8PS.5
-	8PS.2 --> 8PS.6
-	8PS.6 --> 8PS.7
-	8PS.6 --> 8PS.8
-	8PS.7 --> 8PS.9
-	8PS.5 --> 8PS.10
-	8PS.3 --> 8PS.10
-	8PS.5 --> 9CR.1
-	M8 --> 9CR.1
-	9CR.1 --> 9CR.2
-	9CR.1 --> 9CR.3
-	9CR.1 --> 9CR.4
-	9CR.2 --> 9CR.35
-	9CR.1 --> 9CR.36
-	9CR.35 --> 9CR.36
-	9CR.36 --> 9CR.37
-	9CR.2 --> 9CR.38
-	9CR.1 --> 9CR.5
-	9CR.5 --> 9CR.6
-	9CR.2 --> 9CR.7
-	9CR.7 --> 9CR.8
-	9CR.7 --> 9CR.9
-	9CR.7 --> 9CR.10
-	9CR.7 --> 9CR.11
-	9CR.7 --> 9CR.12
-	9CR.6 --> 9CR.13
-	9CR.7 --> 9CR.14
-	9CR.35 --> 9CR.14
-	9CR.38 --> 9CR.14
-	9CR.7 --> 9CR.15
-	9CR.15 --> 9CR.16
-	9CR.15 --> 9CR.17
-	9CR.17 --> 9CR.18
-	9CR.17 --> 9CR.19
-	9CR.15 --> 9CR.20
-	9CR.10 --> 9CR.39
-	9CR.17 --> 9CR.21
-	9CR.21 --> 9CR.22
-	9CR.38 --> 9CR.22
-	9CR.20 --> 9CR.23
-	9CR.20 --> 9CR.24
-	9CR.2 --> 9CR.25
-	9CR.5 --> 9CR.26
-	9CR.3 --> 9CR.27
-	9CR.7 --> 9CR.28
-	9CR.11 --> 9CR.29
-	9CR.28 --> 9CR.30
-	9CR.21 --> 9CR.31
-	9CR.15 --> 9CR.32
-	9CR.7 --> 9CR.33
-	9CR.12 --> 9CR.33
-	9CR.18 --> 9CR.34
-	9CR.16 --> 9CR.34
-	9CR.12 --> 10NP.1
-	M9 --> 10NP.1
-	10NP.1 --> 10NP.2
-	10NP.1 --> 10NP.3
-	10NP.1 --> 10NP.4
-	10NP.1 --> 10NP.5
-	10NP.5 --> 10NP.6
-	10NP.1 --> 10NP.7
-	10NP.5 --> 10NP.8
-	10NP.5 --> 10NP.9
-	10NP.1 --> 10NP.10
-	10NP.3 --> 10NP.11
-	10NP.1 --> 10NP.12
-	10NP.9 --> 10NP.13
-	10NP.10 --> 10NP.14
-	10NP.2 --> 10NP.15
-	10NP.6 --> 10NP.16
-	10NP.8 --> 10NP.17
-	10NP.9 --> 10NP.18
-	10NP.14 --> 10NP.19
-	10NP.3 --> 10NP.20
-	10NP.4 --> 10NP.21
-	10NP.6 --> 10NP.21
-	10NP.10 --> 10NP.22
-	10NP.7 --> 10NP.22
-	10NP.9 --> 10NP.23
-	1FD.1 --> M1
-	1FD.2 --> M1
-	1FD.3 --> M1
-	1FD.33 --> M1
-	1FD.35 --> M1
-	1FD.38 --> M1
-	1FD.39 --> M1
-	1FD.4 --> M1
-	1FD.40 --> M1
-	1FD.5 --> M1
-	1FD.7 --> M1
-	1FD.8 --> M1
-	1FD.9 --> M1
-	2GN.10 --> M2
-	2GN.13 --> M2
-	2GN.14 --> M2
-	2GN.15 --> M2
-	2GN.16 --> M2
-	2GN.21 --> M2
-	2GN.24 --> M2
-	2GN.25 --> M2
-	2GN.26 --> M2
-	2GN.27 --> M2
-	2GN.30 --> M2
-	2GN.31 --> M2
-	2GN.32 --> M2
-	2GN.33 --> M2
-	2GN.41 --> M2
-	2GN.42 --> M2
-	2GN.43 --> M2
-	2GN.46 --> M2
-	2GN.47 --> M2
-	2GN.5 --> M2
-	2GN.52 --> M2
-	2GN.55 --> M2
-	2GN.57 --> M2
-	2GN.58 --> M2
-	2GN.59 --> M2
-	2GN.60 --> M2
-	2GN.61 --> M2
-	2GN.62 --> M2
-	2GN.63 --> M2
-	2GN.64 --> M2
-	2GN.65 --> M2
-	2GN.67 --> M2
-	2GN.9 --> M2
-	3WS.16 --> M3
-	3WS.20 --> M3
-	3WS.6 --> M3
-	3WS.8 --> M3
-	4UI.2 --> M4
-	4UI.3 --> M4
-	4UI.4 --> M4
-	4UI.7 --> M4
-	4UI.8 --> M4
-	4UI.9 --> M4
-	5KN.11 --> M5
-	5KN.13 --> M5
-	5KN.14 --> M5
-	5KN.16 --> M5
-	5KN.18 --> M5
-	5KN.19 --> M5
-	5KN.2 --> M5
-	5KN.23 --> M5
-	5KN.24 --> M5
-	5KN.25 --> M5
-	5KN.26 --> M5
-	5KN.3 --> M5
-	5KN.6 --> M5
-	5KN.7 --> M5
-	5KN.8 --> M5
-	5KN.9 --> M5
-	6LS.12 --> M6
-	6LS.13 --> M6
-	6LS.14 --> M6
-	6LS.15 --> M6
-	6LS.16 --> M6
-	6LS.17 --> M6
-	6LS.4 --> M6
-	7CD.11 --> M7
-	7CD.13 --> M7
-	7CD.14 --> M7
-	7CD.16 --> M7
-	7CD.17 --> M7
-	7CD.18 --> M7
 	7CD.2 --> M7
-	7CD.21 --> M7
-	7CD.23 --> M7
-	7CD.24 --> M7
-	7CD.26 --> M7
-	7CD.27 --> M7
-	7CD.29 --> M7
 	7CD.3 --> M7
-	7CD.30 --> M7
-	7CD.31 --> M7
-	7CD.32 --> M7
 	7CD.4 --> M7
 	7CD.5 --> M7
 	7CD.6 --> M7
 	7CD.7 --> M7
 	7CD.8 --> M7
 	7CD.9 --> M7
-	8PS.10 --> M8
+	7CD.10 --> 7CD.15
+	7CD.11 --> M7
+	7CD.12 --> 7CD.13
+	7CD.12 --> 7CD.14
+	7CD.12 --> 7CD.25
+	7CD.13 --> M7
+	7CD.14 --> M7
+	7CD.15 --> 7CD.16
+	7CD.15 --> 7CD.17
+	7CD.15 --> 7CD.18
+	7CD.15 --> 7CD.19
+	7CD.15 --> 7CD.32
+	7CD.16 --> M7
+	7CD.17 --> M7
+	7CD.18 --> M7
+	7CD.19 --> 7CD.20
+	7CD.19 --> 7CD.27
+	7CD.20 --> 7CD.21
+	7CD.20 --> 7CD.22
+	7CD.20 --> 7CD.23
+	7CD.20 --> 7CD.24
+	7CD.20 --> 7CD.28
+	7CD.21 --> M7
+	7CD.22 --> 7CD.32
+	7CD.23 --> M7
+	7CD.24 --> M7
+	7CD.25 --> 7CD.26
+	7CD.25 --> 7CD.31
+	7CD.25 --> 8PS.1
+	7CD.26 --> M7
+	7CD.27 --> M7
+	7CD.28 --> 7CD.29
+	7CD.28 --> 7CD.30
+	7CD.29 --> M7
+	7CD.30 --> M7
+	7CD.31 --> M7
+	7CD.32 --> M7
+	M7 --> 8PS.1
+	8PS.1 --> 8PS.2
+	8PS.1 --> 8PS.4
+	8PS.2 --> 8PS.3
+	8PS.2 --> 8PS.6
+	8PS.3 --> 8PS.10
+	8PS.4 --> 8PS.5
+	8PS.5 --> 8PS.10
+	8PS.5 --> 9CR.1
+	8PS.6 --> 8PS.7
+	8PS.6 --> 8PS.8
+	8PS.7 --> 8PS.9
 	8PS.8 --> M8
 	8PS.9 --> M8
+	8PS.10 --> M8
+	M8 --> 9CR.1
+	9CR.1 --> 9CR.2
+	9CR.1 --> 9CR.3
+	9CR.1 --> 9CR.4
+	9CR.1 --> 9CR.36
+	9CR.1 --> 9CR.5
+	9CR.2 --> 9CR.35
+	9CR.2 --> 9CR.38
+	9CR.2 --> 9CR.7
+	9CR.2 --> 9CR.25
+	9CR.3 --> 9CR.27
+	9CR.4 --> M9
+	9CR.35 --> 9CR.36
+	9CR.35 --> 9CR.14
+	9CR.36 --> 9CR.37
+	9CR.37 --> M9
+	9CR.38 --> 9CR.14
+	9CR.38 --> 9CR.22
+	9CR.5 --> 9CR.6
+	9CR.5 --> 9CR.26
+	9CR.6 --> 9CR.13
+	9CR.7 --> 9CR.8
+	9CR.7 --> 9CR.9
+	9CR.7 --> 9CR.10
+	9CR.7 --> 9CR.11
+	9CR.7 --> 9CR.12
+	9CR.7 --> 9CR.14
+	9CR.7 --> 9CR.15
+	9CR.7 --> 9CR.28
+	9CR.7 --> 9CR.33
+	9CR.8 --> M9
+	9CR.9 --> M9
+	9CR.10 --> 9CR.39
+	9CR.11 --> 9CR.29
+	9CR.12 --> 9CR.33
+	9CR.12 --> 10NP.1
 	9CR.13 --> M9
 	9CR.14 --> M9
+	9CR.15 --> 9CR.16
+	9CR.15 --> 9CR.17
+	9CR.15 --> 9CR.20
+	9CR.15 --> 9CR.32
+	9CR.16 --> 9CR.34
+	9CR.17 --> 9CR.18
+	9CR.17 --> 9CR.19
+	9CR.17 --> 9CR.21
+	9CR.18 --> 9CR.34
 	9CR.19 --> M9
+	9CR.20 --> 9CR.23
+	9CR.20 --> 9CR.24
+	9CR.39 --> M9
+	9CR.21 --> 9CR.22
+	9CR.21 --> 9CR.31
 	9CR.22 --> M9
 	9CR.23 --> M9
 	9CR.24 --> M9
 	9CR.25 --> M9
 	9CR.26 --> M9
 	9CR.27 --> M9
+	9CR.28 --> 9CR.30
 	9CR.29 --> M9
 	9CR.30 --> M9
 	9CR.31 --> M9
 	9CR.32 --> M9
 	9CR.33 --> M9
 	9CR.34 --> M9
-	9CR.37 --> M9
-	9CR.39 --> M9
-	9CR.4 --> M9
-	9CR.8 --> M9
-	9CR.9 --> M9
+	M9 --> 10NP.1
+	10NP.1 --> 10NP.2
+	10NP.1 --> 10NP.3
+	10NP.1 --> 10NP.4
+	10NP.1 --> 10NP.5
+	10NP.1 --> 10NP.7
+	10NP.1 --> 10NP.10
+	10NP.1 --> 10NP.12
+	10NP.2 --> 10NP.15
+	10NP.3 --> 10NP.11
+	10NP.3 --> 10NP.20
+	10NP.4 --> 10NP.21
+	10NP.5 --> 10NP.6
+	10NP.5 --> 10NP.8
+	10NP.5 --> 10NP.9
+	10NP.6 --> 10NP.16
+	10NP.6 --> 10NP.21
+	10NP.7 --> 10NP.22
+	10NP.8 --> 10NP.17
+	10NP.9 --> 10NP.13
+	10NP.9 --> 10NP.18
+	10NP.9 --> 10NP.23
+	10NP.10 --> 10NP.14
+	10NP.10 --> 10NP.22
 	10NP.11 --> M10
 	10NP.12 --> M10
 	10NP.13 --> M10
+	10NP.14 --> 10NP.19
 	10NP.15 --> M10
 	10NP.16 --> M10
 	10NP.17 --> M10
@@ -1137,9 +1137,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.17,2GN.19,2GN.22,2GN.28,2GN.35,2GN.36,2GN.37,2GN.57,2GN.58,2GN.66,2GN.67 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.20,2GN.21,2GN.23,2GN.24,2GN.25,2GN.26,2GN.27,2GN.29,2GN.30,2GN.31,2GN.32,2GN.33,2GN.34,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.59,2GN.60,2GN.61,2GN.62,2GN.63,2GN.64,2GN.65,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.2,2GN.3,2GN.4,2GN.5,2GN.6,2GN.7,2GN.8,2GN.9 done
+	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.17,2GN.19,2GN.23,2GN.28,2GN.35,2GN.36,2GN.37,2GN.57,2GN.58,2GN.66,2GN.67 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.20,2GN.21,2GN.24,2GN.25,2GN.26,2GN.27,2GN.29,2GN.30,2GN.31,2GN.32,2GN.33,2GN.34,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.59,2GN.60,2GN.61,2GN.62,2GN.63,2GN.64,2GN.65,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.2,2GN.22,2GN.3,2GN.4,2GN.5,2GN.6,2GN.7,2GN.8,2GN.9 done
 ```
 
 ## Links
