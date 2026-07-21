@@ -26,7 +26,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Bronze',
 		tags: ['metal'],
 		craftDomain: 'metallurgy',
-		physicalProperties: { hardness: 'medium' },
+		physicalProperties: { hardness: 'medium', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -34,7 +34,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Iron',
 		tags: ['metal'],
 		craftDomain: 'metallurgy',
-		physicalProperties: { hardness: 'hard' },
+		physicalProperties: { hardness: 'hard', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -42,26 +42,25 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Gold',
 		tags: ['metal', 'precious-metal'],
 		craftDomain: 'metallurgy',
-		physicalProperties: { hardness: 'soft' },
-		// Soft per doc 05 §8.2's literal `[requires: hard material]` engraving prerequisite —
-		// real-world gold chasing/repoussé notwithstanding, this keeps the data internally
-		// consistent with the hardness-gated invariant tested in materials.test.ts.
-		decorability: { engravable: false, paintable: false, glazeable: false },
+		// Soft (malleable, not structurally hard) but genuinely engravable via chasing and
+		// repoussé — hardness and workability are independent axes for this reason.
+		physicalProperties: { hardness: 'soft', workable: true },
+		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
 		id: 'silver',
 		displayName: 'Silver',
 		tags: ['metal', 'precious-metal'],
 		craftDomain: 'metallurgy',
-		physicalProperties: { hardness: 'soft' },
-		decorability: { engravable: false, paintable: false, glazeable: false },
+		physicalProperties: { hardness: 'soft', workable: true },
+		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
 		id: 'obsidian',
 		displayName: 'Obsidian',
 		tags: ['stone'],
 		craftDomain: 'stoneWorking',
-		physicalProperties: { hardness: 'hard' },
+		physicalProperties: { hardness: 'hard', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -69,7 +68,8 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Flint',
 		tags: ['stone'],
 		craftDomain: 'stoneWorking',
-		physicalProperties: { hardness: 'hard' },
+		// Hard but brittle/coarse-fracturing: it flakes rather than holding an incised line.
+		physicalProperties: { hardness: 'hard', workable: false },
 		decorability: { engravable: false, paintable: false, glazeable: false },
 	},
 	{
@@ -77,7 +77,8 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Granite',
 		tags: ['stone'],
 		craftDomain: 'stoneWorking',
-		physicalProperties: { hardness: 'hard' },
+		// Hard but coarse-grained: it doesn't take a fine incised line.
+		physicalProperties: { hardness: 'hard', workable: false },
 		decorability: { engravable: false, paintable: false, glazeable: false },
 	},
 	{
@@ -85,7 +86,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Jade',
 		tags: ['precious-stone'],
 		craftDomain: 'stoneWorking',
-		physicalProperties: { hardness: 'hard' },
+		physicalProperties: { hardness: 'hard', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -93,7 +94,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Oak',
 		tags: ['wood'],
 		craftDomain: 'woodWorking',
-		physicalProperties: { hardness: 'medium' },
+		physicalProperties: { hardness: 'medium', workable: true },
 		decorability: { engravable: true, paintable: true, glazeable: false },
 	},
 	{
@@ -101,7 +102,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Ash',
 		tags: ['wood'],
 		craftDomain: 'woodWorking',
-		physicalProperties: { hardness: 'medium' },
+		physicalProperties: { hardness: 'medium', workable: true },
 		decorability: { engravable: true, paintable: true, glazeable: false },
 	},
 	{
@@ -109,7 +110,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Bone',
 		tags: ['bone'],
 		craftDomain: 'boneWorking',
-		physicalProperties: { hardness: 'medium' },
+		physicalProperties: { hardness: 'medium', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -117,7 +118,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Antler',
 		tags: ['bone'],
 		craftDomain: 'boneWorking',
-		physicalProperties: { hardness: 'hard' },
+		physicalProperties: { hardness: 'hard', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
 	},
 	{
@@ -125,7 +126,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Fired clay',
 		tags: ['clay'],
 		craftDomain: 'ceramics',
-		physicalProperties: { hardness: 'medium' },
+		// Workable pre-firing (incising is how clay decoration usually happens), but modelled here
+		// as post-firing, at which point it's brittle rather than incisable — hence not engravable.
+		physicalProperties: { hardness: 'medium', workable: false },
 		decorability: { engravable: false, paintable: true, glazeable: true },
 	},
 	{
@@ -133,7 +136,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Glass',
 		tags: ['glass'],
 		craftDomain: 'glassWorking',
-		physicalProperties: { hardness: 'medium' },
+		physicalProperties: { hardness: 'medium', workable: false },
 		decorability: { engravable: false, paintable: false, glazeable: false },
 	},
 	{
@@ -141,7 +144,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Linen',
 		tags: ['fiber'],
 		craftDomain: 'textiles',
-		physicalProperties: { hardness: 'soft' },
+		physicalProperties: { hardness: 'soft', workable: false },
 		decorability: { engravable: false, paintable: true, glazeable: false },
 	},
 	{
@@ -149,7 +152,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		displayName: 'Leather',
 		tags: ['leather'],
 		craftDomain: 'textiles',
-		physicalProperties: { hardness: 'soft' },
+		// Soft and pliable/fibrous, unlike gold's soft-but-workable metal structure — leather isn't
+		// incisable in the same sense, hence not workable.
+		physicalProperties: { hardness: 'soft', workable: false },
 		decorability: { engravable: false, paintable: true, glazeable: false },
 	},
 ];

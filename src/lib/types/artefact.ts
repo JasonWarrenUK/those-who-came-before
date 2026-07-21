@@ -162,10 +162,24 @@ export interface MaterialDefinition {
 	/**
 	 * Baseline physical properties consulted by the (future, 2GN.28) decorative grammar when
 	 * checking doc 05 §8.2 material prerequisites not already expressible via `tags` alone.
+	 *
+	 * `hardness` and `workable` are deliberately independent axes: `hardness` is structural
+	 * resistance to denting/scratching, `workable` is whether the material can take an incised
+	 * line at all. They diverge for soft precious metals, which is why they aren't collapsed
+	 * into one property — see `workable`.
 	 */
 	physicalProperties: {
-		/** Whether the material is hard enough to satisfy engraving's `[requires: hard material]` prerequisite (doc 05 §8.2). */
+		/** Structural resistance to denting/scratching. Not itself an engraving prerequisite — see `workable`. */
 		hardness: 'soft' | 'medium' | 'hard';
+
+		/**
+		 * Whether the material can hold an incised line, satisfying engraving's
+		 * `[requires: hard material]` prerequisite (doc 05 §8.2) despite the prerequisite's name.
+		 * Independent of `hardness`: gold is `hardness: 'soft'` but `workable: true` (chasing,
+		 * repoussé and engraving all work gold fine), while brittle stone like flint stays
+		 * `workable: false` regardless of hardness.
+		 */
+		workable: boolean;
 	};
 
 	/**

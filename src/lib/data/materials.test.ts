@@ -67,6 +67,12 @@ Deno.test('materials: every hardness is a valid value', () => {
 	}
 });
 
+Deno.test('materials: every entry has a workable boolean', () => {
+	for (const material of MATERIALS) {
+		assertEquals(typeof material.physicalProperties.workable, 'boolean', material.id);
+	}
+});
+
 Deno.test('materials: glazeable only ever true for clay-tagged materials (doc 05 §8.2)', () => {
 	for (const material of MATERIALS) {
 		if (material.decorability.glazeable) {
@@ -75,10 +81,21 @@ Deno.test('materials: glazeable only ever true for clay-tagged materials (doc 05
 	}
 });
 
-Deno.test('materials: engravable only ever true when hardness is not soft (doc 05 §8.2)', () => {
+Deno.test('materials: engravable only ever true when workable (doc 05 §8.2)', () => {
 	for (const material of MATERIALS) {
 		if (material.decorability.engravable) {
-			assert(material.physicalProperties.hardness !== 'soft', material.id);
+			assert(material.physicalProperties.workable, material.id);
 		}
 	}
+});
+
+Deno.test('materials: hardness and workability are independent axes (gold counter-example)', () => {
+	const gold = MATERIALS.find((material) => material.id === 'gold');
+	assert(gold, 'gold entry must exist');
+	// Locks in the fix for the hardness/workability conflation: gold is structurally soft yet
+	// genuinely engravable (chasing, repoussé), so this pins both facts so they can't silently
+	// collapse back into a single "soft implies not engravable" invariant.
+	assertEquals(gold.physicalProperties.hardness, 'soft');
+	assertEquals(gold.physicalProperties.workable, true);
+	assertEquals(gold.decorability.engravable, true);
 });
