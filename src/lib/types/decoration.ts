@@ -12,9 +12,13 @@
  * `ExtractedFeatures` in artefact.ts. This module is data shapes only, no behaviour.
  *
  * Material prerequisites (the `[requires: ...]` annotations on the BNF grammar, doc 05 §8.2) are
- * out of scope here — they are enforced by `data/decorations.ts` (roadmap 2GN.28) and the
- * decorative grammar's expansion logic (roadmap 2GN.30), not represented as a type in this file.
+ * typed below as `DecorativeSubstrate`/`DecorativeTechniqueDefinition` (roadmap 2GN.28), populated
+ * as data in `data/decorations.ts`. Enforcing them during grammar expansion — actually rejecting
+ * or accepting a technique for a given target component — is the decorative grammar's job
+ * (`engine/generation/decoration.ts`, roadmap 2GN.30), not this module.
  */
+
+import type { MaterialDefinition } from './artefact.ts';
 
 /**
  * The sixteen terminals of the decorative grammar's three productions (doc 05 §8.2) — a flat
@@ -76,4 +80,51 @@ export interface DecorativeLayer {
 
 	/** Further decoration applied on top of this layer (doc 05 §8.3). Empty when undecorated. */
 	sublayers: DecorativeLayer[];
+}
+
+/**
+ * A technique's doc 05 §8.2 `[requires: ...]` prerequisite, split by what it's checkable against.
+ * Most prerequisites resolve against the target component's assigned material alone (`'material'`
+ * — e.g. engraving's "hard material"), reusing the pre-resolved `decorability`/`physicalProperties`
+ * facts on `MaterialDefinition` rather than re-deriving them. A few prerequisites are about the
+ * component's geometry, not its material (`'form'` — e.g. wire-wrapping's "grippable form"): no
+ * amount of material data answers whether a shape is grippable, so these are only labelled here;
+ * resolving them against a `NormalisedComponent` is the decorative grammar's job (roadmap 2GN.30).
+ */
+export type DecorativeSubstrate =
+	| { kind: 'none' }
+	| {
+		kind: 'material';
+		/** Human-readable form of the doc 05 §8.2 `requires:` clause (e.g. `'hard material'`). */
+		label: string;
+		/** Whether a candidate material satisfies this technique's prerequisite. */
+		test: (material: MaterialDefinition) => boolean;
+	}
+	| {
+		kind: 'form';
+		/** The geometric property required, resolved against the component by 2GN.30, not here. */
+		requires: 'grippable' | 'attachment-point';
+	};
+
+/**
+ * Static facts about one of the sixteen decorative grammar terminals (doc 05 §8.2): which BNF
+ * production it belongs to, its material/form prerequisite, and whether its grammar form carries a
+ * `<motif>` argument or introduces new material — both of which `DecorativeLayer`'s `motifRef`/
+ * `material` fields need populated when the grammar expands a layer (roadmap 2GN.29/2GN.33).
+ */
+export interface DecorativeTechniqueDefinition {
+	/** Which grammar terminal this defines; joins to `DecorativeLayer.technique`. */
+	technique: DecorativeTechnique;
+
+	/** Which of the three BNF productions (doc 05 §8.2) this terminal belongs to. */
+	category: 'surface-treatment' | 'applied-element' | 'textile-element';
+
+	/** The technique's `[requires: ...]` prerequisite, if any (doc 05 §8.2). */
+	substrate: DecorativeSubstrate;
+
+	/** Whether this technique's grammar form takes a `<motif>` argument (doc 05 §8.2, §8.5). */
+	carriesMotif: boolean;
+
+	/** Whether this technique's grammar form introduces a new material onto the artefact. */
+	introducesMaterial: boolean;
 }
