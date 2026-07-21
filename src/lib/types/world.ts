@@ -12,6 +12,7 @@
  */
 
 import type { MaterialTag } from './tags.ts';
+import type { DecorativeTechnique } from './decoration.ts';
 
 /**
  * Stage 1 of the generation pipeline (doc 05 §2): a single seed string deterministically generates
@@ -199,6 +200,24 @@ export interface CraftInvestmentProfile {
 export interface CulturalProfile {
 	/** Per-material-tag affinity weight, read by `GrammarOption.culturalModifiers` (grammar.ts). */
 	materialAffinities: Map<MaterialTag, number>;
+
+	/**
+	 * Per-technique decorative preference, read by the decorative grammar
+	 * (`engine/generation/decoration.ts`, roadmap 2GN.29). Provisional, not doc-specified — doc 05
+	 * §3.3 names only `materialAffinities`/`motifVocabulary`/`craftInvestment`, but neither of those
+	 * can express a culture's stable preference for *which techniques* it uses independent of what
+	 * motifs it carries or what materials it works: a culture can favour engraving as a technique
+	 * while never depicting beasts, or depict beasts exclusively through painting rather than
+	 * engraving, and vice versa in every combination. This map is that missing signal, mirroring
+	 * `materialAffinities`' shape. A technique absent from the map reads as neutral (`1`).
+	 *
+	 * Selection also enforces a one-directional material-access gate (`decoration.ts`): a culture
+	 * that never favours-and-can-obtain a material satisfying a technique's substrate gets that
+	 * technique suppressed near-zero regardless of this map's stated affinity — a culture cannot
+	 * engrave what it has no engravable material for. The converse does not hold: favouring an
+	 * engravable material never forces engraving to be used.
+	 */
+	techniqueAffinities: Map<DecorativeTechnique, number>;
 
 	/** The culture's decorative motif vocabulary (doc 05 §3.3, §8.5). */
 	motifVocabulary: MotifSet;

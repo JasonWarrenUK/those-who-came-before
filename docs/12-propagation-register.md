@@ -217,6 +217,17 @@ Doc 10's week-denominated `VenueTemporalProfile` supersedes doc 07 Section 3.1's
 | 07 | Section 3.1 supersession note added under `TemporalMode`/`SubmissionWindow`; `visibilityWindow` marked deferred post-MVP | 2026-07-11 |
 | — | `src/lib/types/venues.ts` (1FD.23/1FD.40): `TemporalMode`/`SubmissionWindow` removed, `VenueTemporalProfile` added, `VenueDefinition.temporalProfile` repointed | 2026-07-11 |
 
+### 2.18 CulturalProfile Gains techniqueAffinities (2026-07-21)
+**Origin:** Roadmap task 2GN.29 implementation (2026-07-21)
+**Source of truth:** Doc 05, Section 3.3 (pending update)
+
+`CulturalProfile` (doc 05 §3.3) is specified with exactly three fields: `materialAffinities`, `motifVocabulary`, `craftInvestment`. None of these can express a culture's stable preference for *which decorative techniques* it uses, independent of what motifs it carries (`motifVocabulary`, doc 05 §8.5) or what materials it favours (`materialAffinities`). The product requirement is four independent quadrants — a culture can engrave beasts, engrave without beasts, depict beasts without engraving, or neither — which needs a technique-level signal orthogonal to both existing fields. `techniqueAffinities: Map<DecorativeTechnique, number>` was added to `CulturalProfile`, mirroring `materialAffinities`' shape, plus a one-directional material-access gate (`engine/generation/decoration.ts`'s `materialAccessGate`): a culture with no plausibly-available material satisfying a technique's substrate has that technique suppressed regardless of stated affinity, but favouring a suitable material never forces the technique.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 05 | Section 3.3 `CulturalProfile` interface listing gains `techniqueAffinities`, plus a paragraph on the independence-from-motifs/materials rationale and the one-directional material-access gate | 2026-07-21 |
+| — | `src/lib/types/world.ts` (2GN.29): `CulturalProfile.techniqueAffinities: Map<DecorativeTechnique, number>` added (⚠️ breaking — new required field); `tests/fixtures/culture.ts`'s `mockCulturalProfile` gained a matching default | 2026-07-21 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*

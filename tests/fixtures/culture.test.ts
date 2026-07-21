@@ -70,6 +70,8 @@ Deno.test('mockCulturalProfile: defaults carry metal-leaning affinities and popu
 
 	assertEquals(profile.materialAffinities.get('metal'), 1.5);
 	assertEquals(profile.materialAffinities.get('stone'), 1.0);
+	assert(profile.techniqueAffinities.size > 0);
+	assertEquals(profile.techniqueAffinities.get('engraving'), 1.5);
 	assert(profile.motifVocabulary.motifs.length > 0);
 	assert(profile.craftInvestment.contextWeights.size > 0);
 });
@@ -78,7 +80,17 @@ Deno.test('mockCulturalProfile: overrides replace whole branches', () => {
 	const profile = mockCulturalProfile({ materialAffinities: new Map() });
 
 	assertEquals(profile.materialAffinities.size, 0);
+	assert(profile.techniqueAffinities.size > 0); // Independent branch, untouched by the override.
 	assert(profile.motifVocabulary.motifs.length > 0);
+});
+
+Deno.test('mockCulturalProfile: techniqueAffinities overrides independently of materialAffinities', () => {
+	// The four-quadrant requirement (roadmap 2GN.29): technique preference and material affinity
+	// are separate signals, so overriding one must never implicitly change the other.
+	const profile = mockCulturalProfile({ techniqueAffinities: new Map() });
+
+	assertEquals(profile.techniqueAffinities.size, 0);
+	assertEquals(profile.materialAffinities.get('metal'), 1.5); // Untouched by the override.
 });
 
 Deno.test('mockCulturalProfile: mockCulture keeps delegating with a consistent motif origin', () => {

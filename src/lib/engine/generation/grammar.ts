@@ -35,39 +35,7 @@ import type {
 import type { MaterialTag } from '../../types/tags.ts';
 import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
 import { weightedSelect } from '../prng.ts';
-
-/**
- * Resolves a dotted `PhaseCharacteristics` path (e.g. `'technology.metallurgy'`) to its numeric
- * attribute. Generic over the profile's shape so new attributes need no code change here.
- *
- * Throws on a path that doesn't resolve to a number: grammar data is authored in-repo (and
- * `data/grammars/core.test.ts` guards the shipped keys), so a miss is always an authoring typo —
- * better a loud failure than a silently skewed distribution.
- */
-function resolvePhaseAttribute(phase: PhaseCharacteristics, path: string): number {
-	let current: unknown = phase;
-
-	for (const segment of path.split('.')) {
-		if (current === null || typeof current !== 'object' || !(segment in current)) {
-			throw new Error(`phaseInfluence: unknown phase characteristic path '${path}'`);
-		}
-		current = (current as Record<string, unknown>)[segment];
-	}
-
-	if (typeof current !== 'number') {
-		throw new Error(
-			`phaseInfluence: phase characteristic path '${path}' does not resolve to a number`,
-		);
-	}
-
-	if (!Number.isFinite(current) || current < 0 || current > 1) {
-		throw new Error(
-			`phaseInfluence: phase characteristic path '${path}' must be in [0, 1], got ${current}`,
-		);
-	}
-
-	return current;
-}
+import { resolvePhaseAttribute } from './phase.ts';
 
 /**
  * Computes the phase-characteristic weight multiplier for a grammar option (doc 05 §5.4, roadmap
