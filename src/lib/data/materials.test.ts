@@ -3,18 +3,20 @@ import { assert, assertEquals } from '@std/assert';
 import { MATERIALS } from './materials.ts';
 import type { MaterialTag } from '../types/tags.ts';
 
-const ALL_MATERIAL_TAGS: MaterialTag[] = [
-	'bone',
-	'wood',
-	'stone',
-	'metal',
-	'clay',
-	'glass',
-	'fiber',
-	'leather',
-	'precious-stone',
-	'precious-metal',
-];
+/** Keyed by `MaterialTag` so the compiler flags a missing entry when the union gains a member. */
+const ALL_MATERIAL_TAGS_RECORD: Record<MaterialTag, true> = {
+	bone: true,
+	wood: true,
+	stone: true,
+	metal: true,
+	clay: true,
+	glass: true,
+	fiber: true,
+	leather: true,
+	'precious-stone': true,
+	'precious-metal': true,
+};
+const ALL_MATERIAL_TAGS = Object.keys(ALL_MATERIAL_TAGS_RECORD) as MaterialTag[];
 
 const VALID_CRAFT_DOMAINS = new Set([
 	'metallurgy',
