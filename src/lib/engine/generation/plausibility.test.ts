@@ -97,14 +97,20 @@ Deno.test('checkPlausibility: a satisfied rule set contributes no failure', () =
 // --- Multiple simultaneous violations ------------------------------------------------------------
 
 Deno.test('checkPlausibility: simultaneous violations collect every reason in rule order', () => {
-	// Violates R1 (no grip) and R4 (heavy + thin-walled hollow) at once.
+	// Violates R2 (long edge lacks a medium/long grip) and R4 (heavy + thin-walled hollow) at once —
+	// R1's grip proxy is "more than one component exists", which a second component always
+	// satisfies, so R1 can't co-fire with any rule that needs a second component present.
 	const artefact = mockNormalisedArtefact({
-		components: [component('c0', 'hollow-enclosed', { wall: 'thin', edge: 'single' })],
+		components: [
+			component('c0', 'elongated', { edge: 'single', length: 'long' }),
+			component('c1', 'hollow-enclosed', { wall: 'thin' }),
+		],
 		dimensions: { primaryExtent: 30, secondaryExtent: 30, mass: 'heavy' },
 	});
 	const result = checkPlausibility(artefact);
 	assert(!result.valid);
 	assertEquals(result.failures, [
+		'a long blade needs at least a medium-length grip',
 		'a heavy component on a thin-walled hollow form is structurally implausible',
 	]);
 });
@@ -178,6 +184,34 @@ Deno.test('checkPlausibility: an injected "ordering" rule is satisfied when the 
 		components: [
 			component('c0', 'disc-form', {}, 0),
 			component('c1', 'elongated', {}, 1),
+		],
+	});
+	assertEquals(checkPlausibility(artefact, rules), { valid: true, failures: [] });
+});
+
+Deno.test('checkPlausibility: an injected "ordering" (after) rule fires when the component comes before its bound', () => {
+	const rules: PlausibilityRule[] = [
+		{ type: 'ordering', component: 'disc-form', after: 'elongated' },
+	];
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'disc-form', {}, 0),
+			component('c1', 'elongated', {}, 1),
+		],
+	});
+	const result = checkPlausibility(artefact, rules);
+	assert(!result.valid);
+	assertEquals(result.failures.length, 1);
+});
+
+Deno.test('checkPlausibility: an injected "ordering" (after) rule is satisfied when the component follows its bound', () => {
+	const rules: PlausibilityRule[] = [
+		{ type: 'ordering', component: 'disc-form', after: 'elongated' },
+	];
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated', {}, 0),
+			component('c1', 'disc-form', {}, 1),
 		],
 	});
 	assertEquals(checkPlausibility(artefact, rules), { valid: true, failures: [] });
