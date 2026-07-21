@@ -139,6 +139,7 @@ interface Culture {
 
 interface CulturalProfile {
   materialAffinities: Map<MaterialTag, number>;
+  techniqueAffinities: Map<DecorativeTechnique, number>;
   motifVocabulary: MotifSet;
   craftInvestment: CraftInvestmentProfile;
 }
@@ -154,6 +155,8 @@ interface CraftInvestmentProfile {
 ```
 
 The `CulturalProfile` captures stable tendencies that persist across phases. The `PhaseCharacteristics` capture how those tendencies manifest in a specific period. A culture might always favour stone (`materialAffinities`), but their stone-working capability (`technology.stoneWorking`) varies by phase.
+
+`techniqueAffinities` (roadmap 2GN.29) is a separate signal from both `materialAffinities` and `motifVocabulary` (§8.5): a culture's preference for *which decorative techniques* it uses is independent of what materials it favours and what motifs it depicts. A culture can engrave beasts, engrave without beasts, depict beasts through other techniques without engraving, or neither — the four combinations only exist if technique choice and motif choice vary independently. Selection additionally enforces a one-directional material-access gate: a culture with no material in plentiful-and-favoured supply that satisfies a technique's substrate has that technique suppressed regardless of stated affinity, but favouring a suitable material never forces the technique to be used (§8.2's material prerequisites are a precondition on technique selection, not a cause of it).
 
 ### 3.4 Temporal Relationships
 
