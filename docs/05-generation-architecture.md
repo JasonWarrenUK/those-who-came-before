@@ -847,9 +847,13 @@ interface ExtractedFeatures {
 
 Every feature is traceable to its source (which component, which decorative layer) for the lens and contradiction systems, but the extraction itself is unified.
 
+> **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the `ExtractedFeatures` shape above predates the shipped rule set and is narrower than it. `ExtractedFeatures` (`src/lib/types/artefact.ts`) carries thirteen further fields — `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent` — each derived from a real primitive parameter or decorative-layer fact the grammar produces, needed because the fields above are too coarse to distinguish e.g. a paring knife from a dagger (both merely `hasEdge`). `massBand`/`sizeBand` are also the physical-fact fields classification rules must use in place of `portability`/`inspectionDepth`, which are mechanical (§5.2) and must never feed a classification rule — see doc 12 §2.19 for the full boundary rationale.
+
 ### 9.2 Tag Classification
 
 Tags are assigned by rule-based scoring from extracted features. Tags are not mutually exclusive — an object can be `['weapon', 'ritual', 'status']` simultaneously.
+
+> **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the worked rule array below is illustrative, not the shipped rule set. The authoritative, signal-derived rules live in `src/lib/data/classification.ts` — 39 rules spanning edge/point/container/vessel/perforation/ring/sheet/mass/size/complexity/decoration/cross-layer/presence-flag families, each keyed on a signal the grammar actually rolls (see that module's JSDoc for the full derivation).
 
 ```typescript
 // Function tags: what is this object FOR?
