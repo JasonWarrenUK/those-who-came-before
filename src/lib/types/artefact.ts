@@ -356,6 +356,13 @@ export interface ExtractedFeatures {
 	 * (none/central/off-centre) components (doc 05 §5.3), unioned into one field. A hole signals
 	 * suspension (pendant), hafting/sewing (fitting) or rotation (spindle-whorl) depending on which
 	 * value fires. `'none'` when no perforated component is present.
+	 *
+	 * A multi-component artefact can carry perforations on more than one component, but this field
+	 * holds a single value, so `extractFeatures` (roadmap 2GN.19) reports the most
+	 * classificatorily-loaded one present, priority `central` > `off-centre` > `single` >
+	 * `multiple` > `none` (rotation and suspension are stronger use-signals than a plain fixing
+	 * hole). `data/classification.ts`'s perforation rules assume that single value; the collapse
+	 * lives with the extractor, not the rules.
 	 */
 	perforation: 'none' | 'single' | 'multiple' | 'central' | 'off-centre';
 

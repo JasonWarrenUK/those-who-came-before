@@ -55,6 +55,18 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['tool', 0.5], ['domestic', 0.4], ['everyday', 0.3]]),
 	},
 
+	/**
+	 * A short-bodied edge that isn't a formed blade (`bladeLengthBand` of `'none'`/`'medium'`/
+	 * `'long'` on a short overall axis): scraper, chisel, small adze — an edged tool, not a blade
+	 * weapon. Catches the short-axis edges the long-edge rule excludes (`primaryAxisLength ===
+	 * 'short'`) and the dagger/utility rules skip (they own `bladeLengthBand === 'short'` only), so
+	 * no edged artefact leaves the edge family with zero function signal.
+	 */
+	{
+		condition: (f) => f.hasEdge && f.primaryAxisLength === 'short' && f.bladeLengthBand !== 'short',
+		tags: new Map([['tool', 0.4], ['everyday', 0.2]]),
+	},
+
 	/** Multiple distinct edges suggest a composite or multi-blade implement rather than one weapon. */
 	{
 		condition: (f) => f.edgeCount >= 2,
@@ -135,11 +147,25 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	},
 
 	// --- Perforation -----------------------------------------------------------------------------
+	//
+	// `perforation` is a single field unioning two primitives' vocabularies (`flat-broad`:
+	// none/single/multiple; `disc-form`: none/central/off-centre). A multi-component artefact can
+	// physically carry perforations on both, so `extractFeatures` (roadmap 2GN.19) must pick ONE
+	// value: it reports the most classificatorily-loaded perforation present, priority
+	// central > off-centre > single > multiple > none (rotation and suspension are stronger use
+	// signals than a plain fixing hole). That ordering lives with the extractor, not here; these
+	// rules stay one-value-in, so exactly one fires.
 
 	/** A central perforation on a disc-form component: spindle-whorl, weight, mace-head. */
 	{
 		condition: (f) => f.perforation === 'central',
 		tags: new Map([['tool', 0.4], ['artisanal', 0.3]]),
+	},
+
+	/** An off-centre perforation on a disc-form component: hung disc, token, pendant-weight — suspension, not rotation. */
+	{
+		condition: (f) => f.perforation === 'off-centre',
+		tags: new Map([['ornament', 0.4], ['personal', 0.3]]),
 	},
 
 	/** A single perforation on a flat-broad component: pendant, plaque — meant to hang. */
