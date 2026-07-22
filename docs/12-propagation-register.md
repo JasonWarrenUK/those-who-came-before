@@ -228,6 +228,21 @@ Doc 10's week-denominated `VenueTemporalProfile` supersedes doc 07 Section 3.1's
 | 05 | Section 3.3 `CulturalProfile` interface listing gains `techniqueAffinities`, plus a paragraph on the independence-from-motifs/materials rationale and the one-directional material-access gate | 2026-07-21 |
 | — | `src/lib/types/world.ts` (2GN.29): `CulturalProfile.techniqueAffinities: Map<DecorativeTechnique, number>` added (⚠️ breaking — new required field); `tests/fixtures/culture.ts`'s `mockCulturalProfile` gained a matching default | 2026-07-21 |
 
+### 2.19 ExtractedFeatures Expansion + Mechanical-vs-Classificatory Boundary (2026-07-22)
+**Origin:** Roadmap task 2GN.17 implementation (2026-07-22)
+**Source of truth:** Doc 05, Section 9.1–9.2 (pending update)
+
+2GN.17's classification rules were derived from first principles against the signals the grammar (`data/grammars/primitives.ts`) actually produces, rather than transcribed from doc 05 §9.2's illustrative examples — the primitive/parameter vocabulary has grown past what that section shows, and the original `ExtractedFeatures` (doc 05 §9.1) was too coarse to carry the resulting rule set (it cannot, for instance, distinguish a paring knife from a dagger, both merely `hasEdge`). `ExtractedFeatures` gained thirteen fields — `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent` — each traceable to a real primitive parameter or decorative-layer fact.
+
+This surfaced a design boundary worth recording explicitly: **`portability` and `inspectionDepth` are mechanical derivations** (doc 05 §5.2's two-tier mobility model — they gate player handling/inspection) **and must never be read by a classification rule.** The two axes are collinear with the same underlying dimensions in ways that would double-count physical facts if classification piggy-backed on them, and coupling classification to a mechanic risks that mechanic's future changes silently reshaping tag scores. `massBand` and `sizeBand` are the physical-fact equivalents classification rules use instead; both derive independently from the same dimensions `portability` does. An audit at implementation time found zero existing violations of this boundary anywhere in `src/` or `docs/` — it is recorded here pre-emptively, before `classifyArtefact` (2GN.20) exists to make the mistake possible. `src/lib/data/classification.ts`'s test suite (`classification.test.ts`) enforces the boundary mechanically: it sweeps every `portability`/`inspectionDepth` band and asserts no rule's firing changes.
+
+Two of the thirteen new fields (`bladeProfile`, capturing the historical edged-only-vs-edged-and-pointed weapon distinction) and two existing fields already in doc 05 (`preciousMaterialsInDecoration`, `motifPresent`/`motifCulturalOrigins`) have rules authored against them that are currently dormant or tag-effect-deferred: the former awaits typology/description work (roadmap 2GN.40), the latter await decorative motif/material assignment (roadmap 2GN.33), neither of which is built yet.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 05 | Section 9.1 `ExtractedFeatures` gains the thirteen new fields with rationale; Section 9.2 gains a note that the shipped rule set is signal-derived and broader than the section's illustrative examples, pointing at `classification.ts` as source of truth; a new subsection records the mechanical-vs-classificatory boundary | 2026-07-22 |
+| — | `src/lib/types/artefact.ts` (2GN.17): `ExtractedFeatures` gains 13 fields (⚠️ breaking — new required fields); `src/lib/data/classification.ts` (2GN.17, new): `CLASSIFICATION_RULES`; `tests/fixtures/artefact.ts`'s `mockExtractedFeatures` gained matching defaults | 2026-07-22 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*
