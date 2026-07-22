@@ -268,6 +268,17 @@ export interface NormalisedArtefact {
  * to its source component or decorative layer for the lens and contradiction systems, but the
  * extraction itself is unified. Physical features are observable; their classificatory weight is
  * occluded (doc 05 §1.1, §9.1).
+ *
+ * The geometry-derived fields below (`pointSharpness` through `appliedElementPresent`) were added
+ * alongside `data/classification.ts` (roadmap 2GN.17) once its rules were derived from first
+ * principles against the signals the grammar (`data/grammars/primitives.ts`) actually rolls, rather
+ * than from doc 05 §9.2's illustrative examples — the original boolean/complexity fields alone were
+ * too coarse to carry that rule set (e.g. distinguishing a paring knife from a dagger needs the
+ * edged component's own sharpness and length, not just `hasEdge`). Every new field's exact union
+ * matches a real primitive parameter vocabulary; see `classification.ts`'s module JSDoc for the
+ * signal-to-field mapping. **Boundary**: `portability`/`inspectionDepth` are mechanical (doc 05
+ * §5.2 handling/inspection) and must never be read by a classification rule — `massBand`/`sizeBand`
+ * are the physical-fact equivalents rules should use instead (doc 12 propagation register).
  */
 export interface ExtractedFeatures {
 	// Structural features
@@ -280,6 +291,13 @@ export interface ExtractedFeatures {
 	/** Whether any component comes to a point. */
 	hasPoint: boolean;
 
+	/**
+	 * The sharpness of that point, finer than `hasPoint` (doc 05 §5.3 `elongated.point`). `'none'`
+	 * when `hasPoint` is `false`. Distinguishes a piercing point (awl, spearhead) from a blunt one
+	 * (punch, stylus) and, combined with `hasEdge`, a dagger from a cheese knife.
+	 */
+	pointSharpness: 'none' | 'sharp' | 'blunt';
+
 	/** Whether any component presents a striking/impact surface. */
 	hasImpactSurface: boolean;
 
@@ -288,6 +306,15 @@ export interface ExtractedFeatures {
 
 	/** How open that container is, 0 (sealed) to 1 (fully open). */
 	containerOpenness: number;
+
+	/**
+	 * The raw opening band behind `containerOpenness`, from `hollow-enclosed.opening`
+	 * (wide/narrow/slit/none) or `cylindrical.opening` (open/restricted/closed) — doc 05 §5.3.
+	 * `'none'` when `hasContainer` is `false`. Kept alongside the collapsed float because `'slit'`
+	 * (money-box/rattle) and sealed `'closed'`/`'none'` (votive/funerary) are distinct use-signals a
+	 * single openness number can't separate.
+	 */
+	openingType: 'none' | 'wide' | 'open' | 'narrow' | 'restricted' | 'slit' | 'closed';
 
 	/** Whether the artefact has a fastening mechanism (clasp, pin, hinge). */
 	hasFasteningMechanism: boolean;
@@ -298,6 +325,23 @@ export interface ExtractedFeatures {
 		| 'medium'
 		| 'long';
 
+	/**
+	 * The length band of the EDGED component specifically (doc 05 §5.3 `elongated.length`),
+	 * distinct from `primaryAxisLength` (the whole artefact's main axis) — a short dagger blade
+	 * mounted on a long haft has a short `bladeLengthBand` but a long `primaryAxisLength`. `'none'`
+	 * when `hasEdge` is `false`.
+	 */
+	bladeLengthBand: 'none' | 'short' | 'medium' | 'long';
+
+	/**
+	 * The edged component's cut-vs-thrust geometry, from its `crossSection` + `taper` (doc 05 §5.3):
+	 * flat/rectangular cross-sections read `'cutting'`; diamond/triangular sections with an abrupt
+	 * taper read `'thrusting'`; everything else is `'general'`. `'none'` when `hasEdge` is `false`.
+	 * Captures the historical edged-only-vs-edged-and-pointed sword axis for typology/description
+	 * (roadmap 2GN.40) — no MVP classification rule differentiates tag scores on this field yet.
+	 */
+	bladeProfile: 'none' | 'cutting' | 'thrusting' | 'general';
+
 	/** Whether the artefact reads as something worn on the body. */
 	isWearable: boolean;
 
@@ -307,9 +351,73 @@ export interface ExtractedFeatures {
 	/** How varied the attachment types are — a diversity measure over `AttachmentType`. */
 	attachmentDiversity: number;
 
+	/**
+	 * The perforation vocabulary across `flat-broad` (none/single/multiple) and `disc-form`
+	 * (none/central/off-centre) components (doc 05 §5.3), unioned into one field. A hole signals
+	 * suspension (pendant), hafting/sewing (fitting) or rotation (spindle-whorl) depending on which
+	 * value fires. `'none'` when no perforated component is present.
+	 */
+	perforation: 'none' | 'single' | 'multiple' | 'central' | 'off-centre';
+
+	/**
+	 * Wall thickness across `cylindrical`/`hollow-enclosed` components (doc 05 §5.3). Thin walls
+	 * read fine/display tableware; thick walls read cooking/storage. `'none'` when no walled
+	 * component is present.
+	 */
+	wallThickness: 'none' | 'thin' | 'medium' | 'thick';
+
+	/**
+	 * The `ring-form` primitive's `gap` parameter (doc 05 §5.3): `'closed'` is a finger-ring/torc,
+	 * `'open'`/`'overlapping'` a penannular brooch or split-ring (a fastener as much as an
+	 * ornament). `'none'` when no ring-form component is present.
+	 */
+	ringGap: 'none' | 'closed' | 'open' | 'overlapping';
+
+	/**
+	 * The `sheet-form` primitive's `flexibility` parameter (doc 05 §5.3): rigid reads as a
+	 * fitting/plate/mount, flexible as wrapping/binding/foil. `'none'` when no sheet-form component
+	 * is present.
+	 */
+	sheetFlexibility: 'none' | 'rigid' | 'semi-flexible' | 'flexible';
+
+	/**
+	 * The artefact's mass band, surfaced from `ObjectDimensions.mass` as a classification signal
+	 * (a heavy edge reads axe/adze, not dagger). PHYSICAL fact, unlike `portability` below — see
+	 * this interface's boundary note.
+	 */
+	massBand: 'negligible' | 'light' | 'moderate' | 'heavy' | 'very-heavy';
+
+	/**
+	 * Overall bulk band from `ObjectDimensions.primaryExtent`, distinct from `primaryAxisLength`
+	 * (which measures elongation, not bulk). The PHYSICAL size signal classification rules use for
+	 * "individual, carried-scale item" instead of reading the mechanical `portability` band.
+	 */
+	sizeBand: 'small' | 'medium' | 'large';
+
+	/**
+	 * The `flat-broad` primitive's `curvature` parameter (doc 05 §5.3). A deeply curved broad form
+	 * reads as a scoop/shallow bowl — a container signal outside the hollow primitives. `'none'`
+	 * when no flat-broad component is present.
+	 */
+	curvature: 'none' | 'flat' | 'shallow' | 'deep';
+
+	/**
+	 * The `cylindrical`/`hollow-enclosed` primitives' `base` parameter (doc 05 §5.3): `'pedestal'`
+	 * reads display/ceremonial, `'pointed'` reads amphora-style storage (set in a stand or the
+	 * ground). `'none'` when no such component is present.
+	 */
+	baseType: 'none' | 'flat' | 'rounded' | 'pointed' | 'pedestal';
+
 	// Decorative features
 	/** Total number of decorative layers across the artefact. */
 	decorativeLayerCount: number;
+
+	/**
+	 * Whether any decorative layer's technique falls in the `applied-element` category (inlay,
+	 * overlay, studs, wire-wrapping, gilding — doc 05 §8.2) — an added-embellishment signal
+	 * derivable from layer technique identity alone, unlike `preciousMaterialsInDecoration` below.
+	 */
+	appliedElementPresent: boolean;
 
 	/** Whether any decorative layer carries a motif. */
 	motifPresent: boolean;
@@ -320,7 +428,12 @@ export interface ExtractedFeatures {
 	/** Layering depth × technique variety (doc 05 §9.1). */
 	techniqueComplexity: number;
 
-	/** Whether precious materials appear in the decoration. */
+	/**
+	 * Whether precious materials appear in the decoration. Currently always `false`: decorative
+	 * layer material assignment (roadmap 2GN.33) is unbuilt, so no `DecorativeLayer` carries a
+	 * `material` yet. The classification rules that read this field are authored and dormant,
+	 * ready to fire once 2GN.33 lands (see `classification.ts`).
+	 */
 	preciousMaterialsInDecoration: boolean;
 
 	// Combined
@@ -334,10 +447,18 @@ export interface ExtractedFeatures {
 	overallComplexity: number;
 
 	// Dimensional
-	/** Portability band carried through from the normalised artefact (doc 05 §5.2). */
+	/**
+	 * Portability band carried through from the normalised artefact (doc 05 §5.2). MECHANICAL —
+	 * governs player handling, not classification. No `ClassificationRule` may read this field;
+	 * use `sizeBand`/`massBand` instead (doc 12 propagation register).
+	 */
 	portability: Portability;
 
-	/** Inspection depth carried through from the normalised artefact (doc 05 §5.2). */
+	/**
+	 * Inspection depth carried through from the normalised artefact (doc 05 §5.2). MECHANICAL —
+	 * governs player inspection, not classification. No `ClassificationRule` may read this field
+	 * (doc 12 propagation register).
+	 */
 	inspectionDepth: InspectionDepth;
 }
 
