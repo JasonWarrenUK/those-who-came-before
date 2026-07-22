@@ -853,7 +853,7 @@ Every feature is traceable to its source (which component, which decorative laye
 
 Tags are assigned by rule-based scoring from extracted features. Tags are not mutually exclusive — an object can be `['weapon', 'ritual', 'status']` simultaneously.
 
-> **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the worked rule array below is illustrative, not the shipped rule set. The authoritative, signal-derived rules live in `src/lib/data/classification.ts` — 36 rules spanning edge/point/container/vessel/perforation/ring/sheet/mass/size/complexity/decoration/cross-layer families, each keyed on a signal the grammar actually rolls (see that module's JSDoc for the full derivation).
+> **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the worked rule array below is illustrative, not the shipped rule set. The authoritative, signal-derived rules live in `src/lib/data/classification.ts` — 39 rules spanning edge/point/container/vessel/perforation/ring/sheet/mass/size/complexity/decoration/cross-layer/presence-flag families, each keyed on a signal the grammar actually rolls (see that module's JSDoc for the full derivation).
 
 ```typescript
 // Function tags: what is this object FOR?
