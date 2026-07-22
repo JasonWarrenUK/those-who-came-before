@@ -297,4 +297,28 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		condition: (f) => f.hasContainer && f.decorativeLayerCount >= 2,
 		tags: new Map([['ceremonial', 0.4], ['votive', 0.3], ['elite', 0.3]]),
 	},
+
+	// --- Structural presence flags -------------------------------------------------------------------
+	//
+	// Top-level boolean presence flags on the whole artefact (not a single primitive's parameter),
+	// so they group together here rather than under a primitive family. Appended at the end to keep
+	// the primitive-derived rules above index-stable for the pinned-index tests.
+
+	/** A fastening mechanism (clasp, pin, hinge) is definitionally a fastener: brooch, buckle, latch. */
+	{
+		condition: (f) => f.hasFasteningMechanism,
+		tags: new Map([['fastener', 0.5], ['personal', 0.2]]),
+	},
+
+	/** A striking/impact surface reads hammer, mace, adze-head — percussion, tool first, weapon second. */
+	{
+		condition: (f) => f.hasImpactSurface,
+		tags: new Map([['tool', 0.4], ['weapon', 0.3]]),
+	},
+
+	/** Something worn on the body: pendant, brooch, bracelet — personal adornment. */
+	{
+		condition: (f) => f.isWearable,
+		tags: new Map([['ornament', 0.3], ['personal', 0.3]]),
+	},
 ];

@@ -708,6 +708,36 @@ Deno.test('R34: a container with two or more decorative layers fires', () => {
 	assert(!R34.condition(features({ hasContainer: false, decorativeLayerCount: 2 })));
 });
 
+// --- R35-R37: structural presence flags --------------------------------------------------------------
+
+const R35 = CLASSIFICATION_RULES[36];
+const R36 = CLASSIFICATION_RULES[37];
+const R37 = CLASSIFICATION_RULES[38];
+if (R35.tags.get('fastener') !== 0.5) {
+	throw new Error('CLASSIFICATION_RULES[36] must be the fastening-mechanism rule');
+}
+if (R36.tags.get('tool') !== 0.4 || R36.tags.get('weapon') !== 0.3) {
+	throw new Error('CLASSIFICATION_RULES[37] must be the impact-surface rule');
+}
+if (R37.tags.get('ornament') !== 0.3 || !R37.tags.has('personal')) {
+	throw new Error('CLASSIFICATION_RULES[38] must be the wearable rule');
+}
+
+Deno.test('R35: a fastening mechanism fires fastener; absent does not', () => {
+	assert(R35.condition(features({ hasFasteningMechanism: true })));
+	assert(!R35.condition(features({ hasFasteningMechanism: false })));
+});
+
+Deno.test('R36: an impact surface fires tool/weapon; absent does not', () => {
+	assert(R36.condition(features({ hasImpactSurface: true })));
+	assert(!R36.condition(features({ hasImpactSurface: false })));
+});
+
+Deno.test('R37: a wearable object fires ornament/personal; not-wearable does not', () => {
+	assert(R37.condition(features({ isWearable: true })));
+	assert(!R37.condition(features({ isWearable: false })));
+});
+
 // --- Worked-example integration ---------------------------------------------------------------------
 
 Deno.test('integration: an engraved long bronze blade fires weapon, ritual, ceremonial and elite', () => {
