@@ -28,4 +28,11 @@ export const panels: ExplorerPanel[] = [
 		milestone: 1,
 		status: 'available',
 	},
+	{
+		id: 'structure',
+		label: 'Structure Viewer',
+		path: '/dev/explorer/structure',
+		milestone: 2,
+		status: 'available',
+	},
 ];
