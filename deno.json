@@ -4,7 +4,11 @@
 		"build": "deno run -A npm:vite build",
 		"preview": "deno run -A npm:vite preview",
 		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json",
-		"test": "deno test --allow-env"
+		"test": "deno test --allow-env",
+		"sample:artefact": "deno run scripts/dev/sample-artefact.ts",
+		"sample:materials": "deno run scripts/dev/sample-materials.ts",
+		"sample:decoration": "deno run scripts/dev/sample-decoration.ts",
+		"sample:features": "deno run scripts/dev/sample-features.ts"
 	},
 	"compilerOptions": {
 		"strict": true,
