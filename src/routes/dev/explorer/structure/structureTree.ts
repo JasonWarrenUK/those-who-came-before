@@ -7,7 +7,7 @@
  * of its own and this module stays unit-testable without a DOM.
  */
 
-import { describeProse } from '../../../../../scripts/dev/shared.ts';
+import { describeProse } from '../../../../lib/engine/generation/prose.ts';
 import type { AttachmentType } from '../../../../lib/types/grammar.ts';
 import type { NormalisedArtefact, NormalisedComponent } from '../../../../lib/types/artefact.ts';
 
