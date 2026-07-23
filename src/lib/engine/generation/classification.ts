@@ -41,9 +41,12 @@
  *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
  *   lookups exist (roadmap 2GN.34).
  *
- * Unrecognised or absent parameter values degrade gracefully to each primitive's first-listed BNF
- * value rather than throwing, mirroring `bandExtentCm` in `grammar.ts` — the primitive vocabulary
- * may grow, and extraction must stay total.
+ * Unrecognised or absent parameter values in band-valued fields degrade gracefully to each
+ * primitive's first-listed BNF value rather than throwing, mirroring `bandExtentCm` in
+ * `grammar.ts` — the primitive vocabulary may grow, and extraction must stay total. The presence
+ * flags sit deliberately outside this contract: their anatomy checks read strict equality and
+ * stay `false` on a missing or unrecognised signal, so degradation can never fabricate an impact
+ * surface or a pin.
  *
  * `classifyArtefact` (roadmap 2GN.20) is the downstream consumer; material-derived and
  * decorative-motif fields complete the doc 05 stage-8 contract later (roadmap 2GN.27, 2GN.34).
@@ -414,7 +417,9 @@ export function extractFeatures(
 	tallyLayers(decorativeLayers, 1, tally);
 	const motifDensity = tally.layerCount > 0 ? tally.motifCount / tally.layerCount : 0;
 
-	// Combined complexity (doc 05 §9.1's stated compositions, MVP-provisional formulas).
+	// Combined complexity (doc 05 §9.1's stated compositions, MVP-provisional formulas). The
+	// overall score reads doc 05's "structural + decorative" as functional + decorative — §9.1
+	// names no separate structural score (doc 12 §2.20).
 	const functionalComplexity = Number(hasEdge) + Number(hasPoint) + Number(hasImpactSurface) +
 		Number(hasContainer);
 	const decorativeComplexity = tally.layerCount + tally.techniques.size + motifDensity;

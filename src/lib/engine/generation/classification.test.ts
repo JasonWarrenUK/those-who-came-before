@@ -348,6 +348,19 @@ Deno.test('extractFeatures: hasImpactSurface — untapered bar-form or thick dis
 	assertEquals(impactOf([component('c0', 'elongated', { point: 'blunt' })]), false);
 });
 
+Deno.test('extractFeatures: presence flags never degrade — unreadable signals stay false', () => {
+	// Band-valued fields degrade to first-listed BNF values, but the presence flags read strict
+	// equality: an absent or unrecognised `taper` must not fabricate a striking face (the
+	// degraded value would be 'none', which IS the impact anatomy).
+	const absent = extractFeatures(artefactOf([component('c0', 'bar-form')]));
+	const unrecognised = extractFeatures(
+		artefactOf([component('c0', 'bar-form', { taper: 'corkscrew' })]),
+	);
+
+	assertEquals(absent.hasImpactSurface, false);
+	assertEquals(unrecognised.hasImpactSurface, false);
+});
+
 // --- hasFasteningMechanism (interviewed derivation) ------------------------------------------------------------
 
 Deno.test('extractFeatures: fastening — pin-on-hoop anatomy fires at body scale', () => {

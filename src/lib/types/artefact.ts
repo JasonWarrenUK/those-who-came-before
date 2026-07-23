@@ -450,7 +450,10 @@ export interface ExtractedFeatures {
 	/** Layer count + technique variety + motif density (doc 05 §9.1). */
 	decorativeComplexity: number;
 
-	/** Structural + decorative complexity combined (doc 05 §9.1). */
+	/**
+	 * Functional + decorative complexity combined — the implementation's reading of doc 05 §9.1's
+	 * "structural + decorative", which names no separate structural score (doc 12 §2.20).
+	 */
 	overallComplexity: number;
 
 	// Dimensional
