@@ -64,8 +64,8 @@ import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
  * `primaryAxisLength` band edges over `dimensions.primaryExtent`, at the midpoints of
  * `grammar.ts`'s `SHORT_MEDIUM_LONG_CM` table (short 4cm / medium 14cm / long 40cm).
  */
-const AXIS_SHORT_MAX_CM = 8;
-const AXIS_MEDIUM_MAX_CM = 25;
+const AXIS_SHORT_MAX_CM = 9;
+const AXIS_MEDIUM_MAX_CM = 27;
 
 /**
  * `sizeBand` edges over `dimensions.primaryExtent`, at the midpoints of `grammar.ts`'s
