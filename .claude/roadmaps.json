@@ -766,7 +766,7 @@
 					{
 						"id": "2GN.58",
 						"description": "Explorer: plausibility panel — generate N structures, show pass/fail with rejection reasons, running rejection rate",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.12"
 						]
