@@ -19,6 +19,7 @@
  * caveat.
  */
 
+import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import { expandDecoration } from '../../src/lib/engine/generation/decoration.ts';
 import {
@@ -130,7 +131,9 @@ function printChart(sample: (typeof samples)[number]): void {
 	const { tags, contributions } = sample;
 
 	if (tags.size === 0) {
-		console.log('  no rules fired — the classifier returns an empty map (honest silence)');
+		console.log(
+			paint('  no rules fired — the classifier returns an empty map (honest silence)', 'warn'),
+		);
 		return;
 	}
 
@@ -143,14 +146,15 @@ function printChart(sample: (typeof samples)[number]): void {
 	for (const [name, vocabulary] of groups) {
 		const scored = scoredGroup(vocabulary, tags);
 		if (scored.length === 0) continue;
-		console.log(`  ${name}`);
-		for (const [tag, score] of scored) {
+		console.log(`  ${paint(name, 'heading')}`);
+		scored.forEach(([tag, score], rank) => {
+			// The group leader's bar carries the lead tone; the rest share the base bar colour.
 			console.log(
-				`    ${tag.padEnd(LABEL_WIDTH)} ${bar(score, max)}  ${score.toFixed(2)}  ${
-					breakdown(contributions.get(tag) ?? [])
-				}`,
+				`    ${tag.padEnd(LABEL_WIDTH)} ${
+					paint(bar(score, max), rank === 0 ? 'barLead' : 'bar')
+				}  ${score.toFixed(2)}  ${paint(breakdown(contributions.get(tag) ?? []), 'dim')}`,
 			);
-		}
+		});
 	}
 
 	console.log();
@@ -176,7 +180,7 @@ function printReading(tags: Map<FunctionTag | ContextTag, number>): void {
 			? ' — the evidence overlaps and the classifier leaves that unresolved'
 			: ' — a clear lead, though the map stays unresolved by design';
 	}
-	console.log(`  reading      ${sentence}`);
+	console.log(`  ${paint('reading'.padEnd(LABEL_WIDTH), 'heading')}${sentence}`);
 }
 
 /** Tags with no evidence at all — absence provably means zero (doc 12 §2.21). */
@@ -184,7 +188,11 @@ function printSilence(tags: Map<FunctionTag | ContextTag, number>): void {
 	const silent = (vocabulary: readonly (FunctionTag | ContextTag)[]) =>
 		vocabulary.filter((tag) => !tags.has(tag)).join(', ');
 	const parts = [silent(FUNCTION_TAGS), silent(CONTEXT_TAGS)].filter((part) => part !== '');
-	if (parts.length > 0) console.log(`  no evidence  ${parts.join(' · ')}`);
+	if (parts.length > 0) {
+		console.log(
+			`  ${paint('no evidence'.padEnd(LABEL_WIDTH), 'heading')}${paint(parts.join(' · '), 'dim')}`,
+		);
+	}
 }
 
 // --- Main ------------------------------------------------------------------------------------------
@@ -197,8 +205,10 @@ if (options.json) {
 		printAnatomy(sample.artefact, sample.seed);
 		console.log();
 		console.log(
-			`${sample.seed} scores with the ${CLASSIFICATION_RULES.length} shipped rules — ` +
-				`${sample.fired.length} fired${bare ? ' (--bare: decoration skipped)' : ''}:`,
+			`${
+				paint(sample.seed, 'seed')
+			} scores with the ${CLASSIFICATION_RULES.length} shipped rules — ` +
+				`${sample.fired.length} fired${bare ? paint(' (--bare: decoration skipped)', 'dim') : ''}:`,
 		);
 		console.log();
 		printChart(sample);

@@ -13,10 +13,12 @@
  * visible at a glance; loose (unattached) parts are flagged explicitly. `--json` is the escape
  * hatch for the full raw data.
  *
- * Everything here is pure engine plumbing: no framework imports, no permissions needed —
- * `deno run scripts/dev/sample-*.ts` works bare.
+ * Everything here is pure engine plumbing: no framework imports, no permissions strictly needed —
+ * `deno run scripts/dev/sample-*.ts` works bare, printing plain text. The `deno task` wrappers
+ * grant `--allow-run=gum`, which lights up the gum styling in `./gum.ts`.
  */
 
+import { banner, paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../src/lib/engine/generation/grammar.ts';
 import { CORE_GRAMMAR_RULES } from '../../src/lib/data/grammars/core.ts';
@@ -249,7 +251,9 @@ export interface AnatomyAnnotations {
 /** One `c0 bar-form  prose` node line. */
 function nodeText(component: NormalisedComponent, annotations: AnatomyAnnotations): string {
 	const suffix = annotations.suffix?.(component) ?? '';
-	return `${shortId(component)} ${component.primitiveType}  ${describeProse(component)}${suffix}`;
+	return `${paint(shortId(component), 'id')} ${paint(component.primitiveType, 'primitive')}  ${
+		describeProse(component)
+	}${suffix}`;
 }
 
 /**
@@ -263,11 +267,10 @@ export function printAnatomy(
 ): void {
 	const { components, attachments, dimensions } = artefact;
 
-	console.log(
-		`${seed} · ${components.length} part${components.length === 1 ? '' : 's'} · ` +
-			`${dimensions.primaryExtent}×${dimensions.secondaryExtent}cm · ${dimensions.mass} · ` +
-			`${artefact.portability} · inspect: ${artefact.inspectionDepth}`,
-	);
+	const stats = `· ${components.length} part${components.length === 1 ? '' : 's'} · ` +
+		`${dimensions.primaryExtent}×${dimensions.secondaryExtent}cm · ${dimensions.mass} · ` +
+		`${artefact.portability} · inspect: ${artefact.inspectionDepth}`;
+	console.log(banner(`${paint(seed, 'seed')} ${paint(stats, 'dim')}`));
 	console.log();
 
 	const byId = new Map(components.map((component) => [component.id, component]));
@@ -298,9 +301,11 @@ export function printAnatomy(
 		edges.forEach((edge, index) => {
 			const last = index === edges.length - 1;
 			console.log(
-				`${prefix}${last ? '└──' : '├──'} ${edge.type} ── ${nodeText(edge.to, annotations)}`,
+				`${prefix}${paint(last ? '└──' : '├──', 'dim')} ${paint(edge.type, 'joint')} ${
+					paint('──', 'dim')
+				} ${nodeText(edge.to, annotations)}`,
 			);
-			renderSubtree(edge.to, prefix + (last ? '    ' : '│   '));
+			renderSubtree(edge.to, prefix + (last ? '    ' : paint('│', 'dim') + '   '));
 		});
 	}
 
@@ -315,7 +320,7 @@ export function printAnatomy(
 	const loose = components.filter((component) => !attached.has(component.id));
 	if (loose.length > 0 && attached.size > 0) console.log();
 	for (const component of loose) {
-		console.log(`${nodeText(component, annotations)}   (loose)`);
+		console.log(`${nodeText(component, annotations)}   ${paint('(loose)', 'warn')}`);
 		renderExtras(component, '');
 	}
 }

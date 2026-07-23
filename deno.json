@@ -5,11 +5,12 @@
 		"preview": "deno run -A npm:vite preview",
 		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json",
 		"test": "deno test --allow-env",
-		"sample:artefact": "deno run -q scripts/dev/sample-artefact.ts",
-		"sample:materials": "deno run -q scripts/dev/sample-materials.ts",
-		"sample:decoration": "deno run -q scripts/dev/sample-decoration.ts",
-		"sample:features": "deno run -q scripts/dev/sample-features.ts",
-		"sample:classification": "deno run -q scripts/dev/sample-classification.ts"
+		"sample": "deno run -q --allow-run=gum,deno scripts/dev/sample-menu.ts",
+		"sample:artefact": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-artefact.ts",
+		"sample:materials": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-materials.ts",
+		"sample:decoration": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-decoration.ts",
+		"sample:features": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-features.ts",
+		"sample:classification": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-classification.ts"
 	},
 	"compilerOptions": {
 		"strict": true,

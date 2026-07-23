@@ -11,6 +11,8 @@ real world state arrives in Milestone 3.
 ## Tasks
 
 ```bash
+deno task sample                      # gum menu over the samplers below; extra flags forward
+                                      # to whichever one you pick
 deno task sample:artefact             # anatomy tree + plausibility verdict (2GN.3–12)
 deno task sample:materials            # anatomy tree with each part's material pick (2GN.22–25)
 deno task sample:decoration           # anatomy tree with layers nested per part (2GN.28–29)
@@ -25,6 +27,14 @@ attachments as branches, unattached parts flagged `(loose)`. The features readin
 collapsed value with the component it came from (re-derived via the doc 12 §2.20 policies) and
 explains why gated presence flags did or didn't fire. `--json` is the escape hatch for full raw data
 everywhere.
+
+Output is colourised through [gum](https://github.com/charmbracelet/gum) (`brew install gum`): part
+ids, primitives, materials, layers and verdicts each carry a fixed tone, headlines sit in a bordered
+card, and chart leaders are highlighted. `scripts/dev/gum.ts` resolves each tone via `gum style`
+once and caches the ANSI codes, so styling costs a handful of gum spawns per run. It degrades to
+plain text when gum is missing, stdout is piped or `NO_COLOR` is set — set `CLICOLOR_FORCE=1` to
+keep colour when piping (e.g. into `less -R`). The `deno task` wrappers grant `--allow-run=gum`; a
+bare `deno run` still works, printing plain.
 
 Every task accepts:
 

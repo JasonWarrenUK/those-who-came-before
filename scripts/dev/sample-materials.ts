@@ -7,6 +7,7 @@
  * Run via `deno task sample:materials` — see `scripts/dev/shared.ts` for the fixture-world caveat.
  */
 
+import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import { assignMaterial } from '../../src/lib/engine/generation/materials.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
@@ -98,7 +99,9 @@ if (options.json) {
 	const materialOf =
 		(assignments: Map<string, { displayName: string }>) => (component: NormalisedComponent) => {
 			const material = assignments.get(component.id);
-			return material === undefined ? '' : `   ⟶ ${material.displayName.toLowerCase()}`;
+			return material === undefined
+				? ''
+				: `   ${paint('⟶', 'dim')} ${paint(material.displayName.toLowerCase(), 'material')}`;
 		};
 
 	for (const { seed, artefact, assignments } of samples) {
@@ -106,13 +109,18 @@ if (options.json) {
 		printAnatomy(artefact, seed, { suffix: materialOf(assignments) });
 	}
 	if (distribution) {
-		console.log(`\ndistribution over ${draws} redraws (first sample):`);
+		console.log(`\n${paint(`distribution over ${draws} redraws (first sample):`, 'heading')}`);
 		for (const [id, tally] of distribution) {
 			const ranked = [...tally.entries()].sort((a, b) => b[1] - a[1]);
+			// The favourite pick carries the material tone; the also-rans stay plain.
 			const summary = ranked
-				.map(([material, n]) => `${material} ${(100 * n / draws).toFixed(1)}%`)
+				.map(([material, n], rank) =>
+					`${rank === 0 ? paint(material, 'material') : material} ${
+						paint(`${(100 * n / draws).toFixed(1)}%`, 'dim')
+					}`
+				)
 				.join(', ');
-			console.log(`  ${id}: ${summary}`);
+			console.log(`  ${paint(id, 'id')}: ${summary}`);
 		}
 	}
 	console.log();

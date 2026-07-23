@@ -12,6 +12,7 @@
  * Run via `deno task sample:features` — see `scripts/dev/shared.ts` for the fixture-world caveat.
  */
 
+import { glyphs, paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import { expandDecoration } from '../../src/lib/engine/generation/decoration.ts';
 import { extractFeatures } from '../../src/lib/engine/generation/classification.ts';
@@ -123,20 +124,30 @@ function from(component: NormalisedComponent | undefined): string {
 const LABEL_WIDTH = 12;
 const VALUE_WIDTH = 30;
 
-/** Prints one `label  value  ← source (note)` row; annotation wraps to its own line if long. */
+/** The tone an annotation deserves: policy drift screams, gate blocks warn, sources stay quiet. */
+function annotationTone(annotation: string): 'bad' | 'warn' | 'dim' {
+	if (annotation.includes('← ?')) return 'bad';
+	return annotation.includes('gate blocks') ? 'warn' : 'dim';
+}
+
+/**
+ * Prints one `label  value  ← source (note)` row; annotation wraps to its own line if long.
+ * Layout is measured on the plain strings; tones apply only at print time so padding stays true.
+ */
 function row(label: string, value: string, annotation = ''): void {
-	const lead = `  ${label.padEnd(LABEL_WIDTH)}`;
+	const lead = `  ${paint(label.padEnd(LABEL_WIDTH), 'heading')}`;
 	if (annotation === '') {
-		console.log(`${lead}${value}`);
+		console.log(`${lead}${glyphs(value)}`);
 		return;
 	}
+	const note = paint(annotation, annotationTone(annotation));
 	const padded = value.padEnd(VALUE_WIDTH);
-	const oneLine = `${lead}${padded} ${annotation}`;
+	const oneLine = `  ${label.padEnd(LABEL_WIDTH)}${padded} ${annotation}`;
 	if (oneLine.length <= 100) {
-		console.log(oneLine);
+		console.log(`${lead}${glyphs(padded)} ${note}`);
 	} else {
-		console.log(`${lead}${value}`);
-		console.log(`  ${' '.repeat(LABEL_WIDTH)}${' '.repeat(VALUE_WIDTH)} ${annotation}`);
+		console.log(`${lead}${glyphs(value)}`);
+		console.log(`  ${' '.repeat(LABEL_WIDTH)}${' '.repeat(VALUE_WIDTH)} ${note}`);
 	}
 }
 
@@ -345,7 +356,9 @@ if (options.json) {
 		printAnatomy(artefact, seed);
 		console.log();
 		console.log(
-			`${seed} reads to the classifier as${bare ? ' (--bare: decoration skipped)' : ''}:`,
+			`${paint(seed, 'seed')} reads to the classifier as${
+				bare ? paint(' (--bare: decoration skipped)', 'dim') : ''
+			}:`,
 		);
 		console.log();
 		printReading(artefact, features);
@@ -355,7 +368,10 @@ if (options.json) {
 				// Sublayers make the extracted count exceed the top-level count; both are real.
 				console.log();
 				console.log(
-					`  (${layers.length} top-level layers expand to ${features.decorativeLayerCount} including sublayers)`,
+					paint(
+						`  (${layers.length} top-level layers expand to ${features.decorativeLayerCount} including sublayers)`,
+						'dim',
+					),
 				);
 			}
 		}
