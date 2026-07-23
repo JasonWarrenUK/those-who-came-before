@@ -1,7 +1,10 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
 import { classifyArtefact, extractFeatures } from './classification.ts';
-import { mockNormalisedArtefact } from '../../../../tests/fixtures/artefact.ts';
+import {
+	mockNormalisedArtefact,
+	neutralExtractedFeatures as features,
+} from '../../../../tests/fixtures/artefact.ts';
 import type {
 	ExtractedFeatures,
 	NormalisedArtefact,
@@ -567,51 +570,6 @@ Deno.test('extractFeatures: unrecognised parameter values degrade to first-liste
 });
 
 // --- classifyArtefact (2GN.20) ----------------------------------------------------------------------
-
-/**
- * A neutral baseline `ExtractedFeatures` for driving fixture rules directly — every boolean
- * `false`, every count/complexity `0`, banded fields at `'none'`. Mirrors the sibling builder in
- * `data/classification.test.ts` rather than exporting the private fixture default.
- */
-function features(overrides: Partial<ExtractedFeatures> = {}): ExtractedFeatures {
-	const defaults: ExtractedFeatures = {
-		hasEdge: false,
-		edgeCount: 0,
-		hasPoint: false,
-		pointSharpness: 'none',
-		hasImpactSurface: false,
-		hasContainer: false,
-		containerOpenness: 0,
-		openingType: 'none',
-		hasFasteningMechanism: false,
-		primaryAxisLength: 'medium',
-		bladeLengthBand: 'none',
-		bladeProfile: 'none',
-		isWearable: false,
-		partCount: 0,
-		attachmentDiversity: 0,
-		perforation: 'none',
-		wallThickness: 'none',
-		ringGap: 'none',
-		sheetFlexibility: 'none',
-		massBand: 'moderate',
-		sizeBand: 'medium',
-		curvature: 'none',
-		baseType: 'none',
-		decorativeLayerCount: 0,
-		appliedElementPresent: false,
-		motifPresent: false,
-		motifCulturalOrigins: [],
-		techniqueComplexity: 0,
-		preciousMaterialsInDecoration: false,
-		functionalComplexity: 0,
-		decorativeComplexity: 0,
-		overallComplexity: 0,
-		portability: 'one-hand',
-		inspectionDepth: 'full',
-	};
-	return { ...defaults, ...overrides };
-}
 
 /**
  * A fixture rule from a condition and tag/weight pairs. Weights in these tests are exact binary
