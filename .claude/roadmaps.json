@@ -411,7 +411,7 @@
 					},
 					{
 						"id": "2GN.19",
-						"description": "`engine/generation/classification.ts` — `extractFeatures(artefact): ExtractedFeatures` — unified feature extraction from components, now covering the full geometry-derived `ExtractedFeatures` contract 2GN.17 authored rules against (structural fields plus `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent`; 2GN.27 and 2GN.34 still complete the doc 05 stage-8 contract with material and decorative-motif fields)",
+						"description": "`engine/generation/classification.ts` — `extractFeatures(artefact, decorativeLayers = []): ExtractedFeatures` — unified feature extraction from components, now covering the full geometry-derived `ExtractedFeatures` contract 2GN.17 authored rules against (structural fields plus `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent`; 2GN.27 and 2GN.34 still complete the doc 05 stage-8 contract with material and decorative-motif fields)",
 						"status": "done",
 						"dependsOn": [
 							"2GN.12"
