@@ -16,6 +16,8 @@ deno task sample:materials            # anatomy tree with each part's material p
 deno task sample:decoration           # anatomy tree with layers nested per part (2GN.28–29)
 deno task sample:features             # annotated classifier reading: each value with its
                                       # source component and gate explanations (2GN.17/19)
+deno task sample:classification       # scored tag map as a bar chart with per-rule
+                                      # contributions and a margin reading (2GN.20)
 ```
 
 Structural output renders as an anatomy tree: short part ids (`c0`), prose parameter fragments,
@@ -34,10 +36,11 @@ Every task accepts:
 
 Script-specific flags:
 
-| Task               | Flag          | Meaning                                                                                                                                            |
-| ------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample:materials` | `--draws <n>` | Redraw the first sample's assignments _n_ times and print the per-component pick distribution — affinity/scarcity tilt becomes visible around 100+ |
-| `sample:features`  | `--bare`      | Skip decorative expansion, extract from the bare structure                                                                                         |
+| Task                    | Flag          | Meaning                                                                                                                                            |
+| ----------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample:materials`      | `--draws <n>` | Redraw the first sample's assignments _n_ times and print the per-component pick distribution — affinity/scarcity tilt becomes visible around 100+ |
+| `sample:features`       | `--bare`      | Skip decorative expansion, extract from the bare structure                                                                                         |
+| `sample:classification` | `--bare`      | Skip decorative expansion, classify the bare structure                                                                                             |
 
 ## Examples
 

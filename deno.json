@@ -8,7 +8,8 @@
 		"sample:artefact": "deno run -q scripts/dev/sample-artefact.ts",
 		"sample:materials": "deno run -q scripts/dev/sample-materials.ts",
 		"sample:decoration": "deno run -q scripts/dev/sample-decoration.ts",
-		"sample:features": "deno run -q scripts/dev/sample-features.ts"
+		"sample:features": "deno run -q scripts/dev/sample-features.ts",
+		"sample:classification": "deno run -q scripts/dev/sample-classification.ts"
 	},
 	"compilerOptions": {
 		"strict": true,
