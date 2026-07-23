@@ -1,6 +1,6 @@
 /**
  * Samples structural generation (roadmap 2GN.3–2GN.12): grammar expansion → normalisation →
- * plausibility, printing each artefact's components, attachments, dimensions and verdict.
+ * plausibility, rendering each artefact as an anatomy tree with a verdict line.
  *
  * Run via `deno task sample:artefact` — see `scripts/dev/shared.ts` for the fixture-world caveat.
  */
@@ -8,10 +8,9 @@
 import { checkPlausibility } from '../../src/lib/engine/generation/plausibility.ts';
 import {
 	generateArtefact,
-	heading,
 	jsonReplacer,
 	parseSampleOptions,
-	printStructure,
+	printAnatomy,
 	sampleSeed,
 	sampleWorld,
 } from './shared.ts';
@@ -37,12 +36,13 @@ if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
 	for (const { seed, artefact, plausibility } of samples) {
-		heading(`artefact ${artefact.id} (seed: ${seed})`);
-		printStructure(artefact);
+		console.log();
+		printAnatomy(artefact, seed);
+		console.log();
 		if (plausibility.valid) {
-			console.log('plausibility: ✓ valid');
+			console.log('plausibility ✓ valid');
 		} else {
-			console.log(`plausibility: ✗ ${plausibility.failures.length} failure(s)`);
+			console.log(`plausibility ✗ ${plausibility.failures.length} failure(s)`);
 			for (const failure of plausibility.failures) {
 				console.log(`  ✗ ${failure}`);
 			}

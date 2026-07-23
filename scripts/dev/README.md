@@ -11,11 +11,18 @@ real world state arrives in Milestone 3.
 ## Tasks
 
 ```bash
-deno task sample:artefact             # structure: expand → normalise → plausibility (2GN.3–12)
-deno task sample:materials            # per-component material assignment (2GN.22–25)
-deno task sample:decoration           # decorative layer expansion (2GN.28–29)
-deno task sample:features             # the full ExtractedFeatures contract (2GN.17/19)
+deno task sample:artefact             # anatomy tree + plausibility verdict (2GN.3–12)
+deno task sample:materials            # anatomy tree with each part's material pick (2GN.22–25)
+deno task sample:decoration           # anatomy tree with layers nested per part (2GN.28–29)
+deno task sample:features             # annotated classifier reading: each value with its
+                                      # source component and gate explanations (2GN.17/19)
 ```
+
+Structural output renders as an anatomy tree: short part ids (`c0`), prose parameter fragments,
+attachments as branches, unattached parts flagged `(loose)`. The features reading annotates every
+collapsed value with the component it came from (re-derived via the doc 12 §2.20 policies) and
+explains why gated presence flags did or didn't fire. `--json` is the escape hatch for full raw data
+everywhere.
 
 Every task accepts:
 
