@@ -1,10 +1,20 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
-import { extractFeatures } from './classification.ts';
-import { mockNormalisedArtefact } from '../../../../tests/fixtures/artefact.ts';
-import type { NormalisedArtefact, NormalisedComponent } from '../../types/artefact.ts';
+import { classifyArtefact, extractFeatures } from './classification.ts';
+import {
+	mockNormalisedArtefact,
+	neutralExtractedFeatures as features,
+} from '../../../../tests/fixtures/artefact.ts';
+import type {
+	ExtractedFeatures,
+	NormalisedArtefact,
+	NormalisedComponent,
+} from '../../types/artefact.ts';
 import type { AttachmentType } from '../../types/grammar.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
+import type { ClassificationRule, ContextTag, FunctionTag } from '../../types/tags.ts';
+import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../types/tags.ts';
+import { CLASSIFICATION_RULES } from '../../data/classification.ts';
 
 /** Builds a component of a given primitive with string properties, distinguishable by id. */
 function component(
@@ -557,4 +567,123 @@ Deno.test('extractFeatures: unrecognised parameter values degrade to first-liste
 	assertEquals(features.openingType, 'wide'); // hollow-enclosed's first-listed opening.
 	assertEquals(features.wallThickness, 'thin');
 	assertEquals(features.ringGap, 'closed');
+});
+
+// --- classifyArtefact (2GN.20) ----------------------------------------------------------------------
+
+/**
+ * A fixture rule from a condition and tag/weight pairs. Weights in these tests are exact binary
+ * fractions (0.25, 0.5, 0.75) so plain-sum assertions need no floating-point tolerance.
+ */
+function rule(
+	condition: (f: ExtractedFeatures) => boolean,
+	tags: [FunctionTag | ContextTag, number][],
+): ClassificationRule {
+	return { condition, tags: new Map(tags) };
+}
+
+Deno.test('classifyArtefact: rules firing on the same tag sum their weights', () => {
+	const scored = classifyArtefact(features({ hasEdge: true }), [
+		rule((f) => f.hasEdge, [['weapon', 0.5], ['tool', 0.25]]),
+		rule((f) => f.hasEdge, [['weapon', 0.25]]),
+	]);
+
+	assertEquals(scored.get('weapon'), 0.75);
+	assertEquals(scored.get('tool'), 0.25);
+});
+
+Deno.test('classifyArtefact: sums are unbounded — accumulated evidence may exceed 1', () => {
+	const scored = classifyArtefact(features({ hasEdge: true }), [
+		rule((f) => f.hasEdge, [['weapon', 0.75]]),
+		rule((f) => f.hasEdge, [['weapon', 0.5]]),
+	]);
+
+	assertEquals(scored.get('weapon'), 1.25);
+});
+
+Deno.test('classifyArtefact: a non-matching rule contributes nothing', () => {
+	const scored = classifyArtefact(features({ hasEdge: true }), [
+		rule((f) => f.hasEdge, [['weapon', 0.5]]),
+		rule((f) => f.hasContainer, [['container', 0.75], ['domestic', 0.5]]),
+	]);
+
+	assertEquals(scored.get('weapon'), 0.5);
+	assertEquals(scored.get('container'), undefined);
+	assertEquals(scored.get('domestic'), undefined);
+	assertEquals(scored.size, 1);
+});
+
+Deno.test('classifyArtefact: zero matching rules give an empty map, not fabricated zeros', () => {
+	const scored = classifyArtefact(features(), [
+		rule((f) => f.hasEdge, [['weapon', 0.5]]),
+		rule((f) => f.hasContainer, [['container', 0.75]]),
+	]);
+
+	assertEquals(scored.size, 0);
+});
+
+Deno.test('classifyArtefact: absence reads as zero via the ?? 0 convention', () => {
+	const scored = classifyArtefact(features({ hasEdge: true }), [
+		rule((f) => f.hasEdge, [['weapon', 0.5]]),
+	]);
+
+	assertEquals(scored.get('ritual') ?? 0, 0);
+});
+
+Deno.test('classifyArtefact: iteration order is canonical — function tags before context tags, vocabulary order within', () => {
+	// One rule per tag, deliberately supplied in reverse-canonical order.
+	const everyTag = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+	const reversed = [...everyTag].reverse().map((tag) => rule(() => true, [[tag, 0.5]]));
+
+	const scored = classifyArtefact(features(), reversed);
+
+	assertEquals([...scored.keys()], everyTag);
+});
+
+Deno.test('classifyArtefact: reordering the rule array never changes the serialised map', () => {
+	const rules = [
+		rule((f) => f.hasEdge, [['weapon', 0.5], ['ceremonial', 0.25]]),
+		rule((f) => f.decorativeComplexity > 0, [['elite', 0.5], ['ornament', 0.25]]),
+		rule((f) => f.hasEdge, [['ritual', 0.75]]),
+	];
+	const input = features({ hasEdge: true, decorativeComplexity: 1 });
+
+	const forward = classifyArtefact(input, rules);
+	const backward = classifyArtefact(input, [...rules].reverse());
+
+	assertEquals([...forward.entries()], [...backward.entries()]);
+});
+
+Deno.test('classifyArtefact: pure — same input twice gives equal output, features unmutated', () => {
+	const input = features({ hasEdge: true });
+	const snapshot = structuredClone(input);
+	const rules = [rule((f) => f.hasEdge, [['weapon', 0.5]])];
+
+	const first = classifyArtefact(input, rules);
+	const second = classifyArtefact(input, rules);
+
+	assertEquals([...first.entries()], [...second.entries()]);
+	assertEquals(input, snapshot);
+});
+
+Deno.test('integration: the real rules score the engraved long blade on weapon, ritual, ceremonial and elite', () => {
+	// Same worked example the rule suite pins at the fire/no-fire level (doc 05 §9.2's closing claim).
+	const engravedBlade = features({
+		hasEdge: true,
+		primaryAxisLength: 'long',
+		bladeLengthBand: 'long',
+		pointSharpness: 'sharp',
+		decorativeLayerCount: 3,
+	});
+
+	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES);
+
+	for (const tag of ['weapon', 'ritual', 'ceremonial', 'elite'] as const) {
+		assert((scored.get(tag) ?? 0) > 0, `${tag} should accumulate positive evidence`);
+	}
+
+	// The overlap is deliberately unresolved (doc 05 §9.2) — and the map comes back canonical.
+	const everyTag = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+	const positions = [...scored.keys()].map((tag) => everyTag.indexOf(tag));
+	assertEquals([...positions].sort((a, b) => a - b), positions);
 });

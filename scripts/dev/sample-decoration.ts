@@ -6,6 +6,7 @@
  * Run via `deno task sample:decoration` — see `scripts/dev/shared.ts` for the fixture-world caveat.
  */
 
+import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import { expandDecoration } from '../../src/lib/engine/generation/decoration.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
@@ -50,8 +51,8 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 
 /** Flattens one layer and its sublayers into indented `✦ technique` lines. */
 function layerLines(layer: DecorativeLayer, depth: number, into: string[]): void {
-	const motif = layer.motifRef === undefined ? '' : ` (${layer.motifRef})`;
-	into.push(`${'  '.repeat(depth)}✦ ${layer.technique}${motif}`);
+	const motif = layer.motifRef === undefined ? '' : ` ${paint(`(${layer.motifRef})`, 'dim')}`;
+	into.push(`${'  '.repeat(depth)}${paint(`✦ ${layer.technique}`, 'layer')}${motif}`);
 	for (const sublayer of layer.sublayers) {
 		layerLines(sublayer, depth + 1, into);
 	}
@@ -74,8 +75,10 @@ if (options.json) {
 		console.log();
 		console.log(
 			layers.length === 0
-				? 'no decoration (this seed rolled an undecorated artefact)'
-				: `${layers.length} layer${layers.length === 1 ? '' : 's'} in total`,
+				? paint('no decoration (this seed rolled an undecorated artefact)', 'warn')
+				: `${paint(String(layers.length), 'layer')} layer${
+					layers.length === 1 ? '' : 's'
+				} in total`,
 		);
 	}
 	console.log();

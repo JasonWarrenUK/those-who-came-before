@@ -5,6 +5,7 @@
  * Run via `deno task sample:artefact` — see `scripts/dev/shared.ts` for the fixture-world caveat.
  */
 
+import { paint } from './gum.ts';
 import { checkPlausibility } from '../../src/lib/engine/generation/plausibility.ts';
 import {
 	generateArtefact,
@@ -40,11 +41,15 @@ if (options.json) {
 		printAnatomy(artefact, seed);
 		console.log();
 		if (plausibility.valid) {
-			console.log('plausibility ✓ valid');
+			console.log(`${paint('plausibility', 'heading')} ${paint('✓ valid', 'good')}`);
 		} else {
-			console.log(`plausibility ✗ ${plausibility.failures.length} failure(s)`);
+			console.log(
+				`${paint('plausibility', 'heading')} ${
+					paint(`✗ ${plausibility.failures.length} failure(s)`, 'bad')
+				}`,
+			);
 			for (const failure of plausibility.failures) {
-				console.log(`  ✗ ${failure}`);
+				console.log(`  ${paint('✗', 'bad')} ${failure}`);
 			}
 		}
 	}

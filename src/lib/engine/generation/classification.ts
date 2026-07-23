@@ -48,7 +48,7 @@
  * stay `false` on a missing or unrecognised signal, so degradation can never fabricate an impact
  * surface or a pin.
  *
- * `classifyArtefact` (roadmap 2GN.20) is the downstream consumer; material-derived and
+ * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer; material-derived and
  * decorative-motif fields complete the doc 05 stage-8 contract later (roadmap 2GN.27, 2GN.34).
  */
 
@@ -59,6 +59,8 @@ import type {
 	NormalisedComponent,
 } from '../../types/artefact.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
+import type { ClassificationRule, ContextTag, FunctionTag } from '../../types/tags.ts';
+import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../types/tags.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
 
 // --- Provisional thresholds (MVP-provisional per the 2GN.8 band-table precedent) -------------------
@@ -460,4 +462,59 @@ export function extractFeatures(
 		portability: artefact.portability,
 		inspectionDepth: artefact.inspectionDepth,
 	};
+}
+
+/**
+ * Canonical position of every tag — function tags before context tags, each in its vocabulary's
+ * declaration order (`types/tags.ts`). Gives `classifyArtefact` a stable sort key so the same
+ * features always serialise identically, however the rule array is ordered.
+ */
+const TAG_ORDER: ReadonlyMap<FunctionTag | ContextTag, number> = new Map(
+	[...FUNCTION_TAGS, ...CONTEXT_TAGS].map((tag, index) => [tag, index]),
+);
+
+/**
+ * Rule-based tag scoring (doc 05 §9.2, roadmap 2GN.20): folds every rule whose `condition`
+ * matches `features` into one accumulated score map.
+ *
+ * Scoring contract (pinned 2026-07-23, interviewed decision-by-decision):
+ *
+ * - **Plain sum**: rules contributing to the same tag add their weights, unbounded. Scores are
+ *   evidence tallies, not confidences — three independent weapon signals genuinely outrank one,
+ *   and future contributions (material boosts, roadmap 2GN.27; decorative accumulation, roadmap
+ *   2GN.34) stay visible rather than vanishing against a ceiling. Consumers wanting a bounded
+ *   number normalise at point of use; comparisons should be relative (rank, margin), since raw
+ *   sums inflate as the rule set grows.
+ * - **Sparse**: only tags that scored appear. Absence means zero evidence — provable, because
+ *   rule weights are pinned `> 0` (`data/classification.test.ts`), so a tag either received
+ *   contributions or received none. Read with `tags.get(tag) ?? 0`; a zero-match feature set
+ *   returns an empty Map, never fabricated zeros.
+ * - **Canonical iteration order**: entries sort by `TAG_ORDER`, so serialisation (`save.ts`) and
+ *   snapshots never churn when `data/classification.ts` reorders its rules.
+ * - **No default rules**: callers pass the rule set explicitly (the pipeline passes
+ *   `CLASSIFICATION_RULES`); this module never imports rule data.
+ * - A throwing `condition` propagates — rules are internal authored data with their own no-throw
+ *   suite, and guarding here would hide a data bug.
+ *
+ * Pure and PRNG-free: same features and rules in, same map out.
+ */
+export function classifyArtefact(
+	features: ExtractedFeatures,
+	rules: readonly ClassificationRule[],
+): Map<FunctionTag | ContextTag, number> {
+	const accumulated = new Map<FunctionTag | ContextTag, number>();
+
+	for (const rule of rules) {
+		if (!rule.condition(features)) continue;
+		for (const [tag, weight] of rule.tags) {
+			accumulated.set(tag, (accumulated.get(tag) ?? 0) + weight);
+		}
+	}
+
+	return new Map(
+		[...accumulated].sort(([tagA], [tagB]) =>
+			(TAG_ORDER.get(tagA) ?? Number.MAX_SAFE_INTEGER) -
+			(TAG_ORDER.get(tagB) ?? Number.MAX_SAFE_INTEGER)
+		),
+	);
 }

@@ -420,7 +420,7 @@
 					{
 						"id": "2GN.20",
 						"description": "`engine/generation/classification.ts` — `classifyArtefact(features, rules): Map<FunctionTag|ContextTag, number>` — rule-based scoring",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.17",
 							"2GN.19"
@@ -429,7 +429,7 @@
 					{
 						"id": "2GN.21",
 						"description": "`engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20"
 						]
@@ -479,7 +479,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.23"
@@ -538,7 +538,7 @@
 					{
 						"id": "2GN.34",
 						"description": "`engine/generation/classification.ts` — update: decorative features contribute to unified tag accumulation (decorativeComplexity, preciousMaterials, motifOrigins)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.29",
 							"2GN.20"
@@ -764,7 +764,7 @@
 					{
 						"id": "2GN.59",
 						"description": "Explorer: tag inspector — tag map as scored bar chart, per-component contribution breakdown",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20"
 						]

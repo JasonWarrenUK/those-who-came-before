@@ -11,38 +11,54 @@
 import type { ExtractedFeatures } from './artefact.ts';
 
 /**
+ * The function-tag vocabulary in canonical declaration order. The runtime array is the single
+ * source of truth: `FunctionTag` derives from it, and `classifyArtefact` (roadmap 2GN.20) uses
+ * its order (function tags before context tags) to sort scored tag maps deterministically, so
+ * serialised maps never churn when rules reorder.
+ */
+export const FUNCTION_TAGS = [
+	'weapon',
+	'tool',
+	'container',
+	'fastener',
+	'ornament',
+	'ritual',
+	'domestic',
+	'agricultural',
+	'maritime',
+	'funerary',
+	'votive',
+	'trade-good',
+	'currency',
+] as const;
+
+/**
  * What an object was FOR — its physical/social purpose (doc 05 §9.2). Not mutually exclusive with
  * other function tags or with `ContextTag`.
  */
-export type FunctionTag =
-	| 'weapon'
-	| 'tool'
-	| 'container'
-	| 'fastener'
-	| 'ornament'
-	| 'ritual'
-	| 'domestic'
-	| 'agricultural'
-	| 'maritime'
-	| 'funerary'
-	| 'votive'
-	| 'trade-good'
-	| 'currency';
+export type FunctionTag = (typeof FUNCTION_TAGS)[number];
+
+/**
+ * The context-tag vocabulary in canonical declaration order — see `FUNCTION_TAGS` for the
+ * single-source-of-truth and ordering contract.
+ */
+export const CONTEXT_TAGS = [
+	'personal',
+	'communal',
+	'elite',
+	'utilitarian',
+	'ceremonial',
+	'everyday',
+	'military',
+	'artisanal',
+] as const;
 
 /**
  * How an object was USED — its social register of use, distinct from `FunctionTag` (doc 05 §9.2).
  * Not the same axis as deposition context (`DepositionType`, doc 05 §3.5) — this describes use,
  * not how the artefact ended up in the ground.
  */
-export type ContextTag =
-	| 'personal'
-	| 'communal'
-	| 'elite'
-	| 'utilitarian'
-	| 'ceremonial'
-	| 'everyday'
-	| 'military'
-	| 'artisanal';
+export type ContextTag = (typeof CONTEXT_TAGS)[number];
 
 /**
  * The material vocabulary components and materials are tagged with (doc 05 §9.2). Used both for

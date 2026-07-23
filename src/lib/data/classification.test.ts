@@ -1,6 +1,7 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
 import { CLASSIFICATION_RULES } from './classification.ts';
+import { neutralExtractedFeatures as features } from '../../../tests/fixtures/artefact.ts';
 import type { ContextTag, FunctionTag } from '../types/tags.ts';
 import type { ExtractedFeatures } from '../types/artefact.ts';
 
@@ -37,50 +38,6 @@ const ALL_TAGS = new Set<FunctionTag | ContextTag>([
 	...Object.keys(ALL_FUNCTION_TAGS_RECORD),
 	...Object.keys(ALL_CONTEXT_TAGS_RECORD),
 ] as (FunctionTag | ContextTag)[]);
-
-/**
- * A neutral baseline `ExtractedFeatures` — every boolean `false`, every count/complexity `0`, every
- * banded field its `'none'` member. No shipped rule should fire against this on its own.
- */
-function features(overrides: Partial<ExtractedFeatures> = {}): ExtractedFeatures {
-	const defaults: ExtractedFeatures = {
-		hasEdge: false,
-		edgeCount: 0,
-		hasPoint: false,
-		pointSharpness: 'none',
-		hasImpactSurface: false,
-		hasContainer: false,
-		containerOpenness: 0,
-		openingType: 'none',
-		hasFasteningMechanism: false,
-		primaryAxisLength: 'medium',
-		bladeLengthBand: 'none',
-		bladeProfile: 'none',
-		isWearable: false,
-		partCount: 0,
-		attachmentDiversity: 0,
-		perforation: 'none',
-		wallThickness: 'none',
-		ringGap: 'none',
-		sheetFlexibility: 'none',
-		massBand: 'moderate',
-		sizeBand: 'medium',
-		curvature: 'none',
-		baseType: 'none',
-		decorativeLayerCount: 0,
-		appliedElementPresent: false,
-		motifPresent: false,
-		motifCulturalOrigins: [],
-		techniqueComplexity: 0,
-		preciousMaterialsInDecoration: false,
-		functionalComplexity: 0,
-		decorativeComplexity: 0,
-		overallComplexity: 0,
-		portability: 'one-hand',
-		inspectionDepth: 'full',
-	};
-	return { ...defaults, ...overrides };
-}
 
 /** A feature set with every boolean `true` and every count/complexity pushed high, for no-throw sweeps. */
 function maximalFeatures(): ExtractedFeatures {

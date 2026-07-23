@@ -79,6 +79,64 @@ function mockExtractedFeatures(): ExtractedFeatures {
 	};
 }
 
+/**
+ * Builds a neutral baseline `ExtractedFeatures` for driving classification rules directly: every
+ * boolean `false`, every count/complexity `0`, every banded field its `'none'` member (fields
+ * without a `'none'` member sit at their middle band). No shipped rule fires against this on its
+ * own, so a test can flip exactly the signals a rule reads and assert on that rule in isolation.
+ *
+ * Single-sourced here (rather than per test file) so that when `ExtractedFeatures` grows — the
+ * material fields at roadmap 2GN.27, the decorative-motif fields at 2GN.34 — the neutral value for
+ * each new field is chosen once, keeping the rule suite (`src/lib/data/classification.test.ts`)
+ * and the fold suite (`src/lib/engine/generation/classification.test.ts`) on the same baseline.
+ *
+ * Distinct from the private `mockExtractedFeatures` above, which is a *representative* feature set
+ * (a sharp-edged blade) for `mockArtefact` coherence, not a neutral one.
+ *
+ * @param overrides - Partial `ExtractedFeatures` merged shallowly over the neutral defaults.
+ */
+export function neutralExtractedFeatures(
+	overrides: Partial<ExtractedFeatures> = {},
+): ExtractedFeatures {
+	const defaults: ExtractedFeatures = {
+		hasEdge: false,
+		edgeCount: 0,
+		hasPoint: false,
+		pointSharpness: 'none',
+		hasImpactSurface: false,
+		hasContainer: false,
+		containerOpenness: 0,
+		openingType: 'none',
+		hasFasteningMechanism: false,
+		primaryAxisLength: 'medium',
+		bladeLengthBand: 'none',
+		bladeProfile: 'none',
+		isWearable: false,
+		partCount: 0,
+		attachmentDiversity: 0,
+		perforation: 'none',
+		wallThickness: 'none',
+		ringGap: 'none',
+		sheetFlexibility: 'none',
+		massBand: 'moderate',
+		sizeBand: 'medium',
+		curvature: 'none',
+		baseType: 'none',
+		decorativeLayerCount: 0,
+		appliedElementPresent: false,
+		motifPresent: false,
+		motifCulturalOrigins: [],
+		techniqueComplexity: 0,
+		preciousMaterialsInDecoration: false,
+		functionalComplexity: 0,
+		decorativeComplexity: 0,
+		overallComplexity: 0,
+		portability: 'one-hand',
+		inspectionDepth: 'full',
+	};
+	return { ...defaults, ...overrides };
+}
+
 function mockProvenance(): Provenance {
 	return {
 		cultureId: 'test-culture',

@@ -262,6 +262,21 @@ Doc 05 §9.1 names the `ExtractedFeatures` fields but says nothing about how a m
 | 05 | Section 9.1's implementation note gains a sentence pointing at the extractor's collapse policies and interviewed presence-flag derivations (this entry) | 2026-07-23 |
 | — | `src/lib/engine/generation/classification.ts` (2GN.19, new): `extractFeatures(artefact, decorativeLayers)`; 34 Deno tests in the sibling `classification.test.ts` | 2026-07-23 |
 
+### 2.21 Tag-Score Accumulation Contract (2026-07-23)
+**Origin:** Roadmap task 2GN.20 implementation (2026-07-23)
+**Source of truth:** `classifyArtefact` JSDoc (`src/lib/engine/generation/classification.ts`) — doc 05 §9.2 specifies the rule shape, not the fold semantics
+
+Doc 05 §9.2 shows rules contributing weights and calls the result "accumulated" without pinning how same-tag collisions combine, what the returned map contains, or how it iterates. All three were settled at 2GN.20, each option weighed against the map's four downstream consumers (future rule contributions at 2GN.27/34, the Explorer breakdown at 2GN.59, claim evaluation at M7, ambiguity measurement per doc 05 §11).
+
+**Plain sum, unbounded.** Rules contributing to the same tag add their weights with no ceiling. Clamping was rejected because saturated tags would silently swallow exactly the boosts 2GN.27 and 2GN.34 exist to add, and because it flattens the clearly-classifiable end of the ambiguity distribution. Probabilistic OR was rejected because contributions stop decomposing additively (the Explorer's per-contribution breakdown could no longer be honest) and because it can flip dominant-tag ranks against the additive intuition the 2GN.17 weights were authored under — one strong 0.9 rule beats two 0.5 rules under OR but loses under sum. The consequence consumers must carry: scores are evidence tallies, not confidences; compare by rank and margin, normalise at point of use, and expect absolute values to inflate as the rule set grows.
+
+**Sparse map, canonical iteration order.** Only scored tags appear. Absence provably means zero evidence, because rule weights are pinned > 0 by the 2GN.17 suite — a tag either received contributions or received none, so no information is lost; consumers read `tags.get(tag) ?? 0`. Entries iterate function-tags-then-context-tags in vocabulary declaration order, so the same features always serialise identically however `data/classification.ts` orders its rules. Sparsity is also the forward-compatible choice: a dense map would demand save migration whenever the tag vocabulary grows, where absence-means-zero already covers a new tag. The ordering requirement forced a runtime vocabulary — `FUNCTION_TAGS`/`CONTEXT_TAGS` (`types/tags.ts`) are now `as const` arrays the union types derive from, making declaration order and type membership a single edit that cannot drift.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 05 | Section 9.2 gains an implementation note pinning the fold semantics (this entry) | 2026-07-23 |
+| — | `src/lib/engine/generation/classification.ts` (2GN.20): `classifyArtefact(features, rules)`; `types/tags.ts` gains the `FUNCTION_TAGS`/`CONTEXT_TAGS` runtime arrays; 9 Deno tests in the sibling `classification.test.ts` | 2026-07-23 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*
