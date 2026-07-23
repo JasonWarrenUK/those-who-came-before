@@ -35,4 +35,11 @@ export const panels: ExplorerPanel[] = [
 		milestone: 2,
 		status: 'available',
 	},
+	{
+		id: 'plausibility',
+		label: 'Plausibility',
+		path: '/dev/explorer/plausibility',
+		milestone: 2,
+		status: 'available',
+	},
 ];
