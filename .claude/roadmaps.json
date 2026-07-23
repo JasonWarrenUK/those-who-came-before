@@ -537,7 +537,7 @@
 					},
 					{
 						"id": "2GN.34",
-						"description": "`engine/generation/classification.ts` — update: decorative features contribute to unified tag accumulation (decorativeComplexity, preciousMaterials, motifOrigins)",
+						"description": "`engine/generation/classification.ts` — update: decorative features contribute to decorativeComplexity accumulation (layer count, technique variety, depth — real signal from `expandDecoration`'s flat layers)",
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29",
@@ -572,11 +572,21 @@
 						]
 					},
 					{
+						"id": "2GN.68",
+						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.33",
+							"2GN.20"
+						]
+					},
+					{
 						"id": "2GN.38",
 						"description": "`engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.34",
+							"2GN.68",
 							"2GN.35",
 							"2GN.36",
 							"2GN.37"
@@ -748,7 +758,7 @@
 					{
 						"id": "2GN.57",
 						"description": "Explorer: structure viewer tab — generate from seed + culture selector, component tree with join types",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.8"
 						]
