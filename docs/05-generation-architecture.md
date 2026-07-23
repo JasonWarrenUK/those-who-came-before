@@ -908,6 +908,8 @@ const classificationRules: ClassificationRule[] = [
 
 The tag scores are deliberately overlapping. A bronze blade with engravings scores on `weapon`, `ritual`, `ceremonial`, and `elite` simultaneously. The system doesn't resolve this — the player does.
 
+> **Implementation note (2026-07-23, roadmap 2GN.20, doc 12 §2.21):** `classifyArtefact` (`engine/generation/classification.ts`) folds matching rules by plain unbounded sum into a sparse map iterated in canonical vocabulary order — function tags then context tags, per the `FUNCTION_TAGS`/`CONTEXT_TAGS` runtime arrays in `types/tags.ts` that the union types above now derive from. Scores are evidence tallies, not confidences: compare by rank and margin, read absent tags as zero (`tags.get(tag) ?? 0`). The full fold contract and its rationale live in the function's JSDoc and doc 12 §2.21.
+
 ### 9.3 The Classified Artefact
 
 ```typescript
