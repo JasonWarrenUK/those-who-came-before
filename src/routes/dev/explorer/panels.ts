@@ -42,4 +42,25 @@ export const panels: ExplorerPanel[] = [
 		milestone: 2,
 		status: 'available',
 	},
+	{
+		id: 'materials',
+		label: 'Material Viewer',
+		path: '/dev/explorer/materials',
+		milestone: 2,
+		status: 'available',
+	},
+	{
+		id: 'decoration',
+		label: 'Decoration Inspector',
+		path: '/dev/explorer/decoration',
+		milestone: 2,
+		status: 'available',
+	},
+	{
+		id: 'tags',
+		label: 'Tag Inspector',
+		path: '/dev/explorer/tags',
+		milestone: 2,
+		status: 'available',
+	},
 ];
