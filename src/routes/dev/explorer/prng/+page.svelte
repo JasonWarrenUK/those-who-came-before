@@ -32,9 +32,9 @@ const deterministic = $derived(rows.every((row) => row.match));
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
-	<label class="input input-sm input-bordered flex w-40 items-center gap-2">
-		<span class="label-text font-semibold">N</span>
-		<input type="number" class="grow" min="1" max="1000" bind:value={count} />
+	<label class="input input-sm w-40">
+		<span class="label">N</span>
+		<input type="number" min="1" max="1000" bind:value={count} />
 	</label>
 
 	<span class="text-sm">

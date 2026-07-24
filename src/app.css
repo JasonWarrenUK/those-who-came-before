@@ -1,5 +1,11 @@
 @import 'tailwindcss';
-@plugin '@tailwindcss/forms';
+/*
+ * `@tailwindcss/forms` is deliberately not loaded: it sets an explicit `font-size: 1rem` on every
+ * form control (its `src/index.js`), which overrides daisyUI's own size modifiers (`input-sm`,
+ * `select-sm`). That left a wrapped field's text rendering at 16px while its `<span class="label">`
+ * rendered at the modifier's 12px, so the two sat on different baselines inside the same box.
+ * daisyUI already styles form controls, and none of the plugin's `form-*` classes were used here.
+ */
 @plugin '@tailwindcss/typography';
 @plugin "daisyui" {
 	themes:
