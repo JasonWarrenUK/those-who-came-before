@@ -11,11 +11,23 @@
  * on `society.craftSpecialisation` (drives `deriveComplexityBudget`'s tier: simple `<0.3`,
  * moderate `<0.6`, sophisticated `>=0.6`) and visibly diverge in the generated component tree.
  *
- * Superseded once 2GN.66 (naming grammars) and the `engine/world/` culture generator land; this
- * module is a developer-tooling stopgap, not shipped game content.
+ * Each preset also carries a hand-authored single-region `geology` and its `trade` flows, added for
+ * the material viewer (roadmap 2GN.60): `assignMaterial` needs both, and without per-preset
+ * variation every culture would show an identical scarcity picture, leaving only the affinity axis
+ * observable. Real geology generation is roadmap 3WS.7, which sits behind the whole-M2 gate —
+ * Milestone 2 runs against preset worlds by design, so these stand in until then.
+ *
+ * Superseded once 2GN.66 (naming grammars) and the `engine/world/` culture generator land (3WS.7
+ * for the geology half); this module is a developer-tooling stopgap, not shipped game content.
  */
 
-import type { CulturalProfile, PhaseCharacteristics } from '../types/world.ts';
+import type {
+	AvailabilityLevel,
+	CulturalProfile,
+	GeologicalContext,
+	MaterialFlow,
+	PhaseCharacteristics,
+} from '../types/world.ts';
 import type { MaterialTag } from '../types/tags.ts';
 
 /** One Explorer preset: a named, described culture paired with a single phase to generate against. */
@@ -34,10 +46,61 @@ export interface ExplorerCulture {
 
 	/** The single phase this preset generates against (doc 05 §3.2). */
 	phase: PhaseCharacteristics;
+
+	/**
+	 * Local material scarcity for this culture's single region (doc 05 §3.6). Every one of the 16
+	 * shipped materials carries an explicit level, so `isAvailable`'s missing-entry lenience never
+	 * applies here and the material viewer (2GN.60) never has to show an "unmodelled" state.
+	 */
+	geology: GeologicalContext;
+
+	/** Trade flows reaching this culture, rescuing `trade-only` materials (doc 05 §3.4). */
+	trade: MaterialFlow[];
 }
 
 function materialAffinities(entries: [MaterialTag, number][]): Map<MaterialTag, number> {
 	return new Map(entries);
+}
+
+/** The 16 shipped material ids, in `src/lib/data/materials.ts` order. */
+const MATERIAL_IDS = [
+	'bronze',
+	'iron',
+	'gold',
+	'silver',
+	'obsidian',
+	'flint',
+	'granite',
+	'jade',
+	'oak',
+	'ash',
+	'bone',
+	'antler',
+	'fired-clay',
+	'glass',
+	'linen',
+	'leather',
+] as const;
+
+/**
+ * Builds a single-region `GeologicalContext` from a complete material→level map.
+ *
+ * Every id in `MATERIAL_IDS` must be present: the whole point of these presets is that the
+ * material viewer sees a fully-modelled geology, so a missing entry is an authoring error rather
+ * than an implicit "unmodelled, treat leniently".
+ */
+function geology(
+	region: string,
+	levels: Record<(typeof MATERIAL_IDS)[number], AvailabilityLevel>,
+): GeologicalContext {
+	return {
+		materialAvailability: new Map(
+			MATERIAL_IDS.map((materialId) => [
+				materialId,
+				{ materialId, regions: new Map([[region, levels[materialId]]]) },
+			]),
+		),
+	};
 }
 
 export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
@@ -94,6 +157,28 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			},
 			aesthetics: { decorativeEmphasis: 0.4, motifComplexity: 0.35, formConservatism: 0.5 },
 		},
+		// Animal materials abundant, minerals poor: the herd supplies bone, antler and hide, while
+		// anything smelted or precious has to come up the trade route — and the precious end never
+		// does, so a Tarpan artefact is bone-and-leather with the occasional bronze fitting.
+		geology: geology('steppe', {
+			bronze: 'scarce',
+			iron: 'trade-only',
+			gold: 'absent',
+			silver: 'absent',
+			obsidian: 'absent',
+			flint: 'available',
+			granite: 'scarce',
+			jade: 'absent',
+			oak: 'available',
+			ash: 'available',
+			bone: 'abundant',
+			antler: 'abundant',
+			'fired-clay': 'scarce',
+			glass: 'absent',
+			linen: 'scarce',
+			leather: 'abundant',
+		}),
+		trade: [{ materialTag: 'metal', direction: 'bidirectional', volume: 0.4 }],
 	},
 	{
 		id: 'thalassar',
@@ -147,6 +232,37 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			},
 			aesthetics: { decorativeEmphasis: 0.75, motifComplexity: 0.6, formConservatism: 0.3 },
 		},
+		// The trade culture: locally it has clay, flax and hides and very little else, but its
+		// `tradeOpenness` of 0.8 buys metal, gold and obsidian from three separate flows. The one
+		// preset where the trade axis does real work — nothing here is `absent`.
+		geology: geology('coast', {
+			bronze: 'trade-only',
+			iron: 'trade-only',
+			gold: 'trade-only',
+			silver: 'scarce',
+			obsidian: 'trade-only',
+			flint: 'scarce',
+			granite: 'available',
+			jade: 'trade-only',
+			oak: 'available',
+			ash: 'scarce',
+			bone: 'available',
+			antler: 'scarce',
+			'fired-clay': 'abundant',
+			glass: 'scarce',
+			linen: 'abundant',
+			leather: 'available',
+		}),
+		trade: [
+			{ materialTag: 'precious-metal', direction: 'bidirectional', volume: 0.8 },
+			{ materialTag: 'metal', direction: 'bidirectional', volume: 0.6 },
+			{
+				materialTag: 'stone',
+				specificMaterials: ['obsidian'],
+				direction: 'a-to-b',
+				volume: 0.5,
+			},
+		],
 	},
 	{
 		id: 'xoconahtl',
@@ -199,6 +315,29 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			},
 			aesthetics: { decorativeEmphasis: 0.7, motifComplexity: 0.8, formConservatism: 0.6 },
 		},
+		// Stone-rich and metal-absent — the mirror of Khaltiris. Obsidian and granite underfoot,
+		// jade within reach, but bronze and iron simply do not arrive: the single low-volume flow
+		// carries precious metal only, so a monumental culture still works stone by choice and by
+		// necessity.
+		geology: geology('highland', {
+			bronze: 'absent',
+			iron: 'absent',
+			gold: 'trade-only',
+			silver: 'absent',
+			obsidian: 'abundant',
+			flint: 'scarce',
+			granite: 'abundant',
+			jade: 'available',
+			oak: 'available',
+			ash: 'scarce',
+			bone: 'available',
+			antler: 'scarce',
+			'fired-clay': 'abundant',
+			glass: 'absent',
+			linen: 'available',
+			leather: 'scarce',
+		}),
+		trade: [{ materialTag: 'precious-metal', direction: 'a-to-b', volume: 0.3 }],
 	},
 	{
 		id: 'khaltiris',
@@ -251,5 +390,30 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			},
 			aesthetics: { decorativeEmphasis: 0.65, motifComplexity: 0.7, formConservatism: 0.4 },
 		},
+		// Metal-rich and the mirror of Xoconahtl: bronze and iron abundant, gold scarce rather than
+		// absent, and the two things it cannot dig for — jade and glass — arrive by trade. An
+		// imperial metalworking culture that has to import its ornament.
+		geology: geology('citadel', {
+			bronze: 'abundant',
+			iron: 'abundant',
+			gold: 'scarce',
+			silver: 'available',
+			obsidian: 'scarce',
+			flint: 'scarce',
+			granite: 'abundant',
+			jade: 'trade-only',
+			oak: 'available',
+			ash: 'available',
+			bone: 'available',
+			antler: 'scarce',
+			'fired-clay': 'available',
+			glass: 'trade-only',
+			linen: 'scarce',
+			leather: 'available',
+		}),
+		trade: [
+			{ materialTag: 'precious-stone', direction: 'bidirectional', volume: 0.5 },
+			{ materialTag: 'glass', direction: 'a-to-b', volume: 0.4 },
+		],
 	},
 ];
