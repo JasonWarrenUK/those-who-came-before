@@ -867,7 +867,7 @@
 					{
 						"id": "2GN.59",
 						"description": "Explorer: tag inspector — tag map as scored bar chart, per-component contribution breakdown",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.20"
 						],
@@ -876,7 +876,7 @@
 					{
 						"id": "2GN.60",
 						"description": "Explorer: material viewer — resolved material per component, culture bias breakdown (scarcity vs affinity vs trade)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.23"
 						],
@@ -885,7 +885,7 @@
 					{
 						"id": "2GN.61",
 						"description": "Explorer: decoration inspector — decoration layers per component with prerequisites, technique, layer depth",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.29"
 						],
@@ -1024,6 +1024,34 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.69"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.72",
+						"description": "`engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.19"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.73",
+						"description": "Explorer: extend the tag inspector (2GN.59) with per-component feature provenance once 2GN.72 lands — show which component supplied each feature a fired rule reads. Note this is feature provenance, not tag attribution: a tag score sums whole-artefact rule predicates and never belongs to one component",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.72",
+							"2GN.59"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.74",
+						"description": "`engine/generation/materials.ts` — `explainMaterialWeight(material, culture, phase, geology, trade)` returning the decomposed factors (cultural affinity, phase technology, scarcity) plus the availability level and whether trade rescued it, so the material viewer (2GN.60) can show the scarcity-vs-affinity breakdown its roadmap line asks for. Today `computeMaterialWeight` returns only the product and the tuning constants (`SCARCITY_WEIGHT`, `NO_TECHNOLOGY_FLOOR`) are module-private, so the panel cannot decompose it without duplicating numbers the engine expects to retune",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.23"
 						],
 						"assignee": "Jason Warren"
 					}
