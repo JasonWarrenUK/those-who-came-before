@@ -27,11 +27,11 @@ function commitSeed(): void {
 }
 </script>
 
-<label class="input input-sm input-bordered flex items-center gap-2">
-	<span class="label-text font-semibold">Seed</span>
+<label class="input input-sm">
+	<span class="label">Seed</span>
 	<input
 		type="text"
-		class="grow font-mono"
+		class="font-mono"
 		placeholder={DEFAULT_SEED}
 		bind:value={draft}
 		onchange={commitSeed}

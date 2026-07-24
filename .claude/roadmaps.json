@@ -16,7 +16,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.19"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.22",
@@ -25,7 +26,8 @@
 						"dependsOn": [
 							"1FD.23",
 							"1FD.31"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.23",
@@ -33,7 +35,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.21"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.24",
@@ -42,7 +45,8 @@
 						"dependsOn": [
 							"1FD.19",
 							"1FD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.25",
@@ -50,7 +54,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.24"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.27",
@@ -60,7 +65,8 @@
 							"1FD.25",
 							"1FD.22",
 							"1FD.28"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.29",
@@ -69,7 +75,8 @@
 						"dependsOn": [
 							"1FD.19",
 							"1FD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.30",
@@ -80,7 +87,8 @@
 							"1FD.15",
 							"1FD.16",
 							"1FD.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.33",
@@ -89,7 +97,8 @@
 						"dependsOn": [
 							"1FD.27",
 							"1FD.30"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.40",
@@ -97,7 +106,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.39",
@@ -105,43 +115,50 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.36"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.1",
 						"description": "Create `deno.json` with tasks, compilerOptions, fmt/lint config",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.2",
 						"description": "Swap `adapter-node` for `@deno/svelte-adapter` in `svelte.config.js`",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.3",
 						"description": "Strip Node tooling (`.prettierrc`, `.prettierignore`, `.npmrc`)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.4",
 						"description": "Verify npm deps via `npm:` specifiers (Svelte 5, SvelteKit 2, Vite 7, Tailwind 4, DaisyUI 5)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.5",
 						"description": "Verify `deno task dev` serves app, `deno task check` passes",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.6",
 						"description": "Implement `src/lib/engine/prng.ts` — xoshiro128** algorithm, `createPrng(seed: string): () => number`",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.7",
@@ -149,7 +166,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.8",
@@ -157,7 +175,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.9",
@@ -165,19 +184,22 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.12",
 						"description": "`src/lib/types/tags.ts` — `FunctionTag`, `ContextTag`, `MaterialTag`, `ClassificationRule`, `ClaimMagnitude` (built ahead of 1FD.10 so `grammar.ts` could import the real `MaterialTag` rather than a placeholder; `ClassificationRule.condition` typed against a local `ExtractedFeatures` stand-in until 1FD.11 landed, now imports the real type from `artefact.ts`)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.10",
 						"description": "`src/lib/types/grammar.ts` — `GrammarRule`, `GrammarOption`, `ArrangementPattern`, `AccumulationConstraints`, `AttachmentType` (imports `MaterialTag` from 1FD.12; `GrammarOption.expandsTo` and `.phaseModifiers` are provisional shapes, JSDoc-marked, pending 2GN.3/2GN.5)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.11",
@@ -185,7 +207,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.13",
@@ -193,13 +216,15 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.14",
 						"description": "`src/lib/types/world.ts` — `WorldSeed`, `PhaseCharacteristics`, `CulturePhase`, `CultureTimeline`, `CulturalProfile`, `Culture`, `CraftInvestmentProfile`, `MotifSet`, `MotifDefinition`, `WorldChronology` (doc 05 §2, §3.1–§3.3; `MotifSet`/`MotifDefinition` are invented, provisional, not doc-specified — minimal shape so `DecorativeLayer.motifRef` can reference one by id; `CulturalProfile`'s JSDoc flags the unrelated same-named type in doc 06 §3.3; built together with 1FD.15/1FD.16 in the same file since `CraftInvestmentProfile` and `WorldChronology` reference their types directly)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.15",
@@ -207,7 +232,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.14"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.16",
@@ -215,7 +241,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.14"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.18",
@@ -223,7 +250,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.19",
@@ -231,13 +259,15 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.18"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.26",
 						"description": "`src/lib/types/career.ts` — `Reputation`, `ReputationModifier`, `ReputationGate`, `CareerState`, `AcademicRole`, `CareerActivity`, `ActivityType` (doc 07 §2, §2.2, §4.0–§4.1, fully specified verbatim and self-contained; `CareerActivity.outcomes: ActivityOutcome[]` needed an invented, provisional `ActivityOutcome` shape — doc 07 names it only as a comment, \"Possible results\", with no roadmap task owning it)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.32",
@@ -245,7 +275,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.17",
@@ -253,7 +284,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.14"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.28",
@@ -261,7 +293,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.26"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.20",
@@ -270,7 +303,8 @@
 						"dependsOn": [
 							"1FD.32",
 							"1FD.18"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.31",
@@ -280,13 +314,15 @@
 							"1FD.20",
 							"1FD.13",
 							"1FD.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.34",
 						"description": "Configure `deno test`, verify runner executes against engine skeleton (`deno task test` wired in `deno.json`; `@std/assert@^1.0.19` added; `tsconfig.json` excludes `*.test.ts` from `svelte-check` since Deno test files use `Deno.ns`/`jsr:` specifiers svelte-check can't resolve)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.35",
@@ -294,13 +330,15 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.34"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.36",
 						"description": "Create route `/dev/explorer` with layout and nav (sub-route model: each future panel is a child route under `src/routes/dev/explorer/` plus one entry in the route-private `panels.ts` registry — `{id, label, path, milestone, status}` — which drives both the sidebar `menu` nav and the overview landing table; planned M1 panels render as `menu-disabled` placeholders until 1FD.38/39 flip their status; seed input, 1FD.37, is a shell control not a panel — the layout's header bar reserves its right-hand mount point; `src/routes/dev/+layout.ts` guards the whole `/dev` subtree with a 404 outside `dev` builds; also created the root `src/routes/+layout.svelte` as a prerequisite fix — nothing imported `app.css`, so Tailwind/DaisyUI styles never loaded anywhere)",
 						"status": "done",
-						"dependsOn": []
+						"dependsOn": [],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.37",
@@ -308,7 +346,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.36"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "1FD.38",
@@ -316,7 +355,8 @@
 						"status": "done",
 						"dependsOn": [
 							"1FD.37"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -332,7 +372,8 @@
 						"dependsOn": [
 							"2GN.4",
 							"2GN.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.9",
@@ -340,7 +381,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.10",
@@ -348,7 +390,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.11",
@@ -356,7 +399,8 @@
 						"status": "done",
 						"dependsOn": [
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.12",
@@ -366,7 +410,8 @@
 							"2GN.8",
 							"2GN.11",
 							"2GN.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.13",
@@ -374,7 +419,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.14",
@@ -382,7 +428,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.15",
@@ -390,7 +437,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.16",
@@ -398,7 +446,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.17",
@@ -407,7 +456,8 @@
 						"dependsOn": [
 							"1FD.12",
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.19",
@@ -415,7 +465,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.20",
@@ -424,7 +475,8 @@
 						"dependsOn": [
 							"2GN.17",
 							"2GN.19"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.21",
@@ -432,7 +484,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.22",
@@ -441,7 +494,8 @@
 						"dependsOn": [
 							"1FD.12",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.23",
@@ -450,7 +504,8 @@
 						"dependsOn": [
 							"2GN.12",
 							"2GN.22"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.24",
@@ -458,7 +513,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.25",
@@ -466,7 +522,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.26",
@@ -474,7 +531,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.27",
@@ -483,7 +541,8 @@
 						"dependsOn": [
 							"2GN.20",
 							"2GN.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.28",
@@ -492,7 +551,8 @@
 						"dependsOn": [
 							"1FD.13",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.29",
@@ -501,7 +561,8 @@
 						"dependsOn": [
 							"2GN.23",
 							"2GN.28"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.30",
@@ -509,7 +570,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.31",
@@ -517,7 +579,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.32",
@@ -525,7 +588,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.33",
@@ -533,16 +597,18 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.34",
-						"description": "`engine/generation/classification.ts` — update: decorative features contribute to unified tag accumulation (decorativeComplexity, preciousMaterials, motifOrigins)",
+						"description": "`engine/generation/classification.ts` — update: decorative features contribute to decorativeComplexity accumulation (layer count, technique variety, depth — real signal from `expandDecoration`'s flat layers)",
 						"status": "todo",
 						"dependsOn": [
 							"2GN.29",
 							"2GN.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.35",
@@ -551,7 +617,8 @@
 						"dependsOn": [
 							"1FD.31",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.36",
@@ -560,7 +627,8 @@
 						"dependsOn": [
 							"1FD.31",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.37",
@@ -569,7 +637,18 @@
 						"dependsOn": [
 							"1FD.31",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.68",
+						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.33",
+							"2GN.20"
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.38",
@@ -577,10 +656,12 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.34",
+							"2GN.68",
 							"2GN.35",
 							"2GN.36",
 							"2GN.37"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.39",
@@ -588,7 +669,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.38"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.40",
@@ -596,7 +678,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.39"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.41",
@@ -604,7 +687,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.39"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.42",
@@ -612,7 +696,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.39"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.43",
@@ -620,7 +705,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.39"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.44",
@@ -628,7 +714,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.38"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.45",
@@ -636,7 +723,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.44"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.46",
@@ -644,7 +732,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.44"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.47",
@@ -653,7 +742,8 @@
 						"dependsOn": [
 							"2GN.66",
 							"2GN.44"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.48",
@@ -662,7 +752,8 @@
 						"dependsOn": [
 							"2GN.44",
 							"2GN.66"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.49",
@@ -670,7 +761,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.48"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.50",
@@ -678,7 +770,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.49"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.51",
@@ -686,7 +779,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.50"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.52",
@@ -694,7 +788,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.50"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.53",
@@ -702,7 +797,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.51"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.54",
@@ -710,7 +806,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.50"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.55",
@@ -718,7 +815,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.49"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.66",
@@ -727,7 +825,8 @@
 						"dependsOn": [
 							"1FD.14",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.67",
@@ -735,7 +834,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.56",
@@ -743,47 +843,53 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.53"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.57",
 						"description": "Explorer: structure viewer tab — generate from seed + culture selector, component tree with join types",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.58",
 						"description": "Explorer: plausibility panel — generate N structures, show pass/fail with rejection reasons, running rejection rate",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.59",
 						"description": "Explorer: tag inspector — tag map as scored bar chart, per-component contribution breakdown",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.60",
 						"description": "Explorer: material viewer — resolved material per component, culture bias breakdown (scarcity vs affinity vs trade)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.23"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.61",
 						"description": "Explorer: decoration inspector — decoration layers per component with prerequisites, technique, layer depth",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.29"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.62",
@@ -791,7 +897,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.40"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.63",
@@ -800,7 +907,8 @@
 						"dependsOn": [
 							"2GN.44",
 							"2GN.45"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.64",
@@ -809,7 +917,8 @@
 						"dependsOn": [
 							"2GN.54",
 							"2GN.53"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.65",
@@ -817,7 +926,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.56"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.1",
@@ -826,7 +936,8 @@
 						"dependsOn": [
 							"1FD.10",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.2",
@@ -835,7 +946,8 @@
 						"dependsOn": [
 							"1FD.10",
 							"M1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.3",
@@ -843,7 +955,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.4",
@@ -851,7 +964,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.5",
@@ -859,7 +973,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.7",
@@ -867,7 +982,8 @@
 						"status": "done",
 						"dependsOn": [
 							"2GN.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.6",
@@ -876,7 +992,68 @@
 						"dependsOn": [
 							"2GN.7",
 							"2GN.3"
-						]
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.69",
+						"description": "`engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.8"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.70",
+						"description": "`engine/generation/materials.ts` + `engine/generation/decoration.ts` — whole-object coherence pass: check material and decorative choices are coherent across an artefact's components as a set (not necessarily mono-material) rather than validating each component in isolation",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.23",
+							"2GN.29",
+							"2GN.30",
+							"2GN.31",
+							"2GN.32",
+							"2GN.33"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.71",
+						"description": "`engine/generation/description.ts` + `engine/generation/classification.ts` — consume assemblage membership: describe/classify a multi-part assemblage distinctly from a single object once 2GN.69 lands",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.69"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.72",
+						"description": "`engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.19"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.73",
+						"description": "Explorer: extend the tag inspector (2GN.59) with per-component feature provenance once 2GN.72 lands — show which component supplied each feature a fired rule reads. Note this is feature provenance, not tag attribution: a tag score sums whole-artefact rule predicates and never belongs to one component",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.72",
+							"2GN.59"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.74",
+						"description": "`engine/generation/materials.ts` — `explainMaterialWeight(material, culture, phase, geology, trade)` returning the decomposed factors (cultural affinity, phase technology, scarcity) plus the availability level and whether trade rescued it, so the material viewer (2GN.60) can show the scarcity-vs-affinity breakdown its roadmap line asks for. Today `computeMaterialWeight` returns only the product and the tuning constants (`SCARCITY_WEIGHT`, `NO_TECHNOLOGY_FLOOR`) are module-private, so the panel cannot decompose it without duplicating numbers the engine expects to retune",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.23"
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -892,7 +1069,8 @@
 						"dependsOn": [
 							"2GN.56",
 							"M2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.2",
@@ -900,7 +1078,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.3",
@@ -908,7 +1087,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.4",
@@ -916,7 +1096,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.5",
@@ -924,7 +1105,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.6",
@@ -932,7 +1114,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.7",
@@ -940,7 +1123,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.8",
@@ -948,7 +1132,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.9",
@@ -958,7 +1143,8 @@
 							"3WS.4",
 							"3WS.7",
 							"3WS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.10",
@@ -966,7 +1152,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.9"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.11",
@@ -974,7 +1161,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.12",
@@ -982,7 +1170,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.13",
@@ -990,7 +1179,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.14",
@@ -1001,7 +1191,8 @@
 							"3WS.10",
 							"3WS.11",
 							"3WS.13"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.15",
@@ -1009,7 +1200,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.14"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.16",
@@ -1017,7 +1209,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.17",
@@ -1025,7 +1218,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.18",
@@ -1033,7 +1227,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.19",
@@ -1041,7 +1236,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "3WS.20",
@@ -1052,7 +1248,8 @@
 							"3WS.19",
 							"3WS.18",
 							"3WS.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1068,7 +1265,8 @@
 						"dependsOn": [
 							"3WS.15",
 							"M3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.2",
@@ -1076,7 +1274,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.3",
@@ -1084,7 +1283,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.4",
@@ -1092,7 +1292,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.5",
@@ -1100,7 +1301,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.6",
@@ -1108,7 +1310,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.7",
@@ -1116,7 +1319,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.8",
@@ -1124,7 +1328,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "4UI.9",
@@ -1132,7 +1337,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"4UI.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1148,7 +1354,8 @@
 						"dependsOn": [
 							"4UI.6",
 							"M4"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.2",
@@ -1156,7 +1363,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.3",
@@ -1164,7 +1372,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.4",
@@ -1172,7 +1381,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.5",
@@ -1180,7 +1390,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.4"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.6",
@@ -1188,7 +1399,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.7",
@@ -1196,7 +1408,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.8",
@@ -1204,7 +1417,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.9",
@@ -1212,7 +1426,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.10",
@@ -1220,7 +1435,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.11",
@@ -1228,7 +1444,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.12",
@@ -1236,7 +1453,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.13",
@@ -1244,7 +1462,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.14",
@@ -1252,7 +1471,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.15",
@@ -1260,7 +1480,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.16",
@@ -1268,7 +1489,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.17",
@@ -1276,7 +1498,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.18",
@@ -1284,7 +1507,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.19",
@@ -1292,7 +1516,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.20",
@@ -1300,7 +1525,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.21",
@@ -1308,7 +1534,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.22",
@@ -1316,7 +1543,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.23",
@@ -1324,7 +1552,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.21"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.24",
@@ -1332,7 +1561,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.22"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.25",
@@ -1340,7 +1570,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.4"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "5KN.26",
@@ -1348,7 +1579,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1364,7 +1596,8 @@
 						"dependsOn": [
 							"5KN.12",
 							"M5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.2",
@@ -1372,7 +1605,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.3",
@@ -1380,7 +1614,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.4",
@@ -1388,7 +1623,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.5",
@@ -1396,7 +1632,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.6",
@@ -1404,7 +1641,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.7",
@@ -1412,7 +1650,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.8",
@@ -1420,7 +1659,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.9",
@@ -1428,7 +1668,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.10",
@@ -1436,7 +1677,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.11",
@@ -1448,7 +1690,8 @@
 							"6LS.8",
 							"6LS.9",
 							"6LS.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.12",
@@ -1456,7 +1699,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.13",
@@ -1464,7 +1708,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.14",
@@ -1472,7 +1717,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.15",
@@ -1480,7 +1726,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.16",
@@ -1489,7 +1736,8 @@
 						"dependsOn": [
 							"6LS.5",
 							"6LS.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "6LS.17",
@@ -1497,7 +1745,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"6LS.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1513,7 +1762,8 @@
 						"dependsOn": [
 							"6LS.5",
 							"M6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.2",
@@ -1521,7 +1771,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.3",
@@ -1529,7 +1780,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.4",
@@ -1537,7 +1789,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.5",
@@ -1545,7 +1798,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.6",
@@ -1553,7 +1807,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.7",
@@ -1561,7 +1816,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.8",
@@ -1569,7 +1825,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.9",
@@ -1577,7 +1834,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.10",
@@ -1585,7 +1843,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.11",
@@ -1593,7 +1852,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.12",
@@ -1601,7 +1861,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.13",
@@ -1609,7 +1870,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.14",
@@ -1617,7 +1879,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.15",
@@ -1625,7 +1888,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.16",
@@ -1633,7 +1897,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.17",
@@ -1641,7 +1906,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.18",
@@ -1649,7 +1915,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.19",
@@ -1657,7 +1924,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.20",
@@ -1665,7 +1933,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.19"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.21",
@@ -1673,7 +1942,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.22",
@@ -1681,7 +1951,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.23",
@@ -1689,7 +1960,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.24",
@@ -1697,7 +1969,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.25",
@@ -1705,7 +1978,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.26",
@@ -1713,7 +1987,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.25"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.27",
@@ -1721,7 +1996,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.19"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.28",
@@ -1729,7 +2005,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.29",
@@ -1737,7 +2014,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.28"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.30",
@@ -1745,7 +2023,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.28"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.31",
@@ -1753,7 +2032,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"7CD.25"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "7CD.32",
@@ -1762,7 +2042,8 @@
 						"dependsOn": [
 							"7CD.15",
 							"7CD.22"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1778,7 +2059,8 @@
 						"dependsOn": [
 							"7CD.25",
 							"M7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.2",
@@ -1786,7 +2068,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.3",
@@ -1794,7 +2077,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.4",
@@ -1802,7 +2086,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.5",
@@ -1810,7 +2095,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.4"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.6",
@@ -1818,7 +2104,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.7",
@@ -1826,7 +2113,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.8",
@@ -1834,7 +2122,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.9",
@@ -1842,7 +2131,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"8PS.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "8PS.10",
@@ -1851,7 +2141,8 @@
 						"dependsOn": [
 							"8PS.5",
 							"8PS.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -1867,7 +2158,8 @@
 						"dependsOn": [
 							"8PS.5",
 							"M8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.2",
@@ -1875,7 +2167,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.3",
@@ -1883,7 +2176,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.4",
@@ -1891,7 +2185,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.35",
@@ -1899,7 +2194,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.36",
@@ -1908,7 +2204,8 @@
 						"dependsOn": [
 							"9CR.1",
 							"9CR.35"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.37",
@@ -1916,7 +2213,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.36"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.38",
@@ -1924,7 +2222,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.5",
@@ -1932,7 +2231,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.6",
@@ -1940,7 +2240,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.7",
@@ -1948,7 +2249,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.8",
@@ -1956,7 +2258,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.9",
@@ -1964,7 +2267,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.10",
@@ -1972,7 +2276,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.11",
@@ -1980,7 +2285,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.12",
@@ -1988,7 +2294,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.13",
@@ -1996,7 +2303,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.14",
@@ -2006,7 +2314,8 @@
 							"9CR.7",
 							"9CR.35",
 							"9CR.38"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.15",
@@ -2014,7 +2323,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.16",
@@ -2022,7 +2332,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.17",
@@ -2030,7 +2341,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.18",
@@ -2038,7 +2350,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.19",
@@ -2046,7 +2359,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.20",
@@ -2054,7 +2368,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.39",
@@ -2062,7 +2377,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.21",
@@ -2070,7 +2386,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.17"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.22",
@@ -2079,7 +2396,8 @@
 						"dependsOn": [
 							"9CR.21",
 							"9CR.38"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.23",
@@ -2087,7 +2405,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.24",
@@ -2095,7 +2414,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.20"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.25",
@@ -2103,7 +2423,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.26",
@@ -2111,7 +2432,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.27",
@@ -2119,7 +2441,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.28",
@@ -2127,7 +2450,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.29",
@@ -2135,7 +2459,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.11"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.30",
@@ -2143,7 +2468,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.28"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.31",
@@ -2151,7 +2477,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.21"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.32",
@@ -2159,7 +2486,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"9CR.15"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.33",
@@ -2168,7 +2496,8 @@
 						"dependsOn": [
 							"9CR.7",
 							"9CR.12"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "9CR.34",
@@ -2177,7 +2506,8 @@
 						"dependsOn": [
 							"9CR.18",
 							"9CR.16"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -2193,7 +2523,8 @@
 						"dependsOn": [
 							"9CR.12",
 							"M9"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.2",
@@ -2201,7 +2532,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.3",
@@ -2209,7 +2541,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.4",
@@ -2217,7 +2550,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.5",
@@ -2225,7 +2559,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.6",
@@ -2233,7 +2568,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.7",
@@ -2241,7 +2577,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.8",
@@ -2249,7 +2586,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.9",
@@ -2257,7 +2595,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.5"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.10",
@@ -2265,7 +2604,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.11",
@@ -2273,7 +2613,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.12",
@@ -2281,7 +2622,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.1"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.13",
@@ -2289,7 +2631,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.9"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.14",
@@ -2297,7 +2640,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.10"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.15",
@@ -2305,7 +2649,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.2"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.16",
@@ -2313,7 +2658,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.17",
@@ -2321,7 +2667,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.8"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.18",
@@ -2329,7 +2676,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.9"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.19",
@@ -2337,7 +2685,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.14"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.20",
@@ -2345,7 +2694,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.3"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.21",
@@ -2354,7 +2704,8 @@
 						"dependsOn": [
 							"10NP.4",
 							"10NP.6"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.22",
@@ -2363,7 +2714,8 @@
 						"dependsOn": [
 							"10NP.10",
 							"10NP.7"
-						]
+						],
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "10NP.23",
@@ -2371,7 +2723,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.9"
-						]
+						],
+						"assignee": "Jason Warren"
 					}
 				]
 			}

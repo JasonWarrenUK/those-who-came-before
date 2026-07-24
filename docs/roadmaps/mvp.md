@@ -67,7 +67,7 @@ Artefact generation game roadmap: foundation through NPC social systems, ten mil
 - [ ] **2GN.15** — `engine/generation/plausibility.ts` — material-structural compatibility (material tags constrain joins/forms) _(depends on 2GN.12 — unblocked)_
 - [ ] **2GN.16** — `engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts _(depends on 2GN.12 — unblocked)_
 - [x] **2GN.17** — `src/lib/data/classification.ts` — classification rules: feature→tag scoring, structural/container/decorative/cross-layer contributions — rules were derived from first principles against the signals `data/grammars/primitives.ts` actually rolls, not transcribed from doc 05 §9.2's illustrative examples (interviewed rule-by-rule with the user; doc 12 §2.19 records the session), since the engine's primitive/parameter vocabulary has grown past what that section shows; 39 rules across edge/point/edge-count, opening-graded container, vessel-refinement (wall/curvature/base), perforation, ring/fastener, sheet, mass, size, structural-complexity, decoration (real-signal + two dormant rules awaiting 2GN.33 motif/material assignment), cross-layer, and structural-presence-flag families, each keyed on a real primitive parameter or decorative-layer fact (PR #37 review added five: a short-edge scraper rule closing an edge-family coverage gap, an off-centre perforation rule, and fastening-mechanism/impact-surface/wearable rules consuming previously-unread presence flags; doc 12 §2.19 records them) — `CLASSIFICATION_RULES: readonly ClassificationRule[]` mirrors the `plausibility.ts` authoring convention (module JSDoc, banner-grouped, per-rule rationale comment); surfaced that `ExtractedFeatures` (1FD.11) was too coarse to carry the rule set, so it gained 13 fields (⚠️ breaking — new required fields) — `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent` — each traceable to a real grammar signal (`types/artefact.ts`; `tests/fixtures/artefact.ts`'s `mockExtractedFeatures` updated to match); established and audited a **mechanical-vs-classificatory boundary** (doc 12 §2.19): `portability`/`inspectionDepth` are mechanical (doc 05 §5.2 handling/inspection) and must never be read by a classification rule — `massBand`/`sizeBand` are the physical-fact equivalents; zero pre-existing violations found; enforced going forward by a dedicated boundary-guard test in `classification.test.ts`; `bladeProfile`'s cut-vs-thrust sword-typology axis is captured but its tag-score differentiation is deliberately deferred to description work (2GN.40); covered by 58 new Deno tests in `classification.test.ts` — structural invariants (non-empty tag maps, real-tag cross-reference via compiler-checked `Record<FunctionTag,true>`/`Record<ContextTag,true>`, weight bounds, no-throw), the boundary guard, purity, one fire/no-fire block per rule pinned by index, an exhaustive edge-family sweep (every edged feature set fires at least one edge rule) and a perforation-family sweep (each non-none band fires exactly one rule), and a worked-example integration test (an engraved long bronze blade fires weapon/ritual/ceremonial/elite simultaneously, per doc 05 §9.2's closing claim) _(depended on 1FD.12, 2GN.12 — both done)_
-- [x] **2GN.19** — `engine/generation/classification.ts` — `extractFeatures(artefact, decorativeLayers = []): ExtractedFeatures` — unified feature extraction from components, now covering the full geometry-derived `ExtractedFeatures` contract 2GN.17 authored rules against (structural fields plus `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent`; 2GN.27 and 2GN.34 still complete the doc 05 stage-8 contract with material and decorative-motif fields) — landed as `extractFeatures(artefact, decorativeLayers = []): ExtractedFeatures`, pure and PRNG-free; materials are deliberately not a parameter (material-derived fields are 2GN.27's); per-family collapse policies keep multi-component artefacts coherent (doc 12 §2.20): `bladeLengthBand`/`bladeProfile` read one dominant edged component (longest blade, earliest position on ties), all container facts (`openingType`/`containerOpenness`/`wallThickness`/`baseType`) read one dominant container (largest `hollow-enclosed`, else longest `cylindrical`), perforation follows the pinned `central` > `off-centre` > `single` > `multiple` priority, ring/sheet/curvature report the most classificatorily-loaded value present; the three presence flags with no 1:1 grammar signal were interviewed item-by-item (doc 12 §2.20): `hasImpactSurface` = untapered `bar-form` or thick `disc-form`, `hasFasteningMechanism` = pin-on-hoop anatomy (a `ring-form` joined to a sharp edgeless `elongated`) or hinged join, `isWearable` = `ring-form` or suspension perforation, the latter two body-scale gated (`sizeBand` not `large`, `massBand` at most `light`); band thresholds sit at the midpoints of 2GN.8's provisional cm tables; unrecognised parameter values degrade to first-listed BNF values; dormant fields keep honest no-producer defaults (`motifPresent` reads `motifRef` and fires once 2GN.33 lands; `motifCulturalOrigins`/`preciousMaterialsInDecoration` are 2GN.34's); covered by 34 Deno tests in the sibling `classification.test.ts` (purity, per-family collapse, interviewed flags and gates, graceful degradation) _(depended on 2GN.12 — done; rescoped 2026-07-22 per doc 12 §2.19)_
+- [x] **2GN.19** — `engine/generation/classification.ts` — `extractFeatures(artefact, decorativeLayers = []): ExtractedFeatures` — unified feature extraction from components, now covering the full geometry-derived `ExtractedFeatures` contract 2GN.17 authored rules against (structural fields plus `pointSharpness`, `bladeLengthBand`, `bladeProfile`, `perforation`, `wallThickness`, `ringGap`, `sheetFlexibility`, `massBand`, `sizeBand`, `curvature`, `openingType`, `baseType`, `appliedElementPresent`; 2GN.27 and 2GN.68 still complete the doc 05 stage-8 contract with material and decorative-motif fields) — landed as `extractFeatures(artefact, decorativeLayers = []): ExtractedFeatures`, pure and PRNG-free; materials are deliberately not a parameter (material-derived fields are 2GN.27's); per-family collapse policies keep multi-component artefacts coherent (doc 12 §2.20): `bladeLengthBand`/`bladeProfile` read one dominant edged component (longest blade, earliest position on ties), all container facts (`openingType`/`containerOpenness`/`wallThickness`/`baseType`) read one dominant container (largest `hollow-enclosed`, else longest `cylindrical`), perforation follows the pinned `central` > `off-centre` > `single` > `multiple` priority, ring/sheet/curvature report the most classificatorily-loaded value present; the three presence flags with no 1:1 grammar signal were interviewed item-by-item (doc 12 §2.20): `hasImpactSurface` = untapered `bar-form` or thick `disc-form`, `hasFasteningMechanism` = pin-on-hoop anatomy (a `ring-form` joined to a sharp edgeless `elongated`) or hinged join, `isWearable` = `ring-form` or suspension perforation, the latter two body-scale gated (`sizeBand` not `large`, `massBand` at most `light`); band thresholds sit at the midpoints of 2GN.8's provisional cm tables; unrecognised parameter values degrade to first-listed BNF values; dormant fields keep honest no-producer defaults (`motifPresent` reads `motifRef` and fires once 2GN.33 lands; `motifCulturalOrigins`/`preciousMaterialsInDecoration` are 2GN.68's); covered by 34 Deno tests in the sibling `classification.test.ts` (purity, per-family collapse, interviewed flags and gates, graceful degradation) _(depended on 2GN.12 — done; rescoped 2026-07-22 per doc 12 §2.19)_
 - [x] **2GN.20** — `engine/generation/classification.ts` — `classifyArtefact(features, rules): Map<FunctionTag|ContextTag, number>` — rule-based scoring — landed as a pure, PRNG-free fold over the 2GN.17 rule set, contract interviewed decision-by-decision (doc 12 §2.21 records the session): **plain-sum accumulation**, unbounded — scores are evidence tallies, not confidences; chosen over clamping (which would silently swallow 2GN.27/34's future material and decoration boosts on saturated tags, and flatten the clear end of doc 05 §11's ambiguity distribution) and probabilistic OR (which breaks 2GN.59's additive per-contribution breakdown and can flip dominant-tag ranks against the additive intuition the 2GN.17 weights were interviewed under); consumers compare relatively (rank, margin), since raw sums inflate as the rule set grows, and normalise at point of use where a bounded number is needed; **sparse map in canonical order** — only scored tags appear (absence provably means zero evidence: rule weights are pinned > 0 by the 2GN.17 suite), read via `tags.get(tag) ?? 0`, entries sorted function-tags-then-context-tags in vocabulary declaration order so serialisation (`save.ts`) never churns when the rule array reorders, forward-compatible with vocabulary growth; canonical ordering forced a vocabulary runtime — `FUNCTION_TAGS`/`CONTEXT_TAGS` landed in `types/tags.ts` as `as const` arrays with the union types derived from them (single source of truth, value-identical unions; `MaterialTag` deliberately left in declaration style, nothing needs it at runtime); **rules always explicit** — no default parameter, the engine module never imports rule data, the pipeline passes `CLASSIFICATION_RULES`; a throwing `condition` propagates, since rules are internal authored data with their own no-throw suite and guarding would hide a data bug; covered by 9 new Deno tests in the sibling `classification.test.ts` — accumulation arithmetic on exact-binary-fraction fixture rules (no float tolerance), unbounded sums, sparsity and the absence convention, all-21-tag canonical ordering, rule-reorder invariance, purity, and a real-rules integration test scoring doc 05 §9.2's engraved long blade positive on weapon/ritual/ceremonial/elite in canonical order _(depended on 2GN.17, 2GN.19 — both done)_
 - [ ] **2GN.21** — `engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive) _(depends on 2GN.20 — unblocked)_
 - [x] **2GN.22** — `src/lib/data/materials.ts` — material definitions: id, label, tags, physical properties, decorability (geological scarcity and cultural affinity modifiers deliberately kept in `world.ts`'s `GeologicalContext.materialAvailability`/`CulturalProfile.materialAffinities` rather than duplicated here — both are already keyed by `id`/`tags`, the join keys this file provides; `craftDomain` added instead, resolving `MaterialDefinition`'s own doc 05 §15 follow-up note per which `PhaseCharacteristics.technology` axis governs working each material)
@@ -82,11 +82,12 @@ Artefact generation game roadmap: foundation through NPC social systems, ten mil
 - [ ] **2GN.31** — `engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration _(depends on 2GN.29 — unblocked)_
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(depends on 2GN.29 — unblocked)_
 - [ ] **2GN.33** — `engine/generation/decoration.ts` — motif assignment from culture's `motifVocabulary`, shared motifs via cultural exchange _(depends on 2GN.29 — unblocked)_
-- [ ] **2GN.34** — `engine/generation/classification.ts` — update: decorative features contribute to unified tag accumulation (decorativeComplexity, preciousMaterials, motifOrigins) _(depends on 2GN.29, 2GN.20 — unblocked)_
+- [ ] **2GN.34** — `engine/generation/classification.ts` — update: decorative features contribute to decorativeComplexity accumulation (layer count, technique variety, depth — real signal from `expandDecoration`'s flat layers) _(depends on 2GN.29, 2GN.20 — unblocked)_
+- [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup) _(blocked — depends on 2GN.33, 2GN.20)_
 - [ ] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per component type and decorative technique _(depends on 1FD.31, M1)_
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants _(depends on 1FD.31, M1)_
 - [ ] **2GN.37** — `src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing) _(depends on 1FD.31, M1)_
-- [ ] **2GN.38** — `engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component _(blocked — depends on 2GN.34, 2GN.35, 2GN.36, 2GN.37)_
+- [ ] **2GN.38** — `engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component _(blocked — depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37)_
 - [ ] **2GN.39** — `engine/generation/description.ts` — template expansion: parameterised template system with property slots _(blocked — depends on 2GN.38)_
 - [ ] **2GN.40** — `engine/generation/description.ts` — per-component descriptions in all three registers for structural components _(blocked — depends on 2GN.39)_
 - [ ] **2GN.41** — `engine/generation/description.ts` — per-layer descriptions for decorative elements (techniques, motifs, materials) _(blocked — depends on 2GN.39)_
@@ -107,11 +108,17 @@ Artefact generation game roadmap: foundation through NPC social systems, ten mil
 - [ ] **2GN.66** — `src/lib/data/names/` — naming grammars for sites, cultures, scholars (doc 08 `data/names/`) _(depends on 1FD.14, M1)_
 - [ ] **2GN.67** — `engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph _(blocked — depends on 2GN.8)_
 - [ ] **2GN.56** — `engine/generation/pipeline.ts` — `runGenerationPipeline(world, culture, period, prng): ClassifiedArtefact` — full 9-stage orchestrator _(blocked — depends on 2GN.53)_
-- [ ] **2GN.57** — Explorer: structure viewer tab — generate from seed + culture selector, component tree with join types _(blocked — depends on 2GN.8)_
-- [ ] **2GN.58** — Explorer: plausibility panel — generate N structures, show pass/fail with rejection reasons, running rejection rate _(depends on 2GN.12 — unblocked)_
-- [ ] **2GN.59** — Explorer: tag inspector — tag map as scored bar chart, per-component contribution breakdown _(depends on 2GN.20 — unblocked)_
-- [ ] **2GN.60** — Explorer: material viewer — resolved material per component, culture bias breakdown (scarcity vs affinity vs trade) _(depends on 2GN.23)_
-- [ ] **2GN.61** — Explorer: decoration inspector — decoration layers per component with prerequisites, technique, layer depth _(depends on 2GN.29 — unblocked)_
+- [ ] **2GN.69** — `engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls _(depends on 2GN.8 — done)_
+- [ ] **2GN.70** — `engine/generation/materials.ts` + `engine/generation/decoration.ts` — whole-object coherence pass: check material and decorative choices are coherent across an artefact's components as a set (not necessarily mono-material) rather than validating each component in isolation _(blocked — depends on 2GN.23, 2GN.29, 2GN.30, 2GN.31, 2GN.32, 2GN.33)_
+- [ ] **2GN.71** — `engine/generation/description.ts` + `engine/generation/classification.ts` — consume assemblage membership: describe/classify a multi-part assemblage distinctly from a single object once 2GN.69 lands _(blocked — depends on 2GN.69)_
+- [ ] **2GN.72** — `engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules _(depends on 2GN.19 — done)_
+- [ ] **2GN.73** — Explorer: extend the tag inspector (2GN.59) with per-component feature provenance once 2GN.72 lands — show which component supplied each feature a fired rule reads. Note this is feature provenance, not tag attribution: a tag score sums whole-artefact rule predicates and never belongs to one component _(blocked — depends on 2GN.72, 2GN.59)_
+- [ ] **2GN.74** — `engine/generation/materials.ts` — `explainMaterialWeight(material, culture, phase, geology, trade)` returning the decomposed factors (cultural affinity, phase technology, scarcity) plus the availability level and whether trade rescued it, so the material viewer (2GN.60) can show the scarcity-vs-affinity breakdown its roadmap line asks for. Today `computeMaterialWeight` returns only the product and the tuning constants (`SCARCITY_WEIGHT`, `NO_TECHNOLOGY_FLOOR`) are module-private, so the panel cannot decompose it without duplicating numbers the engine expects to retune _(depends on 2GN.23 — done)_
+- [x] **2GN.57** — Explorer: structure viewer tab — generate from seed + culture selector, component tree with join types _(depends on 2GN.8 — done)_
+- [x] **2GN.58** — Explorer: plausibility panel — generate N structures, show pass/fail with rejection reasons, running rejection rate _(depends on 2GN.12 — done)_
+- [x] **2GN.59** — Explorer: tag inspector — tag map as scored bar chart, per-component contribution breakdown — shipped as a **per-rule** breakdown, not per-component: `extractFeatures` collapses the artefact into flat scalars carrying no component references (doc 12 §2.20) and every `ClassificationRule.condition` is a whole-artefact predicate, so a tag score traces to a rule and never to a component; the decomposition re-runs each condition against the same features, exact because the fold is a plain sum (doc 12 §2.21 chose plain-sum precisely to keep it honest); bars normalise to the artefact's own strongest tag since scores are unbounded evidence tallies; the sparse-map contract's obligations are surfaced (empty-map "honest silence" state, explicit no-evidence list); per-component provenance split out to 2GN.72/2GN.73 _(depended on 2GN.20 — done)_
+- [x] **2GN.60** — Explorer: material viewer — resolved material per component, culture bias breakdown (scarcity vs affinity vs trade) — the literal three-way split was **not** shippable: `computeMaterialWeight` returns a single product and its tuning constants (`SCARCITY_WEIGHT`, `NO_TECHNOLOGY_FLOOR`) are module-private, so decomposing panel-side would fossilise numbers the engine JSDoc expects to retune *from this panel*; trade is also not a weight factor at all but a boolean rescue inside `isAvailable`, so it renders as a badge rather than a bar. Ships the combined weight as a normalised share, an availability reason per candidate (local/trade/blocked), and an empirical per-component distribution over N repeated draws (the `--draws` mode of `sample-materials.ts`) which shows culture bias without duplicating the formula; factor decomposition split out to 2GN.74. `ExplorerCulture` gained hand-authored `geology`/`trade` per preset — all 16 materials explicitly levelled so `isAvailable`'s missing-entry lenience never applies — since real geology is 3WS.7, behind the whole-M2 gate _(depended on 2GN.23 — done)_
+- [x] **2GN.61** — Explorer: decoration inspector — decoration layers per component with prerequisites, technique, layer depth — technique, BNF category and `[requires: …]` prerequisite per layer, with the prerequisite **evaluated** against the component's assigned material via `substrate.test`, so layers 2GN.30 will later reject are visible now (a 240-seed sweep finds all four verdicts occurring in real data); form prerequisites report `unevaluated` since resolving them against geometry is likewise 2GN.30's, and neither is conflated with `computeTechniqueWeight`'s culture-level `materialAccessGate`. Depth renders recursion-ready but is always 0 — `expandDecoration` emits `sublayers: []` until 2GN.31/2GN.32 — and the dormant `motifRef`/`material` fields (2GN.33) are not surfaced rather than shown permanently empty _(depended on 2GN.29 — done)_
 - [ ] **2GN.62** — Explorer: description viewer — three-register prose side by side, register divergence highlighting _(blocked — depends on 2GN.40)_
 - [ ] **2GN.63** — Explorer: excavation viewer — artefacts grouped by site, ambiguity distribution chart _(blocked — depends on 2GN.44, 2GN.45)_
 - [ ] **2GN.64** — Explorer: corpus browser — NPC researchers, publications, dating frameworks, coverage gaps, correct vs wrong claim toggle _(blocked — depends on 2GN.54, 2GN.53)_
@@ -448,6 +455,7 @@ graph LR
 	2GN.32["2GN.32: `engine/generation/decoration.ts` — rec…"]
 	2GN.33["2GN.33: `engine/generation/decoration.ts` — mot…"]
 	2GN.34["2GN.34: `engine/generation/classification.ts` —…"]
+	2GN.68["2GN.68: `engine/generation/classification.ts` —…"]
 	2GN.38["2GN.38: `engine/generation/description.ts` — `g…"]
 	2GN.39["2GN.39: `engine/generation/description.ts` — te…"]
 	2GN.40["2GN.40: `engine/generation/description.ts` — pe…"]
@@ -477,6 +485,12 @@ graph LR
 	2GN.63["2GN.63: Explorer: excavation viewer — artefacts…"]
 	2GN.64["2GN.64: Explorer: corpus browser — NPC research…"]
 	2GN.65["2GN.65: Explorer: pipeline stage viewer — stage…"]
+	2GN.69["2GN.69: `engine/generation/grammar.ts` — delibe…"]
+	2GN.70["2GN.70: `engine/generation/materials.ts` + `eng…"]
+	2GN.71["2GN.71: `engine/generation/description.ts` + `e…"]
+	2GN.72["2GN.72: `engine/generation/classification.ts` —…"]
+	2GN.73["2GN.73: Explorer: extend the tag inspector (2GN…"]
+	2GN.74["2GN.74: `engine/generation/materials.ts` — `exp…"]
 	M2["M2: Generation Pipeline"]:::mile
 	3WS.1["3WS.1: `engine/world/seed.ts` — `createWorldSee…"]
 	3WS.2["3WS.2: `engine/world/chronology.ts` — `generate…"]
@@ -756,6 +770,7 @@ graph LR
 	2GN.8 --> 2GN.12
 	2GN.8 --> 2GN.67
 	2GN.8 --> 2GN.57
+	2GN.8 --> 2GN.69
 	2GN.9 --> M2
 	2GN.10 --> M2
 	2GN.12 --> 2GN.13
@@ -772,9 +787,11 @@ graph LR
 	2GN.16 --> M2
 	2GN.17 --> 2GN.20
 	2GN.19 --> 2GN.20
+	2GN.19 --> 2GN.72
 	2GN.20 --> 2GN.21
 	2GN.20 --> 2GN.27
 	2GN.20 --> 2GN.34
+	2GN.20 --> 2GN.68
 	2GN.20 --> 2GN.59
 	2GN.21 --> M2
 	2GN.23 --> 2GN.24
@@ -783,6 +800,8 @@ graph LR
 	2GN.23 --> 2GN.27
 	2GN.23 --> 2GN.29
 	2GN.23 --> 2GN.60
+	2GN.23 --> 2GN.70
+	2GN.23 --> 2GN.74
 	2GN.24 --> M2
 	2GN.25 --> M2
 	2GN.26 --> M2
@@ -793,11 +812,14 @@ graph LR
 	2GN.29 --> 2GN.33
 	2GN.29 --> 2GN.34
 	2GN.29 --> 2GN.61
-	2GN.30 --> M2
-	2GN.31 --> M2
-	2GN.32 --> M2
-	2GN.33 --> M2
+	2GN.29 --> 2GN.70
+	2GN.30 --> 2GN.70
+	2GN.31 --> 2GN.70
+	2GN.32 --> 2GN.70
+	2GN.33 --> 2GN.68
+	2GN.33 --> 2GN.70
 	2GN.34 --> 2GN.38
+	2GN.68 --> 2GN.38
 	2GN.38 --> 2GN.39
 	2GN.38 --> 2GN.44
 	2GN.39 --> 2GN.40
@@ -833,13 +855,19 @@ graph LR
 	2GN.56 --> 3WS.1
 	2GN.57 --> M2
 	2GN.58 --> M2
-	2GN.59 --> M2
+	2GN.59 --> 2GN.73
 	2GN.60 --> M2
 	2GN.61 --> M2
 	2GN.62 --> M2
 	2GN.63 --> M2
 	2GN.64 --> M2
 	2GN.65 --> M2
+	2GN.69 --> 2GN.71
+	2GN.70 --> M2
+	2GN.71 --> M2
+	2GN.72 --> 2GN.73
+	2GN.73 --> M2
+	2GN.74 --> M2
 	M2 --> 3WS.1
 	3WS.1 --> 3WS.2
 	3WS.1 --> 3WS.7
@@ -1137,9 +1165,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.21,2GN.26,2GN.27,2GN.30,2GN.31,2GN.32,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.57,2GN.58,2GN.59,2GN.60,2GN.61,2GN.66,2GN.67 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.28,2GN.29,2GN.3,2GN.4,2GN.5,2GN.6,2GN.7,2GN.8,2GN.9 done
+	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.21,2GN.26,2GN.27,2GN.30,2GN.31,2GN.32,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.28,2GN.29,2GN.3,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.8,2GN.9 done
 ```
 
 ## Links
