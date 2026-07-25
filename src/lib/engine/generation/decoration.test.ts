@@ -1,6 +1,11 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals, assertNotEquals } from '@std/assert';
-import { computeTechniqueWeight, expandDecoration } from './decoration.ts';
+import {
+	assignDecorativeDetails,
+	computeTechniqueWeight,
+	expandDecoration,
+	type SharedMotifSource,
+} from './decoration.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { createPrng } from '../prng.ts';
@@ -12,6 +17,8 @@ import {
 import { mockGeologicalContext, mockMaterialFlow } from '../../../../tests/fixtures/world.ts';
 import type { DecorativeLayer, DecorativeTechnique } from '../../types/decoration.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
+import type { GeologicalContext } from '../../types/world.ts';
+import type { MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped technique definition by name; throws if the catalogue ever drops it. */
 function technique(name: DecorativeTechnique) {
@@ -626,4 +633,469 @@ Deno.test('expandDecoration: two diverging seeds actually produce different seri
 
 	assert(divergent !== undefined, 'expected at least one seed to diverge');
 	assertNotEquals(a, divergent);
+});
+
+// --- assignDecorativeDetails ----------------------------------------------------------------------
+
+/** Builds a bare flat layer of the given technique, as `expandDecoration` emits them. */
+function detailLayer(
+	name: DecorativeTechnique,
+	sublayers: DecorativeLayer[] = [],
+): DecorativeLayer {
+	return { targetComponentId: 'c0', technique: name, sublayers };
+}
+
+/** A single-motif exchange source whose motif id is distinguishable from the fixture's native one. */
+function borrowedSource(intensity: number, id = 'borrowed-motif'): SharedMotifSource {
+	return {
+		motifs: [{ id, label: 'Borrowed Motif', culturalOrigin: 'partner-culture' }],
+		intensity,
+	};
+}
+
+/**
+ * The authored per-technique introduced-material tag sets (interviewed 2026-07-25, roadmap
+ * 2GN.33), pinned here so a silent edit to `INTRODUCED_MATERIAL_TAGS` fails a test.
+ */
+const EXPECTED_INTRODUCED_TAGS: Partial<Record<DecorativeTechnique, MaterialTag[]>> = {
+	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
+	'overlay': ['metal', 'precious-metal', 'leather'],
+	'studs': ['metal', 'precious-metal', 'bone'],
+	'wire-wrapping': ['metal', 'precious-metal'],
+	'gilding': ['precious-metal'],
+	'wrapping': ['fiber', 'leather'],
+	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
+};
+
+/** Every technique the shipped catalogue flags as motif-carrying, one layer each. */
+function allTechniqueLayers(): DecorativeLayer[] {
+	return DECORATIVE_TECHNIQUES.map((t) => detailLayer(t.technique));
+}
+
+Deno.test('assignDecorativeDetails: determinism — same seed produces identical resolved layers', () => {
+	const layers = allTechniqueLayers();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+
+	const run = () =>
+		assignDecorativeDetails(
+			layers,
+			culture,
+			phase,
+			geology,
+			[],
+			[borrowedSource(0.5)],
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+			createPrng('detail-determinism-seed'),
+		);
+
+	assertEquals(run(), run());
+});
+
+Deno.test('assignDecorativeDetails: determinism — different seeds can produce different resolutions', () => {
+	const layers = allTechniqueLayers();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+
+	const draw = (seed: string) =>
+		JSON.stringify(
+			assignDecorativeDetails(
+				layers,
+				culture,
+				phase,
+				geology,
+				[],
+				[borrowedSource(1)],
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+				createPrng(seed),
+			),
+		);
+
+	const serialised = new Set<string>();
+	for (let i = 0; i < 25; i++) serialised.add(draw(`detail-seed-${i}`));
+
+	assert(serialised.size > 1, 'expected varied resolutions across seeds');
+});
+
+Deno.test('assignDecorativeDetails: purity — inputs unmutated, output layers are new objects', () => {
+	const layers = allTechniqueLayers();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+	const trade = [mockMaterialFlow()];
+	const sources = [borrowedSource(0.5)];
+
+	const layersSnapshot = structuredClone(layers);
+	const cultureSnapshot = structuredClone(culture);
+	const phaseSnapshot = structuredClone(phase);
+	const geologySnapshot = structuredClone(geology);
+	const tradeSnapshot = structuredClone(trade);
+	const sourcesSnapshot = structuredClone(sources);
+	const materialsSnapshot = structuredClone(MATERIALS);
+	// Same reference-identity check as expandDecoration's purity test: `substrate.test` closures
+	// make the technique catalogue unclonable.
+	const techniquesSnapshot = [...DECORATIVE_TECHNIQUES];
+
+	const resolved = assignDecorativeDetails(
+		layers,
+		culture,
+		phase,
+		geology,
+		trade,
+		sources,
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('detail-purity-seed'),
+	);
+
+	assertEquals(layers, layersSnapshot);
+	assertEquals(culture, cultureSnapshot);
+	assertEquals(phase, phaseSnapshot);
+	assertEquals(geology, geologySnapshot);
+	assertEquals(trade, tradeSnapshot);
+	assertEquals(sources, sourcesSnapshot);
+	assertEquals(MATERIALS, materialsSnapshot);
+	for (const [index, entry] of DECORATIVE_TECHNIQUES.entries()) {
+		assert(entry === techniquesSnapshot[index], `technique entry at index ${index} was replaced`);
+	}
+	for (const [index, layer] of resolved.entries()) {
+		assert(layer !== layers[index], `resolved layer ${index} is the same object as its input`);
+	}
+});
+
+Deno.test('assignDecorativeDetails: field boundary — motifRef only on motif-carrying, material only on material-introducing techniques', () => {
+	const resolved = assignDecorativeDetails(
+		allTechniqueLayers(),
+		mockCulturalProfile(),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('boundary-seed'),
+	);
+
+	for (const layer of resolved) {
+		const definition = DECORATIVE_TECHNIQUES.find((t) => t.technique === layer.technique)!;
+		assertEquals(
+			'motifRef' in layer,
+			definition.carriesMotif,
+			`'${layer.technique}' motifRef presence should match carriesMotif=${definition.carriesMotif}`,
+		);
+		assertEquals(
+			'material' in layer,
+			definition.introducesMaterial,
+			`'${layer.technique}' material presence should match introducesMaterial=${definition.introducesMaterial}`,
+		);
+	}
+});
+
+Deno.test('assignDecorativeDetails: with no shared sources, every motif comes from the native vocabulary', () => {
+	const nativeIds = new Set(mockCulturalProfile().motifVocabulary.motifs.map((m) => m.id));
+
+	for (let i = 0; i < 25; i++) {
+		const resolved = assignDecorativeDetails(
+			[detailLayer('engraving'), detailLayer('painting')],
+			mockCulturalProfile(),
+			mockPhaseCharacteristics(),
+			mockGeologicalContext(),
+			[],
+			[],
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+			createPrng(`native-seed-${i}`),
+		);
+
+		for (const layer of resolved) {
+			assert(
+				layer.motifRef !== undefined && nativeIds.has(layer.motifRef),
+				`expected a native motif, got '${layer.motifRef}'`,
+			);
+		}
+	}
+});
+
+Deno.test('assignDecorativeDetails: full-intensity exchange makes borrowed motifs appear alongside native ones', () => {
+	const seen = new Set<string>();
+
+	for (let i = 0; i < 50; i++) {
+		const [resolved] = assignDecorativeDetails(
+			[detailLayer('engraving')],
+			mockCulturalProfile(),
+			mockPhaseCharacteristics(),
+			mockGeologicalContext(),
+			[],
+			[borrowedSource(1)],
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+			createPrng(`borrowed-seed-${i}`),
+		);
+		seen.add(resolved!.motifRef!);
+	}
+
+	assert(seen.has('borrowed-motif'), 'expected the borrowed motif to be selected at least once');
+	assert(seen.has('test-motif'), 'expected the native motif to be selected at least once');
+});
+
+Deno.test('assignDecorativeDetails: a zero-intensity source never contributes while native motifs exist', () => {
+	for (let i = 0; i < 100; i++) {
+		const [resolved] = assignDecorativeDetails(
+			[detailLayer('engraving')],
+			mockCulturalProfile(),
+			mockPhaseCharacteristics(),
+			mockGeologicalContext(),
+			[],
+			[borrowedSource(0)],
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+			createPrng(`zero-intensity-seed-${i}`),
+		);
+
+		assertEquals(resolved!.motifRef, 'test-motif');
+	}
+});
+
+Deno.test('assignDecorativeDetails: distribution — higher exchange intensity yields more borrowed selections', () => {
+	const borrowedCount = (intensity: number) => {
+		let count = 0;
+		for (let i = 0; i < 300; i++) {
+			const [resolved] = assignDecorativeDetails(
+				[detailLayer('engraving')],
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				mockGeologicalContext(),
+				[],
+				[borrowedSource(intensity)],
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+				createPrng(`intensity-seed-${i}`),
+			);
+			if (resolved!.motifRef === 'borrowed-motif') count++;
+		}
+		return count;
+	};
+
+	const high = borrowedCount(1);
+	const low = borrowedCount(0.25);
+
+	assert(high > low, `expected intensity 1 (${high}) to borrow more than 0.25 (${low})`);
+});
+
+Deno.test('assignDecorativeDetails: an empty motif pool omits motifRef rather than throwing', () => {
+	const [resolved] = assignDecorativeDetails(
+		[detailLayer('engraving')],
+		mockCulturalProfile({ motifVocabulary: { motifs: [] } }),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('empty-pool-seed'),
+	);
+
+	assert(!('motifRef' in resolved!), 'expected motifRef to be omitted for an empty pool');
+});
+
+Deno.test("assignDecorativeDetails: every introduced material conforms to its technique's authored tag set", () => {
+	for (const [name, tags] of Object.entries(EXPECTED_INTRODUCED_TAGS)) {
+		for (let i = 0; i < 40; i++) {
+			const [resolved] = assignDecorativeDetails(
+				[detailLayer(name as DecorativeTechnique)],
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				mockGeologicalContext(),
+				[mockMaterialFlow()],
+				[],
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+				createPrng(`tag-conformance-${name}-${i}`),
+			);
+
+			const material = MATERIALS.find((m) => m.id === resolved!.material);
+			assert(material !== undefined, `'${name}' assigned unknown material '${resolved!.material}'`);
+			assert(
+				material.tags.some((tag) => (tags as MaterialTag[]).includes(tag)),
+				`'${name}' assigned '${material.id}' (${material.tags}), outside its authored tag set (${tags})`,
+			);
+		}
+	}
+});
+
+Deno.test('assignDecorativeDetails: distribution — cultural material affinity shifts introduced-material selection', () => {
+	const metalShare = (affinities: Map<MaterialTag, number>) => {
+		let metal = 0;
+		for (let i = 0; i < 200; i++) {
+			const [resolved] = assignDecorativeDetails(
+				[detailLayer('inlay')],
+				mockCulturalProfile({ materialAffinities: affinities }),
+				mockPhaseCharacteristics(),
+				mockGeologicalContext(),
+				[],
+				[],
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+				createPrng(`affinity-seed-${i}`),
+			);
+			const material = MATERIALS.find((m) => m.id === resolved!.material)!;
+			if (material.tags.includes('metal')) metal++;
+		}
+		return metal;
+	};
+
+	const metalLeaning = metalShare(new Map([['metal', 3]]));
+	const stoneLeaning = metalShare(new Map([['stone', 3]]));
+
+	assert(
+		metalLeaning > stoneLeaning,
+		`expected a metal-leaning culture (${metalLeaning}) to inlay metal more than a stone-leaning one (${stoneLeaning})`,
+	);
+});
+
+Deno.test('assignDecorativeDetails: availability yields when it would exclude every tagged candidate', () => {
+	// Both precious metals marked absent: gilding's tagged pool survives the availability filter
+	// being emptied (assignMaterial's exact fallback) rather than dropping the material.
+	const geology: GeologicalContext = {
+		materialAvailability: new Map([
+			['gold', { materialId: 'gold', regions: new Map([['r', 'absent' as const]]) }],
+			['silver', { materialId: 'silver', regions: new Map([['r', 'absent' as const]]) }],
+		]),
+	};
+
+	const [resolved] = assignDecorativeDetails(
+		[detailLayer('gilding')],
+		mockCulturalProfile(),
+		mockPhaseCharacteristics(),
+		geology,
+		[],
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('fallback-seed'),
+	);
+
+	assert(
+		resolved!.material === 'gold' || resolved!.material === 'silver',
+		`expected a precious metal despite absent availability, got '${resolved!.material}'`,
+	);
+});
+
+Deno.test('assignDecorativeDetails: recurses into sublayers (2GN.31/32 readiness)', () => {
+	const nested = detailLayer('engraving', [detailLayer('inlay', [detailLayer('engraving')])]);
+
+	const [resolved] = assignDecorativeDetails(
+		[nested],
+		mockCulturalProfile(),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('sublayer-seed'),
+	);
+
+	const inlay = resolved!.sublayers[0]!;
+	const deepEngraving = inlay.sublayers[0]!;
+
+	assert(resolved!.motifRef !== undefined, 'expected the base engraving to carry a motif');
+	assert(inlay.motifRef !== undefined, 'expected the inlay sublayer to carry a motif');
+	assert(inlay.material !== undefined, 'expected the inlay sublayer to introduce a material');
+	assert(deepEngraving.motifRef !== undefined, 'expected the deepest sublayer to carry a motif');
+});
+
+Deno.test('assignDecorativeDetails: a technique missing from the injected catalogue passes through untouched', () => {
+	const layers = [detailLayer('engraving')];
+
+	const resolved = assignDecorativeDetails(
+		layers,
+		mockCulturalProfile(),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[],
+		MATERIALS,
+		[], // Empty injected catalogue: no flags known for any technique.
+		createPrng('unknown-technique-seed'),
+	);
+
+	assertEquals(resolved, layers);
+	assert(resolved[0] !== layers[0], 'expected a new object even when passing through');
+});
+
+Deno.test('assignDecorativeDetails: defaults to the shipped MATERIALS and DECORATIVE_TECHNIQUES catalogues', () => {
+	const layers = allTechniqueLayers();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+
+	const withDefaults = assignDecorativeDetails(
+		layers,
+		culture,
+		phase,
+		geology,
+		[],
+		[],
+		undefined,
+		undefined,
+		createPrng('detail-default-seed'),
+	);
+	const withExplicit = assignDecorativeDetails(
+		layers,
+		culture,
+		phase,
+		geology,
+		[],
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('detail-default-seed'),
+	);
+
+	assertEquals(withDefaults, withExplicit);
+});
+
+Deno.test('assignDecorativeDetails: resolves expandDecoration output end-to-end', () => {
+	const artefact = multiComponentArtefact();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics({
+		society: { craftSpecialisation: 1 },
+		aesthetics: { decorativeEmphasis: 1 },
+	});
+	const geology = mockGeologicalContext();
+
+	const candidates = expandDecoration(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('pipeline-seed'),
+	);
+	const resolved = assignDecorativeDetails(
+		candidates,
+		culture,
+		phase,
+		geology,
+		[],
+		[borrowedSource(0.5)],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('pipeline-detail-seed'),
+	);
+
+	assert(resolved.length > 0, 'expected layers at maximum intensity');
+	assertEquals(resolved.length, candidates.length);
+	for (const layer of resolved) {
+		const definition = DECORATIVE_TECHNIQUES.find((t) => t.technique === layer.technique)!;
+		assertEquals('motifRef' in layer, definition.carriesMotif);
+		assertEquals('material' in layer, definition.introducesMaterial);
+	}
 });
