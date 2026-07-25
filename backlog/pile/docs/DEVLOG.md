@@ -4,7 +4,9 @@
 
 ### What's the Latest Feature?
 
-A basic artefact generator & [web UI](https://jasonwarrenuk.github.io/Those-Who-Came-Before/). It currently generates lists of 5 unique artefacts, each comprising a type of object (axe, urn, etc) and a material it's made from (wood, bone, etc).
+A basic artefact generator & [web UI](https://jasonwarrenuk.github.io/Those-Who-Came-Before/). It
+currently generates lists of 5 unique artefacts, each comprising a type of object (axe, urn, etc)
+and a material it's made from (wood, bone, etc).
 
 ### Progress Chart
 
@@ -22,7 +24,8 @@ Right now I'm knee deep in the `itemAnatomy` & `itemGrammar` branches
 
 ### What's the Current Focus?
 
-I'm working on a template object for artefacts that will allow dynamic generation of artefacts with variable (but reasonable) constructions. Say the game generates a sword. It...
+I'm working on a template object for artefacts that will allow dynamic generation of artefacts with
+variable (but reasonable) constructions. Say the game generates a sword. It...
 
 - Has to have a blade, or it isn't a sword
 - Has to have a handle
@@ -33,10 +36,11 @@ I'm working on a template object for artefacts that will allow dynamic generatio
 - Probably doesn't have a belt loop on it, but if it does, then...
   - it could be attached to pommel.
     - which it might not have.
-  - it could be threaded through a hole drilled through the handle - but only if there isn't a pommel - but there shouldn't be a hole there is there _isn't_ a belt loop
+  - it could be threaded through a hole drilled through the handle - but only if there isn't a
+    pommel - but there shouldn't be a hole there is there _isn't_ a belt loop
 
 <details>
-	
+
 <summary>You can see the ~~convoluted bullshit~~ depth of thought involved by expanding this section.</summary>
 
 ### Artefact Generation Flowchart
@@ -123,12 +127,16 @@ material2["`**Material**
 
 </details>
 
-The system also needs to scale to further complexity well, because after item generation is nailed down I'll need to make sure that a culture can generate multiple items that feel coherent. Here's some initial ideas for that...
+The system also needs to scale to further complexity well, because after item generation is nailed
+down I'll need to make sure that a culture can generate multiple items that feel coherent. Here's
+some initial ideas for that...
 
-- if a sword lacks a crossguard, further swords from that culture should have a reduced chance of generating crossguards
+- if a sword lacks a crossguard, further swords from that culture should have a reduced chance of
+  generating crossguards
 - the use of a material can...
   - increase the likelihood of that material being used by that culture ("_we use Obsidian_")
-  - **significantly** increase the likelihood of that material being used by that culture **in similar contexts** ("_we make blades out of obsidian_")
+  - **significantly** increase the likelihood of that material being used by that culture **in
+    similar contexts** ("_we make blades out of obsidian_")
 
 More abstracted inferences can be drawn from emergent patterns:
 

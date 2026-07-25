@@ -7,7 +7,7 @@ const metal: string[] = [
 	'mercury',
 	'pewter',
 	'silver',
-	'steel'
+	'steel',
 ];
 const stone: string[] = ['flint', 'granite', 'obsidian'];
 const wood: string[] = ['ash', 'elm', 'mahogany', 'oak', 'willow'];

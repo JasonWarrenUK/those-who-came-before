@@ -1,16 +1,19 @@
 # Project Status
 
 > [!NOTE]
-> Since "Those Who Came Before" is the aggregate of all submodules, this section summarises roadmaps for all submodules actively in development.
+> Since "Those Who Came Before" is the aggregate of all submodules, this section summarises roadmaps
+> for all submodules actively in development.
 
 ---
 
 ## 1. Submodule Roadmaps
 
 ### 1.1. Core App
+
 - 1.1.1. [**Those Who Came Before:**](Those-Who-Came-Before.md)
 
 ### 1.2. Features
+
 - 1.2.1. [**Item Generation:**](Item-Generation-MVP.md)
 - 1.2.2. [**Culture Generation:**](Culture-Generation-MVP.md)-Generation-MVP.md)
 - 1.2.2. [**History Generation:**](History-Generation-MVP.md)-Generation-MVP.md)
@@ -20,6 +23,7 @@
 ## 2. Current State
 
 ### 2.1. Those Who Came Before: Core Architecture
+
 <details><summary>Status: ??% MVP</summary>
   <p></p>
 </details>
@@ -37,7 +41,9 @@
 </details>
 
 ### 2.2. Features
+
 #### 2.2.1. Item Generation
+
 <details>
   <summary>Status: ??% MVP ✅</summary>
   <p></p>
@@ -58,6 +64,7 @@
 </details>
 
 #### 2.2.2. Culture Generation
+
 <details>
   <summary>Status: ??% MVP ✅</summary>
   <p></p>
@@ -78,6 +85,7 @@
 </details>
 
 #### 2.2.3. History Generation
+
 <details>
   <summary>Status: ??% MVP ✅</summary>
   <p></p>

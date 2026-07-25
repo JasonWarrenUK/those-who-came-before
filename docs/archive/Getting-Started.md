@@ -64,11 +64,13 @@ npm run preview
 ### Game State
 
 The game automatically tracks:
+
 - Which artifacts you've discovered
 - Which item types are still available
 - Your progress on missions and tasks
 
-Currently, the game state is **not persisted** between sessions. Refreshing the page will reset your progress.
+Currently, the game state is **not persisted** between sessions. Refreshing the page will reset your
+progress.
 
 ## Development Tools
 
@@ -160,6 +162,7 @@ npm run build
 
 ## Getting Help
 
-- Check the [GitHub Issues](https://github.com/JasonWarrenUK/those-who-came-before/issues) for known problems
+- Check the [GitHub Issues](https://github.com/JasonWarrenUK/those-who-came-before/issues) for known
+  problems
 - Review the [SvelteKit documentation](https://kit.svelte.dev/docs)
 - Consult the [Svelte 5 Runes documentation](https://svelte.dev/docs/runes)

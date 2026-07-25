@@ -1,10 +1,12 @@
 # Technical Overview
 
-This document provides a comprehensive technical overview of the **Those Who Came Before** codebase, covering architecture, implementation patterns, and key technical decisions.
+This document provides a comprehensive technical overview of the **Those Who Came Before** codebase,
+covering architecture, implementation patterns, and key technical decisions.
 
 ## Architecture
 
-The application follows a **client-side SPA architecture** built with SvelteKit. There is no backend API - all game logic runs in the browser.
+The application follows a **client-side SPA architecture** built with SvelteKit. There is no backend
+API - all game logic runs in the browser.
 
 ### Tech Stack
 
@@ -74,18 +76,20 @@ those-who-came-before/
 **Purpose**: UI for generating new artifacts
 
 **Responsibilities**:
+
 - Renders "Generate Artifacts" button
 - Displays count of available item types
 - Calls `itemCreateSet()` service function
 - Subscribes to `gameState.itemsAvailable`
 
 **Key Code** (`src/lib/components/ItemGenerator.svelte`):
+
 ```typescript
 import { itemCreateSet } from '$lib/services/itemGenerator';
 import { gameState } from '$lib/stores/gameState.svelte';
 
 function handleGenerate() {
-  itemCreateSet(3); // Generate 3 artifacts
+	itemCreateSet(3); // Generate 3 artifacts
 }
 ```
 
@@ -94,11 +98,13 @@ function handleGenerate() {
 **Purpose**: Display chronological list of discovered artifacts
 
 **Responsibilities**:
+
 - Renders DaisyUI timeline component
 - Subscribes to `gameState.itemsUsed`
 - Auto-updates when new artifacts are discovered
 
 **State Binding**:
+
 ```typescript
 import { gameState } from '$lib/stores/gameState.svelte';
 // Component automatically re-renders when gameState.itemsUsed changes
@@ -109,14 +115,16 @@ import { gameState } from '$lib/stores/gameState.svelte';
 **Purpose**: Track mission progress
 
 **Responsibilities**:
+
 - Displays task completion status
 - Calculates progress based on discovered items
 - Uses `$derived` runes for computed values
 
 **Computed State**:
+
 ```typescript
 let taskProgress = $derived(
-  gameState.itemsUsed.length >= TARGET_COUNT
+	gameState.itemsUsed.length >= TARGET_COUNT,
 );
 ```
 
@@ -134,8 +142,8 @@ The application uses **Svelte 5's Runes API** for reactivity instead of traditio
 
 ```typescript
 interface GameState {
-  itemsAvailable: Item[];      // Items not yet discovered
-  itemsUsed: GeneratedItem[];  // Discovered artifacts
+	itemsAvailable: Item[]; // Items not yet discovered
+	itemsUsed: GeneratedItem[]; // Discovered artifacts
 }
 ```
 
@@ -157,34 +165,35 @@ Uses `$state` rune for reactive state and immutable update patterns:
 
 ```typescript
 function createGameState() {
-  let state = $state<GameState>({
-    itemsAvailable: [...items],
-    itemsUsed: []
-  });
+	let state = $state<GameState>({
+		itemsAvailable: [...items],
+		itemsUsed: [],
+	});
 
-  return {
-    get itemsAvailable() {
-      return state.itemsAvailable;
-    },
-    markItemUsed(item: GeneratedItem) {
-      // Immutable removal from available
-      const index = state.itemsAvailable.findIndex(i => i.type === item.type);
-      if (index !== -1) {
-        state.itemsAvailable = [
-          ...state.itemsAvailable.slice(0, index),
-          ...state.itemsAvailable.slice(index + 1)
-        ];
-      }
-      // Immutable addition to used
-      state.itemsUsed = [...state.itemsUsed, item];
-    }
-  };
+	return {
+		get itemsAvailable() {
+			return state.itemsAvailable;
+		},
+		markItemUsed(item: GeneratedItem) {
+			// Immutable removal from available
+			const index = state.itemsAvailable.findIndex((i) => i.type === item.type);
+			if (index !== -1) {
+				state.itemsAvailable = [
+					...state.itemsAvailable.slice(0, index),
+					...state.itemsAvailable.slice(index + 1),
+				];
+			}
+			// Immutable addition to used
+			state.itemsUsed = [...state.itemsUsed, item];
+		},
+	};
 }
 ```
 
 ### Why Immutable Updates?
 
 While Svelte 5 supports mutable state, this project uses **immutable patterns** for:
+
 1. **Predictability**: Clear state transitions
 2. **Debugging**: Easy to trace state changes
 3. **Testing**: Simpler to verify state mutations
@@ -201,24 +210,27 @@ Strict TypeScript enforces type safety across the application:
 ```typescript
 // src/lib/types/item.ts
 export interface Item {
-  type: string;
+	type: string;
 }
 
 export interface GeneratedItem extends Item {
-  material: string;
+	material: string;
 }
 ```
 
 **Type Flow**:
+
 1. `Item` → Base item type from catalog
 2. `GeneratedItem` → Item with material applied
 3. Services enforce transformation: `Item` → `GeneratedItem`
 
 ### Runtime Validation
 
-Currently **no runtime validation** is performed. All data is statically defined and type-checked at compile time.
+Currently **no runtime validation** is performed. All data is statically defined and type-checked at
+compile time.
 
 **Future**: Could add Zod or similar for:
+
 - User input validation
 - External data parsing
 - API response validation (when backend added)
@@ -242,8 +254,8 @@ import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 export default {
-  preprocess: vitePreprocess(),
-  kit: { adapter: adapter() }
+	preprocess: vitePreprocess(),
+	kit: { adapter: adapter() },
 };
 ```
 
@@ -252,6 +264,7 @@ Uses **adapter-node** for Node.js deployment (SSR-capable).
 ### Tailwind + DaisyUI
 
 **Styling Stack**:
+
 - Tailwind CSS 4.0 (utility-first CSS)
 - DaisyUI 5.1 (component library)
 - Tailwind plugins: `@tailwindcss/forms`, `@tailwindcss/typography`
@@ -310,6 +323,7 @@ npm run preview          # Preview production build
 ### Hot Module Replacement (HMR)
 
 Vite provides fast HMR for:
+
 - Svelte components
 - TypeScript modules
 - CSS/Tailwind styles
@@ -331,6 +345,7 @@ Uses `svelte-check` for TypeScript validation across `.svelte` files.
 **No environment variables** are currently used.
 
 The application is fully client-side with no:
+
 - API endpoints
 - External services
 - Secret keys
@@ -339,6 +354,7 @@ The application is fully client-side with no:
 ### Future Considerations
 
 When adding persistence or backend services, will need:
+
 - `PUBLIC_API_URL` - API endpoint
 - `DATABASE_URL` - Database connection (if using server-side storage)
 - `SESSION_SECRET` - Session encryption key
@@ -383,6 +399,7 @@ npm run build
 ```
 
 Creates:
+
 - `build/` - Node.js server + static assets
 - Optimized and minified code
 - Pre-rendered pages (if configured)
@@ -392,11 +409,13 @@ Creates:
 **Current Adapter**: `@sveltejs/adapter-node`
 
 Compatible with:
+
 - Node.js hosting (Render, Railway, Fly.io)
 - Docker containers
 - Serverless Node environments
 
 **Alternative Adapters**:
+
 - `@sveltejs/adapter-static` - Pure static hosting (Netlify, Vercel, GitHub Pages)
 - `@sveltejs/adapter-vercel` - Vercel optimized
 - `@sveltejs/adapter-cloudflare` - Cloudflare Workers
