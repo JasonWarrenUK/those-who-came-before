@@ -143,7 +143,9 @@ function walk(layers: InspectedLayer[], visit: (layer: InspectedLayer) => void):
 /**
  * Generates one artefact from `seed` against `culture` and inspects its decoration.
  *
- * @param seed - The seed to generate from; also namespaces the material and decoration draws.
+ * @param seed - The seed to generate from; also namespaces the material and decoration draws (the
+ *   material draw matches `materialAssignment.ts`'s canonical, `draw = 0` seed exactly, so the two
+ *   panels agree on the resolved material for the same seed and component).
  * @param culture - The culture, phase, geology and trade flows to generate against.
  */
 export function inspectDecoration(seed: string, culture: ExplorerCulture): DecorationModel {
@@ -163,6 +165,11 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 	);
 
 	const components = artefact.components.map((component) => {
+		// Keyed by `component.position` (via `shortId`-equivalent `c${position}`) and `-0`, matching
+		// `materialAssignment.ts`'s canonical (`draw = 0`) seed exactly, so the two panels resolve the
+		// same material for the same generation seed and component. `component.id` is not usable
+		// here: `normaliseArtefact` prefixes it with this call's own artefact id
+		// (`decoration-${seed}`), which the material panel's `materials-${seed}` never matches.
 		const material = assignMaterial(
 			component,
 			culture.profile,
@@ -170,7 +177,7 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 			culture.geology,
 			culture.trade,
 			MATERIALS,
-			createPrng(`${seed}-material-${component.id}`),
+			createPrng(`${seed}-material-c${component.position}-0`),
 		);
 
 		return {

@@ -1,6 +1,7 @@
 /// <reference lib="deno.ns" />
 import { assertEquals } from '@std/assert';
 import { inspectDecoration } from './decorationLayers.ts';
+import { assignMaterials } from '../materials/materialAssignment.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 
@@ -105,5 +106,20 @@ Deno.test('inspectDecoration — both cultures produce a well-formed model for t
 		const model = inspectDecoration('dec-culture-variation', culture);
 		assertEquals(model.components.length, model.artefact.components.length);
 		assertEquals(model.layerCount >= 0, true);
+	}
+});
+
+Deno.test('inspectDecoration — resolved material agrees with the material viewer for the same seed and component', () => {
+	// Guards the cross-panel seed convention: both panels must draw the same material for the same
+	// component so a developer comparing them side by side never sees a spurious mismatch. Matched
+	// by `shortId`, not `componentId` — each panel's `normaliseArtefact` call prefixes component ids
+	// with its own artefact id (`decoration-...` vs `materials-...`), so only position is shared.
+	for (const culture of [tarpan, khaltiris]) {
+		const decoration = inspectDecoration('dec-material-agreement', culture);
+		const materials = assignMaterials('dec-material-agreement', culture, 1);
+		for (const component of decoration.components) {
+			const assignment = materials.assignments.find((a) => a.shortId === component.shortId);
+			assertEquals(assignment?.resolved.id, component.material.id, component.shortId);
+		}
 	}
 });

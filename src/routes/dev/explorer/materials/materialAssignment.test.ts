@@ -124,3 +124,15 @@ Deno.test('assignMaterials — a non-positive draw count still yields the canoni
 	assertEquals(model.draws, 1);
 	assertEquals(model.assignments.length, model.artefact.components.length);
 });
+
+Deno.test("assignMaterials — candidates are not per-component compatibility-filtered, pinned to today's all-empty allowedMaterialTags stub", () => {
+	// `candidates` weighs every shipped material against the culture alone, skipping the
+	// `allowedMaterialTags` filter `assignMaterial` itself applies per component. That's only exact
+	// while every component's `allowedMaterialTags` is the roadmap-2GN.10 stub `[]`. If this
+	// assertion ever fails, 2GN.10 has landed real constraints and `materialAssignment.ts`'s
+	// `candidates` table needs a matching per-component filter (see its module doc comment).
+	const model = assignMaterials('mat-unfiltered-candidates', khaltiris, 1);
+	for (const component of model.artefact.components) {
+		assertEquals(component.allowedMaterialTags, [], component.id);
+	}
+});

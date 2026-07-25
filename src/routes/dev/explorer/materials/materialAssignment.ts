@@ -14,6 +14,16 @@
  * exact. Trade is reported as a reason rather than a weight, because that is what it is — a
  * boolean rescue inside `isAvailable`, not a multiplier.
  *
+ * **`candidates` is culture-wide, not per-component compatibility-filtered.** `assignMaterial`
+ * filters its candidate pool by `component.allowedMaterialTags` before weighting anything; this
+ * module's `candidates` table skips that filter and weighs every shipped material against the
+ * culture alone. That's exact today only because `allowedMaterialTags` is stubbed `[]` for every
+ * component (roadmap 2GN.10, not yet landed), which makes the filter a no-op. Once 2GN.10 populates
+ * real per-component constraints, this table will start showing materials as obtainable/weighted
+ * for components that could never actually draw them, and needs a per-component filter added
+ * alongside it — `materialAssignment.test.ts` pins today's "every material is a candidate" shape so
+ * that change doesn't land unnoticed.
+ *
  * Pure, no DOM/Svelte, so it's unit-testable directly per the `structureTree.ts` precedent.
  */
 
@@ -160,6 +170,11 @@ export function assignMaterials(
 		let resolved: MaterialDefinition | undefined;
 
 		for (let draw = 0; draw < sampleCount; draw++) {
+			// Keyed by `component.position`, not `component.id`: `normaliseArtefact` prefixes
+			// `component.id` with the caller's artefact id, which differs between this panel
+			// (`materials-${seed}`) and the decoration panel (`decoration-${seed}`). Position is the
+			// only part of a component's identity both panels agree on for the same generation seed,
+			// so it's what keeps their canonical (`draw = 0`) material draws in agreement.
 			const material = assignMaterial(
 				component,
 				culture.profile,
@@ -167,7 +182,7 @@ export function assignMaterials(
 				culture.geology,
 				culture.trade,
 				MATERIALS,
-				createPrng(`${seed}-material-${component.id}-${draw}`),
+				createPrng(`${seed}-material-c${component.position}-${draw}`),
 			);
 			if (draw === 0) resolved = material;
 			tally.set(material.id, (tally.get(material.id) ?? 0) + 1);
