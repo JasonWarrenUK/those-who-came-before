@@ -409,6 +409,12 @@ interface MotifCandidate {
  * from Culture A, or from Culture B using borrowed motifs?". A partner with a larger vocabulary
  * contributes proportionally more total borrowing probability (per-motif weighting, a deliberate
  * choice over per-source normalisation).
+ *
+ * Zero-intensity sources are excluded from the pool entirely rather than entered at weight `0`:
+ * `weightedSelect` falls back to a uniform draw over a zero-total-weight pool, so a weight-`0`
+ * candidate alongside an empty native vocabulary could otherwise be *selected* — inverting what
+ * intensity `0` means. Excluded, the pool is genuinely empty in that case and `motifRef` is
+ * omitted per the honest-degradation contract.
  */
 function buildMotifPool(
 	culture: CulturalProfile,
@@ -420,6 +426,7 @@ function buildMotifPool(
 	}));
 
 	for (const source of sharedMotifSources) {
+		if (source.intensity <= 0) continue;
 		for (const motif of source.motifs) {
 			pool.push({ motif, weight: source.intensity });
 		}

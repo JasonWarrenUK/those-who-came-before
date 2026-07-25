@@ -642,7 +642,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       product with `assignMaterial`'s availability-yields fallback. Empty pools degrade honestly
       (field omitted, never fabricated or thrown) — the docs' implied no-motif-less-cultures
       invariant is recorded on 3WS.8 for the generator to enforce. Spawned 2GN.76 (phase-varying
-      motif salience). Covered by 16 new Deno tests in `decoration.test.ts` — determinism (same-seed
+      motif salience). Covered by 17 new Deno tests in `decoration.test.ts` — determinism (same-seed
       identity, cross-seed divergence), purity plus new-object outputs, per-technique field
       boundaries pinned to catalogue flags,
       native-only/borrowed-appears/zero-intensity-never/intensity-scaling motif distributions,

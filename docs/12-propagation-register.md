@@ -493,7 +493,7 @@ phase technology × scarcity), with `assignMaterial`'s exact availability-yields
 | Doc | What changed                                                                                                                                                                      | Completed  |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | 05  | Section 8.5 gains an implementation note pointing at the selection semantics (this entry)                                                                                         | 2026-07-25 |
-| —   | `src/lib/engine/generation/decoration.ts` (2GN.33): `assignDecorativeDetails`, `SharedMotifSource`, `INTRODUCED_MATERIAL_TAGS`; 16 Deno tests in the sibling `decoration.test.ts` | 2026-07-25 |
+| —   | `src/lib/engine/generation/decoration.ts` (2GN.33): `assignDecorativeDetails`, `SharedMotifSource`, `INTRODUCED_MATERIAL_TAGS`; 17 Deno tests in the sibling `decoration.test.ts` | 2026-07-25 |
 | —   | Roadmap: 2GN.76 added (motif salience across a culture's lifespan, blocked on 2GN.33); 3WS.8 gains the non-empty-vocabulary note                                                  | 2026-07-25 |
 
 ---

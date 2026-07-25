@@ -860,6 +860,28 @@ Deno.test('assignDecorativeDetails: a zero-intensity source never contributes wh
 	}
 });
 
+Deno.test('assignDecorativeDetails: a zero-intensity source never contributes even with no native motifs', () => {
+	// A weight-0 candidate must not survive into `weightedSelect`'s zero-total-weight uniform
+	// fallback: with the native vocabulary empty too, the pool is genuinely empty and motifRef is
+	// omitted, per the honest-degradation contract.
+	const [resolved] = assignDecorativeDetails(
+		[detailLayer('engraving')],
+		mockCulturalProfile({ motifVocabulary: { motifs: [] } }),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[borrowedSource(0)],
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		createPrng('zero-intensity-empty-native-seed'),
+	);
+
+	assert(
+		!('motifRef' in resolved!),
+		`expected motifRef omitted, got '${resolved!.motifRef}' from a zero-intensity source`,
+	);
+});
+
 Deno.test('assignDecorativeDetails: distribution — higher exchange intensity yields more borrowed selections', () => {
 	const borrowedCount = (intensity: number) => {
 		let count = 0;
