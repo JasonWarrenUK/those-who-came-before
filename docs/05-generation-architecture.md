@@ -804,6 +804,8 @@ This is how real archaeological interpretation works with reworked objects. The 
 
 Each decorative element that carries a motif draws from the source culture's `motifVocabulary`. Motifs are the primary cultural fingerprint on the decorative layer. Two cultures sharing motifs through `culturalExchange` create genuine interpretive ambiguity: is this artefact from Culture A, or is it from Culture B using borrowed motifs?
 
+> **Implementation note (2026-07-25, roadmap 2GN.33, doc 12 §2.22):** the selection semantics this section leaves open are pinned in `assignDecorativeDetails` (`src/lib/engine/generation/decoration.ts`), a separate pass over the decorative grammar's output that also resolves the BNF's `<material>` arguments for material-introducing techniques. Native motifs weigh `1`, borrowed motifs weigh their relationship window's `culturalExchange.intensity`, and exchange partners arrive pre-resolved (the caller filters relationships to windows covering the production year whose exchange domains include `'motifs'`). Introduced materials are constrained by interviewed per-technique tag sets (`INTRODUCED_MATERIAL_TAGS`) and weighted by the same cultural-affinity × technology × scarcity product as structural material assignment. See doc 12 §2.22 for the decisions and their rationale.
+
 ---
 
 ## 9. Stage 8: Unified Feature Extraction + Tag Classification

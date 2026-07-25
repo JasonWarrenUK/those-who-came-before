@@ -277,6 +277,28 @@ Doc 05 §9.2 shows rules contributing weights and calls the result "accumulated"
 | 05 | Section 9.2 gains an implementation note pinning the fold semantics (this entry) | 2026-07-23 |
 | — | `src/lib/engine/generation/classification.ts` (2GN.20): `classifyArtefact(features, rules)`; `types/tags.ts` gains the `FUNCTION_TAGS`/`CONTEXT_TAGS` runtime arrays; 9 Deno tests in the sibling `classification.test.ts` | 2026-07-23 |
 
+### 2.22 Motif Assignment + Introduced-Material Resolution (2026-07-25)
+**Origin:** Roadmap task 2GN.33 implementation (2026-07-25)
+**Source of truth:** `assignDecorativeDetails` JSDoc and `INTRODUCED_MATERIAL_TAGS` (`src/lib/engine/generation/decoration.ts`) — doc 05 §8.5 specifies the mechanism in prose, not the selection semantics
+
+Doc 05 §8.5 says motif-carrying elements draw from the source culture's `motifVocabulary` and that cultures sharing motifs through `culturalExchange` create attribution ambiguity, but pins neither how borrowed motifs weigh against native ones, how exchange data reaches a per-artefact function, nor which materials satisfy the BNF's `<material>` arguments. All were settled at 2GN.33 (interviewed decision-by-decision, mirroring the 2GN.17/2GN.19 sessions).
+
+**Separate pass, not part of expansion.** `assignDecorativeDetails(layers, culture, phase, geology, trade, sharedMotifSources, materials, techniques, prng)` post-processes `expandDecoration`'s output rather than filling fields at emission time, so the eventual pipeline can order it after 2GN.30's substrate stripping (no draws wasted on stripped layers) and `expandDecoration`'s draw-sequence contract stays untouched. It recurses depth-first into `sublayers`, so it is already correct for 2GN.31/2GN.32's layering. Scope note: the task's roadmap title says only motif assignment, but introduced-material resolution (`DecorativeLayer.material`) was confirmed as 2GN.33's during the interview — 2GN.29's scope note, 2GN.61's dormant-fields note and 2GN.68's dependency all attribute it here and nothing else owned it.
+
+**Exchange input is pre-resolved.** Following the `trade: MaterialFlow[]` precedent, the function takes `sharedMotifSources: { motifs, intensity }[]` — the caller (Milestone 3's context assembly) filters `CultureRelationship.phases` to windows covering the production year whose `culturalExchange.domains` includes `'motifs'`. The engine pass stays free of temporal logic.
+
+**Per-motif × intensity weighting.** Every native motif weighs `1`; every borrowed motif weighs its source's exchange intensity (0–1). At full intensity a borrowed motif is indistinguishable from a native one — the maximum-ambiguity reading of §8.5's closing question. Deliberate consequence, accepted at interview: a partner with a larger vocabulary contributes proportionally more total borrowing probability (per-motif, not per-source normalisation). A follow-on task (2GN.76) was created for the salience dimension this flat weighting lacks: native and borrowed motifs should not be equally prominent at every point in a culture's lifespan.
+
+**Empty pools degrade, generation enforces.** A motif-carrying layer with an empty pool (no native motifs, no sources) omits `motifRef` rather than throwing — the docs imply a real world never contains a motif-less culture (§8.5's "primary cultural fingerprint"; doc 06's `decorative-mismatch` strain assumes motif attribution works), but that invariant belongs to the culture generator, so 3WS.8 now carries the non-empty-vocabulary requirement as a note. Same policy for an introduced-material pool emptied by an injected catalogue.
+
+**Interviewed introduced-material tag sets** (approved item-by-item, 2026-07-25), grounded in documented craft practice: `gilding` → precious-metal only (every documented gilding practice — leaf, fire/amalgam, foil/diffusion, depletion; silvering as the silver analogue — uses gold or silver, coinciding with the BNF's `<precious-metal>`); `wire-wrapping` → metal, precious-metal; `wrapping` → fiber, leather; `inlay` → everything except fiber/leather/clay (solid inserts only); `overlay` → metal, precious-metal, leather; `studs` → metal, precious-metal, bone; `beading` → glass, stone, precious-stone, bone, metal, precious-metal (metal beads included at interview — well attested in elite contexts, kept naturally rare by scarcity weighting). Candidates are then filtered by `isAvailable` and weighted by the existing `computeMaterialWeight` product (cultural affinity × phase technology × scarcity), with `assignMaterial`'s exact availability-yields fallback.
+
+| Doc | What changed | Completed |
+|---|---|---|
+| 05 | Section 8.5 gains an implementation note pointing at the selection semantics (this entry) | 2026-07-25 |
+| — | `src/lib/engine/generation/decoration.ts` (2GN.33): `assignDecorativeDetails`, `SharedMotifSource`, `INTRODUCED_MATERIAL_TAGS`; 16 Deno tests in the sibling `decoration.test.ts` | 2026-07-25 |
+| — | Roadmap: 2GN.76 added (motif salience across a culture's lifespan, blocked on 2GN.33); 3WS.8 gains the non-empty-vocabulary note | 2026-07-25 |
+
 ---
 
 *This document is a living register. Items are added during design sessions and resolved during propagation passes.*
