@@ -532,16 +532,29 @@
 						"dependsOn": [
 							"2GN.23"
 						],
+						"notes": "`likelyOriginRegion` is necessarily a provisional string keyed against `mockGeologicalContext`'s single `'test-region'` fixture — no region vocabulary exists yet (`Culture` carries no region binding); true region attribution is 3WS.7's, which must reconcile whatever this task and 2GN.47 mint (dependency sweep 2026-07-25)",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.75",
+						"description": "`engine/generation/materials.ts` — `assignMaterials(artefact, culture, phase, geology, trade, materials, prng): MaterialAssignment[]` — artefact-level material pass producing the componentId→material mapping the rest of the pipeline needs",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.23",
+							"2GN.26"
+						],
+						"notes": "`assignMaterial` only handles one component and returns a bare `MaterialDefinition`; no engine code currently produces `MaterialAssignment[]` — the only working precedent is duplicated Explorer route logic in `materialAssignment.ts`/`decorationLayers.ts`, which this task promotes into the engine, including resolving the per-component PRNG namespacing both currently work around. Constructs each `MaterialAssignment` complete, including its required `provenance`, via 2GN.26's generator — sequenced after 2GN.26 specifically so `provenance` is never stubbed. Added by dependency sweep 2026-07-25: 2GN.30/2GN.27/2GN.70 each need per-component assigned materials and had no producer.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.27",
-						"description": "`engine/generation/materials.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "todo",
+						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.20",
-							"2GN.23"
+							"2GN.75"
 						],
+						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -602,12 +615,16 @@
 					},
 					{
 						"id": "2GN.34",
-						"description": "`engine/generation/classification.ts` — update: decorative features contribute to decorativeComplexity accumulation (layer count, technique variety, depth — real signal from `expandDecoration`'s flat layers)",
+						"description": "`src/lib/data/classification.ts` — decorative classification rules consuming layer count, technique variety and depth",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.29",
+							"2GN.19",
 							"2GN.20"
 						],
+						"softDependsOn": [
+							"2GN.31"
+						],
+						"notes": "Rescoped by dependency sweep 2026-07-25: `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via `tallyLayers`' existing sublayer recursion) — the extraction side needs no further work here. The remaining task is authoring classification rules in `data/classification.ts` that read those already-populated fields (a data task, not an engine one, hence the corrected file path); `maxDepth` stays pinned at 1 until 2GN.31 lands sublayers, so depth-sensitive rules should note that (soft follow, not a hard dependency). ⚠️ per the classification-branch oversight preference, this rule set needs decision-by-decision sign-off, same as 2GN.17/2GN.20 (doc 12 §2.19/§2.21).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -661,6 +678,7 @@
 							"2GN.36",
 							"2GN.37"
 						],
+						"notes": "`ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance` generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s inline default into an exported `mockProvenance` fixture) rather than reordering — matches the 2GN.23 M2-provisional convention. Revisit once 2GN.47 lands real provenance.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -706,6 +724,7 @@
 						"dependsOn": [
 							"2GN.39"
 						],
+						"notes": "Same stub-provenance caveat as 2GN.38 (dependency sweep 2026-07-25): describes a caller-supplied `Provenance`, since real generation is 2GN.47, downstream of this task's own chain.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -715,6 +734,7 @@
 						"dependsOn": [
 							"2GN.38"
 						],
+						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -743,16 +763,18 @@
 							"2GN.66",
 							"2GN.44"
 						],
+						"notes": "`region` is a provisional string here too (same caveat as 2GN.26; dependency sweep 2026-07-25) — no region vocabulary or culture→region binding exists yet, so this task mints convention-agreed strings for 3WS.7 to reconcile once real geography lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.48",
-						"description": "`engine/world/scholars.ts` — `generateNPCScholars(world, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage",
+						"description": "`engine/world/scholars.ts` — `generateNPCScholars(cultures, chronology, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.44",
 							"2GN.66"
 						],
+						"notes": "Signature takes the loose `Culture[]`/`WorldChronology` bag M2 can actually supply rather than `WorldState` (see 2GN.56's note); also needs an `InterpretiveModel` fixture factory added to `tests/fixtures/` since none exists (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -766,20 +788,22 @@
 					},
 					{
 						"id": "2GN.50",
-						"description": "`engine/generation/corpus.ts` — `simulateExcavations(npcs, world, prng): SimulatedExcavation[]` — 6-8 campaigns biased by NPC preferences",
+						"description": "`engine/generation/corpus.ts` — `simulateExcavations(npcs, cultures, geology, trade, prng): SimulatedExcavation[]` — 6-8 campaigns biased by NPC preferences",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.49"
 						],
+						"notes": "Signature drops `WorldState` for the loose bag M2 can supply (see 2GN.56's note; dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.51",
-						"description": "`engine/generation/corpus.ts` — `generatePublications(npcs, excavations, world, prng): DocumentNode[]` — ~15-20 summary publications with lineage and commitments",
+						"description": "`engine/generation/corpus.ts` — `generatePublications(npcs, excavations, cultures, prng): DocumentNode[]` — ~15-20 summary publications with lineage and commitments",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.50"
 						],
+						"notes": "Signature drops `WorldState` (see 2GN.56's note; dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -789,6 +813,7 @@
 						"dependsOn": [
 							"2GN.50"
 						],
+						"notes": "⚠️ breaking: `ProfessionalCorpus` has no `coverageGaps` field today; this task must add one (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -807,6 +832,7 @@
 						"dependsOn": [
 							"2GN.50"
 						],
+						"notes": "⚠️ breaking: `ProfessionalCorpus` has no `datingFrameworks` field today; this task must add one (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -839,11 +865,12 @@
 					},
 					{
 						"id": "2GN.56",
-						"description": "`engine/generation/pipeline.ts` — `runGenerationPipeline(world, culture, period, prng): ClassifiedArtefact` — full 9-stage orchestrator",
+						"description": "`engine/generation/pipeline.ts` — `runGenerationPipeline(culture, period, geology, trade, corpus, prng): ClassifiedArtefact` — full 9-stage orchestrator",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.53"
 						],
+						"notes": "`WorldState` does not exist as a type until 3WS.9 (`save.ts` confirms: \"No runtime `WorldState` aggregate exists yet\"), so this and the four corpus-chain signatures above (2GN.48/50/51) take the loose bag M2 can actually supply; 3WS.15 collapses them to the real `WorldState` parameter once it lands (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1009,13 +1036,14 @@
 						"description": "`engine/generation/materials.ts` + `engine/generation/decoration.ts` — whole-object coherence pass: check material and decorative choices are coherent across an artefact's components as a set (not necessarily mono-material) rather than validating each component in isolation",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.23",
+							"2GN.75",
 							"2GN.29",
 							"2GN.30",
 							"2GN.31",
 							"2GN.32",
 							"2GN.33"
 						],
+						"notes": "Dependency sweep 2026-07-25 corrected the dependency from 2GN.23 to 2GN.75: \"as a set\" requires the whole-artefact material assignment, which only 2GN.75 produces.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1124,6 +1152,7 @@
 						"dependsOn": [
 							"3WS.1"
 						],
+						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.",
 						"assignee": "Jason Warren"
 					},
 					{
