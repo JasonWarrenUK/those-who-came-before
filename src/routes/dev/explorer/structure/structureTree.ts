@@ -48,7 +48,11 @@ export function shortId(component: NormalisedComponent): string {
  *
  * Mirrors `printAnatomy`'s three passes: index children by `fromComponentId`, find roots (attached
  * components that never appear as a `toComponentId`), then walk each root depth-first. A
- * `seen`-guard breaks any cycle defensively, though the grammar only ever produces trees.
+ * `seen`-guard breaks any cycle defensively, though the grammar only ever produces trees. The guard
+ * is scoped to one root's own walk, not shared across roots: nothing in `Attachment`'s type stops
+ * two different roots from independently reaching the same component (only grammar convention
+ * does), and that's a shared descendant, not a cycle — collapsing it into a leaf on its second
+ * appearance would misrepresent the structure rather than defend against a real loop.
  */
 export function buildStructureTree(artefact: NormalisedArtefact): StructureTree {
 	const { components, attachments } = artefact;
@@ -65,11 +69,10 @@ export function buildStructureTree(artefact: NormalisedArtefact): StructureTree 
 		childEdges.set(attachment.fromComponentId, edges);
 	}
 
-	const seen = new Set<string>();
-
 	function toNode(
 		component: NormalisedComponent,
-		joinType?: AttachmentType,
+		joinType: AttachmentType | undefined,
+		seen: Set<string>,
 	): StructureTreeNode {
 		const node: StructureTreeNode = {
 			shortId: shortId(component),
@@ -81,18 +84,18 @@ export function buildStructureTree(artefact: NormalisedArtefact): StructureTree 
 		if (seen.has(component.id)) return node; // Cycle guard; the grammar produces trees.
 		seen.add(component.id);
 		const edges = childEdges.get(component.id) ?? [];
-		node.children = edges.map((edge) => toNode(edge.to, edge.type));
+		node.children = edges.map((edge) => toNode(edge.to, edge.type, seen));
 		return node;
 	}
 
 	const receiving = new Set(attachments.map((attachment) => attachment.toComponentId));
 	const roots = components
 		.filter((component) => attached.has(component.id) && !receiving.has(component.id))
-		.map((component) => toNode(component));
+		.map((component) => toNode(component, undefined, new Set()));
 
 	const loose = components
 		.filter((component) => !attached.has(component.id))
-		.map((component) => toNode(component));
+		.map((component) => toNode(component, undefined, new Set()));
 
 	return { roots, loose };
 }

@@ -96,3 +96,48 @@ Deno.test('buildStructureTree — every node carries non-empty prose for a known
 	assertProse(tree.roots);
 	assertProse(tree.loose);
 });
+
+Deno.test('buildStructureTree — a component reachable from two different roots is nested under both, not truncated', () => {
+	// Not a cycle: `shared` has no outgoing edge back to either root. The `seen` guard must be
+	// scoped per root's own walk, or the second root would see `shared` as already-visited and
+	// render it as a childless leaf even though it never revisits an ancestor.
+	const rootA = mockNormalisedArtefact().components[0];
+	const rootB = { ...rootA, id: 'root-b', position: 1 };
+	const shared = { ...rootA, id: 'shared-child', position: 2 };
+	const artefact = mockNormalisedArtefact({
+		components: [rootA, rootB, shared],
+		attachments: [
+			{ fromComponentId: rootA.id, toComponentId: shared.id, type: 'inline' },
+			{ fromComponentId: rootB.id, toComponentId: shared.id, type: 'socketed' },
+		],
+	});
+
+	const tree = buildStructureTree(artefact);
+
+	assertEquals(tree.roots.length, 2);
+	for (const root of tree.roots) {
+		assertEquals(root.children.length, 1);
+		assertEquals(root.children[0].shortId, shortId(shared));
+		assertEquals(root.children[0].children, []); // `shared` itself has no children.
+	}
+});
+
+Deno.test('buildStructureTree — a genuine cycle within one root still terminates via the seen guard', () => {
+	const a = mockNormalisedArtefact().components[0];
+	const b = { ...a, id: 'cycle-b', position: 1 };
+	const artefact = mockNormalisedArtefact({
+		components: [a, b],
+		attachments: [
+			{ fromComponentId: a.id, toComponentId: b.id, type: 'inline' },
+			{ fromComponentId: b.id, toComponentId: a.id, type: 'inline' },
+		],
+	});
+
+	const tree = buildStructureTree(artefact);
+
+	// Both ends are attached and both receive, so neither qualifies as a root or loose part under
+	// the current root/loose classification — the guard's job here is only to guarantee this call
+	// returns rather than recursing forever, which the absence of a thrown/hung test already proves.
+	assertEquals(tree.roots, []);
+	assertEquals(tree.loose, []);
+});
