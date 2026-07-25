@@ -607,11 +607,20 @@
 					{
 						"id": "2GN.33",
 						"description": "`engine/generation/decoration.ts` — motif assignment from culture's `motifVocabulary`, shared motifs via cultural exchange",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.29"
 						],
 						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.76",
+						"description": "`engine/generation/decoration.ts` — motif salience fluctuates across a culture's lifespan: native and borrowed motifs are not equally prominent at every point in the culture's timeline; motif selection weights vary by phase",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.33"
+						],
+						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension."
 					},
 					{
 						"id": "2GN.34",
@@ -660,7 +669,7 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20"
@@ -1162,7 +1171,8 @@
 						"dependsOn": [
 							"3WS.3"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "Generated vocabularies must be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's decorative-mismatch strain assumes motif attribution works for every culture; `assignDecorativeDetails` (2GN.33) deliberately degrades gracefully on an empty vocabulary rather than enforcing this, so enforcement lives here (recorded 2026-07-25)."
 					},
 					{
 						"id": "3WS.9",
