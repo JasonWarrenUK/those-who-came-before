@@ -7,7 +7,7 @@
  * themselves receive further decoration, so `DecorativeLayer` nests recursively (doc 05 §8.3) —
  * layering depth is capped by the culture's `craftSpecialisation` and `aesthetics.decorativeEmphasis`
  * (doc 05 §8.3), enforced by the decorative grammar's runtime expansion in
- * `engine/generation/decoration.ts` (roadmap 2GN.33), not by this module. Decoration feeds into
+ * `engine/generation/decoration.ts` (roadmap 2GN.32), not by this module. Decoration feeds into
  * the same unified tag classification as structural features (doc 05 §8.1, §9) via
  * `ExtractedFeatures` in artefact.ts. This module is data shapes only, no behaviour.
  *

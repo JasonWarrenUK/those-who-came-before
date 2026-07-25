@@ -9,8 +9,9 @@
  * band, and so on) or a real decorative-layer fact (technique identity, layer count). Two families
  * are the exception, and are marked dormant: `preciousMaterialsInDecoration` and
  * `motifPresent`/`motifCulturalOrigins` have no producer yet (decorative material/motif assignment,
- * roadmap 2GN.33, is unbuilt), so those rules are authored now but fire on no artefact the current
- * pipeline can generate until 2GN.33 lands.
+ * roadmap 2GN.33, is unbuilt, and the `preciousMaterialsInDecoration`/`motifCulturalOrigins` lookups
+ * consuming that data are roadmap 2GN.68's), so those rules are authored now but fire on no artefact
+ * the current pipeline can generate until those tasks land.
  *
  * **Mechanical-vs-classificatory boundary** (doc 12 propagation register): no rule below reads
  * `portability` or `inspectionDepth` — both are mechanical derivations governing player
@@ -264,11 +265,13 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['ornament', 0.2]]),
 	},
 
-	// --- Decorative (dormant — fire once 2GN.33 assigns motifs/materials to layers) ---------------
+	// --- Decorative (dormant — fire once 2GN.33 assigns motifs/materials to layers and 2GN.68 wires
+	// the lookups that populate these `ExtractedFeatures` fields from them) -----------------------
 
 	/**
-	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.33). Authored now
-	 * so the design is captured in one place; fires on no artefact until that task lands.
+	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.68, consuming
+	 * `DecorativeLayer.material` data that 2GN.33 produces). Authored now so the design is
+	 * captured in one place; fires on no artefact until that task lands.
 	 */
 	{
 		condition: (f) => f.preciousMaterialsInDecoration,
@@ -276,8 +279,9 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	},
 
 	/**
-	 * DORMANT: `motifPresent`/`motifCulturalOrigins` have no producer yet (roadmap 2GN.33).
-	 * Cross-cultural motifs on one object signal exchange/trade. Fires on no artefact until 2GN.33.
+	 * DORMANT: `motifPresent` has no producer yet (roadmap 2GN.33); `motifCulturalOrigins` also
+	 * needs 2GN.68's motif→culture lookup wired on top. Cross-cultural motifs on one object signal
+	 * exchange/trade. Fires on no artefact until both land.
 	 */
 	{
 		condition: (f) => f.motifPresent && f.motifCulturalOrigins.length > 1,

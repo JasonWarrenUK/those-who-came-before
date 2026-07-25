@@ -439,7 +439,9 @@ export interface ExtractedFeatures {
 	 * Whether precious materials appear in the decoration. Currently always `false`: decorative
 	 * layer material assignment (roadmap 2GN.33) is unbuilt, so no `DecorativeLayer` carries a
 	 * `material` yet. The classification rules that read this field are authored and dormant,
-	 * ready to fire once 2GN.33 lands (see `classification.ts`).
+	 * ready to fire once 2GN.68 wires the layer-material→precious-material lookup this field
+	 * needs (see `classification.ts`); 2GN.33 only produces the underlying `DecorativeLayer.material`
+	 * data, it does not itself populate this field.
 	 */
 	preciousMaterialsInDecoration: boolean;
 

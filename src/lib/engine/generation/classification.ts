@@ -39,7 +39,7 @@
  * - **Dormant** (no producer yet): `motifPresent` honestly reads `motifRef` presence — always
  *   `false` until motif assignment lands (roadmap 2GN.33); `motifCulturalOrigins` stays `[]` and
  *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
- *   lookups exist (roadmap 2GN.34).
+ *   lookups exist (roadmap 2GN.68).
  *
  * Unrecognised or absent parameter values in band-valued fields degrade gracefully to each
  * primitive's first-listed BNF value rather than throwing, mirroring `bandExtentCm` in
@@ -49,7 +49,7 @@
  * surface or a pin.
  *
  * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer; material-derived and
- * decorative-motif fields complete the doc 05 stage-8 contract later (roadmap 2GN.27, 2GN.34).
+ * decorative-motif fields complete the doc 05 stage-8 contract later (roadmap 2GN.27, 2GN.68).
  */
 
 import type {
@@ -307,7 +307,7 @@ function tallyLayers(
  * @param decorativeLayers - The artefact's decorative layers (`expandDecoration`, roadmap 2GN.29).
  *   Defaults to none, for callers extracting from a bare structure.
  * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against, with
- *   the dormant motif/material fields at their honest no-producer defaults (roadmap 2GN.33/2GN.34).
+ *   the dormant motif/material fields at their honest no-producer defaults (roadmap 2GN.33/2GN.68).
  */
 export function extractFeatures(
 	artefact: NormalisedArtefact,
@@ -453,9 +453,10 @@ export function extractFeatures(
 		decorativeLayerCount: tally.layerCount,
 		appliedElementPresent: tally.appliedElementPresent,
 		motifPresent: tally.motifCount > 0,
-		motifCulturalOrigins: [], // DORMANT — motif→culture lookup is roadmap 2GN.34's.
+		motifCulturalOrigins: [], // DORMANT — motif→culture lookup is roadmap 2GN.68's.
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,
-		preciousMaterialsInDecoration: false, // DORMANT — layer materials land with roadmap 2GN.33.
+		// DORMANT — layer materials are produced by roadmap 2GN.33; the lookup consuming them is 2GN.68's.
+		preciousMaterialsInDecoration: false,
 		decorativeComplexity,
 		overallComplexity: functionalComplexity + decorativeComplexity,
 		functionalComplexity,
