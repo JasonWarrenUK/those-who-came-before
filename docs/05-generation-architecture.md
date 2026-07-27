@@ -807,6 +807,14 @@ Examples:
 If plausibility fails, the pipeline re-expands from Stage 4 (up to N attempts). Grammar expansion is
 fast; re-rolling is cheap.
 
+If all N attempts fail, the pipeline throws a typed `PlausibilityExhaustedError` (seed, attempt
+count, last failing rule set) rather than emitting anything. Exhaustion means the grammar and the
+rule set disagree — that's a generator defect to surface, not a runtime condition to paper over with
+a relaxed rule set or a canned fallback artefact; either would violate the Section 14 guarantee that
+every artefact reaching the player passes every plausibility rule, and a fallback artefact not
+derived from the grammar would violate design pillar 3 (Simulation Honesty). The error is 2GN.16's
+contract to implement.
+
 ---
 
 ## 7. Stage 6: Material Assignment
@@ -1383,6 +1391,9 @@ interface TagSuggestion {
 Every artefact that reaches the player satisfies these invariants:
 
 1. **Structural coherence.** All plausibility rules pass. No physically impossible configurations.
+   This holds vacuously through exhaustion: if Stage 5 re-expansion exhausts its N attempts, the
+   pipeline throws instead of emitting an artefact (Section 6), so no artefact that fails a
+   plausibility rule ever reaches the player.
 2. **Material compatibility.** Every component has a material its primitive type allows.
 3. **Geological consistency.** Materials reflect what's available in the region (local + trade).
 4. **Cultural consistency.** Material and form selections reflect the source culture's profile and
