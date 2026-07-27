@@ -147,7 +147,7 @@ interface VenueDefinition {
 
 	// Structural properties — how publication works here
 	containerModel: ContainerModel;
-	temporalMode: TemporalMode;
+	temporalProfile: VenueTemporalProfile; // Week-denominated; canonical shape in doc 10 §6.4
 	artefactSituated: boolean; // Does the audience encounter actual artefacts alongside the work?
 	editorialProcess: EditorialProcess;
 	audienceEncounter: AudienceEncounter;
@@ -172,26 +172,14 @@ type ContainerModel =
 	| 'standalone' // Self-contained work (book, monograph)
 	| 'curated-space' // Exhibition, gallery, spatial installation
 	| 'event'; // Conference, lecture series
-
-// When and how often the venue accepts work
-interface TemporalMode {
-	submissionWindow: SubmissionWindow;
-	leadTime: number; // Terms between acceptance and publication (1–3 typical)
-	visibilityWindow: number | 'indefinite'; // Terms the work remains "current" before fading into the backlist
-}
-
-interface SubmissionWindow {
-	frequency: number; // Windows per year (1 = annual, 3 = termly, etc.)
-	alignment?: 'term-start' | 'term-end' | 'annual' | 'event-tied';
-	open: boolean; // Is a window currently open?
-}
 ```
 
-> **Superseded (doc 12, section 2.17):** `TemporalMode` and `SubmissionWindow` above are superseded
-> by doc 10 section 6.4's week-denominated `VenueTemporalProfile` — weeks are the canonical
-> timestamp (doc 12, section 2.9), and `VenueDefinition.temporalMode` is now
-> `temporalProfile: VenueTemporalProfile`. `visibilityWindow` has no week-denominated equivalent and
-> no consumer; it is deferred post-MVP.
+`VenueTemporalProfile` (doc 10 §6.4; doc 12 §2.17, §2.23) is week-denominated, matching the
+absolute-week canonical timestamp (doc 12 §2.9): `submissionMode`, `openWeeks`, `cycleLengthWeeks`,
+`reviewLeadTimeWeeks`, `publicationLeadTimeWeeks`. It replaces this section's earlier
+term-denominated `TemporalMode`/`SubmissionWindow` pair, which is no longer defined here.
+`TemporalMode.visibilityWindow` had no week-denominated equivalent and no consumer; it was dropped
+rather than converted, deferred post-MVP.
 
 ```typescript
 type EditorialProcess =
