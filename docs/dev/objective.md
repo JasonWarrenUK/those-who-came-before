@@ -11,7 +11,7 @@ _Date: 13 January 2026_
     profiles.
   - **Subjective World State:** player’s evolving model of the world, mixing true inferences with
     mistaken assumptions; this model actively shapes future interpretations.
-- **Contradictions & retcons.** All contradictions are **diagetically** surfaced (peer challenges or
+- **Contradictions & retcons.** All contradictions are **diegetically** surfaced (peer challenges or
   incompatible artefacts). Contradictions may **accumulate in parallel** and be **resolved at the
   player’s discretion**, enabling “retcon” updates to prior conclusions.
 - **Interface & scope.** Start **text-first**, later grow into a **desk-based GUI** in the vein of
@@ -58,7 +58,7 @@ _Date: 13 January 2026_
 
 ## 3) Contradiction & Retcon System (Agreed)
 
-- **Diagesis first.**
+- **Diegesis first.**
   - **Peer challenges:** rival curators, colleagues, or publications cast doubt on specific claims.
   - **Impossible artefacts:** items that cannot be reconciled with current assumptions (e.g.,
     material science, stratigraphy, motif lineage, trade timelines).
@@ -161,7 +161,7 @@ _Date: 13 January 2026_
 - [x] Long-form play; _Book of Hours_ scale
 - [x] Two world states: Objective (hidden), Subjective (player)
 - [x] Player errors propagate forward until corrected
-- [x] Contradictions are diagetically indicated
+- [x] Contradictions are diegetically indicated
 - [x] Contradictions can accumulate and be resolved later
 - [x] Artefacts: text now, later visuals derived from properties
 - [x] TypeScript + Deno; no Unity/Unreal
@@ -174,7 +174,7 @@ _Date: 13 January 2026_
 2. Track Player Knowledge •	Distinguish what the player thinks is true from what is actually true.
    •	Build a synergy: future generation logic references the player’s assumptions to produce new
    items or interpret them differently.
-3. Build an Artifact-Inspection Screen •	Show the item’s shape, motifs, etc., and let the player
+3. Build an Artefact-Inspection Screen •	Show the item’s shape, motifs, etc., and let the player
    record hypotheses or attach notes.
 4. Incorporate a Save System •	Because you’re using Deno, saving game data can be as simple as
    writing JSON to a file. •	If you go browser-based, you might store it in localStorage or
