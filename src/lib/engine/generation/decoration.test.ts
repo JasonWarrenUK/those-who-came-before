@@ -922,6 +922,30 @@ Deno.test('assignDecorativeDetails: an empty motif pool omits motifRef rather th
 	assert(!('motifRef' in resolved!), 'expected motifRef to be omitted for an empty pool');
 });
 
+Deno.test('assignDecorativeDetails: re-resolving a pre-filled layer against an empty pool clears the stale value', () => {
+	const preFilled: DecorativeLayer = {
+		...detailLayer('engraving'),
+		motifRef: 'stale-motif-from-a-prior-pass',
+	};
+
+	const [resolved] = assignDecorativeDetails(
+		[preFilled],
+		mockCulturalProfile({ motifVocabulary: { motifs: [] } }),
+		mockPhaseCharacteristics(),
+		mockGeologicalContext(),
+		[],
+		[],
+		createPrng('empty-pool-reresolve-seed'),
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+	);
+
+	assert(
+		!('motifRef' in resolved!),
+		'expected the pre-filled motifRef to be cleared, not retained, when the pool is now empty',
+	);
+});
+
 Deno.test("assignDecorativeDetails: every introduced material conforms to its technique's authored tag set", () => {
 	for (const [name, tags] of Object.entries(EXPECTED_INTRODUCED_TAGS)) {
 		for (let i = 0; i < 40; i++) {

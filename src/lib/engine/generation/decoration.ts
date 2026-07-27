@@ -524,7 +524,13 @@ export function assignDecorativeDetails(
 
 	function resolveLayer(layer: DecorativeLayer): DecorativeLayer {
 		const definition = definitions.get(layer.technique);
+		// Pre-filled motifRef/material are overwritten, not preserved (see docstring) — delete both
+		// keys up front so an empty pool/candidate list on a re-resolved layer goes absent rather
+		// than silently keeping a stale value through the spread below. A key set to `undefined`
+		// still satisfies `'motifRef' in resolved`, so the field must be deleted, not nulled.
 		const resolved: DecorativeLayer = { ...layer };
+		delete resolved.motifRef;
+		delete resolved.material;
 
 		if (definition?.carriesMotif && motifPool.length > 0) {
 			resolved.motifRef = weightedSelect(motifPool, prng, (candidate) => candidate.weight)
