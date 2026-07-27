@@ -17,8 +17,10 @@ consequential.
 
 ## 2. The Seven Systems
 
-TWCB has seven interconnected systems. They're listed here in dependency order — each one requires
-the ones above it to function.
+TWCB has seven interconnected systems. They're listed here in bootstrap order — the order in which
+they come online, not a topological dependency sort. Systems 2.3–2.5 form a deliberate feedback
+cycle: Player Experience writes to the Interpretive Model, the Model shapes the Lens, and the Lens
+filters what Player Experience presents. That loop is the game.
 
 ### 2.1 Generation Layer
 
@@ -26,11 +28,12 @@ the ones above it to function.
 levels. **Depends on:** Nothing. This is the foundation. **Feeds into:** World State, Player
 Experience.
 
-The generation pipeline runs: World Seed → Chronology + Cultures → Grammar Expansion (CFG) →
-Structural Normalisation → Constraint Validation → Tag-Based Classification → Material Assignment →
-Generated Artefact. Each stage produces properties at specific visibility levels (doc 05, Section
-1.1): observable properties are available to any agent through inspection, occluded properties are
-hidden ground truth, engine-internal properties are never exposed.
+The generation pipeline runs the nine stages in doc 05 §1: World Seed → Chronology & Culture
+Generation → Initial Corpus Generation → Bottom-Up Structural Grammar → Structural Normalisation +
+Plausibility Checking → Material Assignment → Decorative Grammar → Unified Feature Extraction + Tag
+Classification → Description Generation. Each stage produces properties at specific visibility
+levels (doc 05, Section 1.1): observable properties are available to any agent through inspection,
+occluded properties are hidden ground truth, engine-internal properties are never exposed.
 
 Every artefact is deterministically produced from the world seed, culture profile, and period. The
 same seed always produces the same world. The player never sees the generation parameters directly —
