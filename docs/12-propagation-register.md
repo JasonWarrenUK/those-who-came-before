@@ -182,9 +182,10 @@ Single-pass unified feature extraction is canonical. Doc 09 Phase 4's
 accumulation-during-grammar-expansion model is superseded; the roadmap implements unified extraction
 and the former task for accumulation-during-expansion (2GN.18) was removed.
 
-| Doc | What changed                          | Completed  |
-| --- | ------------------------------------- | ---------- |
-| 09  | Supersession note added under Phase 4 | 2026-07-04 |
+| Doc | What changed                                                                                                                                                                                                        | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 09  | Supersession note added under Phase 4                                                                                                                                                                               | 2026-07-04 |
+| 09  | Phase 4 body (title, What Gets Built, Definition of Done) and Phase 9's pipeline stage list reconciled with the banner — both still described accumulation-during-expansion after the note was added (doc 12 §2.23) | 2026-07-27 |
 
 ### 2.12 MVP Career Gating Without Activity Execution (2026-07-04)
 
@@ -218,9 +219,10 @@ modifier. Player-facing availability (Reader/Professor gating, cooldown) is post
 persisted; it is recomputed from `playerInterpretation` on load. The contradiction queue is
 serialised within `playerInterpretation`.
 
-| Doc | What changed                                                                                                          | Completed  |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 08  | Section 4.1 `SaveFile` gains `termState`; non-persistence of `lensState` and contradiction queue placement documented | 2026-07-04 |
+| Doc | What changed                                                                                                                                                                                                      | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 08  | Section 4.1 `SaveFile` gains `termState`; non-persistence of `lensState` and contradiction queue placement documented                                                                                             | 2026-07-04 |
+| 09  | Phase 19 removed `LensState` from the serialised-state list; round-trip requirement now checks recomputation equivalence instead of raw persistence (doc 12 §2.23) — this pass never reached doc 09 in 2026-07-04 | 2026-07-27 |
 
 ### 2.15 HypothesisStrain as Canonical Strain Type (2026-07-04)
 
@@ -495,6 +497,94 @@ phase technology × scarcity), with `assignMaterial`'s exact availability-yields
 | 05  | Section 8.5 gains an implementation note pointing at the selection semantics (this entry)                                                                                         | 2026-07-25 |
 | —   | `src/lib/engine/generation/decoration.ts` (2GN.33): `assignDecorativeDetails`, `SharedMotifSource`, `INTRODUCED_MATERIAL_TAGS`; 17 Deno tests in the sibling `decoration.test.ts` | 2026-07-25 |
 | —   | Roadmap: 2GN.76 added (motif salience across a culture's lifespan, blocked on 2GN.33); 3WS.8 gains the non-empty-vocabulary note                                                  | 2026-07-25 |
+
+### 2.23 Doc Alignment Pass — PR 41 Review (2026-07-27)
+
+**Origin:** CodeRabbit review of PR 41 (`feat/2gn-33-motif-assignment`) **Source of truth:** varies
+per item, listed below
+
+A repo-wide `deno fmt` sweep (commits `297422b`, `0b59e8b`) reflowed docs 03–09 into PR 41's diff,
+surfacing pre-existing cross-document drift the review otherwise wouldn't have touched. None of it
+concerns 2GN.33's actual engine changes. Thirteen findings, resolved as follows:
+
+- **Plausibility retry exhaustion (doc 05 §5 near the re-expansion note; §14).** Undefined
+  previously: N attempts capped with no stated outcome on exhaustion, while §14 guaranteed every
+  emitted artefact passes all plausibility rules. Resolved: on exhaustion the pipeline throws a
+  typed `PlausibilityExhaustedError` rather than emitting anything (relaxed rules or a fallback
+  artefact would violate §14 and design pillar 3, Simulation Honesty) — the §14 guarantee now holds
+  vacuously. Roadmap 2GN.16 carries the contract; the error type itself is still unbuilt.
+- **Stage 6 material-assignment example (doc 05 §7) diverged from the shipped
+  `assignMaterial`/`computeMaterialWeight`**
+  (`src/lib/engine/generation/materials.ts:212-238,
+  173-182`): missing the `geology` argument to
+  `computeMaterialWeight`, missing the available→compatible→catalogue fallback ladder, wrong
+  parameter order, and missing the empty-`allowedMaterialTags` short-circuit (2GN.10 not yet
+  landed). Synced verbatim to the implementation. The doc's `available` filter itself was already
+  correct — one of CodeRabbit's three sub-claims on this finding was wrong.
+- **`InterpretiveModel` had two definitions with zero field overlap** — doc 06 §6
+  (observations/inferences/hypotheses/publications) vs doc 08 §3.2
+  (`agentId`/claim-maps/`methodologicalWeights`/`strainScores`/`contradictionQueue`, shipped at
+  `src/lib/types/interpretation.ts:438-467`). Doc 08 is canonical; doc 06 §6 now points at it. The
+  four names survive as prose describing claim _status_ (doc 06 §2's Four Knowledge Layers), since
+  that's a different axis from doc 08's claim-_subject_ partitioning, not a competing shape.
+- **`ReputationGate.requiredDimension: 'overall'` didn't type-check** against
+  `keyof Reputation['dimensions']` (doc 07 §2.2; `src/lib/types/career.ts:87`). `overall` is a
+  weighted composite (doc 07 §2), a sibling of `dimensions` rather than a member — the gate's intent
+  was correct, the type couldn't express it. Resolved by widening, not narrowing: type is now
+  `keyof Reputation['dimensions'] | 'overall'` in both `career.ts` and doc 07; `RoleRequirement`
+  inherits the widened union with no consumer to update yet. ⚠️ Breaking change to an exported
+  interface (no runtime consumer exists; evaluator 9CR.10 is unbuilt).
+- **`temporalMode` vs `temporalProfile`** (doc 07 §2.3) — already banner-flagged in-doc (doc 12
+  §2.17) and already correct in `src/lib/types/venues.ts`. The only action needed was an unflagged
+  straggler at `docs/roadmaps/mvp.md` task 9CR.5, now fixed.
+- **`BackgroundDrain` diverged between doc 07 §4.1 and doc 08 §3.6** — `energyPerWeek`/`roleImposed`
+  vs the canonical `energyCostPerTerm`/`activeTermTypes`/`description`. Doc 07 already named doc 08
+  canonical but described the diff as subsetting, which was wrong (units and semantics both
+  changed). Doc 07's block marked superseded; the "by role" table converted from per-week to
+  per-term illustrative figures (×`WEEKS_PER_TERM`) to match doc 08's shape.
+- **`addContradiction` (doc 08 §3.4) pushed a bare `Contradiction`** into a `QueuedContradiction[]`
+  queue and summed string-valued `severity` into a numeric `totalSeverity` —
+  `src/lib/types/contradiction.ts:247-249` already flagged this block as illustrative pseudo-code
+  doc 06 governs. Rewritten to construct a `QueuedContradiction` and score severity through a
+  `severityScore` helper; doc 06 §4.4 still owes the actual string→number mapping, to land with
+  contradiction detection at milestone 7CD.
+- **`detectContradictions` (doc 08 §3.5) omitted the documented fourth `professionalCorpus`
+  argument** (doc 06 §7's `ContradictionDetector.check` signature), making corpus contradictions
+  unreachable. Argument added, sourced from `worldState.professionalCorpus`.
+- **`resolvePeerReview` (doc 08 §3.5) read `reviewEvent.reputationEffect` and
+  `reviewEvent.reviewerAgentId`**, neither of which exist on `PeerReviewCareerEvent` (doc 07 §3.3:
+  `reputationEffects` — an array — and `reviewerId`). Both fixed; the reputation update now iterates
+  the array.
+- **Doc 03 §2 called the seven-systems list "dependency order"** when 2.3 Player Experience → 2.5
+  Interpretive Lens → 2.4 Interpretive Model → 2.3 is a real three-node cycle (the core mechanic).
+  Reframed as bootstrap order with the cycle named explicitly.
+- **Doc 03 §2.1's pipeline summary omitted three of doc 05's nine stages** (initial corpus,
+  decorative grammar, description generation), dropped "unified extraction" from stage 8's name, and
+  ordered tag classification before material assignment. Replaced with doc 05 §1's canonical chain.
+  The doc 05 §1.1 visibility table had the identical wrong ordering and omission — doc 03 appears to
+  have been derived from that table rather than doc 05's own stage diagram — so the table was
+  reordered too, or doc 03 would drift back on the next edit.
+- **Doc 09 Phase 4's supersession banner (added 2026-07-04, doc 12 §2.11) didn't match its own
+  body** — title, "What Gets Built" and "Definition of Done" still described
+  accumulation-during-grammar-expansion after the banner declared it superseded. Body rewritten to
+  describe single-pass unified extraction (doc 05 §9), keeping the requirements that survive
+  (deterministic tag scoring, multiple qualifying tags, explorer visualisation). Phase 9's pipeline
+  list (`docs/09-implementation-roadmap.md`, "Full pipeline orchestrator") carried the same
+  `accumulation` stage with no banner at all; also fixed. See the appended row on §2.11 below.
+- **Doc 09 Phase 19 required serialising `LensState`** (doc 12 §2.14, 2026-07-04, already states
+  `lensState` is derived and recomputed on load, not persisted) — Phase 19 was never in scope for
+  that propagation pass. `LensState` removed from the serialised-state list; the round-trip
+  requirement now checks recomputation equivalence instead. See the appended row on §2.14 below.
+
+| Doc | What changed                                                                                                                                                              | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 03  | §2 reframed as bootstrap order + cycle callout; §2.1 pipeline summary matches doc 05's nine stages                                                                        | 2026-07-27 |
+| 05  | §5/§14 retry-exhaustion contract; §7 Stage 6 example synced to `materials.ts`; §1.1 table reordered                                                                       | 2026-07-27 |
+| 06  | §6 `InterpretiveModel` superseded, points at doc 08 §3.2; four names kept as claim-status prose                                                                           | 2026-07-27 |
+| 07  | §2.2 gate type widened; §2.3 unflagged straggler noted (fixed in roadmap); §4.1 `BackgroundDrain` superseded                                                              | 2026-07-27 |
+| 08  | §3.4 `addContradiction` constructs `QueuedContradiction` + `severityScore`; §3.5 `detectContradictions` gains `professionalCorpus`; `resolvePeerReview` field names fixed | 2026-07-27 |
+| —   | `src/lib/types/career.ts:82-94`: `ReputationGate.requiredDimension` widened to allow `'overall'`                                                                          | 2026-07-27 |
+| —   | Roadmap: 2GN.16 gains the exhaustion contract; 9CR.10 states the two-branch lookup; 9CR.5 fixes `temporalMode`→`temporalProfile`                                          | 2026-07-27 |
 
 ---
 
