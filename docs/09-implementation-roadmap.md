@@ -145,20 +145,23 @@ thresholds so the grammar + plausibility pipeline produces a good hit rate.
 
 ---
 
-## Phase 4: Tag Accumulation
+## Phase 4: Unified Feature Extraction + Tag Classification
 
-**Pattern-based classification during grammar expansion**
+**Single-pass extraction over structure, then rule-based tag scoring**
 
-> **Superseded (decision recorded 2026-07-04):** the accumulation-during-expansion model described
-> in this phase was superseded by doc 05 §9's single-pass unified feature extraction. The roadmap
-> implements unified extraction; the former task for accumulation-during-expansion was removed.
+> **Superseded (decision recorded 2026-07-04; doc 12 §2.11, §2.23):** this phase originally
+> described accumulation-during-expansion — tags accruing incrementally as grammar expansion ran.
+> That model is superseded by doc 05 §9's single-pass unified feature extraction: extraction runs
+> once, after Phase 3's plausibility-checked structure exists, not incrementally during expansion.
+> The body below has been rewritten to match; it no longer needs a supersession caveat of its own.
 
 ### What Gets Built
 
 - Tag taxonomy (`FunctionTag`, `ContextTag`)
-- Pattern-based classification accumulation: features accumulate tags as structure grows during
-  grammar expansion — not applied after the fact
-- Feature extraction from component groups
+- Unified feature extraction (doc 05 §9.1): a single pass over the complete plausibility-checked
+  structure produces one `ExtractedFeatures` set, run after Phase 3 rather than accumulated during
+  it
+- Rule-based tag classification (doc 05 §9.2) over `ExtractedFeatures`
 - Unified tag scoring: `Map<Tag, number>` with multiple tags above threshold per artefact
 - **Project Explorer:** tag inspector panel — generate a structure, display tag map as scored bar
   chart, show per-component tag contributions, batch mode to compare tag distributions across N
@@ -166,15 +169,16 @@ thresholds so the grammar + plausibility pipeline produces a good hit rate.
 
 ### Definition of Done
 
-_You can inspect a generated structure’s tag map and see multiple classification tags with varying
-scores accumulated during expansion. The explorer visualises tag scores and lets you compare
-distributions across batches._
+_You can inspect a generated structure's tag map and see multiple classification tags with varying
+scores, extracted in a single pass over the finished structure. The explorer visualises tag scores
+and lets you compare distributions across batches._
 
 - `classifyArtefact(features, components)` returns `Map<Tag, number>` with multiple tags above
   threshold
-- Tags accumulate during grammar expansion, not as a post-processing step
+- Feature extraction runs once per artefact, after structural normalisation and plausibility
+  checking, not incrementally during grammar expansion
 - Distribution tests: different structural forms produce distinguishable tag profiles
-- Tag accumulation is deterministic given the same grammar expansion
+- Tag scoring is deterministic given the same extracted features
 
 ### What It Doesn’t Do Yet
 
@@ -189,8 +193,8 @@ distributions across batches._
 ### Estimated Effort
 
 Moderate. The taxonomy needs thought — too few tags and everything looks the same, too many and the
-signal drowns in noise. The accumulation-during-expansion pattern is architecturally important to
-get right.
+signal drowns in noise. Getting the single-pass extraction boundary right (what counts as one
+"complete artefact" for feature purposes) is architecturally important.
 
 ---
 
@@ -371,13 +375,15 @@ is defining culture profiles that are structurally complete and internally consi
 
 ### What Gets Built
 
-- Full pipeline orchestrator: seed → grammar → plausibility → accumulation → materials → decoration
-  → classification → excavation → provenance → `ClassifiedArtefact`
+- Full pipeline orchestrator, doc 05 §9's nine stages: seed → chronology & cultures → initial corpus
+  → grammar → structural normalisation + plausibility → materials → decoration → unified feature
+  extraction + classification → description → `ClassifiedArtefact` (excavation and provenance are
+  metadata attached alongside, not separate pipeline stages)
 - World state replaces mock culture profiles throughout the pipeline
 - Integration tests verifying that culture profiles produce meaningfully different artefact
   populations
 - **Project Explorer:** pipeline viewer panel — generate artefact via full pipeline, show
-  stage-by-stage output (structure → plausibility result → tags → materials → decorations →
+  stage-by-stage output (structure → plausibility result → materials → decorations → tags →
   provenance), batch generation with per-culture population summaries
 
 ### Definition of Done
@@ -837,21 +843,23 @@ chains, identifying affected documents, and making consequential decisions. The 
 - Save/load UI
 - Auto-save on significant actions
 - Schema migration for save version changes
-- All existing state (WorldState, InterpretiveModel, TermState, LensState, contradiction queue)
-  serialised and restored
+- Serialised state (doc 08 §4.1): `worldState`, `playerInterpretation` (contradiction queue
+  serialised within it) and `termState`. `lensState` is **not** persisted — it's derived from
+  `playerInterpretation` and recomputed on load (doc 12 §2.14)
 - **Project Explorer:** persistence inspector panel — view serialised state size, schema version,
-  round-trip diff (save → load → compare), export raw JSON for debugging
+  round-trip diff (save → load → recompute lens → compare), export raw JSON for debugging
 
 ### Definition of Done
 
-_You can save, close the browser, reopen, load, and verify that all game state — world, interpretive
-model, lens, contradictions — round-trips correctly. The explorer shows the round-trip diff and
-serialised state._
+_You can save, close the browser, reopen, load, and verify that world state, interpretive model and
+term state round-trip correctly, and that the lens recomputed from the loaded interpretive model
+matches the lens before saving. The explorer shows the round-trip diff and serialised state._
 
 - Game state persists across browser sessions
 - Player can save and load named save files
 - Schema migration handles save version changes
-- Round-trip test: save → load → verify all state matches
+- Round-trip test: save → load → verify `worldState`/`playerInterpretation`/`termState` match, and
+  recomputed `lensState` matches the pre-save lens (not a raw `lensState` round-trip)
 
 ### What It Doesn’t Do Yet
 
