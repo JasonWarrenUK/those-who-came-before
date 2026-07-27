@@ -642,8 +642,16 @@ For the player, additional state tracks working documents, contradiction queues,
 computation. This extended state is player-specific — NPCs don't need contradiction queues or
 working documents at MVP.
 
+> **Superseded (doc 12 §2.23, 2026-07-27):** the `InterpretiveModel` interface below predates doc 08
+> §3.2's agent-generic claim-map shape (`agentId`, `culturalClaims`, `artefactClaims`,
+> `chronologicalClaims`, `agentAssessments`, `methodologicalWeights`, `strainScores`,
+> `contradictionQueue`), which is canonical and shipped at `src/lib/types/interpretation.ts`. The
+> four names below aren't a competing container shape — they're this section's own framing of
+> **claim status** (§2's Four Knowledge Layers: observation → inference → hypothesis → publication),
+> carried by each claim in the canonical model rather than by four separate maps.
+
 ```typescript
-// Agent-generic: any scholar's knowledge
+// Superseded — see banner above. Kept for its status-progression framing, not as the current shape.
 interface InterpretiveModel {
 	observations: Map<string, Observation>;
 	inferences: Map<string, Inference>;
@@ -653,7 +661,7 @@ interface InterpretiveModel {
 
 // Player-specific: full desk state
 interface PlayerInterpretiveState {
-	model: InterpretiveModel;
+	model: InterpretiveModel; // Canonical model per doc 08 §3.2, not the superseded shape above
 
 	// Working documents
 	artefactStudies: Map<string, ArtefactStudy>;
@@ -664,10 +672,6 @@ interface PlayerInterpretiveState {
 
 	// Document tradition (doc 10)
 	knownLineageEdges: KnownLineageEdge[]; // Partial graph — grows via diegetic discovery
-
-	// Contradiction tracking
-	contradictionQueue: ContradictionQueue;
-	strainScores: Map<string, HypothesisStrain>;
 
 	// Lens state (computed from model + publications + dissemination)
 	lensState: LensState;
