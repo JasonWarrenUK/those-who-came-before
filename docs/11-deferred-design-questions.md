@@ -245,8 +245,9 @@ implementation and playtesting):
    internal to the energy system.
 4. **Passive energy drains from psychological pressure.** Do unresolved contradictions, pending
    crises, or institutional anxiety drain energy passively? The drain mechanism (doc 08
-   `BackgroundDrain`) already exists; doc 06 already exposes `strainPressure` per-term. The
-   interface point exists; wiring it is a one-liner when desired.
+   `BackgroundDrain`) already exists; doc 06 already exposes `HypothesisStrain.strainScore` per
+   hypothesis and `ContradictionQueue.reputationalPressure` per term. The interface points exist;
+   wiring either is a one-liner when desired.
 
 **Affects:** doc 04 (lens decay rates can now be specified per-term), doc 06 (contradiction
 accumulation rates, revision timestamps), doc 07 (career activity durations, role advancement

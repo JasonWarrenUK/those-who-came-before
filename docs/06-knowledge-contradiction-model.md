@@ -10,7 +10,7 @@ The player's knowledge is not a flat database of facts. It's a directed graph of
 inferences, hypotheses, and publications — where every node has a confidence level, every edge has a
 justification, and the whole structure can be partially wrong in ways that cascade.
 
-```
+```text
 Observation → Inference → Hypothesis → Publication
      ↑              ↑           ↑
   (artefact)    (pattern)   (commitment)
