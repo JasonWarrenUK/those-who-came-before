@@ -31,17 +31,17 @@ Every property produced by the pipeline exists at one of four visibility levels 
 2.5). These levels govern what the player can perceive, what agents can reason about, and what only
 the engine uses internally.
 
-| Pipeline Stage         | Visibility Level                                | Rationale                                                                                              |
-| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| World Seed             | Engine-internal                                 | Never exposed to any agent                                                                             |
-| Chronology & Culture   | Occluded                                        | Ground truth the player must infer                                                                     |
-| Grammar Expansion      | Observable                                      | Physical structure is directly perceptible                                                             |
-| Constraint Validation  | Engine-internal                                 | Validation logic, not a world property                                                                 |
-| Tag Classification     | Occluded                                        | True function/context tags are hidden                                                                  |
-| Material Assignment    | Mixed                                           | Material identity is observable; geological provenance is inferable; cultural significance is occluded |
-| Decorative Grammar     | Observable (layers) / Inferable (motif meaning) | Decoration is visible; its significance requires interpretation                                        |
-| Feature Extraction     | Mixed                                           | Physical features are observable; their classificatory weight is occluded                              |
-| Description Generation | Observable but lens-shaped                      | What the player reads is filtered through registers and the interpretive lens                          |
+| Pipeline Stage                                  | Visibility Level                                | Rationale                                                                                                 |
+| ----------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| World Seed                                      | Engine-internal                                 | Never exposed to any agent                                                                                |
+| Chronology & Culture                            | Occluded                                        | Ground truth the player must infer                                                                        |
+| Initial Corpus Generation                       | Engine-internal                                 | Seeds the professional world; not a property of any single artefact                                       |
+| Grammar Expansion                               | Observable                                      | Physical structure is directly perceptible                                                                |
+| Structural Normalisation + Plausibility         | Engine-internal                                 | Validation logic, not a world property                                                                    |
+| Material Assignment                             | Mixed                                           | Material identity is observable; geological provenance is inferable; cultural significance is occluded    |
+| Decorative Grammar                              | Observable (layers) / Inferable (motif meaning) | Decoration is visible; its significance requires interpretation                                           |
+| Unified Feature Extraction + Tag Classification | Mixed                                           | Physical features are observable; their classificatory weight and true function/context tags are occluded |
+| Description Generation                          | Observable but lens-shaped                      | What the player reads is filtered through registers and the interpretive lens                             |
 
 The lens operates exclusively on observable and inferable properties. It cannot reveal occluded
 properties and it cannot hide observable ones — it can only reorder, reframe, and de-emphasise them.
@@ -831,27 +831,41 @@ function assignMaterial(
 	culture: CulturalProfile,
 	phase: PhaseCharacteristics,
 	geology: GeologicalContext,
-	tradeRelationships: MaterialFlow[],
-	materials: MaterialDefinition[],
+	trade: readonly MaterialFlow[],
 	prng: () => number,
+	materials: readonly MaterialDefinition[] = MATERIALS,
 ): MaterialDefinition {
-	// 1. Filter by component compatibility
-	const compatible = materials.filter((m) =>
-		component.allowedMaterialTags.some((tag) => m.tags.includes(tag))
-	);
+	// 1. Filter by component compatibility. An empty allowedMaterialTags means "no constraint
+	// recorded yet", not "nothing fits" — everything is a candidate.
+	const compatible = component.allowedMaterialTags.length === 0
+		? materials
+		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
 
 	// 2. Filter by geological availability (local + trade)
-	const available = compatible.filter((m) => isAvailable(m, geology, tradeRelationships));
+	const available = compatible.filter((m) => isAvailable(m, geology, trade));
 
-	// 3. Weight by cultural affinity and phase technology
-	const weighted = available.map((m) => ({
-		material: m,
-		weight: computeMaterialWeight(m, culture, phase),
-	}));
+	// 3. Fall back through the tiers rather than ever handing weightedSelect an empty list:
+	// available → compatible → the full catalogue.
+	const candidates = available.length > 0
+		? available
+		: compatible.length > 0
+		? compatible
+		: materials;
 
-	return weightedSelect(weighted, prng);
+	// 4. Weight survivors by cultural affinity, phase technology and geological scarcity, then draw.
+	return weightedSelect(
+		candidates,
+		prng,
+		(material) => computeMaterialWeight(material, culture, phase, geology),
+	);
 }
 ```
+
+`geology` feeds `computeMaterialWeight` too, not just the availability filter — scarcity weights a
+trade-reachable material low without excluding it outright ("present but uncommon," above). The
+fallback ladder in step 3 is why `assignMaterial` never throws on a populated catalogue: only a
+`materials` argument that is itself empty can still reach `weightedSelect` with nothing to draw
+from, and callers are expected to pass a non-empty one (the default always is).
 
 Trade materials appear at low weight — present but uncommon. An artefact with a foreign material
 tells a story about contact, but the player has to figure out what kind.
