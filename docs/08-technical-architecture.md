@@ -431,6 +431,8 @@ All stores use Svelte 5 Runes with immutable update patterns, consistent with th
 ```typescript
 // stores/playerInterpretation.svelte.ts
 import type { ArtefactClaim, CulturalClaim, InterpretiveModel } from '$lib/types/interpretation';
+import type { Contradiction, QueuedContradiction } from '$lib/types/contradiction';
+import { severityScore } from '$lib/engine/contradiction/severity'; // doc 06 §4.4 — owed, not yet built
 
 function createPlayerInterpretationStore() {
 	let model = $state<InterpretiveModel>({
@@ -470,11 +472,24 @@ function createPlayerInterpretationStore() {
 			model.artefactClaims = new Map([...model.artefactClaims, [claim.id, claim]]);
 		},
 
-		addContradiction(contradiction: Contradiction) {
+		// `detectedAtTerm` comes from the caller — the store doesn't know the calendar. `severityScore`
+		// is the numeric mapping doc 06 §4.4 owes (ContradictionSeverity is a string union;
+		// totalSeverity is numeric) — introduced here, to be implemented alongside contradiction
+		// detection at milestone 7CD.
+		addContradiction(contradiction: Contradiction, detectedAtTerm: number) {
+			const queued: QueuedContradiction = {
+				contradiction,
+				detectedAtTerm,
+				termsUnresolved: 0,
+				acknowledged: false,
+				resolved: false,
+			};
+
 			model.contradictionQueue = {
 				...model.contradictionQueue,
-				items: [...model.contradictionQueue.items, contradiction],
-				totalSeverity: model.contradictionQueue.totalSeverity + contradiction.severity,
+				items: [...model.contradictionQueue.items, queued],
+				totalSeverity: model.contradictionQueue.totalSeverity +
+					severityScore(contradiction.severity),
 			};
 		},
 
@@ -517,6 +532,7 @@ The `gameState` orchestrator coordinates cross-store operations. It holds no dom
 import { worldState } from './worldState.svelte';
 import { playerInterpretation } from './playerInterpretation.svelte';
 import { lensState } from './lensState.svelte';
+import { termState } from './termState.svelte';
 import { runGenerationPipeline } from '$lib/engine/generation/pipeline';
 import { detectContradictions } from '$lib/engine/contradiction/detection';
 import { computeLens } from '$lib/engine/lens/strength';
@@ -539,14 +555,18 @@ function createGameState() {
 			);
 			worldState.addArtefact(artefact);
 
-			// Contradiction detection: player's interpretation vs world state
+			// Contradiction detection: player's interpretation vs world state AND the professional
+			// corpus (doc 06 §7.2 — corpus contradictions need the fourth argument too)
 			// Engine function takes InterpretiveModel — agent-agnostic
 			const contradictions = detectContradictions(
 				artefact,
 				playerInterpretation.model,
 				worldState.state,
+				worldState.professionalCorpus,
 			);
-			contradictions.forEach((c) => playerInterpretation.addContradiction(c));
+			contradictions.forEach((c) =>
+				playerInterpretation.addContradiction(c, termState.currentAbsoluteWeek)
+			);
 
 			return artefact;
 		},
@@ -582,7 +602,10 @@ function createGameState() {
 		// Handle peer review outcome (doc 07, section 3.3)
 		resolvePeerReview(documentId: string, reviewEvent: PeerReviewCareerEvent) {
 			worldState.addCareerEvent(reviewEvent);
-			worldState.updateScholarReputation('player', reviewEvent.reputationEffect);
+			// reputationEffects is an array of per-dimension deltas (doc 07 §3.3), not a single delta
+			reviewEvent.reputationEffects.forEach((effect) =>
+				worldState.updateScholarReputation('player', effect)
+			);
 
 			if (reviewEvent.outcome === 'accepted') {
 				const published = advanceDissemination(
@@ -596,7 +619,7 @@ function createGameState() {
 			}
 
 			// Reviewer relationship effects
-			worldState.updateScholarRelationship('player', reviewEvent.reviewerAgentId, reviewEvent);
+			worldState.updateScholarRelationship('player', reviewEvent.reviewerId, reviewEvent);
 
 			this.refreshLens();
 			return reviewEvent;
