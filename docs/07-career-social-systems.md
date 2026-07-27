@@ -83,7 +83,9 @@ Reputation gates certain activities and modifies outcomes:
 ```typescript
 interface ReputationGate {
 	activity: string;
-	requiredDimension: keyof Reputation['dimensions'];
+	// 'overall' gates on the top-level weighted composite; the five dimension names gate on
+	// Reputation['dimensions'] (doc 12 §2.23).
+	requiredDimension: keyof Reputation['dimensions'] | 'overall';
 	threshold: number;
 	failureMessage: string; // Diegetic explanation
 }

@@ -1355,8 +1355,10 @@ effects on lens, career progression
 - [ ] **9CR.9** — `engine/career/reputation.ts` — reputation change table implementation: all events
       from doc 07 (publish, retract, cite, resolve contradiction, etc.) _(blocked — depends on
       9CR.7)_
-- [ ] **9CR.10** — `engine/career/reputation.ts` — `ReputationGate` evaluation: check dimension
-      thresholds for activity gating _(blocked — depends on 9CR.7)_
+- [ ] **9CR.10** — `engine/career/reputation.ts` — `ReputationGate` evaluation: two-branch lookup —
+      `requiredDimension === 'overall'` reads `Reputation.overall`, any dimension name reads
+      `Reputation.dimensions[requiredDimension]` — against `threshold` for activity gating (doc 12
+      §2.23) _(blocked — depends on 9CR.7)_
 - [ ] **9CR.11** — `engine/career/events.ts` — `DisseminationCareerEffect` generation: reputation
       effects scaled by venue properties per dissemination transition _(blocked — depends on 9CR.7)_
 - [ ] **9CR.12** — Claim magnitude system: `ClaimMagnitude` determination
