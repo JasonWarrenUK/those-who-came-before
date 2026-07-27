@@ -1443,8 +1443,9 @@ The current item generation code is a prototype that proved the architecture wor
 is being replaced wholesale. The component architecture, state management patterns, and SvelteKit
 scaffolding all survive.
 
-**Update:** the pre-reset source files listed above were removed from `src/` in the repository reset
-and survive only in `backlog/` as reference; new code is written fresh.
+**Update:** the pre-reset source files listed above were removed from `src/` in the repository
+reset; they briefly survived in `backlog/` as reference before that directory was deleted (never a
+porting source). New code is written fresh.
 
 ---
 

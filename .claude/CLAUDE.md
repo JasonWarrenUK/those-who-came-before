@@ -10,9 +10,11 @@ compound into an unreliable narrative. The core mechanic: your interpretations c
 filters future observations, leading to confirmation bias and systematic error.
 
 **Current Status**: Extensive design specification (docs 00-13). The repo was reset for launch:
-`src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming);
-the old tech demo is archived in `backlog/` as dead reference code. Implementation restarts from
-Milestone 1 of `docs/roadmaps/mvp.md` (Deno migration tasks 1FD.1–1FD.5 complete).
+`src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming).
+The pre-reset tech demo that briefly lived in `backlog/` as dead reference code has been deleted; it
+was never a porting source. Implementation is underway from `docs/roadmaps/mvp.md`: Deno migration
+(1FD.1–1FD.5) and much of Milestone 2's generation pipeline (grammar, plausibility, materials,
+decoration) are complete.
 
 ## Critical Context
 
@@ -314,21 +316,19 @@ For complex outputs (generated artefacts, lens-filtered descriptions).
 - ✅ Single route (`src/routes/+page.svelte`) and three static components (Header, Footer, Timeline
   empty state)
 - ✅ Tailwind + DaisyUI theming (caramellatte/coffee) in `app.css`
-- ✅ Old item+material demo archived in `backlog/` (dead reference code, not wired into the app)
+- ✅ Generation pipeline, partial (Milestone 2, `docs/roadmaps/mvp.md`): bottom-up structural
+  grammar, plausibility checking (`checkPlausibility`, 2GN.12), material assignment, and decorative
+  motif + introduced-material resolution (2GN.33) are complete; material↔classification integration
+  (2GN.27) and several other 2GN.x tasks remain
 
 **What's specified but unbuilt**:
 
-- ⏳ Everything in docs 00-13
-- ⏳ Component grammar system
-- ⏳ World state (chronology, cultures, seed)
-- ⏳ Interpretive lens mechanics
-- ⏳ Document tradition
-- ⏳ Career/reputation system
-- ⏳ Contradiction detection
-- ⏳ Persistence layer
-- ⏳ NPC scholars
+- ⏳ Most of docs 00-13's remaining scope — world state (chronology, cultures, seed), interpretive
+  lens mechanics, document tradition, career/reputation system, contradiction detection, persistence
+  layer, NPC scholars
 
-**Gap**: Design is ~95% complete, implementation is ~2% complete.
+Take exact completion state from `docs/roadmaps/mvp.md`'s checkboxes, not this summary — it's
+deliberately coarse and will drift.
 
 ## Design Pillars (Non-Negotiable)
 
@@ -392,9 +392,9 @@ Features grow per milestone (see the Explorer-extension tasks in each milestone 
 
 The Deno migration (roadmap tasks 1FD.1–1FD.5) is complete: `deno.json` replaced `package.json`, and
 `deno fmt`/`deno lint` replaced Prettier/ESLint. The pre-migration tech demo (`itemGenerator.ts`,
-`materials.ts`, `item-grammars/`) lives in `backlog/` and is reference-only, not a porting source;
-new engine code is written fresh in `src/lib/engine/` per docs 05 and 08 and the roadmap tasks
-(pipeline at 2GN.x, stores at 3WS.x).
+`materials.ts`, `item-grammars/`) that once lived in `backlog/` was never a porting source and has
+been deleted; engine code is written fresh in `src/lib/engine/` per docs 05 and 08 and the roadmap
+tasks (pipeline at 2GN.x, stores at 3WS.x).
 
 ## Glossary
 

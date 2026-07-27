@@ -251,9 +251,6 @@ those-who-came-before/
 │       ├── excavation.test.ts
 │       └── dissemination.test.ts       # Full submission → review → publication flow
 │
-├── backlog/                            # Historical code (preserved, not imported)
-│   └── ...
-│
 └── docs/
     └── dev/
         ├── design/                     # Design documents (this series)
@@ -1085,27 +1082,28 @@ handles this without issues.
 
 ### 8.2 What's Replaced
 
-| File                                      | Fate                                                                                            |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `package.json`                            | → `deno.json`                                                                                   |
-| `eslint.config.js`                        | Deleted (→ `deno lint`)                                                                         |
-| `.prettierrc` + `.prettierignore`         | Deleted (→ `deno fmt`)                                                                          |
-| `tsconfig.json`                           | Simplified, merged into `deno.json`                                                             |
-| `.npmrc`                                  | Deleted                                                                                         |
-| `src/lib/data/items.ts`                   | → `src/lib/data/grammars/primitives.ts` + `core.ts` (component grammar)                         |
-| `src/lib/data/materials.ts`               | → `src/lib/data/materials.ts` (restructured with tags + geological scarcity)                    |
-| `src/lib/services/itemGenerator.ts`       | → `src/lib/engine/generation/pipeline.ts` + 9 stage sub-modules                                 |
-| `src/lib/stores/gameState.svelte.ts`      | → Split into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator |
-| `src/lib/types/item.ts`                   | → `src/lib/types/artefact.ts` + related type files                                              |
-| `src/lib/utils/indexRandom.ts`            | → `src/lib/engine/prng.ts` (seeded)                                                             |
-| `src/lib/components/ItemGenerator.svelte` | → `src/lib/components/study/ArtefactInspector.svelte`                                           |
-| `src/lib/components/Tasks.svelte`         | Retired (career dashboard replaces)                                                             |
-| `src/lib/components/Timeline.svelte`      | → `src/lib/components/world/Timeline.svelte` (expanded)                                         |
-| `backlog/`                                | Preserved as historical reference                                                               |
+| File                                      | Fate                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `package.json`                            | → `deno.json`                                                                                     |
+| `eslint.config.js`                        | Deleted (→ `deno lint`)                                                                           |
+| `.prettierrc` + `.prettierignore`         | Deleted (→ `deno fmt`)                                                                            |
+| `tsconfig.json`                           | Simplified, merged into `deno.json`                                                               |
+| `.npmrc`                                  | Deleted                                                                                           |
+| `src/lib/data/items.ts`                   | → `src/lib/data/grammars/primitives.ts` + `core.ts` (component grammar)                           |
+| `src/lib/data/materials.ts`               | → `src/lib/data/materials.ts` (restructured with tags + geological scarcity)                      |
+| `src/lib/services/itemGenerator.ts`       | → `src/lib/engine/generation/pipeline.ts` + 9 stage sub-modules                                   |
+| `src/lib/stores/gameState.svelte.ts`      | → Split into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator   |
+| `src/lib/types/item.ts`                   | → `src/lib/types/artefact.ts` + related type files                                                |
+| `src/lib/utils/indexRandom.ts`            | → `src/lib/engine/prng.ts` (seeded)                                                               |
+| `src/lib/components/ItemGenerator.svelte` | → `src/lib/components/study/ArtefactInspector.svelte`                                             |
+| `src/lib/components/Tasks.svelte`         | Retired (career dashboard replaces)                                                               |
+| `src/lib/components/Timeline.svelte`      | → `src/lib/components/world/Timeline.svelte` (expanded)                                           |
+| `backlog/`                                | Deleted (was preserved as historical reference; never a porting source, superseded by this table) |
 
 **Update:** the tooling half of this table was completed in the Deno migration, and the listed
-`src/` source files were removed in the repository reset; they now live in `backlog/`, not
-`src/lib/`.
+`src/` source files were removed in the repository reset. They briefly lived on in `backlog/` as
+dead reference code; that directory has since been deleted, since this table already records the
+mapping and nothing imported from it.
 
 ### 8.3 Migration Order
 
