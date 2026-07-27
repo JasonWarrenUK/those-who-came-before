@@ -22,7 +22,7 @@
  * A player or NPC scholar's standing across five independent dimensions (doc 07 §2) plus an
  * overall composite. Not a single number — a player can be respected in one dimension and
  * dismissed in another, and reputation gates (`ReputationGate`) mostly check individual dimensions;
- * a minority gate general standing via the composite (doc 12 §2.23).
+ * a minority of gates use general standing via the composite (doc 12 §2.23).
  */
 export interface Reputation {
 	/** Weighted composite across all dimensions, 0–1 (doc 07 §2). */
@@ -85,8 +85,9 @@ export interface ReputationGate {
 
 	/**
 	 * Which dimension of `Reputation['dimensions']` must clear `threshold`, or `'overall'` to gate
-	 * on the top-level weighted composite instead (doc 12 §2.23) — for activities judging general
-	 * standing rather than one specific dimension.
+	 * on the top-level weighted composite instead (doc 07 §2.2, canonical; doc 12 §2.23, historical
+	 * context for the widening) — for activities judging general standing rather than one specific
+	 * dimension.
 	 */
 	requiredDimension: keyof Reputation['dimensions'] | 'overall';
 

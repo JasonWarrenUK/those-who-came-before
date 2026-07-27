@@ -534,9 +534,16 @@ concerns 2GN.33's actual engine changes. Thirteen findings, resolved as follows:
   `keyof Reputation['dimensions'] | 'overall'` in both `career.ts` and doc 07; `RoleRequirement`
   inherits the widened union with no consumer to update yet. ⚠️ Breaking change to an exported
   interface (no runtime consumer exists; evaluator 9CR.10 is unbuilt).
-- **`temporalMode` vs `temporalProfile`** (doc 07 §2.3) — already banner-flagged in-doc (doc 12
-  §2.17) and already correct in `src/lib/types/venues.ts`. The only action needed was an unflagged
-  straggler at `docs/roadmaps/mvp.md` task 9CR.5, now fixed.
+- **`temporalMode` vs `temporalProfile`** (doc 07 §2.3) — banner-flagged in-doc since doc 12 §2.17
+  and already correct in `src/lib/types/venues.ts`, but `VenueDefinition` at doc 07 §2.3 still
+  declared the stale `temporalMode: TemporalMode` field itself, with `TemporalMode`/
+  `SubmissionWindow` defined below it. On reflection, a live interface declaration is a stronger
+  claim than a supersession banner defuses — unlike `BackgroundDrain` below, this isn't a shape a
+  reader might reasonably still consult, it's a field name that would silently mismatch `venues.ts`
+  if anyone typed against it. `VenueDefinition.temporalMode` now reads
+  `temporalProfile: VenueTemporalProfile`, and `TemporalMode`/`SubmissionWindow` are no longer
+  defined here — the banner's prose narrows to record the supersession as history rather than point
+  at a still-live block. Roadmap task 9CR.5's stray `temporalMode` mention is also fixed.
 - **`BackgroundDrain` diverged between doc 07 §4.1 and doc 08 §3.6** — `energyPerWeek`/`roleImposed`
   vs the canonical `energyCostPerTerm`/`activeTermTypes`/`description`. Doc 07 already named doc 08
   canonical but described the diff as subsetting, which was wrong (units and semantics both
