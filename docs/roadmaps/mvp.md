@@ -367,7 +367,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.15** — `engine/generation/plausibility.ts` — material-structural compatibility (material
       tags constrain joins/forms) _(depends on 2GN.12 — unblocked)_
 - [ ] **2GN.16** — `engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand
-      from grammar up to N attempts _(depends on 2GN.12 — unblocked)_
+      from grammar up to N attempts; on exhaustion, throw `PlausibilityExhaustedError` (seed,
+      attempt count, last failing rules) rather than emit — never a relaxed-rules or fallback
+      artefact (doc 05 §6, §14; doc 12 §2.23) _(depends on 2GN.12 — unblocked)_
 - [x] **2GN.17** — `src/lib/data/classification.ts` — classification rules: feature→tag scoring,
       structural/container/decorative/cross-layer contributions — rules were derived from first
       principles against the signals `data/grammars/primitives.ts` actually rolls, not transcribed
