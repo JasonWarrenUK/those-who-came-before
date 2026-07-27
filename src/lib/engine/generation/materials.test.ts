@@ -154,7 +154,7 @@ Deno.test('assignMaterial: only returns materials compatible with allowedMateria
 	const prng = createPrng('compat-seed');
 
 	for (let i = 0; i < 50; i++) {
-		const chosen = assignMaterial(woodOnly, culture, phase, geology, [], MATERIALS, prng);
+		const chosen = assignMaterial(woodOnly, culture, phase, geology, [], prng, MATERIALS);
 		assert(chosen.tags.includes('wood'), `expected a wood material, got '${chosen.id}'`);
 	}
 });
@@ -166,7 +166,7 @@ Deno.test('assignMaterial: empty allowedMaterialTags treats every material as a 
 	const unconstrained = component([]);
 	const prng = createPrng('unconstrained-seed');
 
-	const chosen = assignMaterial(unconstrained, culture, phase, geology, [], MATERIALS, prng);
+	const chosen = assignMaterial(unconstrained, culture, phase, geology, [], prng, MATERIALS);
 	assert(MATERIALS.some((m) => m.id === chosen.id));
 });
 
@@ -184,7 +184,7 @@ Deno.test('assignMaterial: availability excluding every compatible material fall
 	const woodOnly = component(['wood']);
 	const prng = createPrng('fallback-seed');
 
-	const chosen = assignMaterial(woodOnly, culture, phase, allAbsent, [], MATERIALS, prng);
+	const chosen = assignMaterial(woodOnly, culture, phase, allAbsent, [], prng, MATERIALS);
 	assert(
 		chosen.tags.includes('wood'),
 		`expected fallback to the compatible set, got '${chosen.id}'`,
@@ -204,7 +204,6 @@ Deno.test('assignMaterial: defaults to the shipped MATERIALS catalogue', () => {
 		phase,
 		geology,
 		[],
-		undefined,
 		createPrng('default-seed'),
 	);
 	const withExplicit = assignMaterial(
@@ -213,8 +212,8 @@ Deno.test('assignMaterial: defaults to the shipped MATERIALS catalogue', () => {
 		phase,
 		geology,
 		[],
-		MATERIALS,
 		createPrng('default-seed'),
+		MATERIALS,
 	);
 
 	assertEquals(withDefault, withExplicit);
@@ -227,7 +226,7 @@ Deno.test('assignMaterial: determinism — same seed selects the same material',
 	const subject = component(['metal', 'stone', 'wood']);
 
 	const draw = (seed: string) =>
-		assignMaterial(subject, culture, phase, geology, [], MATERIALS, createPrng(seed)).id;
+		assignMaterial(subject, culture, phase, geology, [], createPrng(seed), MATERIALS).id;
 
 	assertEquals(draw('determinism-seed'), draw('determinism-seed'));
 });
@@ -238,7 +237,7 @@ Deno.test('assignMaterial: determinism — different seeds can select different 
 	const phase = mockPhaseCharacteristics();
 	const subject = component(['metal', 'stone', 'wood']);
 	const draw = (seed: string) =>
-		assignMaterial(subject, culture, phase, geology, [], MATERIALS, createPrng(seed)).id;
+		assignMaterial(subject, culture, phase, geology, [], createPrng(seed), MATERIALS).id;
 
 	const draws = new Map<string, string>();
 	for (let i = 0; i < 25; i++) draws.set(`seed-${i}`, draw(`seed-${i}`));
@@ -265,8 +264,8 @@ Deno.test('assignMaterial: purity — repeated calls do not mutate component or 
 	const materialsSnapshot = structuredClone(MATERIALS);
 	const componentSnapshot = structuredClone(subject);
 
-	assignMaterial(subject, culture, phase, geology, [], MATERIALS, createPrng('purity-seed'));
-	assignMaterial(subject, culture, phase, geology, [], MATERIALS, createPrng('purity-seed'));
+	assignMaterial(subject, culture, phase, geology, [], createPrng('purity-seed'), MATERIALS);
+	assignMaterial(subject, culture, phase, geology, [], createPrng('purity-seed'), MATERIALS);
 
 	assertEquals(subject, componentSnapshot);
 	assertEquals(MATERIALS, materialsSnapshot);
@@ -285,7 +284,7 @@ function tallySelections(
 	const tally = new Map<string, number>();
 
 	for (let i = 0; i < draws; i++) {
-		const chosen = assignMaterial(component, culture, phase, geology, [], MATERIALS, prng);
+		const chosen = assignMaterial(component, culture, phase, geology, [], prng, MATERIALS);
 		tally.set(chosen.id, (tally.get(chosen.id) ?? 0) + 1);
 	}
 

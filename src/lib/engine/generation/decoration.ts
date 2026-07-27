@@ -275,11 +275,11 @@ const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-
  *   overall decorative volume.
  * @param geology - World-level material scarcity, read by the material-access gate.
  * @param trade - Material flows reachable through cultural relationships, read by the gate.
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @param materials - The candidate material catalogue the gate checks against. Defaults to the
  *   shipped `MATERIALS`.
  * @param techniques - The candidate technique catalogue. Defaults to the shipped
  *   `DECORATIVE_TECHNIQUES`.
- * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @returns The flat list of selected decorative layers, in component-then-category-then-slot
  *   emission order.
  */
@@ -289,9 +289,9 @@ export function expandDecoration(
 	phase: PhaseCharacteristics,
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
+	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
-	prng: () => number,
 ): DecorativeLayer[] {
 	const pools: Record<DecorativeTechniqueDefinition['category'], DecorativeTechniqueDefinition[]> =
 		{
@@ -499,10 +499,10 @@ function introducedMaterialCandidates(
  * @param trade - Material flows reachable through cultural relationships.
  * @param sharedMotifSources - Pre-resolved exchange partners' borrowable motifs (see
  *   `SharedMotifSource` for what the caller must have already filtered).
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @param materials - The candidate material catalogue. Defaults to the shipped `MATERIALS`.
  * @param techniques - The technique catalogue supplying `carriesMotif`/`introducesMaterial` flags.
  *   Defaults to the shipped `DECORATIVE_TECHNIQUES`.
- * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @returns New layers mirroring `layers` in structure and order, grammar arguments filled.
  */
 export function assignDecorativeDetails(
@@ -512,9 +512,9 @@ export function assignDecorativeDetails(
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
 	sharedMotifSources: readonly SharedMotifSource[],
+	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
-	prng: () => number,
 ): DecorativeLayer[] {
 	const definitions = new Map<DecorativeTechnique, DecorativeTechniqueDefinition>(
 		techniques.map((definition) => [definition.technique, definition]),

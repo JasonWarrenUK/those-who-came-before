@@ -254,9 +254,9 @@ Deno.test('expandDecoration: determinism — same seed produces identical layers
 			phase,
 			geology,
 			[],
+			createPrng('determinism-seed'),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng('determinism-seed'),
 		);
 
 	assertEquals(run(), run());
@@ -278,9 +278,9 @@ Deno.test('expandDecoration: determinism — different seeds can produce differe
 			phase,
 			geology,
 			[],
+			createPrng(seed),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng(seed),
 		);
 
 	const results = new Map<string, DecorativeLayer[]>();
@@ -319,9 +319,9 @@ Deno.test('expandDecoration: purity — repeated calls do not mutate any input',
 		phase,
 		geology,
 		trade,
+		createPrng('purity-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('purity-seed'),
 	);
 	expandDecoration(
 		artefact,
@@ -329,9 +329,9 @@ Deno.test('expandDecoration: purity — repeated calls do not mutate any input',
 		phase,
 		geology,
 		trade,
+		createPrng('purity-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('purity-seed'),
 	);
 
 	assertEquals(artefact, artefactSnapshot);
@@ -362,9 +362,9 @@ Deno.test('expandDecoration: every layer targets a real component id', () => {
 		phase,
 		geology,
 		[],
+		createPrng('targets-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('targets-seed'),
 	);
 
 	assert(layers.length > 0, 'expected at least one layer at maximum intensity');
@@ -391,9 +391,9 @@ Deno.test('expandDecoration: emitted layers are flat with motif/material omitted
 		phase,
 		geology,
 		[],
+		createPrng('flat-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('flat-seed'),
 	);
 
 	assert(layers.length > 0, 'expected at least one layer at maximum intensity');
@@ -423,9 +423,9 @@ Deno.test('expandDecoration: a high-intensity phase produces layers from all thr
 			phase,
 			geology,
 			[],
+			createPrng(`category-seed-${i}`),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng(`category-seed-${i}`),
 		);
 		for (const layer of layers) seenCategories.add(categoryOf(layer.technique));
 	}
@@ -449,9 +449,9 @@ Deno.test('expandDecoration: distribution — high decorativeEmphasis/craftSpeci
 				phase,
 				geology,
 				[],
+				createPrng(`intensity-seed-${i}`),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(`intensity-seed-${i}`),
 			).length;
 		}
 		return total;
@@ -497,9 +497,9 @@ Deno.test('expandDecoration: distribution — technology.textiles is isolated to
 				phase,
 				geology,
 				[],
+				createPrng(`textile-isolation-seed-${i}`),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(`textile-isolation-seed-${i}`),
 			);
 			total += layers.length;
 			nonTextile += layers.filter((l) =>
@@ -536,9 +536,9 @@ Deno.test('expandDecoration: an injected catalogue truncated to one category onl
 		phase,
 		geology,
 		[],
+		createPrng('truncated-seed'),
 		MATERIALS,
 		surfaceOnly,
-		createPrng('truncated-seed'),
 	);
 
 	assert(layers.length > 0, 'expected at least one layer at maximum intensity');
@@ -562,9 +562,9 @@ Deno.test('expandDecoration: an artefact with no components returns no layers wi
 		phase,
 		geology,
 		[],
+		createPrng('empty-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('empty-seed'),
 	);
 
 	assertEquals(layers, []);
@@ -585,8 +585,6 @@ Deno.test('expandDecoration: defaults to the shipped MATERIALS and DECORATIVE_TE
 		phase,
 		geology,
 		[],
-		undefined,
-		undefined,
 		createPrng('default-seed'),
 	);
 	const withExplicit = expandDecoration(
@@ -595,9 +593,9 @@ Deno.test('expandDecoration: defaults to the shipped MATERIALS and DECORATIVE_TE
 		phase,
 		geology,
 		[],
+		createPrng('default-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('default-seed'),
 	);
 
 	assertEquals(withDefaults, withExplicit);
@@ -620,9 +618,9 @@ Deno.test('expandDecoration: two diverging seeds actually produce different seri
 				phase,
 				geology,
 				[],
+				createPrng(seed),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(seed),
 			),
 		);
 
@@ -686,9 +684,9 @@ Deno.test('assignDecorativeDetails: determinism — same seed produces identical
 			geology,
 			[],
 			[borrowedSource(0.5)],
+			createPrng('detail-determinism-seed'),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng('detail-determinism-seed'),
 		);
 
 	assertEquals(run(), run());
@@ -709,9 +707,9 @@ Deno.test('assignDecorativeDetails: determinism — different seeds can produce 
 				geology,
 				[],
 				[borrowedSource(1)],
+				createPrng(seed),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(seed),
 			),
 		);
 
@@ -747,9 +745,9 @@ Deno.test('assignDecorativeDetails: purity — inputs unmutated, output layers a
 		geology,
 		trade,
 		sources,
+		createPrng('detail-purity-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('detail-purity-seed'),
 	);
 
 	assertEquals(layers, layersSnapshot);
@@ -775,9 +773,9 @@ Deno.test('assignDecorativeDetails: field boundary — motifRef only on motif-ca
 		mockGeologicalContext(),
 		[],
 		[],
+		createPrng('boundary-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('boundary-seed'),
 	);
 
 	for (const layer of resolved) {
@@ -806,9 +804,9 @@ Deno.test('assignDecorativeDetails: with no shared sources, every motif comes fr
 			mockGeologicalContext(),
 			[],
 			[],
+			createPrng(`native-seed-${i}`),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng(`native-seed-${i}`),
 		);
 
 		for (const layer of resolved) {
@@ -831,9 +829,9 @@ Deno.test('assignDecorativeDetails: full-intensity exchange makes borrowed motif
 			mockGeologicalContext(),
 			[],
 			[borrowedSource(1)],
+			createPrng(`borrowed-seed-${i}`),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng(`borrowed-seed-${i}`),
 		);
 		seen.add(resolved!.motifRef!);
 	}
@@ -851,9 +849,9 @@ Deno.test('assignDecorativeDetails: a zero-intensity source never contributes wh
 			mockGeologicalContext(),
 			[],
 			[borrowedSource(0)],
+			createPrng(`zero-intensity-seed-${i}`),
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
-			createPrng(`zero-intensity-seed-${i}`),
 		);
 
 		assertEquals(resolved!.motifRef, 'test-motif');
@@ -871,9 +869,9 @@ Deno.test('assignDecorativeDetails: a zero-intensity source never contributes ev
 		mockGeologicalContext(),
 		[],
 		[borrowedSource(0)],
+		createPrng('zero-intensity-empty-native-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('zero-intensity-empty-native-seed'),
 	);
 
 	assert(
@@ -893,9 +891,9 @@ Deno.test('assignDecorativeDetails: distribution — higher exchange intensity y
 				mockGeologicalContext(),
 				[],
 				[borrowedSource(intensity)],
+				createPrng(`intensity-seed-${i}`),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(`intensity-seed-${i}`),
 			);
 			if (resolved!.motifRef === 'borrowed-motif') count++;
 		}
@@ -916,9 +914,9 @@ Deno.test('assignDecorativeDetails: an empty motif pool omits motifRef rather th
 		mockGeologicalContext(),
 		[],
 		[],
+		createPrng('empty-pool-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('empty-pool-seed'),
 	);
 
 	assert(!('motifRef' in resolved!), 'expected motifRef to be omitted for an empty pool');
@@ -934,9 +932,9 @@ Deno.test("assignDecorativeDetails: every introduced material conforms to its te
 				mockGeologicalContext(),
 				[mockMaterialFlow()],
 				[],
+				createPrng(`tag-conformance-${name}-${i}`),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(`tag-conformance-${name}-${i}`),
 			);
 
 			const material = MATERIALS.find((m) => m.id === resolved!.material);
@@ -960,9 +958,9 @@ Deno.test('assignDecorativeDetails: distribution — cultural material affinity 
 				mockGeologicalContext(),
 				[],
 				[],
+				createPrng(`affinity-seed-${i}`),
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
-				createPrng(`affinity-seed-${i}`),
 			);
 			const material = MATERIALS.find((m) => m.id === resolved!.material)!;
 			if (material.tags.includes('metal')) metal++;
@@ -996,9 +994,9 @@ Deno.test('assignDecorativeDetails: availability yields when it would exclude ev
 		geology,
 		[],
 		[],
+		createPrng('fallback-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('fallback-seed'),
 	);
 
 	assert(
@@ -1017,9 +1015,9 @@ Deno.test('assignDecorativeDetails: recurses into sublayers (2GN.31/32 readiness
 		mockGeologicalContext(),
 		[],
 		[],
+		createPrng('sublayer-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('sublayer-seed'),
 	);
 
 	const inlay = resolved!.sublayers[0]!;
@@ -1041,9 +1039,9 @@ Deno.test('assignDecorativeDetails: a technique missing from the injected catalo
 		mockGeologicalContext(),
 		[],
 		[],
+		createPrng('unknown-technique-seed'),
 		MATERIALS,
 		[], // Empty injected catalogue: no flags known for any technique.
-		createPrng('unknown-technique-seed'),
 	);
 
 	assertEquals(resolved, layers);
@@ -1063,8 +1061,6 @@ Deno.test('assignDecorativeDetails: defaults to the shipped MATERIALS and DECORA
 		geology,
 		[],
 		[],
-		undefined,
-		undefined,
 		createPrng('detail-default-seed'),
 	);
 	const withExplicit = assignDecorativeDetails(
@@ -1074,9 +1070,9 @@ Deno.test('assignDecorativeDetails: defaults to the shipped MATERIALS and DECORA
 		geology,
 		[],
 		[],
+		createPrng('detail-default-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('detail-default-seed'),
 	);
 
 	assertEquals(withDefaults, withExplicit);
@@ -1097,9 +1093,9 @@ Deno.test('assignDecorativeDetails: resolves expandDecoration output end-to-end'
 		phase,
 		geology,
 		[],
+		createPrng('pipeline-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('pipeline-seed'),
 	);
 	const resolved = assignDecorativeDetails(
 		candidates,
@@ -1108,9 +1104,9 @@ Deno.test('assignDecorativeDetails: resolves expandDecoration output end-to-end'
 		geology,
 		[],
 		[borrowedSource(0.5)],
+		createPrng('pipeline-detail-seed'),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng('pipeline-detail-seed'),
 	);
 
 	assert(resolved.length > 0, 'expected layers at maximum intensity');

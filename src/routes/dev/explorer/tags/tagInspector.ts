@@ -260,9 +260,9 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		culture.phase,
 		culture.geology,
 		culture.trade,
+		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng(`${seed}-decoration`),
 	);
 
 	const features = extractFeatures(artefact, layers);
