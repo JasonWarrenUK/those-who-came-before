@@ -1344,7 +1344,7 @@ effects on lens, career progression
       maintaining `audienceReach`, `takeawayDivergence`, `citationCount` (doc 10 §8/§11); feeds
       6LS.1's citation input and 9CR.14's retraction cost _(blocked — depends on 9CR.2)_
 - [ ] **9CR.5** — `engine/documents/venues.ts` — `generateVenues(world, prng): VenueDefinition[]` —
-      3-5 venues with structural properties (containerModel, temporalMode, editorialProcess,
+      3-5 venues with structural properties (containerModel, temporalProfile, editorialProcess,
       audienceEncounter, scope) _(blocked — depends on 9CR.1)_
 - [ ] **9CR.6** — `engine/documents/venues.ts` — venue prestige computation from properties
       (editorial rigour × scope × reach × establishment) _(blocked — depends on 9CR.5)_

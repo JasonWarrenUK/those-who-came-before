@@ -449,6 +449,7 @@ interface ActiveActivity {
 	qualitySnapshot?: number; // Energy level when work phase began (affects output quality)
 }
 
+// Superseded — see note below. `BackgroundDrain` is defined once, in doc 08 §3.6.
 interface BackgroundDrain {
 	source: string; // 'teaching' | 'administration' | 'supervision' | etc.
 	energyPerWeek: number;
@@ -456,18 +457,23 @@ interface BackgroundDrain {
 }
 ```
 
-**Note:** canonical term and time types live in doc 08 §3.6 (TERMS_PER_YEAR = 4,
-`currentAbsoluteWeek`); this block shows only the career-specific fields.
+> **Superseded (doc 12 §2.23, 2026-07-27):** `BackgroundDrain` is defined once, in doc 08 §3.6, as
+> `{ source, energyCostPerTerm, activeTermTypes, description }` — a per-term cost gated by which
+> term types it applies to, not the per-week/`roleImposed` shape above. This isn't a subset of the
+> canonical fields, it's a units and semantics change (`energyPerWeek` → `energyCostPerTerm` is a
+> ×`WEEKS_PER_TERM` change; `roleImposed: boolean` → `activeTermTypes: TermType[]` replaces one flag
+> with a term-type list). Canonical term and time types generally live in doc 08 §3.6
+> (`TERMS_PER_YEAR = 4`, `currentAbsoluteWeek`).
 
-**Background drains by role:**
+**Background drains by role** (per term, matching doc 08's `energyCostPerTerm`):
 
-| Role                    | Teaching | Administration | Supervision | Total Background Drain/Week |
+| Role                    | Teaching | Administration | Supervision | Total Background Drain/Term |
 | ----------------------- | -------- | -------------- | ----------- | --------------------------- |
 | Postdoctoral Researcher | 0        | 0              | 0           | 0                           |
-| Junior Lecturer         | 1.5      | 0.5            | 0           | 2.0                         |
-| Senior Lecturer         | 2.0      | 1.0            | 0.5         | 3.5                         |
-| Reader                  | 1.5      | 1.5            | 1.0         | 4.0                         |
-| Professor               | 1.0      | 2.5            | 1.5         | 5.0                         |
+| Junior Lecturer         | 18       | 6              | 0           | 24                          |
+| Senior Lecturer         | 24       | 12             | 6           | 42                          |
+| Reader                  | 18       | 18             | 12          | 48                          |
+| Professor               | 12       | 30             | 18          | 60                          |
 
 _(Values are illustrative — final tuning requires playtesting. The pattern matters more than the
 numbers: postdocs are free; mid-career roles are teaching-heavy; senior roles shift from teaching to
