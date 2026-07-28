@@ -634,7 +634,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.30** — `engine/generation/decoration.ts` — material prerequisite enforcement (engraving
       → hard material, glaze → ceramic, etc.) _(depends on 2GN.29 — unblocked)_
 - [ ] **2GN.31** — `engine/generation/decoration.ts` — layering support: `DecorativeLayer` with
-      sublayers, decoration-on-decoration _(depends on 2GN.29 — unblocked)_
+      sublayers, decoration-on-decoration _(depends on 2GN.29 — unblocked)_ — ⚠️ when this lands,
+      `techniqueComplexity` (`maxDepth * distinctTechniques`) stops being a bare distinct-technique
+      count, since `maxDepth` is currently pinned at 1: the classification rule reading it
+      (`data/classification.ts`, roadmap 2GN.34, doc 12 §2.24) will saturate at a fraction of its
+      current technique breadth with no code change and needs re-measuring against real nested
+      output; a Deno test in `engine/generation/classification.test.ts` pins today's flat-layer
+      contract so this breaks loudly rather than silently
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
       `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(depends on 2GN.29 — unblocked)_
 - [x] **2GN.33** — `engine/generation/decoration.ts` — motif assignment from culture's
@@ -673,7 +679,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs
       at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds
       the phase-driven salience dimension
-- [ ] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
+- [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
       `tallyLayers`' existing sublayer recursion) — the extraction side needs no further work here.
@@ -681,8 +687,37 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       those already-populated fields (a data task, not an engine one, hence the corrected file
       path); `maxDepth` stays pinned at 1 until 2GN.31 lands sublayers, so depth-sensitive rules
       should note that. ⚠️ per the classification-branch oversight preference, this rule set needs
-      decision-by-decision sign-off, same as 2GN.17/2GN.20 (doc 12 §2.19/§2.21) _(depends on 2GN.19,
-      2GN.20 — unblocked; softly follows 2GN.31 for depth-sensitive rules)_
+      decision-by-decision sign-off, same as 2GN.17/2GN.20 (doc 12 §2.19/§2.21) — landed as **four
+      new rules plus a retune of three pre-existing decoration rules** (doc 12 §2.24 records the
+      session): investigating first surfaced that 2GN.29/2GN.33 had landed since the original
+      decoration-family rules were authored at 2GN.17 against no real pipeline, and measuring 1200
+      real pipeline artefacts showed those rules fired on 87–99% of output — under
+      `classifyArtefact` (2GN.20)'s plain-sum unbounded fold, a near-constant contribution to every
+      score rather than a discriminating one. Retuned `decorativeLayerCount >= 3`/`>= 2`/`>= 2`
+      (heavy-decoration and both cross-layer archetype rules) to the measured p75/p50 of their
+      respective conditional distributions (`>= 10`, `>= 6`, `>= 6`; fire rates now
+      25.3%/64.5%/60.7% of their populations, down from 86.8–96.9%); the any-decoration `>= 1` nudge
+      left alone as an intentionally universal cheap signal. New rules: two raw
+      `decorativeComplexity` tiers (`>= 16` p75, `>= 25` ~p93, deliberately cumulative,
+      elite/ceremonial/ritual) for absolute investment; one proportional rule
+      (`decorativeComplexity / partCount >= 4`, measured p75 of the ratio) for investment
+      disproportionate to part count — needs no new `ExtractedFeatures` field since `partCount`
+      already exists, keeping this a data-only change; one `techniqueComplexity >= 8` rule (measured
+      p90) tagged `artisanal` primarily rather than compounding `elite`, carrying the 2GN.31 forward
+      hazard (see that task's note) since `maxDepth` pinned at 1 makes the field currently a strict
+      summand of `decorativeComplexity`. Doc 05 §9.2's engraved-blade worked example, carried by one
+      of the retuned archetype rules and pinned by integration tests in both
+      `data/classification.test.ts` and `engine/generation/classification.test.ts`, updated from a
+      3-layer to a 6-layer example blade and strengthened to assert the contributing rule index, not
+      just the fired tags; `maximalFeatures()` in the data-layer test file raised to realistic
+      complexity values so the invariant/purity/boundary-guard sweeps actually exercise the new
+      rules (it previously sat below every new threshold); two stale dormant-rule comments fixed in
+      passing (`motifPresent` has been live since 2GN.33 landed, only `motifCulturalOrigins` and
+      `preciousMaterialsInDecoration` remain 2GN.68's). Covered by 9 new Deno tests in
+      `data/classification.test.ts` (index pins, fire/no-fire boundaries, R40's zero-partCount
+      guard, monotonicity, cumulativity, zero-decoration silence) plus 1 in
+      `engine/generation/classification.test.ts` (the 2GN.31 regression guard) _(depended on 2GN.19,
+      2GN.20 — both done)_
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from
       `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from
@@ -2311,9 +2346,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.34,2GN.35,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.74,2GN.75,2GN.76 todo
+	class 2GN.10,2GN.13,2GN.14,2GN.15,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.35,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.74,2GN.75,2GN.76 todo
 	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.8,2GN.9 done
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.8,2GN.9 done
 ```
 
 ## Links

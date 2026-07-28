@@ -65,15 +65,15 @@ function maximalFeatures(): ExtractedFeatures {
 		sizeBand: 'large',
 		curvature: 'deep',
 		baseType: 'pedestal',
-		decorativeLayerCount: 6,
+		decorativeLayerCount: 20,
 		appliedElementPresent: true,
 		motifPresent: true,
 		motifCulturalOrigins: ['culture-a', 'culture-b'],
-		techniqueComplexity: 5,
+		techniqueComplexity: 12,
 		preciousMaterialsInDecoration: true,
 		functionalComplexity: 4,
-		decorativeComplexity: 4,
-		overallComplexity: 8,
+		decorativeComplexity: 30,
+		overallComplexity: 34,
 	});
 }
 
@@ -597,9 +597,9 @@ if (R30.tags.size !== 1 || R30.tags.get('ornament') !== 0.2) {
 	throw new Error('CLASSIFICATION_RULES[31] must be the any-decoration rule');
 }
 
-Deno.test('R28: three or more decorative layers fires; fewer does not', () => {
-	assert(R28.condition(features({ decorativeLayerCount: 3 })));
-	assert(!R28.condition(features({ decorativeLayerCount: 2 })));
+Deno.test('R28: ten or more decorative layers fires; fewer does not', () => {
+	assert(R28.condition(features({ decorativeLayerCount: 10 })));
+	assert(!R28.condition(features({ decorativeLayerCount: 9 })));
 });
 
 Deno.test('R29: an applied element present fires; absent does not', () => {
@@ -653,16 +653,16 @@ if (R34.tags.get('votive') !== 0.3) {
 	throw new Error('CLASSIFICATION_RULES[35] must be the decorated-container rule');
 }
 
-Deno.test('R33: an edged object with two or more decorative layers fires', () => {
-	assert(R33.condition(features({ hasEdge: true, decorativeLayerCount: 2 })));
-	assert(!R33.condition(features({ hasEdge: true, decorativeLayerCount: 1 })));
-	assert(!R33.condition(features({ hasEdge: false, decorativeLayerCount: 2 })));
+Deno.test('R33: an edged object with six or more decorative layers fires', () => {
+	assert(R33.condition(features({ hasEdge: true, decorativeLayerCount: 6 })));
+	assert(!R33.condition(features({ hasEdge: true, decorativeLayerCount: 5 })));
+	assert(!R33.condition(features({ hasEdge: false, decorativeLayerCount: 6 })));
 });
 
-Deno.test('R34: a container with two or more decorative layers fires', () => {
-	assert(R34.condition(features({ hasContainer: true, decorativeLayerCount: 2 })));
-	assert(!R34.condition(features({ hasContainer: true, decorativeLayerCount: 1 })));
-	assert(!R34.condition(features({ hasContainer: false, decorativeLayerCount: 2 })));
+Deno.test('R34: a container with six or more decorative layers fires', () => {
+	assert(R34.condition(features({ hasContainer: true, decorativeLayerCount: 6 })));
+	assert(!R34.condition(features({ hasContainer: true, decorativeLayerCount: 5 })));
+	assert(!R34.condition(features({ hasContainer: false, decorativeLayerCount: 6 })));
 });
 
 // --- R35-R37: structural presence flags --------------------------------------------------------------
@@ -695,15 +695,82 @@ Deno.test('R37: a wearable object fires ornament/personal; not-wearable does not
 	assert(!R37.condition(features({ isWearable: false })));
 });
 
+// --- R38-R41: decorative intensity (complexity-graded — roadmap 2GN.34) --------------------------
+
+const R38 = CLASSIFICATION_RULES[39];
+const R39 = CLASSIFICATION_RULES[40];
+const R40 = CLASSIFICATION_RULES[41];
+const R41 = CLASSIFICATION_RULES[42];
+if (R38.tags.get('elite') !== 0.4 || !R38.tags.has('ceremonial')) {
+	throw new Error('CLASSIFICATION_RULES[39] must be the high-decorative-complexity rule');
+}
+if (R39.tags.get('elite') !== 0.5 || !R39.tags.has('ritual')) {
+	throw new Error('CLASSIFICATION_RULES[40] must be the exceptional-decorative-complexity rule');
+}
+if (R40.tags.get('elite') !== 0.3 || R40.tags.get('ornament') !== 0.3) {
+	throw new Error('CLASSIFICATION_RULES[41] must be the decoration-per-part rule');
+}
+if (R41.tags.get('artisanal') !== 0.4 || R41.tags.get('elite') !== 0.2) {
+	throw new Error('CLASSIFICATION_RULES[42] must be the technique-breadth rule');
+}
+
+Deno.test('R38: decorativeComplexity of 16 or more fires; fewer does not', () => {
+	assert(R38.condition(features({ decorativeComplexity: 16 })));
+	assert(!R38.condition(features({ decorativeComplexity: 15 })));
+});
+
+Deno.test('R39: decorativeComplexity of 25 or more fires; fewer does not — and R38 also fires alongside it', () => {
+	assert(R39.condition(features({ decorativeComplexity: 25 })));
+	assert(!R39.condition(features({ decorativeComplexity: 24 })));
+	// R38/R39 are deliberately cumulative, not exclusive tiers — an exceptional artefact should
+	// score both, reaching the combined elite weight the rules' JSDoc describes.
+	assert(R38.condition(features({ decorativeComplexity: 25 })));
+});
+
+Deno.test('R40: decoration disproportionate to part count fires; proportionate decoration does not', () => {
+	assert(R40.condition(features({ decorativeComplexity: 8, partCount: 2 }))); // ratio 4
+	assert(!R40.condition(features({ decorativeComplexity: 7, partCount: 2 }))); // ratio 3.5
+	// Same absolute decorativeComplexity as the fires-case above, but spread over more parts — the
+	// whole point of the rule is that this must NOT fire.
+	assert(!R40.condition(features({ decorativeComplexity: 8, partCount: 3 })));
+});
+
+Deno.test('R40: a partless artefact never fires, rather than dividing by zero', () => {
+	assert(!R40.condition(features({ decorativeComplexity: 20, partCount: 0 })));
+});
+
+Deno.test('R41: techniqueComplexity of 8 or more fires; fewer does not', () => {
+	assert(R41.condition(features({ techniqueComplexity: 8 })));
+	assert(!R41.condition(features({ techniqueComplexity: 7 })));
+});
+
+Deno.test('R38, R39, R41: firing is monotonic — once true at a threshold, stays true above it', () => {
+	for (let dc = 16; dc <= 40; dc++) assert(R38.condition(features({ decorativeComplexity: dc })));
+	for (let dc = 25; dc <= 40; dc++) assert(R39.condition(features({ decorativeComplexity: dc })));
+	for (let tc = 8; tc <= 15; tc++) assert(R41.condition(features({ techniqueComplexity: tc })));
+});
+
+Deno.test('R38-R41: none fire on neutral (zero-decoration) features', () => {
+	const neutral = features();
+	assert(!R38.condition(neutral));
+	assert(!R39.condition(neutral));
+	assert(!R40.condition(neutral));
+	assert(!R41.condition(neutral));
+});
+
 // --- Worked-example integration ---------------------------------------------------------------------
 
 Deno.test('integration: an engraved long bronze blade fires weapon, ritual, ceremonial and elite', () => {
+	// decorativeLayerCount 6 (not the original 3): R33, the archetype rule this test exercises, was
+	// retuned at roadmap 2GN.34 (doc 12 §2.24) from `>= 2` to the measured p50 of edged-artefact
+	// layer counts, `>= 6`. The archetype still holds — an engraved blade with an ordinary amount of
+	// decoration scores ritual/ceremonial/elite — it just takes more than any two layers to earn it.
 	const engravedBlade = features({
 		hasEdge: true,
 		primaryAxisLength: 'long',
 		bladeLengthBand: 'long',
 		pointSharpness: 'sharp',
-		decorativeLayerCount: 3,
+		decorativeLayerCount: 6,
 	});
 
 	const firing = CLASSIFICATION_RULES.filter((rule) => rule.condition(engravedBlade));
@@ -716,4 +783,14 @@ Deno.test('integration: an engraved long bronze blade fires weapon, ritual, cere
 	assert(firedTags.has('ritual'));
 	assert(firedTags.has('ceremonial'));
 	assert(firedTags.has('elite'));
+
+	// Pin the rules actually responsible for ritual/elite, not just the tags — otherwise a future
+	// retune of an unrelated rule could silently start supplying these tags instead of R33, and this
+	// test would keep passing for the wrong reason.
+	assert(
+		firing.includes(R33),
+		'R33 (the edged-decorated archetype rule) must be among the firing rules',
+	);
+	assertEquals(R33.tags.get('ritual'), 0.5);
+	assertEquals(R33.tags.get('elite'), 0.3);
 });
