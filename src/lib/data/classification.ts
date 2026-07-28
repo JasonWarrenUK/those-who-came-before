@@ -8,10 +8,11 @@
  * real primitive parameter (an `elongated.edge`, a `ring-form.gap`, a `hollow-enclosed.opening`
  * band, and so on) or a real decorative-layer fact (technique identity, layer count). Two families
  * are the exception, and are marked dormant: `preciousMaterialsInDecoration` and
- * `motifPresent`/`motifCulturalOrigins` have no producer yet (decorative material/motif assignment,
- * roadmap 2GN.33, is unbuilt, and the `preciousMaterialsInDecoration`/`motifCulturalOrigins` lookups
- * consuming that data are roadmap 2GN.68's), so those rules are authored now but fire on no artefact
- * the current pipeline can generate until those tasks land.
+ * `motifCulturalOrigins` have no producer yet — decorative material/motif assignment (roadmap
+ * 2GN.33) has landed and populates `DecorativeLayer.motifRef`/`.material`, but the
+ * `preciousMaterialsInDecoration`/`motifCulturalOrigins` lookups consuming that data into
+ * `ExtractedFeatures` are roadmap 2GN.68's — so those two rules are authored now but fire on no
+ * artefact the current pipeline can generate until 2GN.68 lands.
  *
  * **Mechanical-vs-classificatory boundary** (doc 12 propagation register): no rule below reads
  * `portability` or `inspectionDepth` — both are mechanical derivations governing player
@@ -27,6 +28,18 @@
  *
  * Not every `FunctionTag`/`ContextTag` is reached at MVP — `currency` has no grammar signal to key
  * on yet and is deliberately absent rather than force-fitted.
+ *
+ * **Decoration thresholds are measured, not transcribed** (roadmap 2GN.34, doc 12 §2.24). Doc 05
+ * §9.2's illustrative `decorativeComplexity > 2`/`> 1` constants, and this file's own original
+ * `decorativeLayerCount >= 3`/`>= 2`/`>= 1` decoration-family thresholds, were authored before any
+ * decoration pipeline existed to measure against. Once 2GN.29/2GN.33 landed, sampling 1200 real
+ * pipeline artefacts across three `decorativeEmphasis` settings showed those thresholds fire on
+ * 87–99% of artefacts — under `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21), a rule
+ * firing that often adds a near-constant to every score rather than discriminating elite objects
+ * from ordinary ones. The decoration-family thresholds below are pinned to measured percentiles of
+ * that sample instead (`decorativeLayerCount` p50 6/p75 10/p90 13, `decorativeComplexity` p50
+ * 11.2/p75 16.3/p90 22.3, `techniqueComplexity` p90 9, `decorativeComplexity / partCount` p75 4.05);
+ * see doc 12 §2.24 for the full distribution table and rationale.
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
@@ -247,9 +260,14 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 
 	// --- Decorative (real signals) -----------------------------------------------------------------
 
-	/** Heavily worked decoration (three or more layers) signals high status. */
+	/**
+	 * Heavily worked decoration signals high status. Originally `>= 3`, which measured at 86.8% of
+	 * the 1200-artefact sample (roadmap 2GN.34, doc 12 §2.24) — "heavily worked" was firing on
+	 * nearly everything. Retuned to the measured p75 of `decorativeLayerCount` (10), where it fires
+	 * on 25.3%, matching the rule's stated intent rather than its original near-universal behaviour.
+	 */
 	{
-		condition: (f) => f.decorativeLayerCount >= 3,
+		condition: (f) => f.decorativeLayerCount >= 10,
 		tags: new Map([['ornament', 0.3], ['elite', 0.4], ['ceremonial', 0.3]]),
 	},
 
@@ -265,8 +283,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['ornament', 0.2]]),
 	},
 
-	// --- Decorative (dormant — fire once 2GN.33 assigns motifs/materials to layers and 2GN.68 wires
-	// the lookups that populate these `ExtractedFeatures` fields from them) -----------------------
+	// --- Decorative (dormant — fire once 2GN.68 wires the lookups that populate these
+	// `ExtractedFeatures` fields from the `DecorativeLayer` data 2GN.33 already produces) -----------
 
 	/**
 	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.68, consuming
@@ -279,9 +297,10 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	},
 
 	/**
-	 * DORMANT: `motifPresent` has no producer yet (roadmap 2GN.33); `motifCulturalOrigins` also
-	 * needs 2GN.68's motif→culture lookup wired on top. Cross-cultural motifs on one object signal
-	 * exchange/trade. Fires on no artefact until both land.
+	 * DORMANT (partially): `motifPresent` is live — 2GN.33 has landed and `extractFeatures` reads it
+	 * off `DecorativeLayer.motifRef` directly. `motifCulturalOrigins` is still dormant, needing
+	 * 2GN.68's motif→culture lookup, so this rule as a whole fires on no artefact until that task
+	 * lands. Cross-cultural motifs on one object signal exchange/trade.
 	 */
 	{
 		condition: (f) => f.motifPresent && f.motifCulturalOrigins.length > 1,
@@ -290,15 +309,27 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 
 	// --- Cross-layer ---------------------------------------------------------------------------------
 
-	/** An edged, decorated object transcends pure function — the engraved-sword archetype (doc 05 §9.2). */
+	/**
+	 * An edged, decorated object transcends pure function — the engraved-sword archetype (doc 05
+	 * §9.2). Originally `>= 2` layers, which measured at 96.9% of edged artefacts in the 1200-sample
+	 * (roadmap 2GN.34, doc 12 §2.24) — any two layers on an edge was firing on nearly every edged
+	 * object. Retuned to the measured p50 of edged-artefact `decorativeLayerCount` (6), where it
+	 * fires on 64.5% of edged artefacts; doc 05 §9.2's worked example still holds at this threshold
+	 * (see the doc's implementation note), it just needs substantive decoration rather than any two
+	 * layers.
+	 */
 	{
-		condition: (f) => f.hasEdge && f.decorativeLayerCount >= 2,
+		condition: (f) => f.hasEdge && f.decorativeLayerCount >= 6,
 		tags: new Map([['ritual', 0.5], ['ceremonial', 0.4], ['elite', 0.3]]),
 	},
 
-	/** A decorated container reads ritual/display rather than plain cookware. */
+	/**
+	 * A decorated container reads ritual/display rather than plain cookware. Originally `>= 2`
+	 * layers (96.1% of containers in the 1200-sample, roadmap 2GN.34, doc 12 §2.24); retuned to the
+	 * measured p50 of container `decorativeLayerCount` (6), firing on 60.7% of containers.
+	 */
 	{
-		condition: (f) => f.hasContainer && f.decorativeLayerCount >= 2,
+		condition: (f) => f.hasContainer && f.decorativeLayerCount >= 6,
 		tags: new Map([['ceremonial', 0.4], ['votive', 0.3], ['elite', 0.3]]),
 	},
 
@@ -324,5 +355,70 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	{
 		condition: (f) => f.isWearable,
 		tags: new Map([['ornament', 0.3], ['personal', 0.3]]),
+	},
+
+	// --- Decorative intensity (complexity-graded — roadmap 2GN.34) ---------------------------------
+	//
+	// `extractFeatures` (roadmap 2GN.19) computes `decorativeComplexity` and `techniqueComplexity`
+	// from real signal (layer count, distinct technique count, motif density, nesting depth), but
+	// until this task nothing read either field. Thresholds are pinned to percentiles measured over
+	// 1200 real pipeline artefacts (see this module's JSDoc and doc 12 §2.24), not to doc 05 §9.2's
+	// illustrative constants, which measured at 95–99% and would have added a near-constant to every
+	// score under the plain-sum fold rather than discriminating. Appended at the end to keep the
+	// rules above index-stable for the pinned-index tests, per the structural-presence-flags
+	// precedent.
+
+	/**
+	 * Objectively lavish: heavy absolute decorative investment regardless of the object's size.
+	 * Measured p75 of `decorativeComplexity` (16.3); fires on 28.6% of the sample.
+	 */
+	{
+		condition: (f) => f.decorativeComplexity >= 16,
+		tags: new Map([['elite', 0.4], ['ceremonial', 0.3]]),
+	},
+
+	/**
+	 * Exceptionally lavish — the top of the measured distribution (~p93, 6.7% of the sample).
+	 * Deliberately cumulative with the rule above: an artefact scoring here also scores the `>= 16`
+	 * rule, reaching `elite` 0.9 combined, the intended "unmistakably a prestige object" reading
+	 * under `classifyArtefact`'s plain-sum fold. Tags `ritual` rather than doubling `ceremonial`, so
+	 * the two tiers stay distinguishable in the Explorer breakdown (roadmap 2GN.59).
+	 */
+	{
+		condition: (f) => f.decorativeComplexity >= 25,
+		tags: new Map([['elite', 0.5], ['ritual', 0.3]]),
+	},
+
+	/**
+	 * Lavish for its size: decoration disproportionate to the object's part count, independent of
+	 * absolute volume. Decoration volume tracks a culture's phase decorativeness and component count
+	 * almost as much as it tracks any single object's status (measured mean `decorativeLayerCount`
+	 * ranges from 0.5 to 24 across `decorativeEmphasis` alone) — this rule is the counterweight,
+	 * catching a small object carrying disproportionate decoration that the two raw-threshold rules
+	 * above would miss. Threshold is the measured p75 of `decorativeComplexity / partCount` (4.05).
+	 * `partCount > 0` is a guard, not a `Math.max` floor: a partless artefact has no proportion to
+	 * judge and must not fire (an unguarded division would put `Infinity >= 4` into the condition).
+	 */
+	{
+		condition: (f) => f.partCount > 0 && f.decorativeComplexity / f.partCount >= 4,
+		tags: new Map([['elite', 0.3], ['ornament', 0.3]]),
+	},
+
+	/**
+	 * Technique breadth, not volume: many distinct crafts touched this object, implying multiple
+	 * specialists and tool sets rather than one technique applied repeatedly. Measured p90 of
+	 * `techniqueComplexity` (9); this rule uses `>= 8` to sit just inside that tail (fires on 20.6%
+	 * of the sample). Tags `artisanal` primarily, `elite` only secondarily, so it doesn't simply
+	 * compound the `elite` weight the `decorativeComplexity` rules above already carry —
+	 * `techniqueComplexity` is `maxDepth * distinctTechniques` and today `maxDepth` is pinned at 1
+	 * until roadmap 2GN.31 lands sublayers, so this threshold is currently a distinct-technique
+	 * count and the field is a strict summand of `decorativeComplexity`, not merely correlated with
+	 * it. **Hazard for 2GN.31**: once nesting depth varies, the same `techniqueComplexity` value
+	 * becomes reachable at a fraction of the technique breadth and this rule will saturate with no
+	 * change to this file — re-measure the threshold when that task lands (see the roadmap note).
+	 */
+	{
+		condition: (f) => f.techniqueComplexity >= 8,
+		tags: new Map([['artisanal', 0.4], ['elite', 0.2]]),
 	},
 ];

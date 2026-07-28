@@ -496,6 +496,21 @@ Deno.test('extractFeatures: layer count and technique variety walk sublayers rec
 	assertEquals(features.appliedElementPresent, true); // Inlay is applied-element, found in a sublayer.
 });
 
+Deno.test('extractFeatures: techniqueComplexity is currently a bare distinct-technique count — 2GN.31 regression guard', () => {
+	// `techniqueComplexity` is `maxDepth * distinctTechniques` (roadmap 2GN.19). Until roadmap 2GN.31
+	// lands sublayer expansion in the generation pipeline, every layer `expandDecoration` emits is
+	// flat (`sublayers: []`), so `maxDepth` is always 1 and this field equals distinct technique
+	// count alone — a data-layer classification rule keyed on this field (roadmap 2GN.34, R41 in
+	// `data/classification.ts`) is implicitly a technique-count threshold, not a depth-aware one.
+	// When 2GN.31 lands, `maxDepth` will vary and the same threshold becomes reachable at a fraction
+	// of the technique breadth. This test pins today's flat-layer contract so that change breaks it
+	// loudly instead of silently saturating R41 — see R41's JSDoc for the re-measurement note.
+	const flatLayers = [layer('engraving'), layer('inlay'), layer('scoring')];
+	const features = extractFeatures(artefactOf([component('c0', 'bar-form')]), flatLayers);
+
+	assertEquals(features.techniqueComplexity, 3); // maxDepth (1) * 3 distinct techniques.
+});
+
 Deno.test('extractFeatures: surface treatments alone never read as applied elements', () => {
 	const features = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
@@ -505,7 +520,7 @@ Deno.test('extractFeatures: surface treatments alone never read as applied eleme
 	assertEquals(features.appliedElementPresent, false);
 });
 
-Deno.test('extractFeatures: motifPresent reads motifRef honestly (dormant until 2GN.33 produces one)', () => {
+Deno.test('extractFeatures: motifPresent reads motifRef honestly (live since 2GN.33)', () => {
 	const without = extractFeatures(artefactOf([component('c0', 'bar-form')]), [layer('engraving')]);
 	const withMotif = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
@@ -514,8 +529,8 @@ Deno.test('extractFeatures: motifPresent reads motifRef honestly (dormant until 
 
 	assertEquals(without.motifPresent, false);
 	assertEquals(withMotif.motifPresent, true);
-	assertEquals(withMotif.motifCulturalOrigins, []); // Motif→culture lookup is 2GN.34's.
-	assertEquals(withMotif.preciousMaterialsInDecoration, false); // Layer materials are 2GN.33's.
+	assertEquals(withMotif.motifCulturalOrigins, []); // Motif→culture lookup is 2GN.68's.
+	assertEquals(withMotif.preciousMaterialsInDecoration, false); // Layer-material lookup is 2GN.68's.
 });
 
 // --- Combined complexity -----------------------------------------------------------------------------------------
@@ -667,13 +682,15 @@ Deno.test('classifyArtefact: pure — same input twice gives equal output, featu
 });
 
 Deno.test('integration: the real rules score the engraved long blade on weapon, ritual, ceremonial and elite', () => {
-	// Same worked example the rule suite pins at the fire/no-fire level (doc 05 §9.2's closing claim).
+	// Same worked example the rule suite pins at the fire/no-fire level (doc 05 §9.2's closing
+	// claim). decorativeLayerCount 6, not the original 3 — roadmap 2GN.34 (doc 12 §2.24) retuned the
+	// archetype rule from `>= 2` to the measured p50 of edged-artefact layer counts.
 	const engravedBlade = features({
 		hasEdge: true,
 		primaryAxisLength: 'long',
 		bladeLengthBand: 'long',
 		pointSharpness: 'sharp',
-		decorativeLayerCount: 3,
+		decorativeLayerCount: 6,
 	});
 
 	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES);
