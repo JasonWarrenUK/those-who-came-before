@@ -2,6 +2,7 @@
 import { assert, assertEquals, assertNotEquals } from '@std/assert';
 import {
 	assignMaterial,
+	assignMaterials,
 	assignMaterialWithProvenance,
 	computeMaterialWeight,
 	deriveMaterialProvenance,
@@ -29,6 +30,11 @@ function material(id: string) {
 function component(allowedMaterialTags: MaterialTag[]): NormalisedComponent {
 	const [base] = mockNormalisedArtefact().components;
 	return { ...base!, allowedMaterialTags };
+}
+
+/** Builds a bare component with a distinct id/position, for multi-component artefact tests. */
+function componentAt(id: string, position: number, allowedMaterialTags: MaterialTag[] = []) {
+	return { ...component(allowedMaterialTags), id, position };
 }
 
 // --- isAvailable ---------------------------------------------------------------------------------
@@ -506,4 +512,195 @@ Deno.test('assignMaterialWithProvenance: returns a MaterialAssignment consistent
 		assignment.provenance,
 		deriveMaterialProvenance(expectedMaterial, geology, trade),
 	);
+});
+
+// --- assignMaterials -------------------------------------------------------------------------
+
+Deno.test('assignMaterials: one MaterialAssignment per component, in artefact.components order', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const artefact = mockNormalisedArtefact({
+		components: [
+			componentAt('handle', 0, ['wood']),
+			componentAt('blade', 1, ['metal']),
+			componentAt('pommel', 2, ['metal', 'stone']),
+		],
+	});
+
+	const assignments = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		createPrng('multi-seed'),
+		MATERIALS,
+	);
+
+	assertEquals(assignments.length, artefact.components.length);
+	assertEquals(assignments.map((a) => a.componentId), ['handle', 'blade', 'pommel']);
+});
+
+Deno.test("assignMaterials: each assignment respects its own component's allowedMaterialTags", () => {
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics();
+	const artefact = mockNormalisedArtefact({
+		components: [
+			componentAt('wood-only', 0, ['wood']),
+			componentAt('stone-only', 1, ['stone']),
+		],
+	});
+
+	const assignments = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		createPrng('per-component-seed'),
+		MATERIALS,
+	);
+
+	const [woodAssignment, stoneAssignment] = assignments;
+	assert(material(woodAssignment!.materialId).tags.includes('wood'));
+	assert(material(stoneAssignment!.materialId).tags.includes('stone'));
+});
+
+Deno.test('assignMaterials: threads a single prng instance across components rather than re-seeding per component', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const artefact = mockNormalisedArtefact({
+		components: [
+			componentAt('a', 0, ['metal', 'stone', 'wood']),
+			componentAt('b', 1, ['metal', 'stone', 'wood']),
+			componentAt('c', 2, ['metal', 'stone', 'wood']),
+		],
+	});
+
+	// One shared generator, consumed sequentially, should match calling assignMaterialWithProvenance
+	// once per component against that same advancing instance.
+	const sharedPrng = createPrng('threaded-seed');
+	const viaAssignMaterials = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		sharedPrng,
+		MATERIALS,
+	);
+
+	const referencePrng = createPrng('threaded-seed');
+	const viaSequentialCalls = artefact.components.map((component) =>
+		assignMaterialWithProvenance(component, culture, phase, geology, [], referencePrng, MATERIALS)
+	);
+
+	assertEquals(viaAssignMaterials, viaSequentialCalls);
+});
+
+Deno.test('assignMaterials: determinism — same seed produces the same assignments', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const artefact = mockNormalisedArtefact({
+		components: [
+			componentAt('a', 0, ['metal', 'wood']),
+			componentAt('b', 1, ['metal', 'wood']),
+		],
+	});
+
+	const run = () =>
+		assignMaterials(
+			artefact,
+			culture,
+			phase,
+			geology,
+			[],
+			createPrng('determinism-seed'),
+			MATERIALS,
+		);
+
+	assertEquals(run(), run());
+});
+
+Deno.test('assignMaterials: every assignment carries a complete provenance, never stubbed', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const trade = [mockMaterialFlow({ materialTag: 'metal' })];
+	const artefact = mockNormalisedArtefact({
+		components: [
+			componentAt('a', 0, ['metal', 'stone', 'wood']),
+			componentAt('b', 1, ['metal', 'stone', 'wood']),
+		],
+	});
+
+	const assignments = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		trade,
+		createPrng('provenance-seed'),
+		MATERIALS,
+	);
+
+	for (const assignment of assignments) {
+		assertEquals(
+			assignment.provenance,
+			deriveMaterialProvenance(material(assignment.materialId), geology, trade),
+		);
+	}
+});
+
+Deno.test('assignMaterials: an artefact with no components returns an empty array', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const artefact = mockNormalisedArtefact({ components: [] });
+
+	const assignments = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		createPrng('empty-seed'),
+		MATERIALS,
+	);
+
+	assertEquals(assignments, []);
+});
+
+Deno.test('assignMaterials: defaults to the shipped MATERIALS catalogue', () => {
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics();
+	const allTags = [...new Set(MATERIALS.flatMap((m) => m.tags))] as MaterialTag[];
+	const artefact = mockNormalisedArtefact({
+		components: [componentAt('a', 0, allTags), componentAt('b', 1, allTags)],
+	});
+
+	const withDefault = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		createPrng('default-seed'),
+	);
+	const withExplicit = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		geology,
+		[],
+		createPrng('default-seed'),
+		MATERIALS,
+	);
+
+	assertEquals(withDefault, withExplicit);
 });
