@@ -1062,8 +1062,8 @@ an object can be `['weapon', 'ritual', 'status']` simultaneously.
 
 > **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the worked rule array below is
 > illustrative, not the shipped rule set. The authoritative, signal-derived rules live in
-> `src/lib/data/classification.ts` — 39 rules spanning
-> edge/point/container/vessel/perforation/ring/sheet/mass/size/complexity/decoration/cross-layer/presence-flag
+> `src/lib/data/classification.ts` — 43 rules spanning
+> edge/point/container/vessel/perforation/ring/sheet/mass/size/complexity/decoration/cross-layer/presence-flag/decorative-intensity
 > families, each keyed on a signal the grammar actually rolls (see that module's JSDoc for the full
 > derivation).
 
@@ -1155,6 +1155,16 @@ does.
 > evidence tallies, not confidences: compare by rank and margin, read absent tags as zero
 > (`tags.get(tag) ?? 0`). The full fold contract and its rationale live in the function's JSDoc and
 > doc 12 §2.21.
+>
+> **Implementation note (2026-07-28, roadmap 2GN.34, doc 12 §2.24):** the
+> `decorativeComplexity > 2`/ `> 1` constants above are illustrative only and do not reflect the
+> shipped thresholds. Once the decoration pipeline existed to measure against (roadmap
+> 2GN.29/2GN.33), sampling 1200 real pipeline artefacts found those constants — and this section's
+> original decoration-family thresholds — fired on 87–99% of output, adding a near-constant to every
+> score under the plain-sum fold above rather than discriminating. `classification.ts`'s
+> decoration-family thresholds are pinned to measured percentiles instead (see that module's JSDoc
+> and doc 12 §2.24 for the full distribution table); the closing worked example below still holds,
+> now at that measured threshold rather than at any two decorative layers.
 
 ### 9.3 The Classified Artefact
 

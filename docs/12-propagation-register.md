@@ -593,6 +593,104 @@ concerns 2GN.33's actual engine changes. Thirteen findings, resolved as follows:
 | —   | `src/lib/types/career.ts:82-94`: `ReputationGate.requiredDimension` widened to allow `'overall'`                                                                          | 2026-07-27 |
 | —   | Roadmap: 2GN.16 gains the exhaustion contract; 9CR.10 states the two-branch lookup; 9CR.5 fixes `temporalMode`→`temporalProfile`                                          | 2026-07-27 |
 
+### 2.24 Decorative-Complexity Classification Rules + Measured Thresholds (2026-07-28)
+
+**Origin:** Roadmap task 2GN.34 implementation (2026-07-28) **Source of truth:**
+`src/lib/data/classification.ts`'s module JSDoc and per-rule JSDoc — doc 05 §9.2 gives illustrative
+constants only, never a measured basis for them
+
+`extractFeatures` (roadmap 2GN.19) has computed `decorativeComplexity` and `techniqueComplexity`
+from real signal since it landed, but no classification rule read either field until this task.
+Before authoring new rules, the existing decoration-family rules were checked against real pipeline
+output for the first time — 2GN.29 (decorative grammar expansion) and 2GN.33
+(motif/introduced-material assignment) had both landed since those rules were authored at 2GN.17,
+when no decoration pipeline existed to measure against.
+
+**Thresholds are measured, not transcribed.** Sampling 1200 artefacts through the full pipeline
+(`expandGrammar` → `normaliseArtefact` → `expandDecoration` → `assignDecorativeDetails` →
+`extractFeatures`) across three `decorativeEmphasis` settings, against the mock culture/geology
+fixtures, found the original decoration-family thresholds fired far above their stated intent:
+`decorativeLayerCount >= 3` ("heavily worked decoration") on 86.8%, the two cross-layer archetype
+rules (`>= 2` on an edged/contained object) on 94.7–96.9% of their conditional population, and doc
+05 §9.2's own illustrative `decorativeComplexity > 2`/`> 1` on 95.8%/98.9%. Under
+`classifyArtefact`'s plain-sum, unbounded fold (doc 12 §2.21), a rule firing that often adds a
+near-constant to every artefact's score rather than discriminating elite objects from ordinary ones
+— it shifts `elite`/ `ornament` globally. Measured distribution (n=1200): `decorativeLayerCount` p50
+6/p75 10/p90 13/max 32; `decorativeComplexity` p50 11.2/p75 16.3/p90 22.3/max 41.2;
+`techniqueComplexity` p50 5/p75 7/p90 9/max 13; `decorativeComplexity / partCount` p50 3.0/p75
+4.05/p90 5.1/max 8.1; zero-decoration share 1.1%. Every threshold below is pinned to a percentile of
+this table, recorded here as the baseline for future retunes as the rule set or the pipeline's
+decoration volume changes.
+
+**Existing rules retuned; one left as-is.** `decorativeLayerCount >= 3` (elite/ornament/ceremonial)
+raised to `>= 10` (measured p75, now firing on 25.3%) — its JSDoc explicitly claimed "heavily worked
+decoration ... signals high status" while firing on 87%, so stated intent and actual behaviour had
+diverged; this is a correction, not a new decision. Both cross-layer archetype rules
+(`hasEdge && decorativeLayerCount >= 2` → ritual/ceremonial/elite; `hasContainer && ... >= 2` →
+ceremonial/votive/elite) raised to `>= 6` (the measured p50 of edged/container-artefact layer counts
+respectively), now firing on 64.5%/60.7% of their conditional population. The any-decoration nudge
+(`decorativeLayerCount >= 1` → `ornament` 0.2) was left unchanged: its JSDoc states an explicitly
+cheap, deliberately universal signal, and near-universal firing at a 0.2 weight is what it is
+documented to do, not a divergence — its 98.9% firing rate is recorded here rather than treated as a
+defect.
+
+**The engraved-sword archetype survives at a higher bar.** Doc 05 §9.2's closing worked example — "a
+bronze blade with engravings scores on `weapon`, `ritual`, `ceremonial`, and `elite` simultaneously"
+— is carried by the retuned `hasEdge`-cross-layer rule and both pinning integration tests
+(`src/lib/data/classification.test.ts`, `src/lib/engine/generation/classification.test.ts`). Both
+were updated from a 3-layer example blade to a 6-layer one; the claim in doc 05 §9.2 still holds
+verbatim, it now requires an ordinarily (not minimally) decorated blade to earn it, which is the
+more defensible reading once the rule's threshold matches its stated intent.
+
+**New rules pair a raw threshold with a per-part proportion, needing no new field.** Decoration
+volume tracks a culture's phase decorativeness far more than any single artefact's status — mean
+`decorativeLayerCount` ranges from 0.54 at `decorativeEmphasis` 0.1 to 23.7 at 1.0 in the same
+sample — and `expandDecoration` draws per component, so volume also scales with `partCount`. A raw
+threshold on `decorativeComplexity` therefore partly encodes "made in a decorative phase / has many
+parts" rather than "this object is special". Two raw-threshold rules (`>= 16`, the measured p75,
+tagging elite/ceremonial; `>= 25`, ~p93, tagging elite/ritual, deliberately cumulative with the
+first) capture the real archaeological signal that absolute investment is itself status-bearing. A
+third rule reads `decorativeComplexity / partCount >= 4` (measured p75 of the ratio) to catch the
+complementary case — a small object carrying disproportionate decoration — and is the one genuinely
+new discriminative axis this task adds; measured overlap between the raw `>= 16` rule and this ratio
+rule is only 13.8% of a 28.6% base, confirming they select substantively different objects.
+**`partCount` is already on `ExtractedFeatures`** (populated since 2GN.19), so the proportion is an
+inline rule expression, not a new field — keeping this a `data/classification.ts`-only change with
+no breaking `ExtractedFeatures` contract change, and no bleed into 2GN.19's extraction scope. A
+future consumer wanting the ratio as a first-class displayable value (the Explorer tag inspector,
+roadmap 2GN.59; description generation) would spawn its own task rather than this one pre-emptively
+adding the field.
+
+**`techniqueComplexity` measures breadth, `decorativeComplexity` measures volume — read both, tag
+differently.** `techniqueComplexity = maxDepth × distinctTechniques`, and `maxDepth` is pinned at 1
+until roadmap 2GN.31 lands sublayer expansion, so today the field is literally a strict summand of
+`decorativeComplexity`, not merely correlated with it. A fourth new rule reads it (`>= 8`, measured
+p90, firing on 20.6%) but tags `artisanal` primarily (0.4) and `elite` only secondarily (0.2),
+rather than compounding the `elite` weight the `decorativeComplexity` rules already carry — many
+distinct techniques on one object implies multiple specialists and tool sets, a genuinely different
+classificatory claim from "heavily decorated". **Forward hazard recorded for 2GN.31**: once nesting
+depth varies, the same `techniqueComplexity` value becomes reachable at a fraction of the technique
+breadth and this rule will saturate with no change to `classification.ts` — a Deno test
+(`extractFeatures: techniqueComplexity is currently a bare distinct-technique count — 2GN.31
+regression guard`,
+`src/lib/engine/generation/classification.test.ts`) pins today's flat-layer contract so that change
+breaks a test loudly rather than the rule saturating silently; the roadmap entry for 2GN.31 carries
+the same note.
+
+**Test fixture raised to match.** `maximalFeatures()` in `classification.test.ts` previously set
+`decorativeComplexity: 4` and `techniqueComplexity: 5` — below every new rule's threshold and even
+below the original `decorativeLayerCount: 6` — so the no-throw, purity and mechanical-boundary-guard
+sweeps that run against it would have silently never exercised any decoration rule at all, retuned
+or new. Raised to `decorativeLayerCount: 20`, `techniqueComplexity: 12`, `decorativeComplexity: 30`
+(with `overallComplexity` recomputed to match), restoring those sweeps' coverage.
+
+| Doc | What changed                                                                                                                                                                                                                                                                                                   | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 05  | §9.2 gains an implementation note: the illustrative `decorativeComplexity` constants measure at 95–99% of real output; `classification.ts` is the source of truth for thresholds; the engraved-blade archetype now needs 6 layers                                                                              | 2026-07-28 |
+| —   | `src/lib/data/classification.ts` (2GN.34): three existing decoration rules retuned to measured percentiles; four new rules (`decorativeComplexity >= 16`/`>= 25`, `decorativeComplexity / partCount >= 4`, `techniqueComplexity >= 8`)                                                                         | 2026-07-28 |
+| —   | `src/lib/data/classification.test.ts`, `src/lib/engine/generation/classification.test.ts`: retuned-rule tests updated; new R38–R41 test section; `maximalFeatures()` raised; worked-example integration tests updated to 6 layers and strengthened to pin the contributing rule; 2GN.31 regression guard added | 2026-07-28 |
+| —   | Roadmap: 2GN.31 gains a re-measure note for `techniqueComplexity`/R41; 2GN.59 gains a note that these are the provisional weights it retunes                                                                                                                                                                   | 2026-07-28 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during
