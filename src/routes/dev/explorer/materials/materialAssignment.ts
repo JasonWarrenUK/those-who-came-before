@@ -181,8 +181,8 @@ export function assignMaterials(
 				culture.phase,
 				culture.geology,
 				culture.trade,
-				MATERIALS,
 				createPrng(`${seed}-material-c${component.position}-${draw}`),
+				MATERIALS,
 			);
 			if (draw === 0) resolved = material;
 			tally.set(material.id, (tally.get(material.id) ?? 0) + 1);

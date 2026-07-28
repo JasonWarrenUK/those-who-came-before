@@ -159,9 +159,9 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 		culture.phase,
 		culture.geology,
 		culture.trade,
+		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng(`${seed}-decoration`),
 	);
 
 	const components = artefact.components.map((component) => {
@@ -176,8 +176,8 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 			culture.phase,
 			culture.geology,
 			culture.trade,
-			MATERIALS,
 			createPrng(`${seed}-material-c${component.position}-0`),
+			MATERIALS,
 		);
 
 		return {

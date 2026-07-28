@@ -205,8 +205,8 @@ export function computeMaterialWeight(
  * @param phase - The phase whose technology levels apply.
  * @param geology - World-level material scarcity.
  * @param trade - Material flows reachable through cultural relationships.
- * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
  * @param prng - A generator from `createPrng`, consumed once via `weightedSelect`.
+ * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
  * @returns The selected `MaterialDefinition`.
  */
 export function assignMaterial(
@@ -215,8 +215,8 @@ export function assignMaterial(
 	phase: PhaseCharacteristics,
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
-	materials: readonly MaterialDefinition[] = MATERIALS,
 	prng: () => number,
+	materials: readonly MaterialDefinition[] = MATERIALS,
 ): MaterialDefinition {
 	const compatible = component.allowedMaterialTags.length === 0
 		? materials // No constraint recorded yet (2GN.10 stub) — everything is a candidate.

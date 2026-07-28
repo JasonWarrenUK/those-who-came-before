@@ -1,9 +1,12 @@
 # Those Who Came Before
 
-**An archaeological artefact discovery game where player mistakes compound into an unreliable narrative**
+**An archaeological artefact discovery game where player mistakes compound into an unreliable
+narrative**
 
 > [!NOTE]
-> Early development. The design is extensively specified; the implementation restarted from Milestone 1, which is now complete, and Milestone 2 (Generation Pipeline) is underway. There is no playable game yet.
+> Early development. The design is extensively specified; the implementation restarted from
+> Milestone 1, which is now complete, and Milestone 2 (Generation Pipeline) is underway. There is no
+> playable game yet.
 
 ---
 
@@ -13,26 +16,51 @@
 
 ## About
 
-You play an archaeologist interpreting excavated artefacts. Every interpretation you record feeds a lens that filters what you observe next: expected properties are foregrounded, familiar classifications are suggested, details that contradict your published claims go unnoticed. Errors are generative; they shape the story you tell and the career you build on it. The player is the unreliable narrator.
+You play an archaeologist interpreting excavated artefacts. Every interpretation you record feeds a
+lens that filters what you observe next: expected properties are foregrounded, familiar
+classifications are suggested, details that contradict your published claims go unnoticed. Errors
+are generative; they shape the story you tell and the career you build on it. The player is the
+unreliable narrator.
 
 ## Project Status
 
-The design is roughly 95% specified across fourteen documents (docs 00 to 13). The implementation was reset for launch and is being rebuilt milestone by milestone against the [MVP roadmap](docs/roadmaps/mvp.md). Milestone 1 (Foundation) is complete: Deno runtime, the full type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline) is underway: the component grammar system (geometric primitives, culture- and phase-biased expansion, complexity budgets, accumulation checking, normalisation) and the first plausibility rule definitions are in place; classification, materials, decoration and description generation are still to come.
+The design is roughly 95% specified across fourteen documents (docs 00 to 13). The implementation
+was reset for launch and is being rebuilt milestone by milestone against the
+[MVP roadmap](docs/roadmaps/mvp.md). Milestone 1 (Foundation) is complete: Deno runtime, the full
+type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline) is
+underway: the component grammar system, plausibility checking, material assignment, and decorative
+motif and introduced-material resolution are all in place; unified feature extraction/classification
+integration and description generation are still to come. Exact task-by-task status lives in
+[`docs/roadmaps/mvp.md`](docs/roadmaps/mvp.md), not this summary.
 
 What the repository currently contains:
 
-- A bare SvelteKit skeleton: one route, three static components (Header, Footer and Timeline) and DaisyUI theming
-- The complete MVP type system in `src/lib/types/`: seventeen modules, roughly 150 interfaces and aliases covering artefacts, world generation, interpretation, lens, documents, career, contradictions and saves
+- A bare SvelteKit skeleton: one route, three static components (Header, Footer and Timeline) and
+  DaisyUI theming
+- The complete MVP type system in `src/lib/types/`: seventeen modules, roughly 150 interfaces and
+  aliases covering artefacts, world generation, interpretation, lens, documents, career,
+  contradictions and saves
 - A seeded PRNG (xoshiro128**) in `src/lib/engine/` with determinism and distribution tests
-- A component grammar system in `src/lib/data/grammars/` and `src/lib/engine/generation/grammar.ts`: eight geometric primitives, MVP grammar rules, culture/phase-biased weighted selection, complexity-tier budgets, accumulation constraint checking and tree-to-`NormalisedArtefact` flattening
-- Plausibility rule definitions in `src/lib/data/plausibility.ts` (material-physics and ergonomic predicates; the `checkPlausibility` engine function that consumes them is next)
-- The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with a PRNG determinism panel and a type index that parses the type modules live, renders module dependency and per-type reference graphs, and cross-links every type
+- A component grammar system in `src/lib/data/grammars/` and `src/lib/engine/generation/grammar.ts`:
+  eight geometric primitives, MVP grammar rules, culture/phase-biased weighted selection,
+  complexity-tier budgets, accumulation constraint checking and tree-to-`NormalisedArtefact`
+  flattening
+- Plausibility checking in `src/lib/engine/generation/plausibility.ts` (`checkPlausibility`,
+  material-physics and ergonomic rule predicates)
+- Material assignment in `src/lib/engine/generation/materials.ts` (culture affinity × phase
+  technology × geological scarcity weighting, trade-aware availability)
+- Decorative motif and introduced-material resolution in `src/lib/engine/generation/decoration.ts`
+  (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag
+  sets)
+- The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with a PRNG
+  determinism panel and a type index that parses the type modules live, renders module dependency
+  and per-type reference graphs, and cross-links every type
 - The full design specification in `docs/`
-- The old tech demo, archived in `backlog/` as dead reference code
 
 ## Quick Start
 
-Requires [Deno](https://deno.com). There is no `package.json`; dependencies resolve through `deno.json` on first run.
+Requires [Deno](https://deno.com). There is no `package.json`; dependencies resolve through
+`deno.json` on first run.
 
 ```bash
 deno task dev        # Dev server with HMR
@@ -61,7 +89,8 @@ deno lint            # Lint
 
 ## Contributing
 
-A personal project by [Jason Warren](https://github.com/JasonWarrenUK). Feedback and suggestions are welcome via issues.
+A personal project by [Jason Warren](https://github.com/JasonWarrenUK). Feedback and suggestions are
+welcome via issues.
 
 ## Licence
 

@@ -1,16 +1,20 @@
 /**
- * Decorative grammar expansion (doc 05 §8.1–§8.3, "Stage 7", roadmap 2GN.29) — iterates an
- * artefact's components, each a potential decorative canvas (doc 05 §8.1), and selects zero-or-more
- * decorative techniques per component from the shipped `DECORATIVE_TECHNIQUES` catalogue
- * (`data/decorations.ts`, 2GN.28), weighted by the culture's technique preference, phase craft
- * technology and aesthetic tendencies, and a one-directional material-access gate.
+ * Decorative grammar expansion (doc 05 §8.1–§8.3, "Stage 7", roadmap 2GN.29) and decorative-detail
+ * resolution (doc 05 §8.5, roadmap 2GN.33) — `expandDecoration` iterates an artefact's components,
+ * each a potential decorative canvas (doc 05 §8.1), and selects zero-or-more decorative techniques
+ * per component from the shipped `DECORATIVE_TECHNIQUES` catalogue (`data/decorations.ts`, 2GN.28),
+ * weighted by the culture's technique preference, phase craft technology and aesthetic tendencies,
+ * and a one-directional material-access gate. `assignDecorativeDetails` is the separate downstream
+ * pass that fills the layers' grammar arguments: a motif from the culture's `motifVocabulary`
+ * (plus motifs borrowed through cultural exchange) for motif-carrying techniques, and an
+ * introduced material for material-introducing techniques.
  *
  * Pure TypeScript with no framework or browser dependencies (doc 08 §2.1, the engine boundary),
  * matching `engine/prng.ts` and `engine/generation/materials.ts`. Determinism flows entirely from
  * the injected PRNG.
  *
- * **Scope boundary** — 2GN.29 selects techniques; it does not resolve them into a fully valid
- * decorative scheme. Deliberately out of scope, owned downstream:
+ * **Scope boundary** — `expandDecoration` (2GN.29) selects techniques; it does not resolve them
+ * into a fully valid decorative scheme. Deliberately out of scope there, owned downstream:
  * - substrate *enforcement* — running a technique's `substrate.test` against the specific
  *   component's assigned material, or resolving a `form` substrate against the component's
  *   geometry (roadmap 2GN.30). Every layer this module emits is a *candidate*; some may target a
@@ -22,10 +26,10 @@
  * - recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis` (roadmap
  *   2GN.32) — the per-category slot budget below draws on the same two drivers, but produces a
  *   single flat pass over one artefact, not nested layering depth.
- * - motif assignment from the culture's `motifVocabulary` (roadmap 2GN.33) — `motifRef` is left
- *   absent on every layer, as is `material` for `introducesMaterial` techniques (which material an
- *   inlay/gilding/etc. introduces is a selection this module has no catalogue access to resolve
- *   faithfully; inventing one would be fabrication, not derivation).
+ * - motif and introduced-material assignment — owned by `assignDecorativeDetails` (2GN.33, below)
+ *   as a separate pass rather than folded into expansion, so the eventual pipeline can order it
+ *   after 2GN.30's substrate stripping (no draws wasted on layers that get stripped) and so
+ *   `expandDecoration`'s draw-sequence contract stays untouched.
  *
  * **Culture/motif independence** (explicit product requirement): a culture's decorative-technique
  * preference and its motif vocabulary are separate signals. Two cultures can share every phase
@@ -59,11 +63,13 @@ import type {
 	CulturalProfile,
 	GeologicalContext,
 	MaterialFlow,
+	MotifDefinition,
 	PhaseCharacteristics,
 } from '../../types/world.ts';
+import type { MaterialTag } from '../../types/tags.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
-import { isAvailable } from './materials.ts';
+import { computeMaterialWeight, isAvailable } from './materials.ts';
 import { resolvePhaseAttribute } from './phase.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -243,8 +249,8 @@ const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-
  * (`<decoration> ::= <surface-treatment>* <applied-element>* <textile-element>*`, doc 05 §8.2),
  * weighted by `computeTechniqueWeight`. Returns a flat `DecorativeLayer[]` — one entry per selected
  * technique, every entry's `sublayers` empty, `motifRef`/`material` omitted (module JSDoc's scope
- * boundary: layering, motif and introduced-material assignment are 2GN.31/2GN.33; substrate
- * enforcement that would strip invalid technique/component pairings is 2GN.30).
+ * boundary: layering is 2GN.31, motif and introduced-material assignment is `assignDecorativeDetails`
+ * below; substrate enforcement that would strip invalid technique/component pairings is 2GN.30).
  *
  * Component iteration follows `artefact.components` order; per component, the three BNF categories
  * fill in fixed order (surface-treatment, applied-element, textile-element). Each category
@@ -264,16 +270,16 @@ const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-
  * @param artefact - The normalised artefact whose components are the decorative canvases.
  * @param culture - The producing culture's profile — `techniqueAffinities` biases *which*
  *   techniques are favoured, `materialAffinities` feeds the material-access gate. Motif vocabulary
- *   is deliberately unread here (2GN.33).
+ *   is deliberately unread here — that's `assignDecorativeDetails`' job.
  * @param phase - The phase whose `technology` and `aesthetics` attributes bias technique weight and
  *   overall decorative volume.
  * @param geology - World-level material scarcity, read by the material-access gate.
  * @param trade - Material flows reachable through cultural relationships, read by the gate.
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @param materials - The candidate material catalogue the gate checks against. Defaults to the
  *   shipped `MATERIALS`.
  * @param techniques - The candidate technique catalogue. Defaults to the shipped
  *   `DECORATIVE_TECHNIQUES`.
- * @param prng - A generator from `createPrng`; determinism flows from it alone.
  * @returns The flat list of selected decorative layers, in component-then-category-then-slot
  *   emission order.
  */
@@ -283,9 +289,9 @@ export function expandDecoration(
 	phase: PhaseCharacteristics,
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
+	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
-	prng: () => number,
 ): DecorativeLayer[] {
 	const pools: Record<DecorativeTechniqueDefinition['category'], DecorativeTechniqueDefinition[]> =
 		{
@@ -326,4 +332,231 @@ export function expandDecoration(
 	}
 
 	return layers;
+}
+
+/**
+ * One exchange partner's contribution to a culture's borrowable motif pool (doc 05 §8.5, roadmap
+ * 2GN.33). Pre-resolved by the caller, following the `trade: MaterialFlow[]` precedent: whoever
+ * assembles the production context (Milestone 3's world-state integration) filters
+ * `CultureRelationship.phases` down to relationships whose window covers the production year and
+ * whose `culturalExchange.domains` includes `'motifs'`, then passes the partner's vocabulary and
+ * the window's `culturalExchange.intensity` here. This module stays free of temporal logic.
+ */
+export interface SharedMotifSource {
+	/** The exchange partner's borrowable motifs — each keeps its own true `culturalOrigin`. */
+	motifs: readonly MotifDefinition[];
+
+	/** The relationship window's `culturalExchange.intensity` (0–1), weighting every motif in `motifs`. */
+	intensity: number;
+}
+
+/**
+ * Which material tags may satisfy each material-introducing technique's BNF `<material>` argument
+ * (doc 05 §8.2), interviewed item-by-item with the user (2026-07-25, roadmap 2GN.33) and grounded
+ * in documented craft practice per technique:
+ * - `gilding` — every documented gilding practice (leaf, fire/amalgam, foil/diffusion, depletion
+ *   gilding; silvering as the silver analogue) uses gold or silver, coinciding with the BNF's
+ *   explicit `<precious-metal>` argument.
+ * - `wire-wrapping` — wire is drawn metal; precious wire on a grippable form is the classic
+ *   sword-grip binding.
+ * - `wrapping` — cord, thong and cloth binding: pliable sheet/cord materials only.
+ * - `inlay` — documented inlay spans metal, gem/glass, bone/shell and wood marquetry; excludes
+ *   only materials that can't sit in an engraved channel as a solid insert (fiber, leather, clay).
+ * - `overlay` — sheet-workable coverings: metal foil/sheet, and leather facing over wood
+ *   (shields, scabbards).
+ * - `studs` — metal studs and rivets dominate the record; bone/antler studs are attested on
+ *   organic substrates.
+ * - `beading` — the four dominant documented bead materials (glass, stone, jade-class,
+ *   bone/antler) plus metal beads, well attested in elite contexts and kept naturally rare by
+ *   scarcity weighting.
+ *
+ * `null` marks a technique whose grammar form introduces no material (`introducesMaterial: false`
+ * in the shipped catalogue); the `Record` stays exhaustive over all sixteen terminals so a new
+ * technique fails to compile until its entry is authored. If an *injected* catalogue flags a
+ * `null`-entry technique as material-introducing, the `null` reads as "no tag constraint" (every
+ * material is a candidate) — mirroring `assignMaterial`'s empty-`allowedMaterialTags` lenience —
+ * rather than silently omitting the material.
+ */
+const INTRODUCED_MATERIAL_TAGS: Record<DecorativeTechnique, readonly MaterialTag[] | null> = {
+	'polish': null,
+	'patina': null,
+	'roughening': null,
+	'scoring': null,
+	'engraving': null,
+	'relief': null,
+	'painting': null,
+	'glaze': null,
+	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
+	'overlay': ['metal', 'precious-metal', 'leather'],
+	'studs': ['metal', 'precious-metal', 'bone'],
+	'wire-wrapping': ['metal', 'precious-metal'],
+	'gilding': ['precious-metal'],
+	'wrapping': ['fiber', 'leather'],
+	'tassels': null,
+	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
+};
+
+/** A motif candidate in the combined native-plus-borrowed selection pool, carrying its weight. */
+interface MotifCandidate {
+	motif: MotifDefinition;
+	weight: number;
+}
+
+/**
+ * Builds the combined motif selection pool (doc 05 §8.5): every native motif at weight `1`, every
+ * borrowed motif at its source's exchange intensity. At full intensity a borrowed motif is
+ * indistinguishable from a native one — the maximum-ambiguity reading of §8.5's "is this artefact
+ * from Culture A, or from Culture B using borrowed motifs?". A partner with a larger vocabulary
+ * contributes proportionally more total borrowing probability (per-motif weighting, a deliberate
+ * choice over per-source normalisation).
+ *
+ * Zero-intensity sources are excluded from the pool entirely rather than entered at weight `0`:
+ * `weightedSelect` falls back to a uniform draw over a zero-total-weight pool, so a weight-`0`
+ * candidate alongside an empty native vocabulary could otherwise be *selected* — inverting what
+ * intensity `0` means. Excluded, the pool is genuinely empty in that case and `motifRef` is
+ * omitted per the honest-degradation contract.
+ */
+function buildMotifPool(
+	culture: CulturalProfile,
+	sharedMotifSources: readonly SharedMotifSource[],
+): MotifCandidate[] {
+	const pool: MotifCandidate[] = culture.motifVocabulary.motifs.map((motif) => ({
+		motif,
+		weight: 1,
+	}));
+
+	for (const source of sharedMotifSources) {
+		if (source.intensity <= 0) continue;
+		for (const motif of source.motifs) {
+			pool.push({ motif, weight: source.intensity });
+		}
+	}
+
+	return pool;
+}
+
+/**
+ * Resolves the introduced-material candidate list for one material-introducing technique: the
+ * catalogue filtered by `INTRODUCED_MATERIAL_TAGS`, then by availability, with `assignMaterial`'s
+ * exact fallback — if availability excludes every tagged candidate, availability yields (it is a
+ * preference at MVP, not a hard requirement) and the tagged list is used unfiltered. An empty
+ * result (an injected catalogue with no tagged material at all) means the layer's `material` is
+ * omitted rather than fabricated.
+ */
+function introducedMaterialCandidates(
+	technique: DecorativeTechnique,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	materials: readonly MaterialDefinition[],
+): readonly MaterialDefinition[] {
+	const tags = INTRODUCED_MATERIAL_TAGS[technique];
+	const tagged = tags === null
+		? materials // Injected catalogue disagrees with the shipped flags — no tag constraint.
+		: materials.filter((material) => material.tags.some((tag) => tags.includes(tag)));
+
+	const available = tagged.filter((material) => isAvailable(material, geology, trade));
+
+	return available.length > 0 ? available : tagged;
+}
+
+/**
+ * Fills the decorative layers' grammar arguments (doc 05 §8.2, §8.5, roadmap 2GN.33): a `motifRef`
+ * for every layer whose technique carries a `<motif>` argument, drawn from the producing culture's
+ * `motifVocabulary` plus motifs borrowed through cultural exchange, and a `material` for every
+ * layer whose technique introduces one, drawn from the per-technique candidates in
+ * `INTRODUCED_MATERIAL_TAGS` weighted by the same `computeMaterialWeight` product (cultural
+ * affinity × phase technology × scarcity) every other material choice uses.
+ *
+ * A separate pass over `expandDecoration`'s output rather than part of it (module JSDoc): the
+ * eventual pipeline orders it after 2GN.30's substrate stripping so no draws are wasted on
+ * stripped layers, and `expandDecoration`'s draw-sequence contract stays untouched. Recurses
+ * depth-first into `sublayers` (own fields before sublayers), so it stays correct once layering
+ * (2GN.31/2GN.32) lands.
+ *
+ * **Determinism contract**: layers are processed in input order; per layer, at most one `prng()`
+ * draw for the motif (motif-carrying technique, non-empty pool) then at most one for the material
+ * (material-introducing technique, non-empty candidates), then the layer's sublayers in order.
+ * Same seed against the same inputs always produces the identical draw sequence.
+ *
+ * **Honest degradation** (the no-producer-defaults precedent, 2GN.19): an empty motif pool — a
+ * culture with no motifs and no shared sources — leaves `motifRef` absent rather than throwing or
+ * fabricating. The docs imply a real generated world never contains a motif-less culture (doc 05
+ * §8.5 calls motifs the primary cultural fingerprint; doc 06's `decorative-mismatch` strain
+ * assumes motif attribution works), but that invariant belongs to Milestone 3's culture
+ * *generator*; the type permits emptiness and fixtures may pass it, so this per-artefact pass
+ * degrades gracefully. Likewise an empty introduced-material candidate list leaves `material`
+ * absent, and a technique missing from the injected `techniques` catalogue is passed through
+ * untouched. Layers are expected fresh from `expandDecoration` (no pre-filled `motifRef`/
+ * `material`); pre-filled values are overwritten, not preserved.
+ *
+ * Pure and side-effect-free: returns new layer objects throughout, never mutates its inputs.
+ *
+ * @param layers - Decorative layers to resolve, typically `expandDecoration`'s output.
+ * @param culture - The producing culture, supplying the native `motifVocabulary` and the material
+ *   affinities `computeMaterialWeight` reads.
+ * @param phase - The phase whose `technology` attributes weight introduced-material selection.
+ * @param geology - World-level material scarcity, for availability and scarcity weighting.
+ * @param trade - Material flows reachable through cultural relationships.
+ * @param sharedMotifSources - Pre-resolved exchange partners' borrowable motifs (see
+ *   `SharedMotifSource` for what the caller must have already filtered).
+ * @param prng - A generator from `createPrng`; determinism flows from it alone.
+ * @param materials - The candidate material catalogue. Defaults to the shipped `MATERIALS`.
+ * @param techniques - The technique catalogue supplying `carriesMotif`/`introducesMaterial` flags.
+ *   Defaults to the shipped `DECORATIVE_TECHNIQUES`.
+ * @returns New layers mirroring `layers` in structure and order, grammar arguments filled.
+ */
+export function assignDecorativeDetails(
+	layers: readonly DecorativeLayer[],
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	sharedMotifSources: readonly SharedMotifSource[],
+	prng: () => number,
+	materials: readonly MaterialDefinition[] = MATERIALS,
+	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
+): DecorativeLayer[] {
+	const definitions = new Map<DecorativeTechnique, DecorativeTechniqueDefinition>(
+		techniques.map((definition) => [definition.technique, definition]),
+	);
+	const motifPool = buildMotifPool(culture, sharedMotifSources);
+	const candidateCache = new Map<DecorativeTechnique, readonly MaterialDefinition[]>();
+
+	function resolveLayer(layer: DecorativeLayer): DecorativeLayer {
+		const definition = definitions.get(layer.technique);
+		// Pre-filled motifRef/material are overwritten, not preserved (see docstring) — delete both
+		// keys up front so an empty pool/candidate list on a re-resolved layer goes absent rather
+		// than silently keeping a stale value through the spread below. A key set to `undefined`
+		// still satisfies `'motifRef' in resolved`, so the field must be deleted, not nulled.
+		const resolved: DecorativeLayer = { ...layer };
+		delete resolved.motifRef;
+		delete resolved.material;
+
+		if (definition?.carriesMotif && motifPool.length > 0) {
+			resolved.motifRef = weightedSelect(motifPool, prng, (candidate) => candidate.weight)
+				.motif.id;
+		}
+
+		if (definition?.introducesMaterial) {
+			let candidates = candidateCache.get(layer.technique);
+			if (candidates === undefined) {
+				candidates = introducedMaterialCandidates(layer.technique, geology, trade, materials);
+				candidateCache.set(layer.technique, candidates);
+			}
+
+			if (candidates.length > 0) {
+				resolved.material = weightedSelect(
+					candidates,
+					prng,
+					(material) => computeMaterialWeight(material, culture, phase, geology),
+				).id;
+			}
+		}
+
+		resolved.sublayers = layer.sublayers.map(resolveLayer);
+
+		return resolved;
+	}
+
+	return layers.map(resolveLayer);
 }

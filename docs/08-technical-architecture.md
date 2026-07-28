@@ -1,5 +1,6 @@
 # TWCB: Technical Architecture
-*Deno, SvelteKit, and the shape of the actual code*
+
+_Deno, SvelteKit, and the shape of the actual code_
 
 ---
 
@@ -9,53 +10,62 @@
 
 Deno replaces Node entirely. This means:
 
-- **Native TypeScript.** No `tsconfig.json` compilation step for server-side code. `.ts` files run directly.
-- **Built-in tooling.** `deno fmt` replaces Prettier. `deno lint` replaces ESLint. `deno test` replaces whatever test runner you'd have chosen. Strip all three config files and their dependencies.
-- **Permissions model.** Irrelevant for gameplay but means the dev server needs explicit `--allow-net --allow-read` flags. SvelteKit's adapter handles this.
-- **npm compatibility.** Deno 2 supports `npm:` specifiers. DaisyUI, Tailwind, and Svelte dependencies work through this layer. Some may need `node_modules` — Deno supports this via `"nodeModulesDir": "auto"` in `deno.json`.
+- **Native TypeScript.** No `tsconfig.json` compilation step for server-side code. `.ts` files run
+  directly.
+- **Built-in tooling.** `deno fmt` replaces Prettier. `deno lint` replaces ESLint. `deno test`
+  replaces whatever test runner you'd have chosen. Strip all three config files and their
+  dependencies.
+- **Permissions model.** Irrelevant for gameplay but means the dev server needs explicit
+  `--allow-net --allow-read` flags. SvelteKit's adapter handles this.
+- **npm compatibility.** Deno 2 supports `npm:` specifiers. DaisyUI, Tailwind, and Svelte
+  dependencies work through this layer. Some may need `node_modules` — Deno supports this via
+  `"nodeModulesDir": "auto"` in `deno.json`.
 
 ### 1.2 What Gets Stripped
 
-| Current (Node) | Replacement (Deno) | Action |
-|---|---|---|
-| `package.json` scripts | `deno.json` tasks | Replace |
-| `eslint.config.js` + deps | `deno lint` | Remove |
-| `.prettierrc` + `.prettierignore` + deps | `deno fmt` | Remove |
-| `tsconfig.json` | `deno.json` compilerOptions | Merge & simplify |
-| `.npmrc` | Not needed | Remove |
-| `@sveltejs/adapter-node` | `@deno/svelte-adapter` | Swap |
+| Current (Node)                           | Replacement (Deno)          | Action           |
+| ---------------------------------------- | --------------------------- | ---------------- |
+| `package.json` scripts                   | `deno.json` tasks           | Replace          |
+| `eslint.config.js` + deps                | `deno lint`                 | Remove           |
+| `.prettierrc` + `.prettierignore` + deps | `deno fmt`                  | Remove           |
+| `tsconfig.json`                          | `deno.json` compilerOptions | Merge & simplify |
+| `.npmrc`                                 | Not needed                  | Remove           |
+| `@sveltejs/adapter-node`                 | `@deno/svelte-adapter`      | Swap             |
 
 ### 1.3 `deno.json` (Projected)
 
 ```json
 {
-  "tasks": {
-    "dev": "deno run -A npm:vite dev",
-    "build": "deno run -A npm:vite build",
-    "preview": "deno run -A npm:vite preview",
-    "check": "deno run -A npm:svelte-kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json"
-  },
-  "compilerOptions": {
-    "strict": true,
-    "allowJs": true,
-    "checkJs": true,
-    "lib": ["esnext", "dom", "dom.iterable"]
-  },
-  "nodeModulesDir": "auto",
-  "fmt": {
-    "useTabs": true,
-    "lineWidth": 100,
-    "singleQuote": true
-  },
-  "lint": {
-    "rules": {
-      "exclude": ["no-explicit-any"]
-    }
-  }
+	"tasks": {
+		"dev": "deno run -A npm:vite dev",
+		"build": "deno run -A npm:vite build",
+		"preview": "deno run -A npm:vite preview",
+		"check": "deno run -A npm:svelte-kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json"
+	},
+	"compilerOptions": {
+		"strict": true,
+		"allowJs": true,
+		"checkJs": true,
+		"lib": ["esnext", "dom", "dom.iterable"]
+	},
+	"nodeModulesDir": "auto",
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 100,
+		"singleQuote": true
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-explicit-any"]
+		}
+	}
 }
 ```
 
-Note: The SvelteKit + Deno story has a wrinkle — Vite still runs through npm specifiers. This is stable as of early 2026 but worth verifying with the specific adapter version. The core game logic (generation, world state, lens calculations) runs as pure Deno TypeScript with zero framework dependency.
+Note: The SvelteKit + Deno story has a wrinkle — Vite still runs through npm specifiers. This is
+stable as of early 2026 but worth verifying with the specific adapter version. The core game logic
+(generation, world state, lens calculations) runs as pure Deno TypeScript with zero framework
+dependency.
 
 ### 1.4 What Survives Unchanged
 
@@ -241,9 +251,6 @@ those-who-came-before/
 │       ├── excavation.test.ts
 │       └── dissemination.test.ts       # Full submission → review → publication flow
 │
-├── backlog/                            # Historical code (preserved, not imported)
-│   └── ...
-│
 └── docs/
     └── dev/
         ├── design/                     # Design documents (this series)
@@ -269,24 +276,37 @@ those-who-came-before/
 
 ### 2.1 The `engine/` Boundary
 
-The most important architectural decision: **everything in `src/lib/engine/` is pure TypeScript with zero framework dependency.** No Svelte imports, no SvelteKit imports, no browser APIs, no DOM.
+The most important architectural decision: **everything in `src/lib/engine/` is pure TypeScript with
+zero framework dependency.** No Svelte imports, no SvelteKit imports, no browser APIs, no DOM.
 
 This means:
+
 - Engine code is testable with `deno test` directly — no browser environment needed
 - Engine code is portable — if you ever move to a different UI framework, the engine survives
 - Engine code is reasoned about independently of rendering
 
-The engine takes inputs (seed, interpretive models, player actions) and produces outputs (artefacts, lens-filtered presentations, contradiction detections, dissemination state transitions). The stores and components wire these together but never contain domain logic.
+The engine takes inputs (seed, interpretive models, player actions) and produces outputs (artefacts,
+lens-filtered presentations, contradiction detections, dissemination state transitions). The stores
+and components wire these together but never contain domain logic.
 
-Critically, **engine functions are agent-agnostic** (doc 11, section 2.6). Functions like `computeLens()` and `detectContradictions()` accept an `InterpretiveModel` as a parameter. They never reach for a store, never import Svelte, and never know whether they're processing the player's model or an NPC's. Only the store and UI layers know that the player is the active agent.
+Critically, **engine functions are agent-agnostic** (doc 11, section 2.6). Functions like
+`computeLens()` and `detectContradictions()` accept an `InterpretiveModel` as a parameter. They
+never reach for a store, never import Svelte, and never know whether they're processing the player's
+model or an NPC's. Only the store and UI layers know that the player is the active agent.
 
 ### 2.2 New Engine Modules
 
 Two engine domains were added since the original architecture:
 
-**`engine/interpretation/`** — agent-generic epistemic operations. Claim creation, inference chains, methodological profiles. These operate on `InterpretiveModel` instances without knowing whose model they're processing. At MVP, only called with the player's model. Post-MVP, used for NPC model evolution.
+**`engine/interpretation/`** — agent-generic epistemic operations. Claim creation, inference chains,
+methodological profiles. These operate on `InterpretiveModel` instances without knowing whose model
+they're processing. At MVP, only called with the player's model. Post-MVP, used for NPC model
+evolution.
 
-**`engine/documents/`** — the document tradition system (doc 10). Lineage graph operations, dissemination state machine, commitment extraction, form classification, venue generation. This is a substantial domain that doesn't belong inside `knowledge/` or `career/` — documents are world objects with their own lifecycle, not a subsystem of either interpretation or career progression.
+**`engine/documents/`** — the document tradition system (doc 10). Lineage graph operations,
+dissemination state machine, commitment extraction, form classification, venue generation. This is a
+substantial domain that doesn't belong inside `knowledge/` or `career/` — documents are world
+objects with their own lifecycle, not a subsystem of either interpretation or career progression.
 
 ---
 
@@ -294,49 +314,68 @@ Two engine domains were added since the original architecture:
 
 ### 3.1 Data Model
 
-TWCB's state divides along an epistemic boundary, not an origin boundary (see doc 11, sections 2.5–2.7 for the full rationale).
+TWCB's state divides along an epistemic boundary, not an origin boundary (see doc 11, sections
+2.5–2.7 for the full rationale).
 
-**Objective World State** — everything that concretely exists: artefacts, sites, chronology, cultures, documents (player and NPC), the lineage graph, venues, scholars, career events, reputation. Modern-world objects are objective regardless of who created them. A player's published monograph is as objective as an excavated blade.
+**Objective World State** — everything that concretely exists: artefacts, sites, chronology,
+cultures, documents (player and NPC), the lineage graph, venues, scholars, career events,
+reputation. Modern-world objects are objective regardless of who created them. A player's published
+monograph is as objective as an excavated blade.
 
 Properties within the world state have varying **visibility levels**:
 
-- **Observable** — directly available upon encounter. Material composition, NPC published work, venue requirements.
-- **Inferable** — derivable from observable properties through reasoning. Shared material preferences suggesting cultural links, NPC tendencies deduced from publication patterns.
-- **Occluded** — definite but hidden from all agents. True culture assignments, true artefact functions, NPC internal methodological weights. Used by the engine for generation and contradiction detection.
-- **Engine-internal** — no in-world meaning. PRNG seeds, constraint satisfaction flags, pipeline metadata.
+- **Observable** — directly available upon encounter. Material composition, NPC published work,
+  venue requirements.
+- **Inferable** — derivable from observable properties through reasoning. Shared material
+  preferences suggesting cultural links, NPC tendencies deduced from publication patterns.
+- **Occluded** — definite but hidden from all agents. True culture assignments, true artefact
+  functions, NPC internal methodological weights. Used by the engine for generation and
+  contradiction detection.
+- **Engine-internal** — no in-world meaning. PRNG seeds, constraint satisfaction flags, pipeline
+  metadata.
 
-**Subjective State** — an epistemic agent's interpretive model: claims about the world built from incomplete information. One per agent. The player's is actively maintained and mutable. NPC models are generated at corpus creation and static at MVP; post-MVP, all agents' models evolve and the player/NPC distinction becomes one of control (player-driven vs engine-driven), not mutability.
+**Subjective State** — an epistemic agent's interpretive model: claims about the world built from
+incomplete information. One per agent. The player's is actively maintained and mutable. NPC models
+are generated at corpus creation and static at MVP; post-MVP, all agents' models evolve and the
+player/NPC distinction becomes one of control (player-driven vs engine-driven), not mutability.
 
-The critical architectural rule: **the engine never knows who the player is.** Engine functions accept an `InterpretiveModel` as a parameter. The lens calculation, contradiction detection, and commitment evaluation functions are agent-agnostic. Only the UI and store layers treat the player as special (see doc 11, section 2.6).
+The critical architectural rule: **the engine never knows who the player is.** Engine functions
+accept an `InterpretiveModel` as a parameter. The lens calculation, contradiction detection, and
+commitment evaluation functions are agent-agnostic. Only the UI and store layers treat the player as
+special (see doc 11, section 2.6).
 
 ### 3.2 The InterpretiveModel Interface
 
-This is the agent-generic shape that every epistemic agent's subjective state conforms to. The player's and an NPC's share the same interface.
+This is the agent-generic shape that every epistemic agent's subjective state conforms to. The
+player's and an NPC's share the same interface.
 
 ```typescript
 // types/interpretation.ts
 
 interface InterpretiveModel {
-  agentId: string;
+	agentId: string;
 
-  // Claims about the ancient world
-  culturalClaims: Map<string, CulturalClaim>;      // "Culture X preferred obsidian for blades"
-  artefactClaims: Map<string, ArtefactClaim>;       // "This blade was ceremonial"
-  chronologicalClaims: Map<string, ChronoClaim>;    // "Period Y preceded Period Z"
+	// Claims about the ancient world
+	culturalClaims: Map<string, CulturalClaim>; // "Culture X preferred obsidian for blades"
+	artefactClaims: Map<string, ArtefactClaim>; // "This blade was ceremonial"
+	chronologicalClaims: Map<string, ChronoClaim>; // "Period Y preceded Period Z"
 
-  // Claims about the professional world
-  agentAssessments: Map<string, AgentAssessment>;   // "Dr. Okonkwo is a reliable structuralist"
+	// Claims about the professional world
+	agentAssessments: Map<string, AgentAssessment>; // "Dr. Okonkwo is a reliable structuralist"
 
-  // Methodological commitments (shape how new evidence is weighted)
-  methodologicalWeights: MethodologicalProfile;
+	// Methodological commitments (shape how new evidence is weighted)
+	methodologicalWeights: MethodologicalProfile;
 
-  // Contradiction state (claims under tension)
-  strainScores: Map<string, HypothesisStrain>;      // Canonical strain type (doc 06 §5)
-  contradictionQueue: ContradictionQueue;
+	// Contradiction state (claims under tension)
+	strainScores: Map<string, HypothesisStrain>; // Canonical strain type (doc 06 §5)
+	contradictionQueue: ContradictionQueue;
 }
 ```
 
-At MVP, only the player's `InterpretiveModel` is fully populated through gameplay. NPC models are generated with `culturalClaims`, `methodologicalWeights`, and a subset of `artefactClaims` — enough to drive their published commitments and review behaviour. NPC `agentAssessments` (what NPCs think of other NPCs) and NPC `contradictionQueue` are deferred.
+At MVP, only the player's `InterpretiveModel` is fully populated through gameplay. NPC models are
+generated with `culturalClaims`, `methodologicalWeights`, and a subset of `artefactClaims` — enough
+to drive their published commitments and review behaviour. NPC `agentAssessments` (what NPCs think
+of other NPCs) and NPC `contradictionQueue` are deferred.
 
 ### 3.3 Store Relationships
 
@@ -371,11 +410,16 @@ gameState (orchestrator)
   └── ui                      # Selected artefact, active panel, etc.
 ```
 
-Three domain stores plus term state plus UI. The old five-store model (objectiveWorld, subjectiveWorld, lensState, career, ui) collapsed because:
+Three domain stores plus term state plus UI. The old five-store model (objectiveWorld,
+subjectiveWorld, lensState, career, ui) collapsed because:
 
-- `career` was split between objective events (happened, now in `worldState.careerEvents`) and reputation (computed property of the player's scholar entity in `worldState.scholars`).
-- `subjectiveWorld` contained both concrete objects (documents, publications) and interpretation. The concrete objects moved to `worldState`. Only interpretation remains, now as `playerInterpretation`.
-- NPC interpretive models live in `worldState` as properties of their scholar entities, not in a separate store. They're just data — no reactivity needed at MVP.
+- `career` was split between objective events (happened, now in `worldState.careerEvents`) and
+  reputation (computed property of the player's scholar entity in `worldState.scholars`).
+- `subjectiveWorld` contained both concrete objects (documents, publications) and interpretation.
+  The concrete objects moved to `worldState`. Only interpretation remains, now as
+  `playerInterpretation`.
+- NPC interpretive models live in `worldState` as properties of their scholar entities, not in a
+  separate store. They're just data — no reactivity needed at MVP.
 
 ### 3.4 Store Pattern
 
@@ -383,73 +427,98 @@ All stores use Svelte 5 Runes with immutable update patterns, consistent with th
 
 ```typescript
 // stores/playerInterpretation.svelte.ts
-import type { InterpretiveModel, CulturalClaim, ArtefactClaim } from '$lib/types/interpretation';
+import type { ArtefactClaim, CulturalClaim, InterpretiveModel } from '$lib/types/interpretation';
+import type { Contradiction, QueuedContradiction } from '$lib/types/contradiction';
+import { severityScore } from '$lib/engine/contradiction/severity'; // doc 06 §4.4 — owed, not yet built
 
 function createPlayerInterpretationStore() {
-  let model = $state<InterpretiveModel>({
-    agentId: 'player',
-    culturalClaims: new Map(),
-    artefactClaims: new Map(),
-    chronologicalClaims: new Map(),
-    agentAssessments: new Map(),
-    methodologicalWeights: defaultMethodology(),
-    strainScores: new Map(),
-    contradictionQueue: { items: [], totalSeverity: 0, reputationalPressure: 0 }
-  });
+	let model = $state<InterpretiveModel>({
+		agentId: 'player',
+		culturalClaims: new Map(),
+		artefactClaims: new Map(),
+		chronologicalClaims: new Map(),
+		agentAssessments: new Map(),
+		methodologicalWeights: defaultMethodology(),
+		strainScores: new Map(),
+		contradictionQueue: { items: [], totalSeverity: 0, reputationalPressure: 0 },
+	});
 
-  return {
-    // The raw model — passed to engine functions as InterpretiveModel
-    get model() { return model; },
+	return {
+		// The raw model — passed to engine functions as InterpretiveModel
+		get model() {
+			return model;
+		},
 
-    // Reactive getters for UI binding
-    get culturalClaims() { return model.culturalClaims; },
-    get artefactClaims() { return model.artefactClaims; },
-    get contradictionQueue() { return model.contradictionQueue; },
+		// Reactive getters for UI binding
+		get culturalClaims() {
+			return model.culturalClaims;
+		},
+		get artefactClaims() {
+			return model.artefactClaims;
+		},
+		get contradictionQueue() {
+			return model.contradictionQueue;
+		},
 
-    // Actions (immutable updates)
-    addCulturalClaim(claim: CulturalClaim) {
-      model.culturalClaims = new Map([...model.culturalClaims, [claim.id, claim]]);
-    },
+		// Actions (immutable updates)
+		addCulturalClaim(claim: CulturalClaim) {
+			model.culturalClaims = new Map([...model.culturalClaims, [claim.id, claim]]);
+		},
 
-    addArtefactClaim(claim: ArtefactClaim) {
-      model.artefactClaims = new Map([...model.artefactClaims, [claim.id, claim]]);
-    },
+		addArtefactClaim(claim: ArtefactClaim) {
+			model.artefactClaims = new Map([...model.artefactClaims, [claim.id, claim]]);
+		},
 
-    addContradiction(contradiction: Contradiction) {
-      model.contradictionQueue = {
-        ...model.contradictionQueue,
-        items: [...model.contradictionQueue.items, contradiction],
-        totalSeverity: model.contradictionQueue.totalSeverity + contradiction.severity
-      };
-    },
+		// `detectedAtTerm` comes from the caller — the store doesn't know the calendar. `severityScore`
+		// is the numeric mapping doc 06 §4.4 owes (ContradictionSeverity is a string union;
+		// totalSeverity is numeric) — introduced here, to be implemented alongside contradiction
+		// detection at milestone 7CD.
+		addContradiction(contradiction: Contradiction, detectedAtTerm: number) {
+			const queued: QueuedContradiction = {
+				contradiction,
+				detectedAtTerm,
+				termsUnresolved: 0,
+				acknowledged: false,
+				resolved: false,
+			};
 
-    // Derived
-    get activeClaims() {
-      return $derived([
-        ...model.culturalClaims.values(),
-        ...model.artefactClaims.values()
-      ].filter(c => c.status === 'active'));
-    },
+			model.contradictionQueue = {
+				...model.contradictionQueue,
+				items: [...model.contradictionQueue.items, queued],
+				totalSeverity: model.contradictionQueue.totalSeverity +
+					severityScore(contradiction.severity),
+			};
+		},
 
-    reset() {
-      model = {
-        agentId: 'player',
-        culturalClaims: new Map(),
-        artefactClaims: new Map(),
-        chronologicalClaims: new Map(),
-        agentAssessments: new Map(),
-        methodologicalWeights: defaultMethodology(),
-        strainScores: new Map(),
-        contradictionQueue: { items: [], totalSeverity: 0, reputationalPressure: 0 }
-      };
-    }
-  };
+		// Derived
+		get activeClaims() {
+			return $derived([
+				...model.culturalClaims.values(),
+				...model.artefactClaims.values(),
+			].filter((c) => c.status === 'active'));
+		},
+
+		reset() {
+			model = {
+				agentId: 'player',
+				culturalClaims: new Map(),
+				artefactClaims: new Map(),
+				chronologicalClaims: new Map(),
+				agentAssessments: new Map(),
+				methodologicalWeights: defaultMethodology(),
+				strainScores: new Map(),
+				contradictionQueue: { items: [], totalSeverity: 0, reputationalPressure: 0 },
+			};
+		},
+	};
 }
 
 export const playerInterpretation = createPlayerInterpretationStore();
 ```
 
-The key pattern: the store exposes its underlying `InterpretiveModel` via the `model` getter. Engine functions receive this directly — they never import the store, never touch Svelte reactivity, never know they're working with the player's model rather than any other agent's.
+The key pattern: the store exposes its underlying `InterpretiveModel` via the `model` getter. Engine
+functions receive this directly — they never import the store, never touch Svelte reactivity, never
+know they're working with the player's model rather than any other agent's.
 
 ### 3.5 Orchestration
 
@@ -460,91 +529,99 @@ The `gameState` orchestrator coordinates cross-store operations. It holds no dom
 import { worldState } from './worldState.svelte';
 import { playerInterpretation } from './playerInterpretation.svelte';
 import { lensState } from './lensState.svelte';
+import { termState } from './termState.svelte';
 import { runGenerationPipeline } from '$lib/engine/generation/pipeline';
 import { detectContradictions } from '$lib/engine/contradiction/detection';
 import { computeLens } from '$lib/engine/lens/strength';
 import { advanceDissemination } from '$lib/engine/documents/dissemination';
 
 function createGameState() {
-  return {
-    initialise(seed: string) {
-      worldState.generate(seed);
-      playerInterpretation.reset();
-      lensState.reset();
-    },
+	return {
+		initialise(seed: string) {
+			worldState.generate(seed);
+			playerInterpretation.reset();
+			lensState.reset();
+		},
 
-    // Generate next artefact for inspection
-    surfaceArtefact() {
-      const artefact = runGenerationPipeline(
-        worldState.activeCulture,
-        worldState.activePeriod,
-        worldState.prng
-      );
-      worldState.addArtefact(artefact);
+		// Generate next artefact for inspection
+		surfaceArtefact() {
+			const artefact = runGenerationPipeline(
+				worldState.activeCulture,
+				worldState.activePeriod,
+				worldState.prng,
+			);
+			worldState.addArtefact(artefact);
 
-      // Contradiction detection: player's interpretation vs world state
-      // Engine function takes InterpretiveModel — agent-agnostic
-      const contradictions = detectContradictions(
-        artefact,
-        playerInterpretation.model,
-        worldState.state
-      );
-      contradictions.forEach(c => playerInterpretation.addContradiction(c));
+			// Contradiction detection: player's interpretation vs world state AND the professional
+			// corpus (doc 06 §7.2 — corpus contradictions need the fourth argument too)
+			// Engine function takes InterpretiveModel — agent-agnostic
+			const contradictions = detectContradictions(
+				artefact,
+				playerInterpretation.model,
+				worldState.state,
+				worldState.professionalCorpus,
+			);
+			contradictions.forEach((c) =>
+				playerInterpretation.addContradiction(c, termState.currentAbsoluteWeek)
+			);
 
-      return artefact;
-    },
+			return artefact;
+		},
 
-    // Recalculate lens after interpretation changes
-    refreshLens() {
-      // Engine function takes InterpretiveModel — agent-agnostic
-      const newLens = computeLens(
-        playerInterpretation.model,
-        worldState.getScholarDocuments('player'),
-        worldState.venues
-      );
-      lensState.update(newLens);
-    },
+		// Recalculate lens after interpretation changes
+		refreshLens() {
+			// Engine function takes InterpretiveModel — agent-agnostic
+			const newLens = computeLens(
+				playerInterpretation.model,
+				worldState.getScholarDocuments('player'),
+				worldState.venues,
+			);
+			lensState.update(newLens);
+		},
 
-    // Submit document to venue — enters dissemination pipeline (doc 10)
-    submitDocument(documentId: string, venueId: string) {
-      const result = advanceDissemination(
-        documentId,
-        'submitted',
-        venueId,
-        worldState.state
-      );
+		// Submit document to venue — enters dissemination pipeline (doc 10)
+		submitDocument(documentId: string, venueId: string) {
+			const result = advanceDissemination(
+				documentId,
+				'submitted',
+				venueId,
+				worldState.state,
+			);
 
-      worldState.updateDocument(result.updatedNode);
-      worldState.addCareerEvent(result.careerEvent);
-      worldState.updateScholarReputation('player', result.reputationDelta);
-      this.refreshLens();
+			worldState.updateDocument(result.updatedNode);
+			worldState.addCareerEvent(result.careerEvent);
+			worldState.updateScholarReputation('player', result.reputationDelta);
+			this.refreshLens();
 
-      return result;
-    },
+			return result;
+		},
 
-    // Handle peer review outcome (doc 07, section 3.3)
-    resolvePeerReview(documentId: string, reviewEvent: PeerReviewCareerEvent) {
-      worldState.addCareerEvent(reviewEvent);
-      worldState.updateScholarReputation('player', reviewEvent.reputationEffect);
+		// Handle peer review outcome (doc 07, section 3.3)
+		resolvePeerReview(documentId: string, reviewEvent: PeerReviewCareerEvent) {
+			worldState.addCareerEvent(reviewEvent);
+			// reputationEffects is an array of per-dimension deltas (doc 07 §3.3), not a single delta
+			reviewEvent.reputationEffects.forEach((effect) =>
+				worldState.updateScholarReputation('player', effect)
+			);
 
-      if (reviewEvent.outcome === 'accepted') {
-        const published = advanceDissemination(
-          documentId,
-          'published',
-          reviewEvent.venueId,
-          worldState.state
-        );
-        worldState.updateDocument(published.updatedNode);
-        worldState.addCareerEvent(published.careerEvent);
-      }
+			if (reviewEvent.outcome === 'accepted') {
+				const published = advanceDissemination(
+					documentId,
+					'published',
+					reviewEvent.venueId,
+					worldState.state,
+				);
+				worldState.updateDocument(published.updatedNode);
+				worldState.addCareerEvent(published.careerEvent);
+			}
 
-      // Reviewer relationship effects
-      worldState.updateScholarRelationship('player', reviewEvent.reviewerAgentId, reviewEvent);
+			// Reviewer relationship effects
+			worldState.updateScholarRelationship('player', reviewEvent.reviewerId, reviewEvent);
 
-      this.refreshLens();
-      return reviewEvent;
-    }
-  };
+			this.refreshLens();
+			return reviewEvent;
+		},
+	};
 }
 
 export const gameState = createGameState();
@@ -552,15 +629,26 @@ export const gameState = createGameState();
 
 Notable changes from the old orchestration:
 
-- **No `PublicationTrack` parameter.** Publication is a dissemination state transition on a document node, mediated by a venue. The old `publish(hypothesisId, track)` assumed hypotheses were published directly via a track selector. The new model: the player creates a document (which contains commitments derived from hypotheses), then submits it to a venue, then receives peer review, then it's published. Multiple discrete steps, each a career event.
-- **`detectContradictions` takes `InterpretiveModel`, not a store.** Agent-agnostic. Post-MVP, the same function could evaluate NPC-vs-world contradictions.
-- **`computeLens` takes `InterpretiveModel` plus document and venue data.** Lens strength derives from commitments in disseminated documents weighted by venue prestige (doc 04), not from a flat publications list.
-- **Career state isn't a separate concern.** Career events are added to `worldState`. Reputation is updated on the player's scholar entity in `worldState`. No dedicated career store.
-- **Term state is explicitly tracked.** Energy budget and time slots govern action availability within each term.
+- **No `PublicationTrack` parameter.** Publication is a dissemination state transition on a document
+  node, mediated by a venue. The old `publish(hypothesisId, track)` assumed hypotheses were
+  published directly via a track selector. The new model: the player creates a document (which
+  contains commitments derived from hypotheses), then submits it to a venue, then receives peer
+  review, then it's published. Multiple discrete steps, each a career event.
+- **`detectContradictions` takes `InterpretiveModel`, not a store.** Agent-agnostic. Post-MVP, the
+  same function could evaluate NPC-vs-world contradictions.
+- **`computeLens` takes `InterpretiveModel` plus document and venue data.** Lens strength derives
+  from commitments in disseminated documents weighted by venue prestige (doc 04), not from a flat
+  publications list.
+- **Career state isn't a separate concern.** Career events are added to `worldState`. Reputation is
+  updated on the player's scholar entity in `worldState`. No dedicated career store.
+- **Term state is explicitly tracked.** Energy budget and time slots govern action availability
+  within each term.
 
 ### 3.6 Term State & Boundary Logic
 
-The time/action economy (doc 11, Section 2.8) uses discrete terms with concurrent actions consuming both time and energy from a single continuum. The `termState` store tracks within-term resources; the orchestrator handles term boundaries.
+The time/action economy (doc 11, Section 2.8) uses discrete terms with concurrent actions consuming
+both time and energy from a single continuum. The `termState` store tracks within-term resources;
+the orchestrator handles term boundaries.
 
 ```typescript
 // types/term.ts
@@ -568,10 +656,10 @@ The time/action economy (doc 11, Section 2.8) uses discrete terms with concurren
 type TermType = 'autumn' | 'spring' | 'summer-teaching' | 'summer-research';
 
 interface AcademicYear {
-  yearIndex: number;
-  terms: [TermType, TermType, TermType, TermType]; // 4 terms per year
-  // Default: ['autumn', 'spring', 'summer-teaching', 'summer-research']
-  // Summer-research has no teaching drain — strategically distinct season
+	yearIndex: number;
+	terms: [TermType, TermType, TermType, TermType]; // 4 terms per year
+	// Default: ['autumn', 'spring', 'summer-teaching', 'summer-research']
+	// Summer-research has no teaching drain — strategically distinct season
 }
 
 const WEEKS_PER_TERM = 12;
@@ -579,56 +667,70 @@ const TERMS_PER_YEAR = 4;
 const WEEKS_PER_YEAR = WEEKS_PER_TERM * TERMS_PER_YEAR; // 48 modelled weeks
 
 interface TermState {
-  currentTermIndex: number;
-  currentAbsoluteWeek: number;         // Canonical timestamp — never resets, spans entire career
-  termType: TermType;                  // Determines which background drains apply
-  weekCapacity: number;                // Usually 12; could be modified by special circumstances
-  weeksAllocated: number;              // Sum of activity durations scheduled this term
-  energyBudget: number;                // Total energy for this term (may include carry-over)
-  energyRemaining: number;             // Decremented by actions
-  backgroundDrains: BackgroundDrain[]; // Ongoing commitments — subset active depending on termType
-  completedActions: CompletedAction[]; // Record of what was done this term
+	currentTermIndex: number;
+	currentAbsoluteWeek: number; // Canonical timestamp — never resets, spans entire career
+	termType: TermType; // Determines which background drains apply
+	weekCapacity: number; // Usually 12; could be modified by special circumstances
+	weeksAllocated: number; // Sum of activity durations scheduled this term
+	energyBudget: number; // Total energy for this term (may include carry-over)
+	energyRemaining: number; // Decremented by actions
+	backgroundDrains: BackgroundDrain[]; // Ongoing commitments — subset active depending on termType
+	completedActions: CompletedAction[]; // Record of what was done this term
 }
 
 // Derived helpers (not stored, computed on demand)
 function termStartWeek(termIndex: number): number {
-  return termIndex * WEEKS_PER_TERM;
+	return termIndex * WEEKS_PER_TERM;
 }
 function weekInTerm(absoluteWeek: number): number {
-  return absoluteWeek % WEEKS_PER_TERM;
+	return absoluteWeek % WEEKS_PER_TERM;
 }
 function termIndexFromWeek(absoluteWeek: number): number {
-  return Math.floor(absoluteWeek / WEEKS_PER_TERM);
+	return Math.floor(absoluteWeek / WEEKS_PER_TERM);
 }
 function yearFromTerm(termIndex: number): number {
-  return Math.floor(termIndex / TERMS_PER_YEAR);
+	return Math.floor(termIndex / TERMS_PER_YEAR);
 }
 
 interface BackgroundDrain {
-  source: string;                 // "teaching-load" | "supervision" | "admin" | "editorial"
-  energyCostPerTerm: number;
-  activeTermTypes: TermType[];    // Which term types this drain applies to
-  description: string;
+	source: string; // "teaching-load" | "supervision" | "admin" | "editorial"
+	energyCostPerTerm: number;
+	activeTermTypes: TermType[]; // Which term types this drain applies to
+	description: string;
 }
 
 interface CompletedAction {
-  actionType: string;
-  energyCost: number;
-  durationWeeks: number;
-  startWeek: number;              // Absolute week — may span term boundaries
-  termIndex: number;              // Term in which the action was initiated
+	actionType: string;
+	energyCost: number;
+	durationWeeks: number;
+	startWeek: number; // Absolute week — may span term boundaries
+	termIndex: number; // Term in which the action was initiated
 }
 ```
 
-**Four terms per year:** autumn, spring, summer-teaching, summer-research. Each is 12 weeks, giving 48 modelled weeks per year (the remaining 4 weeks are implicit transition/holiday, never modelled). The summer-research term has no teaching background drain, creating a strategically distinct season — the player plans their year around this window for fieldwork, uninterrupted writing, and conference attendance.
+**Four terms per year:** autumn, spring, summer-teaching, summer-research. Each is 12 weeks, giving
+48 modelled weeks per year (the remaining 4 weeks are implicit transition/holiday, never modelled).
+The summer-research term has no teaching background drain, creating a strategically distinct season
+— the player plans their year around this window for fieldwork, uninterrupted writing, and
+conference attendance.
 
-**Absolute week as canonical timestamp.** The `currentAbsoluteWeek` counter never resets and spans the entire career. Background processes (peer review, dissemination lead times, reputational lag) use absolute weeks, so a review that starts in week 8 of one term resolves naturally in week 3 of the next without special boundary logic. Within-term week position is derived on demand via `weekInTerm()`.
+**Absolute week as canonical timestamp.** The `currentAbsoluteWeek` counter never resets and spans
+the entire career. Background processes (peer review, dissemination lead times, reputational lag)
+use absolute weeks, so a review that starts in week 8 of one term resolves naturally in week 3 of
+the next without special boundary logic. Within-term week position is derived on demand via
+`weekInTerm()`.
 
-**Term-conditional drains.** Each `BackgroundDrain` specifies which term types it applies to. Teaching load applies to autumn, spring, and summer-teaching but not summer-research. Admin and editorial duties might apply year-round. This is evaluated at term start when calculating the effective energy budget.
+**Term-conditional drains.** Each `BackgroundDrain` specifies which term types it applies to.
+Teaching load applies to autumn, spring, and summer-teaching but not summer-research. Admin and
+editorial duties might apply year-round. This is evaluated at term start when calculating the
+effective energy budget.
 
-Activities have durations in weeks. The player schedules activities into the term's 12-week window; concurrent activities can overlap in the same weeks but compete for energy. When either time or energy is exhausted, the term ends.
+Activities have durations in weeks. The player schedules activities into the term's 12-week window;
+concurrent activities can overlap in the same weeks but compete for energy. When either time or
+energy is exhausted, the term ends.
 
-Term boundaries are the game's primary tick. When the player ends a term (or runs out of energy), the orchestrator runs a sequence of updates:
+Term boundaries are the game's primary tick. When the player ends a term (or runs out of energy),
+the orchestrator runs a sequence of updates:
 
 ```typescript
 // In gameState orchestrator
@@ -702,9 +804,17 @@ completeTerm() {
 }
 ```
 
-The term boundary is the heartbeat of the simulation. Everything that happens "over time" — dissemination lead times, strain accumulation, lens decay, career progression, venue cycles — ticks at term boundaries. Background processes use absolute weeks for seamless cross-term spanning (a peer review submitted in week 30 resolves when `currentAbsoluteWeek >= estimatedResolutionWeek`, regardless of which term that falls in). The player controls pace by deciding when to end each term.
+The term boundary is the heartbeat of the simulation. Everything that happens "over time" —
+dissemination lead times, strain accumulation, lens decay, career progression, venue cycles — ticks
+at term boundaries. Background processes use absolute weeks for seamless cross-term spanning (a peer
+review submitted in week 30 resolves when `currentAbsoluteWeek >= estimatedResolutionWeek`,
+regardless of which term that falls in). The player controls pace by deciding when to end each term.
 
-**Summer-research rhythm.** The 4th term each year (summer-research) has no teaching drain, giving the player a higher effective energy budget. This creates a natural annual rhythm: teaching terms are constrained, the summer-research term is expansive. Fieldwork, concentrated writing, and conference attendance cluster naturally in this window — not because the game forces it, but because the economics favour it.
+**Summer-research rhythm.** The 4th term each year (summer-research) has no teaching drain, giving
+the player a higher effective energy budget. This creates a natural annual rhythm: teaching terms
+are constrained, the summer-research term is expansive. Fieldwork, concentrated writing, and
+conference attendance cluster naturally in this window — not because the game forces it, but because
+the economics favour it.
 
 ---
 
@@ -717,20 +827,20 @@ Client-side persistence via IndexedDB. No server, no accounts, no cloud sync (fo
 ```typescript
 // persistence/schema.ts
 export interface SaveFile {
-  version: number;                      // Schema version for migration
-  savedAt: string;
-  seed: string;
-  worldState: SerialisedWorldState;     // Everything that exists
-  playerInterpretation: SerialisedInterpretiveModel;  // Player's epistemic model (includes serialised contradiction queue)
-  termState: SerialisedTermState;       // Calendar position + energy budget
-  // lensState is NOT persisted: it is recomputed from playerInterpretation on load
-  metadata: {
-    playTime: number;                   // Seconds
-    artefactsExamined: number;
-    claimsFormed: number;
-    documentsPublished: number;         // Document nodes at published state or beyond
-    contradictionsResolved: number;
-  };
+	version: number; // Schema version for migration
+	savedAt: string;
+	seed: string;
+	worldState: SerialisedWorldState; // Everything that exists
+	playerInterpretation: SerialisedInterpretiveModel; // Player's epistemic model (includes serialised contradiction queue)
+	termState: SerialisedTermState; // Calendar position + energy budget
+	// lensState is NOT persisted: it is recomputed from playerInterpretation on load
+	metadata: {
+		playTime: number; // Seconds
+		artefactsExamined: number;
+		claimsFormed: number;
+		documentsPublished: number; // Document nodes at published state or beyond
+		contradictionsResolved: number;
+	};
 }
 
 export const CURRENT_SAVE_VERSION = 1;
@@ -738,16 +848,17 @@ export const CURRENT_SAVE_VERSION = 1;
 
 ### 4.2 Serialisation Concerns
 
-Maps don't serialise to JSON. Every `Map<K, V>` in the state types needs a serialisation/deserialisation pair.
+Maps don't serialise to JSON. Every `Map<K, V>` in the state types needs a
+serialisation/deserialisation pair.
 
 ```typescript
 // persistence/serialisation.ts
 function serialiseMap<K, V>(map: Map<K, V>): [K, V][] {
-  return [...map.entries()];
+	return [...map.entries()];
 }
 
 function deserialiseMap<K, V>(entries: [K, V][]): Map<K, V> {
-  return new Map(entries);
+	return new Map(entries);
 }
 ```
 
@@ -759,47 +870,48 @@ Auto-save on significant player actions (not every keystroke). Debounced write t
 const AUTOSAVE_DEBOUNCE_MS = 5000;
 
 function setupAutosave(gameState: GameState) {
-  let timeout: number | undefined;
-  
-  function triggerAutosave() {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      saveToIndexedDB(serialiseGameState(gameState));
-    }, AUTOSAVE_DEBOUNCE_MS);
-  }
+	let timeout: number | undefined;
 
-  // Called after each significant game action
-  return { triggerAutosave };
+	function triggerAutosave() {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			saveToIndexedDB(serialiseGameState(gameState));
+		}, AUTOSAVE_DEBOUNCE_MS);
+	}
+
+	// Called after each significant game action
+	return { triggerAutosave };
 }
 ```
 
 ### 4.4 Schema Migration
 
-Save file version is checked on load. If the loaded version is behind `CURRENT_SAVE_VERSION`, migration functions run sequentially.
+Save file version is checked on load. If the loaded version is behind `CURRENT_SAVE_VERSION`,
+migration functions run sequentially.
 
 ```typescript
 type Migration = (save: SaveFile) => SaveFile;
 
 const migrations: Record<number, Migration> = {
-  // Version 1 → 2: Added strain model to interpretation
-  2: (save) => ({
-    ...save,
-    version: 2,
-    playerInterpretation: {
-      ...save.playerInterpretation,
-      strainScores: []
-    }
-  }),
+	// Version 1 → 2: Added strain model to interpretation
+	2: (save) => ({
+		...save,
+		version: 2,
+		playerInterpretation: {
+			...save.playerInterpretation,
+			strainScores: [],
+		},
+	}),
 };
 
 function migrateSave(save: SaveFile): SaveFile {
-  let current = save;
-  while (current.version < CURRENT_SAVE_VERSION) {
-    const migrate = migrations[current.version + 1];
-    if (!migrate) throw new Error(`Missing migration for version ${current.version + 1}`);
-    current = migrate(current);
-  }
-  return current;
+	let current = save;
+	while (current.version < CURRENT_SAVE_VERSION) {
+		const migrate = migrations[current.version + 1];
+		if (!migrate) throw new Error(`Missing migration for version ${current.version + 1}`);
+		current = migrate(current);
+	}
+	return current;
 }
 ```
 
@@ -837,46 +949,51 @@ The seeded PRNG is the testing superpower. Same seed = same output, every time.
 
 ```typescript
 // Example test
-Deno.test("grammar expansion produces consistent output for seed", () => {
-  const prng = createPrng("test-seed-42");
-  const result1 = expandGrammar(coreGrammar, mockCulture, prng);
-  
-  const prng2 = createPrng("test-seed-42");
-  const result2 = expandGrammar(coreGrammar, mockCulture, prng2);
-  
-  assertEquals(result1, result2);
+Deno.test('grammar expansion produces consistent output for seed', () => {
+	const prng = createPrng('test-seed-42');
+	const result1 = expandGrammar(coreGrammar, mockCulture, prng);
+
+	const prng2 = createPrng('test-seed-42');
+	const result2 = expandGrammar(coreGrammar, mockCulture, prng2);
+
+	assertEquals(result1, result2);
 });
 ```
 
 ### 5.3 Snapshot Tests
 
-For complex outputs (generated artefacts, lens-filtered presentations), snapshot tests capture expected output and diff against it on change.
+For complex outputs (generated artefacts, lens-filtered presentations), snapshot tests capture
+expected output and diff against it on change.
 
 ```typescript
-Deno.test("full pipeline snapshot", async () => {
-  const artefact = runPipeline("snapshot-seed", mockWorld);
-  await assertSnapshot(Deno.test, artefact);
+Deno.test('full pipeline snapshot', async () => {
+	const artefact = runPipeline('snapshot-seed', mockWorld);
+	await assertSnapshot(Deno.test, artefact);
 });
 ```
 
 ### 5.4 Distribution Tests
 
-For stochastic systems (material selection, grammar branch selection), distribution tests verify that biases work correctly over many runs.
+For stochastic systems (material selection, grammar branch selection), distribution tests verify
+that biases work correctly over many runs.
 
 ```typescript
-Deno.test("metal-heavy culture produces more metal artefacts", () => {
-  const metalCulture = createCulture({ materialAffinities: { metal: 2.0, stone: 0.5 } });
-  const prng = createPrng("distribution-test");
-  
-  const results = Array.from({ length: 1000 }, () => 
-    assignMaterial(bladePart, metalCulture, defaultPeriod, allMaterials, prng)
-  );
-  
-  const metalCount = results.filter(m => m.tags.includes('metal')).length;
-  const stoneCount = results.filter(m => m.tags.includes('stone')).length;
-  
-  assert(metalCount > stoneCount * 2, 
-    `Expected metal >> stone, got metal=${metalCount} stone=${stoneCount}`);
+Deno.test('metal-heavy culture produces more metal artefacts', () => {
+	const metalCulture = createCulture({ materialAffinities: { metal: 2.0, stone: 0.5 } });
+	const prng = createPrng('distribution-test');
+
+	const results = Array.from(
+		{ length: 1000 },
+		() => assignMaterial(bladePart, metalCulture, defaultPeriod, allMaterials, prng),
+	);
+
+	const metalCount = results.filter((m) => m.tags.includes('metal')).length;
+	const stoneCount = results.filter((m) => m.tags.includes('stone')).length;
+
+	assert(
+		metalCount > stoneCount * 2,
+		`Expected metal >> stone, got metal=${metalCount} stone=${stoneCount}`,
+	);
 });
 ```
 
@@ -896,7 +1013,8 @@ Route (+page.svelte)
   → Components re-render (Svelte reactivity)
 ```
 
-Components never import stores directly (except the route-level page components). This keeps components testable and reusable.
+Components never import stores directly (except the route-level page components). This keeps
+components testable and reusable.
 
 ### 6.2 Component Sizing
 
@@ -908,13 +1026,19 @@ Components are split at the "single responsibility" level:
 - `PropertyList` renders an ordered list of artefact properties
 
 Not:
-- `ArtefactWorkspace` that handles inspection, note-taking, tagging, cross-referencing, and publication all in one component
+
+- `ArtefactWorkspace` that handles inspection, note-taking, tagging, cross-referencing, and
+  publication all in one component
 
 ### 6.3 DaisyUI Usage
 
-DaisyUI continues as the component library. The existing Caramellatte + Coffee theme pairing works for the academic research aesthetic — warm, paper-like light theme with a comfortable dark alternative.
+DaisyUI continues as the component library. The existing Caramellatte + Coffee theme pairing works
+for the academic research aesthetic — warm, paper-like light theme with a comfortable dark
+alternative.
 
-Custom components should follow DaisyUI's class patterns for consistency. Where DaisyUI doesn't provide a suitable component (e.g., evidence chain visualisation), build custom components using Tailwind utilities with DaisyUI colour tokens.
+Custom components should follow DaisyUI's class patterns for consistency. Where DaisyUI doesn't
+provide a suitable component (e.g., evidence chain visualisation), build custom components using
+Tailwind utilities with DaisyUI colour tokens.
 
 ---
 
@@ -922,19 +1046,27 @@ Custom components should follow DaisyUI's class patterns for consistency. Where 
 
 ### 7.1 Grammar Expansion
 
-CFG expansion is CPU-bound. For the MVP grammar (5 top-level branches, ~20 productions), expansion is trivially fast. If the grammar grows significantly, expansion can be moved to a Web Worker to avoid blocking the UI.
+CFG expansion is CPU-bound. For the MVP grammar (5 top-level branches, ~20 productions), expansion
+is trivially fast. If the grammar grows significantly, expansion can be moved to a Web Worker to
+avoid blocking the UI.
 
 ### 7.2 Lens Computation
 
-Lens recalculation touches every active claim in the player's `InterpretiveModel` and every property of the inspected artefact. With MVP scope (< 50 active claims, < 20 properties per artefact), this is microseconds. The `refreshLens()` call is debounced to avoid redundant computation during rapid state changes.
+Lens recalculation touches every active claim in the player's `InterpretiveModel` and every property
+of the inspected artefact. With MVP scope (< 50 active claims, < 20 properties per artefact), this
+is microseconds. The `refreshLens()` call is debounced to avoid redundant computation during rapid
+state changes.
 
 ### 7.3 Contradiction Detection
 
-Detection runs per-artefact-generation and per-claim-commit. It compares the player's `InterpretiveModel` against occluded world state properties, which are in-memory. No network calls, no database queries. Fast.
+Detection runs per-artefact-generation and per-claim-commit. It compares the player's
+`InterpretiveModel` against occluded world state properties, which are in-memory. No network calls,
+no database queries. Fast.
 
 ### 7.4 IndexedDB Writes
 
-Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 1MB. IndexedDB handles this without issues.
+Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 1MB. IndexedDB
+handles this without issues.
 
 ---
 
@@ -950,51 +1082,71 @@ Debounced auto-save (5s) prevents write storms. Save file size for MVP scope: < 
 
 ### 8.2 What's Replaced
 
-| File | Fate |
-|---|---|
-| `package.json` | → `deno.json` |
-| `eslint.config.js` | Deleted (→ `deno lint`) |
-| `.prettierrc` + `.prettierignore` | Deleted (→ `deno fmt`) |
-| `tsconfig.json` | Simplified, merged into `deno.json` |
-| `.npmrc` | Deleted |
-| `src/lib/data/items.ts` | → `src/lib/data/grammars/primitives.ts` + `core.ts` (component grammar) |
-| `src/lib/data/materials.ts` | → `src/lib/data/materials.ts` (restructured with tags + geological scarcity) |
-| `src/lib/services/itemGenerator.ts` | → `src/lib/engine/generation/pipeline.ts` + 9 stage sub-modules |
-| `src/lib/stores/gameState.svelte.ts` | → Split into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator |
-| `src/lib/types/item.ts` | → `src/lib/types/artefact.ts` + related type files |
-| `src/lib/utils/indexRandom.ts` | → `src/lib/engine/prng.ts` (seeded) |
-| `src/lib/components/ItemGenerator.svelte` | → `src/lib/components/study/ArtefactInspector.svelte` |
-| `src/lib/components/Tasks.svelte` | Retired (career dashboard replaces) |
-| `src/lib/components/Timeline.svelte` | → `src/lib/components/world/Timeline.svelte` (expanded) |
-| `backlog/` | Preserved as historical reference |
+| File                                      | Fate                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `package.json`                            | → `deno.json`                                                                                     |
+| `eslint.config.js`                        | Deleted (→ `deno lint`)                                                                           |
+| `.prettierrc` + `.prettierignore`         | Deleted (→ `deno fmt`)                                                                            |
+| `tsconfig.json`                           | Simplified, merged into `deno.json`                                                               |
+| `.npmrc`                                  | Deleted                                                                                           |
+| `src/lib/data/items.ts`                   | → `src/lib/data/grammars/primitives.ts` + `core.ts` (component grammar)                           |
+| `src/lib/data/materials.ts`               | → `src/lib/data/materials.ts` (restructured with tags + geological scarcity)                      |
+| `src/lib/services/itemGenerator.ts`       | → `src/lib/engine/generation/pipeline.ts` + 9 stage sub-modules                                   |
+| `src/lib/stores/gameState.svelte.ts`      | → Split into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator   |
+| `src/lib/types/item.ts`                   | → `src/lib/types/artefact.ts` + related type files                                                |
+| `src/lib/utils/indexRandom.ts`            | → `src/lib/engine/prng.ts` (seeded)                                                               |
+| `src/lib/components/ItemGenerator.svelte` | → `src/lib/components/study/ArtefactInspector.svelte`                                             |
+| `src/lib/components/Tasks.svelte`         | Retired (career dashboard replaces)                                                               |
+| `src/lib/components/Timeline.svelte`      | → `src/lib/components/world/Timeline.svelte` (expanded)                                           |
+| `backlog/`                                | Deleted (was preserved as historical reference; never a porting source, superseded by this table) |
 
-**Update:** the tooling half of this table was completed in the Deno migration, and the listed `src/` source files were removed in the repository reset; they now live in `backlog/`, not `src/lib/`.
+**Update:** the tooling half of this table was completed in the Deno migration, and the listed
+`src/` source files were removed in the repository reset. They briefly lived on in `backlog/` as
+dead reference code; that directory has since been deleted, since this table already records the
+mapping and nothing imported from it.
 
 ### 8.3 Migration Order
 
 1. **Deno migration** (runtime swap, strip Node tooling, verify deps)
-2. **Type system** (define all interfaces in `src/lib/types/` — including `InterpretiveModel`, `DocumentNode`, `VenueDefinition`, visibility annotations)
+2. **Type system** (define all interfaces in `src/lib/types/` — including `InterpretiveModel`,
+   `DocumentNode`, `VenueDefinition`, visibility annotations)
 3. **PRNG** (seeded random, replacing `Math.random()`)
-4. **Engine skeleton** (directory structure, empty modules with type signatures — including `interpretation/`, `documents/`)
+4. **Engine skeleton** (directory structure, empty modules with type signatures — including
+   `interpretation/`, `documents/`)
 5. **Component grammar + plausibility** (bottom-up geometric primitives, plausibility checking)
-6. **Feature extraction + classification** (single-pass unified extraction with rule-based tag scoring per doc 05 §9; the accumulation-during-expansion model was superseded 2026-07-04)
+6. **Feature extraction + classification** (single-pass unified extraction with rule-based tag
+   scoring per doc 05 §9; the accumulation-during-expansion model was superseded 2026-07-04)
 7. **Material assignment** (geological scarcity + culture-biased selection)
 8. **Decorative grammar** (post-material decorative layer with layering support)
-9. **Store refactor** (split gameState into `worldState`, `playerInterpretation`, `lensState`, `ui` + `gameState` orchestrator)
+9. **Store refactor** (split gameState into `worldState`, `playerInterpretation`, `lensState`,
+   `ui` + `gameState` orchestrator)
 10. **UI: artefact inspection** (replace ItemGenerator with ArtefactInspector)
-11. **Description generation** (register-based system — observational/interpretive/technical, no lens yet)
+11. **Description generation** (register-based system — observational/interpretive/technical, no
+    lens yet)
 12. **Excavation composition** (site-level ambiguity management, batch diversity)
-13. **Initial corpus generation** (NPC scholars with `InterpretiveModel` instances, initial document nodes, dating frameworks)
-14. **Lens integration** (wire lens state into register selection and observation ordering — takes `InterpretiveModel` as input)
-15. **Interpretation layer** (claim creation, inference chains, methodological profiles — agent-generic `InterpretiveModel` operations, player store + UI)
-16. **Document tradition** (lineage graph, dissemination state machine, commitments, form classification, venue generation — doc 10)
-17. **Contradiction detection** (compares `InterpretiveModel` against occluded properties, strain accumulation, diegetic surfacing)
-18. **Persistence** (IndexedDB save/load — serialises `worldState` + `playerInterpretation` + `termState`; lensState is recomputed on load)
-19. **Career integration** (reputation as scholar property, dissemination as career events, role advancement, peer review — doc 07)
-20. **Minimal NPCs** (named peer review, contradiction delivery, review selection based on NPC `InterpretiveModel`)
+13. **Initial corpus generation** (NPC scholars with `InterpretiveModel` instances, initial document
+    nodes, dating frameworks)
+14. **Lens integration** (wire lens state into register selection and observation ordering — takes
+    `InterpretiveModel` as input)
+15. **Interpretation layer** (claim creation, inference chains, methodological profiles —
+    agent-generic `InterpretiveModel` operations, player store + UI)
+16. **Document tradition** (lineage graph, dissemination state machine, commitments, form
+    classification, venue generation — doc 10)
+17. **Contradiction detection** (compares `InterpretiveModel` against occluded properties, strain
+    accumulation, diegetic surfacing)
+18. **Persistence** (IndexedDB save/load — serialises `worldState` + `playerInterpretation` +
+    `termState`; lensState is recomputed on load)
+19. **Career integration** (reputation as scholar property, dissemination as career events, role
+    advancement, peer review — doc 07)
+20. **Minimal NPCs** (named peer review, contradiction delivery, review selection based on NPC
+    `InterpretiveModel`)
 
-This is the implementation roadmap in disguise. Each step produces a testable, demonstrable increment. Note that document tradition (step 16) comes after the interpretation layer (step 15) because documents contain commitments derived from claims, and before contradiction detection (step 17) because contradictions reference commitments in document nodes.
+This is the implementation roadmap in disguise. Each step produces a testable, demonstrable
+increment. Note that document tradition (step 16) comes after the interpretation layer (step 15)
+because documents contain commitments derived from claims, and before contradiction detection
+(step 17) because contradictions reference commitments in document nodes.
 
 ---
 
-*Next document: Implementation Roadmap — realistic milestones with the new scope, dependency chains, and what "done" looks like at each stage.*
+_Next document: Implementation Roadmap — realistic milestones with the new scope, dependency chains,
+and what "done" looks like at each stage._

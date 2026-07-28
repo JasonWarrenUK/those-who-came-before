@@ -1,34 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this
+repository.
 
 ## Project Overview
 
-**Those Who Came Before** is an archaeological artefact discovery game where player mistakes compound into an unreliable narrative. The core mechanic: your interpretations create a lens that filters future observations, leading to confirmation bias and systematic error.
+**Those Who Came Before** is an archaeological artefact discovery game where player mistakes
+compound into an unreliable narrative. The core mechanic: your interpretations create a lens that
+filters future observations, leading to confirmation bias and systematic error.
 
-**Current Status**: Extensive design specification (docs 00-13). The repo was reset for launch: `src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming); the old tech demo is archived in `backlog/` as dead reference code. Implementation restarts from Milestone 1 of `docs/roadmaps/mvp.md` (Deno migration tasks 1FD.1–1FD.5 complete).
+**Current Status**: Extensive design specification (docs 00-13). The repo was reset for launch:
+`src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming).
+The pre-reset tech demo that briefly lived in `backlog/` as dead reference code has been deleted; it
+was never a porting source. Implementation is underway from `docs/roadmaps/mvp.md`: Deno migration
+(1FD.1–1FD.5) and much of Milestone 2's generation pipeline (grammar, plausibility, materials,
+decoration) are complete.
 
 ## Critical Context
 
 ### Documentation Primacy
 
-This project has **14 comprehensive design documents** (docs/00-13) that specify every system in detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on this codebase:
+This project has **14 comprehensive design documents** (docs/00-13) that specify every system in
+detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on this codebase:
 
 1. **Always check the design docs first** before implementing anything
-2. The docs are the source of truth for design; `docs/roadmaps/mvp.md` is the source of truth for task sequencing and completion state
+2. The docs are the source of truth for design; `docs/roadmaps/mvp.md` is the source of truth for
+   task sequencing and completion state
 3. Current implementation is ~2% complete; most systems exist only in specification
 
 ### Reading Guide by Task
 
-- **Understanding the vision**: Read docs 02 (Design Pillars) → 03 (Core Loop) → 04 (Interpretive Lens)
-- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (authoritative task list + status) → relevant spec doc → doc 08 (Architecture)
+- **Understanding the vision**: Read docs 02 (Design Pillars) → 03 (Core Loop) → 04 (Interpretive
+  Lens)
+- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (authoritative task list + status) →
+  relevant spec doc → doc 08 (Architecture)
 - **Working on generation**: Doc 05 (Generation Architecture) — most technically dense
 - **Working on documents/career**: Doc 06 (Knowledge Model) → doc 07 (Career) → doc 10 (Documents)
 - **Understanding decisions**: Doc 11 (Deferred Decisions) → doc 13 (Post-MVP)
 
 ## Development Commands
 
-The Deno migration is complete (roadmap tasks 1FD.1–1FD.5). There is no `package.json`; npm commands do not work here.
+The Deno migration is complete (roadmap tasks 1FD.1–1FD.5). There is no `package.json`; npm commands
+do not work here.
 
 ```bash
 deno task dev            # Dev server with HMR
@@ -64,7 +77,8 @@ gameState (orchestrator — no domain data)
   └── ui                         # UI-only state
 ```
 
-**Critical principle**: Engine code is agent-agnostic. Functions accept `InterpretiveModel` as a parameter — they never know whether they're processing the player's or an NPC's interpretation.
+**Critical principle**: Engine code is agent-agnostic. Functions accept `InterpretiveModel` as a
+parameter — they never know whether they're processing the player's or an NPC's interpretation.
 
 ### Directory Structure (Target)
 
@@ -93,21 +107,26 @@ src/
 ### Key Architectural Principles
 
 **The Engine Boundary** (doc 08, section 2.1):
+
 - Everything in `src/lib/engine/` is pure TypeScript
 - No Svelte imports, no SvelteKit imports, no browser APIs
 - Testable with `deno test` directly
-- Takes inputs (seed, interpretive models, actions) → produces outputs (artefacts, lens states, contradictions)
+- Takes inputs (seed, interpretive models, actions) → produces outputs (artefacts, lens states,
+  contradictions)
 
 **Agent-Generic Interpretation** (doc 11, section 2.6):
+
 - Player and NPC scholars share the same `InterpretiveModel` interface
 - Engine functions never know which agent they're processing
 - Only UI/store layers treat player as special
 
 **Immutable Updates**:
+
 - All stores use Svelte 5 Runes with immutable patterns
 - State mutations create new array/Map references
 
 **Service Layer**:
+
 - Business logic in `src/lib/engine/`, not in components
 - Components call engine functions; engine mutates stores
 
@@ -116,23 +135,29 @@ src/
 ### State Management
 
 Uses **Svelte 5 Runes** throughout:
+
 - `$state` for reactive values
 - `$derived` for computed values (NOT reactive declarations)
 - Immutable updates despite Svelte supporting mutability
 
 Example store pattern (from doc 08, section 3.4):
+
 ```typescript
 function createPlayerInterpretationStore() {
-  let model = $state<InterpretiveModel>({ /* ... */ });
+	let model = $state<InterpretiveModel>({/* ... */});
 
-  return {
-    get model() { return model; },  // Passed to engine functions
-    get culturalClaims() { return model.culturalClaims; },  // Reactive getters
+	return {
+		get model() {
+			return model;
+		}, // Passed to engine functions
+		get culturalClaims() {
+			return model.culturalClaims;
+		}, // Reactive getters
 
-    addClaim(claim: Claim) {
-      model.claims = new Map([...model.claims, [claim.id, claim]]);
-    }
-  };
+		addClaim(claim: Claim) {
+			model.claims = new Map([...model.claims, [claim.id, claim]]);
+		},
+	};
 }
 ```
 
@@ -154,6 +179,7 @@ Components never import stores (except route-level pages).
 ### The Interpretive Lens (Core Mechanic)
 
 From doc 04, the lens has 5 channels:
+
 1. **Observation salience** — which properties are foregrounded
 2. **Classification suggestions** — which tags are proposed
 3. **Cross-reference priming** — which past artefacts are surfaced
@@ -161,6 +187,7 @@ From doc 04, the lens has 5 channels:
 5. **Omission blindness** — what the player fails to notice
 
 Lens strength formula (doc 04, section 3):
+
 ```
 strength = f(dissemination_state, evidence_count, citation_count, teaching_activity)
 ```
@@ -170,6 +197,7 @@ Stronger lens = stronger filtering = more confirmation bias.
 ### Generation Pipeline (9 Stages)
 
 From doc 05:
+
 1. World seed
 2. Chronology + culture generation
 3. Initial corpus (NPC scholars, documents)
@@ -185,6 +213,7 @@ Each stage is independently testable. Determinism via seeded PRNG.
 ### Document Tradition
 
 From doc 10:
+
 - Documents are **immutable once disseminated** (mutable while private)
 - Form a directed acyclic graph of intellectual lineage
 - Dissemination states: private → circulated → presented → submitted → published → collected
@@ -195,6 +224,7 @@ From doc 10:
 ### Time & Action Economy
 
 From doc 11, section 2.8:
+
 - **4 terms per year**: autumn, spring, summer-teaching, summer-research
 - Each term is **12 modelled weeks** (48 weeks/year; 4 weeks implicit transition)
 - **Absolute week counter** never resets — canonical timestamp
@@ -204,11 +234,17 @@ From doc 11, section 2.8:
 
 ## Implementation Roadmap
 
-The execution roadmap is **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP NPC Systems) with task IDs, checkbox completion state, dependency edges and a status table. Always take task selection and completion state from it. Doc 09 is the narrative source it was derived from (24 phases with design rationale); when they diverge on sequencing, `mvp.md` governs.
+The execution roadmap is **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP NPC
+Systems) with task IDs, checkbox completion state, dependency edges and a status table. Always take
+task selection and completion state from it. Doc 09 is the narrative source it was derived from (24
+phases with design rationale); when they diverge on sequencing, `mvp.md` governs.
 
-Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Generation Pipeline → 3 World State & Integration → 4 Player Interface → 5 Knowledge Model → 6 Lens System → 7 Contradictions → 8 Persistence → 9 Career & Publication → 10 NPC Systems.
+Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Generation Pipeline → 3
+World State & Integration → 4 Player Interface → 5 Knowledge Model → 6 Lens System → 7
+Contradictions → 8 Persistence → 9 Career & Publication → 10 NPC Systems.
 
-**Each milestone produces something runnable and testable.** The Project Explorer (`/dev/explorer`) is the developer workbench that grows with each milestone.
+**Each milestone produces something runnable and testable.** The Project Explorer (`/dev/explorer`)
+is the developer workbench that grows with each milestone.
 
 ## File Naming Conventions
 
@@ -220,11 +256,13 @@ Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Gene
 ## Styling
 
 Uses **DaisyUI** on **Tailwind CSS**:
+
 - Themes: caramellatte (light) + coffee (dark)
 - Pre-built components: cards, buttons, timelines, badges
 - Formatting via `deno fmt` (the `fmt-component` unstable flag covers Svelte files)
 
 When building custom components:
+
 - Follow DaisyUI class patterns
 - Use DaisyUI colour tokens for consistency
 - Build custom visualisations (evidence chains, lineage graphs) with Tailwind utilities
@@ -234,64 +272,68 @@ When building custom components:
 From doc 08, section 5:
 
 ### Unit Tests (Engine)
+
 - All engine modules get Deno tests
 - Fast, no browser needed
 - Deterministic via seeded PRNG
 
 ### Test Patterns
+
 ```typescript
 // Determinism test
-Deno.test("same seed produces same output", () => {
-  const prng1 = createPrng("test-seed");
-  const result1 = generate(prng1);
+Deno.test('same seed produces same output', () => {
+	const prng1 = createPrng('test-seed');
+	const result1 = generate(prng1);
 
-  const prng2 = createPrng("test-seed");
-  const result2 = generate(prng2);
+	const prng2 = createPrng('test-seed');
+	const result2 = generate(prng2);
 
-  assertEquals(result1, result2);
+	assertEquals(result1, result2);
 });
 
 // Distribution test
-Deno.test("culture bias affects material selection", () => {
-  const metalCulture = createCulture({
-    materialAffinities: { metal: 2.0, stone: 0.5 }
-  });
-  const results = Array.from({ length: 1000 }, () =>
-    selectMaterial(metalCulture, prng)
-  );
+Deno.test('culture bias affects material selection', () => {
+	const metalCulture = createCulture({
+		materialAffinities: { metal: 2.0, stone: 0.5 },
+	});
+	const results = Array.from({ length: 1000 }, () => selectMaterial(metalCulture, prng));
 
-  const metalCount = results.filter(m => m.type === 'metal').length;
-  assert(metalCount > 500); // Statistical expectation
+	const metalCount = results.filter((m) => m.type === 'metal').length;
+	assert(metalCount > 500); // Statistical expectation
 });
 ```
 
 ### Snapshot Tests
+
 For complex outputs (generated artefacts, lens-filtered descriptions).
 
 ## Current Implementation Status
 
 **What exists**:
-- ✅ SvelteKit + Svelte 5 scaffold on Deno (`deno.json`, `@deno/svelte-adapter` configured — tasks 1FD.1–1FD.5)
-- ✅ Single route (`src/routes/+page.svelte`) and three static components (Header, Footer, Timeline empty state)
+
+- ✅ SvelteKit + Svelte 5 scaffold on Deno (`deno.json`, `@deno/svelte-adapter` configured — tasks
+  1FD.1–1FD.5)
+- ✅ Single route (`src/routes/+page.svelte`) and three static components (Header, Footer, Timeline
+  empty state)
 - ✅ Tailwind + DaisyUI theming (caramellatte/coffee) in `app.css`
-- ✅ Old item+material demo archived in `backlog/` (dead reference code, not wired into the app)
+- ✅ Generation pipeline, partial (Milestone 2, `docs/roadmaps/mvp.md`): bottom-up structural
+  grammar, plausibility checking (`checkPlausibility`, 2GN.12), material assignment, and decorative
+  motif + introduced-material resolution (2GN.33) are complete; material↔classification integration
+  (2GN.27) and several other 2GN.x tasks remain
 
 **What's specified but unbuilt**:
-- ⏳ Everything in docs 00-13
-- ⏳ Component grammar system
-- ⏳ World state (chronology, cultures, seed)
-- ⏳ Interpretive lens mechanics
-- ⏳ Document tradition
-- ⏳ Career/reputation system
-- ⏳ Contradiction detection
-- ⏳ Persistence layer
-- ⏳ NPC scholars
 
-**Gap**: Design is ~95% complete, implementation is ~2% complete.
+- ⏳ Most of docs 00-13's remaining scope — world state (chronology, cultures, seed), interpretive
+  lens mechanics, document tradition, career/reputation system, contradiction detection, persistence
+  layer, NPC scholars
+
+Take exact completion state from `docs/roadmaps/mvp.md`'s checkboxes, not this summary — it's
+deliberately coarse and will drift.
 
 ## Design Pillars (Non-Negotiable)
 
 From doc 02:
+
 1. **Error Is the Engine** — player mistakes are generative, not punitive
 2. **Diegesis First** — no out-of-character information
 3. **Simulation Honesty** — all content derives from same underlying data
@@ -333,17 +375,26 @@ When making any design decision, these take precedence.
 
 ## Project Explorer
 
-From doc 09: A developer-facing UI at `/dev/explorer` for testing each system as it's built. Not the player UI.
+From doc 09: A developer-facing UI at `/dev/explorer` for testing each system as it's built. Not the
+player UI.
 
-Features grow per milestone (see the Explorer-extension tasks in each milestone of `docs/roadmaps/mvp.md`):
+Features grow per milestone (see the Explorer-extension tasks in each milestone of
+`docs/roadmaps/mvp.md`):
+
 - Milestone 1: Seed input, PRNG output display, type index
-- Milestone 2: Structure viewer, plausibility panel, tag inspector, material/decoration/description viewers, corpus browser
+- Milestone 2: Structure viewer, plausibility panel, tag inspector, material/decoration/description
+  viewers, corpus browser
 - Milestone 3: Chronology timeline, culture profiles, store inspector
-- Later milestones: Lens testing, contradiction inspection, document lineage, career state, NPC panels
+- Later milestones: Lens testing, contradiction inspection, document lineage, career state, NPC
+  panels
 
 ## Migration Notes
 
-The Deno migration (roadmap tasks 1FD.1–1FD.5) is complete: `deno.json` replaced `package.json`, and `deno fmt`/`deno lint` replaced Prettier/ESLint. The pre-migration tech demo (`itemGenerator.ts`, `materials.ts`, `item-grammars/`) lives in `backlog/` and is reference-only, not a porting source; new engine code is written fresh in `src/lib/engine/` per docs 05 and 08 and the roadmap tasks (pipeline at 2GN.x, stores at 3WS.x).
+The Deno migration (roadmap tasks 1FD.1–1FD.5) is complete: `deno.json` replaced `package.json`, and
+`deno fmt`/`deno lint` replaced Prettier/ESLint. The pre-migration tech demo (`itemGenerator.ts`,
+`materials.ts`, `item-grammars/`) that once lived in `backlog/` was never a porting source and has
+been deleted; engine code is written fresh in `src/lib/engine/` per docs 05 and 08 and the roadmap
+tasks (pipeline at 2GN.x, stores at 3WS.x).
 
 ## Glossary
 
@@ -354,7 +405,8 @@ The Deno migration (roadmap tasks 1FD.1–1FD.5) is complete: `deno.json` replac
 - **Dissemination state**: Where a document is in publication pipeline
 - **Absolute week**: Canonical timestamp spanning entire career (never resets)
 - **Strain**: Accumulated pressure from unresolved contradictions
-- **Spelling**: always "artefact", never "artifact", in identifiers, filenames and prose (British spelling throughout)
+- **Spelling**: always "artefact", never "artifact", in identifiers, filenames and prose (British
+  spelling throughout)
 
 ## References
 
