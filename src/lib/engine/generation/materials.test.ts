@@ -1,6 +1,12 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals, assertNotEquals } from '@std/assert';
-import { assignMaterial, computeMaterialWeight, isAvailable } from './materials.ts';
+import {
+	assignMaterial,
+	assignMaterialWithProvenance,
+	computeMaterialWeight,
+	deriveMaterialProvenance,
+	isAvailable,
+} from './materials.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { createPrng } from '../prng.ts';
 import { mockNormalisedArtefact } from '../../../../tests/fixtures/artefact.ts';
@@ -373,5 +379,131 @@ Deno.test('assignMaterial: distribution — a scarce material is drawn less than
 	assert(
 		bronzeShare > ironShare,
 		`expected abundant bronze share (${bronzeShare}) > scarce iron share (${ironShare})`,
+	);
+});
+
+// --- deriveMaterialProvenance ------------------------------------------------------------------
+
+Deno.test('deriveMaterialProvenance: a locally obtainable material is "local" with its region attributed', () => {
+	const geology = mockGeologicalContext(); // bronze abundant in 'test-region'
+	const provenance = deriveMaterialProvenance(material('bronze'), geology, []);
+
+	assertEquals(provenance.source, 'local');
+	assertEquals(provenance.likelyOriginRegion, 'test-region');
+	assertEquals(provenance.tradePathId, undefined);
+});
+
+Deno.test('deriveMaterialProvenance: a scarce material is still "local"', () => {
+	const geology = mockGeologicalContext(); // iron scarce in 'test-region'
+	const provenance = deriveMaterialProvenance(material('iron'), geology, []);
+
+	assertEquals(provenance.source, 'local');
+	assertEquals(provenance.likelyOriginRegion, 'test-region');
+});
+
+Deno.test('deriveMaterialProvenance: a trade-only material reached via trade is "trade" with a tradePathId', () => {
+	const geology = mockGeologicalContext(); // gold trade-only
+	const flow = mockMaterialFlow({ materialTag: 'metal' });
+	const provenance = deriveMaterialProvenance(material('gold'), geology, [flow]);
+
+	assertEquals(provenance.source, 'trade');
+	assertEquals(provenance.likelyOriginRegion, undefined);
+	assert(
+		provenance.tradePathId !== undefined,
+		'expected a tradePathId for a trade-reached material',
+	);
+});
+
+Deno.test('deriveMaterialProvenance: a trade-only material with no matching flow is "unknown"', () => {
+	const geology = mockGeologicalContext(); // gold trade-only
+	const provenance = deriveMaterialProvenance(material('gold'), geology, []);
+
+	assertEquals(provenance, { source: 'unknown' });
+});
+
+Deno.test('deriveMaterialProvenance: a trade-only material with only an off-tag, off-id flow is "unknown"', () => {
+	const geology = mockGeologicalContext(); // gold trade-only
+	const flow = mockMaterialFlow({ materialTag: 'wood' });
+	const provenance = deriveMaterialProvenance(material('gold'), geology, [flow]);
+
+	assertEquals(provenance, { source: 'unknown' });
+});
+
+Deno.test('deriveMaterialProvenance: a material absent everywhere is "unknown"', () => {
+	const geology = mockGeologicalContext(); // flint absent
+	const provenance = deriveMaterialProvenance(material('flint'), geology, []);
+
+	assertEquals(provenance, { source: 'unknown' });
+});
+
+Deno.test('deriveMaterialProvenance: a material with no geology entry at all is "unknown"', () => {
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+	const provenance = deriveMaterialProvenance(material('jade'), geology, []);
+
+	assertEquals(provenance, { source: 'unknown' });
+});
+
+Deno.test('deriveMaterialProvenance: tradePathId is reproducible from the same flow position, not random', () => {
+	const geology = mockGeologicalContext();
+	const flow = mockMaterialFlow({ materialTag: 'metal' });
+
+	const first = deriveMaterialProvenance(material('gold'), geology, [flow]);
+	const second = deriveMaterialProvenance(material('gold'), geology, [flow]);
+
+	assertEquals(first, second);
+});
+
+Deno.test('deriveMaterialProvenance: two distinct trade-reachable materials sharing a flow get distinct tradePathIds only when flow position differs', () => {
+	const geology = mockGeologicalContext();
+	const preciousFlow = mockMaterialFlow({ materialTag: 'metal' });
+	const woodFlow = mockMaterialFlow({ materialTag: 'wood' });
+
+	// gold reached by the flow at index 0.
+	const goldViaFirst = deriveMaterialProvenance(material('gold'), geology, [
+		preciousFlow,
+		woodFlow,
+	]);
+	// gold reached by the flow at index 1 instead.
+	const goldViaSecond = deriveMaterialProvenance(material('gold'), geology, [
+		woodFlow,
+		preciousFlow,
+	]);
+
+	assertNotEquals(goldViaFirst.tradePathId, goldViaSecond.tradePathId);
+});
+
+// --- assignMaterialWithProvenance ---------------------------------------------------------------
+
+Deno.test('assignMaterialWithProvenance: returns a MaterialAssignment consistent with assignMaterial + deriveMaterialProvenance', () => {
+	const geology = mockGeologicalContext();
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const trade = [mockMaterialFlow({ materialTag: 'metal' })];
+	const subject = component(['metal', 'stone', 'wood']);
+
+	const assignment = assignMaterialWithProvenance(
+		subject,
+		culture,
+		phase,
+		geology,
+		trade,
+		createPrng('assignment-seed'),
+		MATERIALS,
+	);
+	const expectedMaterial = assignMaterial(
+		subject,
+		culture,
+		phase,
+		geology,
+		trade,
+		createPrng('assignment-seed'),
+		MATERIALS,
+	);
+
+	assertEquals(assignment.componentId, subject.id);
+	assertEquals(assignment.materialId, expectedMaterial.id);
+	assertEquals(
+		assignment.provenance,
+		deriveMaterialProvenance(expectedMaterial, geology, trade),
 	);
 });
