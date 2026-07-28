@@ -1,7 +1,8 @@
 /**
- * Material assignment (doc 05 §7, "Stage 6", roadmap 2GN.23–25) — per-component selection from the
+ * Material assignment (doc 05 §7, "Stage 6", roadmap 2GN.23–26) — per-component selection from the
  * shipped `MATERIALS` catalogue (`data/materials.ts`, 2GN.22), weighted by three factors in the
- * doc's stated priority order: geological availability, cultural affinity, phase technology.
+ * doc's stated priority order: geological availability, cultural affinity, phase technology; plus
+ * provenance metadata (doc 05 §7.1) describing where the assigned material likely originated.
  *
  * Pure TypeScript with no framework or browser dependencies (doc 08 §2.1, the engine boundary),
  * matching `engine/prng.ts`. Determinism flows entirely from the injected PRNG.
@@ -12,16 +13,24 @@
  * land until 3WS.7 (Milestone 3); Milestone 2 runs this pipeline against mock world fixtures by
  * design. `isAvailable` therefore answers a region-agnostic question — "is this material obtainable
  * *anywhere* in the geology it's handed, or reachable via trade" — rather than gating on the specific
- * region an artefact's `Provenance` will eventually carry. True region-gating and material-origin
- * attribution are deferred to 2GN.26 (`MaterialProvenance` metadata), 2GN.47 (provenance generation)
- * and 3WS.7 (real geology), and should be revisited once those land.
+ * region an artefact's `Provenance` will eventually carry. `deriveMaterialProvenance`'s
+ * `likelyOriginRegion` is real signal (the region key `bestRegionalLevel` already resolved), but its
+ * `tradePathId` is a **temporary synthesised string** — see that function's JSDoc — since neither
+ * `MaterialFlow` nor `CultureRelationship` carries a stable id yet. True region-gating and durable
+ * trade-path identity are deferred to 2GN.47 (provenance generation), 3WS.5/3WS.6 (real culture
+ * relationships) and 3WS.7 (real geology), and should be revisited once those land.
  *
  * 2GN.24 (`isAvailable`) and 2GN.25 (`computeMaterialWeight`) are folded into this task rather than
  * left as separate stubs — `assignMaterial`'s doc 05 §7 body calls both directly and is untestable
  * without them, the same fold precedent as 2GN.8→2GN.9.
  */
 
-import type { MaterialDefinition, NormalisedComponent } from '../../types/artefact.ts';
+import type {
+	MaterialAssignment,
+	MaterialDefinition,
+	MaterialProvenance,
+	NormalisedComponent,
+} from '../../types/artefact.ts';
 import type {
 	AvailabilityLevel,
 	CulturalProfile,
@@ -55,20 +64,31 @@ const SCARCITY_WEIGHT: Record<string, number> = {
 	'absent': 0, // Never reached via computeMaterialWeight — isAvailable excludes it first.
 };
 
-/** The best (most abundant) availability level for `materialId` across every region in `geology`. */
-function bestAvailabilityLevel(
+/** A region key paired with its `AvailabilityLevel`, as found in `RegionalAvailability.regions`. */
+interface RegionalLevel {
+	region: string;
+	level: AvailabilityLevel;
+}
+
+/**
+ * The best (most abundant) availability level for `materialId` across every region in `geology`,
+ * plus which region produced it. Region-agnostic callers (`isAvailable`, `scarcityWeight`) read
+ * only `.level`; `deriveMaterialProvenance` (2GN.26) is the one consumer that needs `.region` too,
+ * to attribute `likelyOriginRegion`.
+ */
+function bestRegionalLevel(
 	materialId: string,
 	geology: GeologicalContext,
-): AvailabilityLevel | undefined {
+): RegionalLevel | undefined {
 	const regional = geology.materialAvailability.get(materialId);
 	if (!regional || regional.regions.size === 0) return undefined;
 
 	const order: AvailabilityLevel[] = ['abundant', 'available', 'scarce', 'trade-only', 'absent'];
-	let best: AvailabilityLevel | undefined;
+	let best: RegionalLevel | undefined;
 
-	for (const level of regional.regions.values()) {
-		if (best === undefined || order.indexOf(level) < order.indexOf(best)) {
-			best = level;
+	for (const [region, level] of regional.regions) {
+		if (best === undefined || order.indexOf(level) < order.indexOf(best.level)) {
+			best = { region, level };
 		}
 	}
 
@@ -102,7 +122,7 @@ export function isAvailable(
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
 ): boolean {
-	const level = bestAvailabilityLevel(material.id, geology);
+	const level = bestRegionalLevel(material.id, geology)?.level;
 
 	if (level === undefined) return true; // Not modelled in this geology — MVP lenience.
 	if (LOCALLY_OBTAINABLE_LEVELS.has(level)) return true;
@@ -149,7 +169,7 @@ function phaseTechnologyWeight(material: MaterialDefinition, phase: PhaseCharact
  * MVP lenience for mock world fixtures that don't model every material.
  */
 function scarcityWeight(material: MaterialDefinition, geology: GeologicalContext): number {
-	const level = bestAvailabilityLevel(material.id, geology);
+	const level = bestRegionalLevel(material.id, geology)?.level;
 	if (level === undefined) return 1;
 	return SCARCITY_WEIGHT[level] ?? 1;
 }
@@ -235,4 +255,129 @@ export function assignMaterial(
 		prng,
 		(material) => computeMaterialWeight(material, culture, phase, geology),
 	);
+}
+
+/**
+ * Synthesises a provisional `tradePathId` for a `MaterialFlow` that satisfied `reachableByTrade`
+ * (doc 05 §7.1).
+ *
+ * ⚠️ **TEMPORARY, load-bearing on nothing.** Neither `MaterialFlow` nor its parent
+ * `CultureRelationship` (`world.ts`) carries an id today — a flow is just an unkeyed entry inside
+ * `RelationshipDynamics.trade.materialFlow[]`, and a relationship is identified only by
+ * `cultureIds`, not a stable id of its own. This string is therefore *not* a real relationship
+ * reference: it cannot be resolved back to a `CultureRelationship`, only reproduced from the same
+ * `(materialTag, index)` pair that produced it. It exists purely so `MaterialProvenance.
+ * tradePathId` is populated with *something* traceable to the flow that justified the 'trade'
+ * verdict, rather than left `undefined`.
+ *
+ * Real trade-path identity is 3WS.5/3WS.6's to mint, once `generateRelationships` actually
+ * constructs `CultureRelationship`s (rather than the hand-authored `explorer-cultures.ts` presets
+ * this runs against at MVP). When that lands, this function — and every caller of it — should be
+ * replaced with a lookup against the real relationship id, not extended.
+ *
+ * @param flow - The `MaterialFlow` that made the material trade-reachable.
+ * @param index - The flow's position within the `trade` array passed to `isAvailable`, so two
+ *   flows sharing a `materialTag` still resolve to distinct (if equally provisional) ids.
+ */
+function synthesiseTradePathId(flow: MaterialFlow, index: number): string {
+	return `provisional-trade:${flow.materialTag}:${index}`;
+}
+
+/**
+ * The first `trade` entry that makes `material` trade-reachable (mirrors `reachableByTrade`'s own
+ * check), paired with its index for `synthesiseTradePathId`.
+ */
+function findReachableTradeFlow(
+	material: MaterialDefinition,
+	trade: readonly MaterialFlow[],
+): { flow: MaterialFlow; index: number } | undefined {
+	const index = trade.findIndex((flow) =>
+		material.tags.includes(flow.materialTag) ||
+		(flow.specificMaterials?.includes(material.id) ?? false)
+	);
+
+	return index === -1 ? undefined : { flow: trade[index]!, index };
+}
+
+/**
+ * Derives a `MaterialProvenance` for one material assignment (doc 05 §7.1, roadmap 2GN.26): where
+ * the raw material likely originated, hidden from the player.
+ *
+ * `source` reads the same `bestRegionalLevel` verdict `isAvailable`/`scarcityWeight` already use,
+ * so provenance and the assignment it describes are always consistent with one another:
+ * - `abundant`/`available`/`scarce` → `'local'` — the material is obtainable in the region
+ *   `geology` reports, so that region is the likely origin.
+ * - `trade-only` and reachable → `'trade'`, with `likelyOriginRegion` left unset (the *supplying*
+ *   culture's region isn't modelled at MVP — only that a flow exists) and a **provisional**
+ *   `tradePathId` (see `synthesiseTradePathId`).
+ * - No geology entry at all, or `absent`/unreachable `trade-only` — `'unknown'`: there is no
+ *   signal to base a claim on, so no claim is made. This can legitimately occur even for a
+ *   material `assignMaterial` just selected, since availability is a soft preference at MVP, not
+ *   a hard filter (see `assignMaterial`'s empty-candidate fallbacks).
+ *
+ * `'regional'` (`MaterialProvenance.source`) is never produced here: it would distinguish "from a
+ * neighbouring region" from "from this region," but `GeologicalContext` has no concept of
+ * inter-region distance yet, and `bestRegionalLevel` already collapses every region a material
+ * appears in down to its single best level. Fabricating a local/regional split with no distance
+ * signal behind it would invent data doc 05 §7.1 doesn't ask for.
+ *
+ * @param material - The assigned material.
+ * @param geology - World-level material scarcity, for region and source attribution.
+ * @param trade - Material flows reachable through cultural relationships, for trade attribution.
+ * @returns The derived `MaterialProvenance`.
+ */
+export function deriveMaterialProvenance(
+	material: MaterialDefinition,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+): MaterialProvenance {
+	const regional = bestRegionalLevel(material.id, geology);
+
+	if (regional !== undefined && LOCALLY_OBTAINABLE_LEVELS.has(regional.level)) {
+		return { source: 'local', likelyOriginRegion: regional.region };
+	}
+
+	if (regional?.level === 'trade-only') {
+		const reached = findReachableTradeFlow(material, trade);
+		if (reached !== undefined) {
+			return {
+				source: 'trade',
+				tradePathId: synthesiseTradePathId(reached.flow, reached.index),
+			};
+		}
+	}
+
+	return { source: 'unknown' }; // No geology entry, 'absent', or unreached 'trade-only'.
+}
+
+/**
+ * Assigns a material to `component` and derives its provenance in one call (doc 05 §7.1), for
+ * callers building a `MaterialAssignment` (2GN.75's per-artefact orchestrator, and tests) rather
+ * than needing the bare `MaterialDefinition` `assignMaterial` returns.
+ *
+ * @param component - The component receiving a material.
+ * @param culture - The culture whose material affinities apply.
+ * @param phase - The phase whose technology levels apply.
+ * @param geology - World-level material scarcity.
+ * @param trade - Material flows reachable through cultural relationships.
+ * @param prng - A generator from `createPrng`, consumed once via `weightedSelect`.
+ * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
+ * @returns The `MaterialAssignment` for `component`.
+ */
+export function assignMaterialWithProvenance(
+	component: NormalisedComponent,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	prng: () => number,
+	materials: readonly MaterialDefinition[] = MATERIALS,
+): MaterialAssignment {
+	const material = assignMaterial(component, culture, phase, geology, trade, prng, materials);
+
+	return {
+		componentId: component.id,
+		materialId: material.id,
+		provenance: deriveMaterialProvenance(material, geology, trade),
+	};
 }

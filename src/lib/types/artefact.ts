@@ -216,7 +216,15 @@ export interface MaterialProvenance {
 	/** Best guess at the origin region, when one can be attributed. */
 	likelyOriginRegion?: string;
 
-	/** If a trade material, which trade relationship enabled it (doc 05 §7.1). */
+	/**
+	 * If a trade material, which trade relationship enabled it (doc 05 §7.1).
+	 *
+	 * ⚠️ **Provisional at MVP.** `engine/generation/materials.ts`'s `deriveMaterialProvenance`
+	 * (roadmap 2GN.26) synthesises this from a `MaterialFlow`'s tag and position, because neither
+	 * `MaterialFlow` nor `CultureRelationship` (`world.ts`) carries a stable id yet — it is *not* a
+	 * resolvable reference to a real relationship. Replace once 3WS.5/3WS.6 give trade relationships
+	 * real identity.
+	 */
 	tradePathId?: string;
 }
 
