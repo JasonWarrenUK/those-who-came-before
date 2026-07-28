@@ -514,24 +514,26 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       loses the ability to occasionally produce a material it's just beginning to work) are
       MVP-provisional and retunable, per the 2GN.8 dimension-tuning precedent)
 - [x] **2GN.26** — `engine/generation/materials.ts` — `MaterialProvenance` metadata generation
-      (source, origin region, trade path) — `deriveMaterialProvenance(material, geology, trade):
-      MaterialProvenance` reads the same `bestRegionalLevel` verdict `isAvailable`/`scarcityWeight`
-      already use, so provenance stays consistent with the assignment it describes: locally
-      obtainable → `'local'` with `likelyOriginRegion` attributed from the real region key;
-      trade-reached `trade-only` → `'trade'` with a synthesised `tradePathId`; everything else
-      (`absent`, unreached `trade-only`, no geology entry) → `'unknown'`. `likelyOriginRegion` is
-      real signal (the region key `bestRegionalLevel` already resolved) but necessarily provisional
-      in scope — keyed against `mockGeologicalContext`'s single `'test-region'` fixture, since no
-      region vocabulary exists yet (`Culture` carries no region binding); true region attribution is
-      3WS.7's, which must reconcile whatever this task and 2GN.47 mint (dependency sweep 2026-07-25).
-      `tradePathId` is a **temporary synthesised string** (`provisional-trade:${materialTag}:
-      ${index}`), heavily flagged in both the type doc (`artefact.ts`) and the deriving function's
-      JSDoc: neither `MaterialFlow` nor `CultureRelationship` (`world.ts`) carries a stable id yet,
-      so it cannot be resolved back to a real relationship — only reproduced from the same
-      `(materialTag, index)` pair. Real trade-path identity is 3WS.5/3WS.6's to mint once
-      `generateRelationships` constructs real `CultureRelationship`s; this function and its callers
-      should be replaced, not extended, once that lands. Also adds `assignMaterialWithProvenance`,
-      a convenience wrapper producing a full `MaterialAssignment` in one call, for 2GN.75 to build on
+      (source, origin region, trade path) —
+      `deriveMaterialProvenance(material, geology, trade):
+      MaterialProvenance` reads the same
+      `bestRegionalLevel` verdict `isAvailable`/`scarcityWeight` already use, so provenance stays
+      consistent with the assignment it describes: locally obtainable → `'local'` with
+      `likelyOriginRegion` attributed from the real region key; trade-reached `trade-only` →
+      `'trade'` with a synthesised `tradePathId`; everything else (`absent`, unreached `trade-only`,
+      no geology entry) → `'unknown'`. `likelyOriginRegion` is real signal (the region key
+      `bestRegionalLevel` already resolved) but necessarily provisional in scope — keyed against
+      `mockGeologicalContext`'s single `'test-region'` fixture, since no region vocabulary exists
+      yet (`Culture` carries no region binding); true region attribution is 3WS.7's, which must
+      reconcile whatever this task and 2GN.47 mint (dependency sweep 2026-07-25). `tradePathId` is a
+      **temporary synthesised string** (`provisional-trade:${materialTag}:${index}`), heavily
+      flagged in both the type doc (`artefact.ts`) and the deriving function's JSDoc: neither
+      `MaterialFlow` nor `CultureRelationship` (`world.ts`) carries a stable id yet, so it cannot be
+      resolved back to a real relationship — only reproduced from the same `(materialTag, index)`
+      pair. Real trade-path identity is 3WS.5/3WS.6's to mint once `generateRelationships`
+      constructs real `CultureRelationship`s; this function and its callers should be replaced, not
+      extended, once that lands. Also adds `assignMaterialWithProvenance`, a convenience wrapper
+      producing a full `MaterialAssignment` in one call, for 2GN.75 to build on
 - [ ] **2GN.75** — `engine/generation/materials.ts` —
       `assignMaterials(artefact, culture, phase, geology, trade, materials, prng): MaterialAssignment[]`
       — artefact-level material pass producing the componentId→material mapping the rest of the
@@ -542,8 +544,8 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       including resolving the per-component PRNG namespacing both currently work around); constructs
       each `MaterialAssignment` complete, including its required `provenance`, via 2GN.26's
       generator — sequenced after 2GN.26 specifically so `provenance` is never stubbed _(depends on
-      2GN.23, 2GN.26)_ — added by dependency sweep 2026-07-25: 2GN.30/2GN.27/2GN.70 each
-      need per-component assigned materials and had no producer
+      2GN.23, 2GN.26)_ — added by dependency sweep 2026-07-25: 2GN.30/2GN.27/2GN.70 each need
+      per-component assigned materials and had no producer
 - [ ] **2GN.27** — `engine/generation/materials.ts` + `engine/generation/classification.ts` —
       material influence on tag accumulation (precious metals → elite/ceremonial boosts) — ⚠️
       **breaking**: `ExtractedFeatures` carries zero component-material fields today (its one
