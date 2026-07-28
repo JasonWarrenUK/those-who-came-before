@@ -95,12 +95,15 @@ function bestRegionalLevel(
 	return best;
 }
 
+/** Whether a single `MaterialFlow` can supply `material`, by tag or specific material id. */
+function flowSuppliesMaterial(material: MaterialDefinition, flow: MaterialFlow): boolean {
+	return material.tags.includes(flow.materialTag) ||
+		(flow.specificMaterials?.includes(material.id) ?? false);
+}
+
 /** Whether any `MaterialFlow` in `trade` can supply `material`, by tag or specific material id. */
 function reachableByTrade(material: MaterialDefinition, trade: readonly MaterialFlow[]): boolean {
-	return trade.some((flow) =>
-		material.tags.includes(flow.materialTag) ||
-		(flow.specificMaterials?.includes(material.id) ?? false)
-	);
+	return trade.some((flow) => flowSuppliesMaterial(material, flow));
 }
 
 /**
@@ -284,17 +287,15 @@ function synthesiseTradePathId(flow: MaterialFlow, index: number): string {
 }
 
 /**
- * The first `trade` entry that makes `material` trade-reachable (mirrors `reachableByTrade`'s own
- * check), paired with its index for `synthesiseTradePathId`.
+ * The first `trade` entry that makes `material` trade-reachable, sharing `reachableByTrade`'s
+ * `flowSuppliesMaterial` check so the two can never disagree, paired with its index for
+ * `synthesiseTradePathId`.
  */
 function findReachableTradeFlow(
 	material: MaterialDefinition,
 	trade: readonly MaterialFlow[],
 ): { flow: MaterialFlow; index: number } | undefined {
-	const index = trade.findIndex((flow) =>
-		material.tags.includes(flow.materialTag) ||
-		(flow.specificMaterials?.includes(material.id) ?? false)
-	);
+	const index = trade.findIndex((flow) => flowSuppliesMaterial(material, flow));
 
 	return index === -1 ? undefined : { flow: trade[index]!, index };
 }
