@@ -3,6 +3,7 @@ import { assert, assertEquals } from '@std/assert';
 import { OBSERVATIONAL_TEMPLATES } from './index.ts';
 import { PRIMITIVE_PARAMETERS, type PrimitiveType } from '../../grammars/primitives.ts';
 import type { DecorativeTechnique } from '../../../types/decoration.ts';
+import { SLOT_PATTERN } from '../../../engine/generation/prose.ts';
 
 /** Keyed by `PrimitiveType` so the compiler flags a missing entry when the union gains a member. */
 const ALL_PRIMITIVES_RECORD: Record<PrimitiveType, true> = {
@@ -40,7 +41,7 @@ const ALL_TECHNIQUES = Object.keys(ALL_TECHNIQUES_RECORD) as DecorativeTechnique
 
 /** `property` ids extracted from `#slot#`/`#slot.a#` occurrences in a template string. */
 function slotsIn(template: string): string[] {
-	const matches = [...template.matchAll(/#([a-zA-Z][\w-]*?)(?:\.a)?#/g)];
+	const matches = [...template.matchAll(SLOT_PATTERN)];
 	return matches.map((m) => m[1]);
 }
 

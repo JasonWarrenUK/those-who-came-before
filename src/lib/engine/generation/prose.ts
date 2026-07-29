@@ -26,6 +26,9 @@ export function shortId(component: NormalisedComponent): string {
 
 const VOWEL_SOUND = /^[aeiou]/i;
 
+/** Matches `#slot#` and `#slot.a#` placeholders; shared with `index.test.ts`'s slot-id extraction. */
+export const SLOT_PATTERN = /#([a-zA-Z][\w-]*?)(\.a)?#/g;
+
 /** Prefixes a value with "a"/"an" per its leading sound. */
 function withArticle(value: string): string {
 	return `${VOWEL_SOUND.test(value) ? 'an' : 'a'} ${value}`;
@@ -40,7 +43,7 @@ function withArticle(value: string): string {
 function expand(template: string, properties: Map<string, string | number>): string | undefined {
 	let sawNoneOrMissing = false;
 	const expanded = template.replace(
-		/#([a-zA-Z][\w-]*?)(\.a)?#/g,
+		SLOT_PATTERN,
 		(_match, slot: string, article) => {
 			const value = properties.get(slot);
 			if (value === undefined || value === 'none') {
@@ -54,7 +57,13 @@ function expand(template: string, properties: Map<string, string | number>): str
 	return expanded.charAt(0).toUpperCase() + expanded.slice(1);
 }
 
-/** Prose rendering of a component's parameters; raw `key=value` for unknown primitives. */
+/**
+ * Prose rendering of a component's parameters; raw `key=value` for unknown primitives.
+ *
+ * Always renders `variants[0]` — 2GN.35's templates author exactly one variant per property, so
+ * there's nothing to select between yet. Variant selection by lens/hypothesis alignment (roadmap
+ * 2GN.38) will need to replace this indexing once a property can carry more than one.
+ */
 export function describeProse(component: NormalisedComponent): string {
 	const templates = OBSERVATIONAL_TEMPLATES.filter((t) =>
 		t.property.startsWith(`${component.primitiveType}.`)
