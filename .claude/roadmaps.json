@@ -625,7 +625,7 @@
 					{
 						"id": "2GN.34",
 						"description": "`src/lib/data/classification.ts` — decorative classification rules consuming layer count, technique variety and depth",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.19",
 							"2GN.20"
@@ -639,7 +639,7 @@
 					{
 						"id": "2GN.35",
 						"description": "`src/lib/data/descriptions/observational/` — observational register templates per component type and decorative technique",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"1FD.31",
 							"M1"
