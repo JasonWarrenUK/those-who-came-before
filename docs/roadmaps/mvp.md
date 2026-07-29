@@ -535,7 +535,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       extended, once that lands. Also adds `assignMaterialWithProvenance`, a convenience wrapper
       producing a full `MaterialAssignment` in one call, for 2GN.75 to build on
 - [x] **2GN.75** — `engine/generation/materials.ts` —
-      `assignMaterials(artefact, culture, phase, geology, trade, materials, prng): MaterialAssignment[]`
+      `assignMaterials(artefact, culture, phase, geology, trade, prng, materials): MaterialAssignment[]`
       — artefact-level material pass producing the componentId→material mapping the rest of the
       pipeline needs (`assignMaterial` only handles one component and returns a bare
       `MaterialDefinition`; no engine code currently produces `MaterialAssignment[]` — the only

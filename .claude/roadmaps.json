@@ -537,7 +537,7 @@
 					},
 					{
 						"id": "2GN.75",
-						"description": "`engine/generation/materials.ts` — `assignMaterials(artefact, culture, phase, geology, trade, materials, prng): MaterialAssignment[]` — artefact-level material pass producing the componentId→material mapping the rest of the pipeline needs",
+						"description": "`engine/generation/materials.ts` — `assignMaterials(artefact, culture, phase, geology, trade, prng, materials): MaterialAssignment[]` — artefact-level material pass producing the componentId→material mapping the rest of the pipeline needs",
 						"status": "done",
 						"dependsOn": [
 							"2GN.23",
