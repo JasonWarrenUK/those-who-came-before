@@ -77,6 +77,38 @@ Deno.test('prose: deterministic — same component, same string', () => {
 	assertEquals(describeProse(c), describeProse(c));
 });
 
+Deno.test("prose: hollow-enclosed opening 'none' renders as a sealed vessel, not a dropped clause", () => {
+	const result = describeProse(
+		component({
+			primitiveType: 'hollow-enclosed',
+			properties: new Map<string, string | number>([
+				['shape', 'ovoid'],
+				['size', 'medium'],
+				['wall', 'thin'],
+				['opening', 'none'],
+				['base', 'flat'],
+			]),
+		}),
+	);
+	assert(result.includes('The form has no opening.'), result);
+	assert(!result.includes('The mouth is'), result);
+});
+
+Deno.test("prose: bar-form taper 'none' renders as untapered, not a dropped clause", () => {
+	const result = describeProse(
+		component({
+			primitiveType: 'bar-form',
+			properties: new Map<string, string | number>([
+				['length', 'long'],
+				['crossSection', 'round'],
+				['taper', 'none'],
+			]),
+		}),
+	);
+	assert(result.includes('The form is untapered.'), result);
+	assert(!result.includes('narrows'), result);
+});
+
 Deno.test('prose: "a"/"an" article agreement on .a slots', () => {
 	const vowelLed = describeProse(
 		component({
