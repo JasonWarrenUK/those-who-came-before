@@ -29,6 +29,7 @@ import type {
 	MaterialAssignment,
 	MaterialDefinition,
 	MaterialProvenance,
+	NormalisedArtefact,
 	NormalisedComponent,
 } from '../../types/artefact.ts';
 import type {
@@ -381,4 +382,44 @@ export function assignMaterialWithProvenance(
 		materialId: material.id,
 		provenance: deriveMaterialProvenance(material, geology, trade),
 	};
+}
+
+/**
+ * Assigns a material (with provenance) to every component of `artefact` in one pass (doc 05 §7,
+ * roadmap 2GN.75) — the componentId→material mapping the rest of the pipeline needs. Promotes the
+ * duplicated Explorer route logic (`materialAssignment.ts`, `decorationLayers.ts`) into the engine,
+ * one `assignMaterialWithProvenance` call per component, in `artefact.components` order.
+ *
+ * **Per-component PRNG namespacing.** The two Explorer routes each re-seeded a brand-new
+ * `createPrng` per component from a string key concatenating the artefact seed, the component's
+ * `position` and (in one route) a draw index — a workaround forced by having no single generator
+ * instance shared between the two routes, and by `component.id` differing across panels that
+ * normalise the same seed independently. Neither problem applies here: `assignMaterials` receives
+ * one `prng` instance and one already-normalised `artefact`, so it follows the engine's established
+ * convention instead (`expandGrammar`, `expandDecoration`) — threading that single generator
+ * through every component's draw, sequentially, rather than re-seeding per component. This keeps
+ * material assignment composable with whatever already-advanced `prng` the rest of Stage 6 is
+ * using, and needs no synthetic per-component seed string.
+ *
+ * @param artefact - The normalised artefact whose components need materials.
+ * @param culture - The culture whose material affinities apply.
+ * @param phase - The phase whose technology levels apply.
+ * @param geology - World-level material scarcity.
+ * @param trade - Material flows reachable through cultural relationships.
+ * @param prng - A generator from `createPrng`, consumed once per component via `weightedSelect`.
+ * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
+ * @returns One `MaterialAssignment` per component, in `artefact.components` order.
+ */
+export function assignMaterials(
+	artefact: NormalisedArtefact,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	prng: () => number,
+	materials: readonly MaterialDefinition[] = MATERIALS,
+): MaterialAssignment[] {
+	return artefact.components.map((component) =>
+		assignMaterialWithProvenance(component, culture, phase, geology, trade, prng, materials)
+	);
 }

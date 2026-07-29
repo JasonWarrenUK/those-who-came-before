@@ -537,8 +537,8 @@
 					},
 					{
 						"id": "2GN.75",
-						"description": "`engine/generation/materials.ts` — `assignMaterials(artefact, culture, phase, geology, trade, materials, prng): MaterialAssignment[]` — artefact-level material pass producing the componentId→material mapping the rest of the pipeline needs",
-						"status": "todo",
+						"description": "`engine/generation/materials.ts` — `assignMaterials(artefact, culture, phase, geology, trade, prng, materials): MaterialAssignment[]` — artefact-level material pass producing the componentId→material mapping the rest of the pipeline needs",
+						"status": "done",
 						"dependsOn": [
 							"2GN.23",
 							"2GN.26"
@@ -549,7 +549,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75"
