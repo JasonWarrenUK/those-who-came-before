@@ -1,114 +1,104 @@
 /**
  * Prose rendering of a `NormalisedComponent`'s parameters (doc 05 §5.3), shared between the
  * `scripts/dev/sample-*.ts` CLI samplers and the Project Explorer's structure viewer (roadmap
- * 2GN.57) — both need the same "long, rectangular section, double edge" phrasing, so it lives
- * under `engine/` rather than duplicated or imported cross-boundary from `scripts/dev/` (which
- * Vite refuses to serve to the browser; it sits outside the project's served roots).
+ * 2GN.57) — both need the same rendered sentence, so it lives under `engine/` rather than
+ * duplicated or imported cross-boundary from `scripts/dev/` (which Vite refuses to serve to the
+ * browser; it sits outside the project's served roots).
+ *
+ * Renders against `OBSERVATIONAL_TEMPLATES` (`data/descriptions/observational/`, roadmap 2GN.35)
+ * rather than hand-written phrase builders, so the dev tooling's voice and the eventual description
+ * engine's observational register never drift apart. The `#slot#`/`#slot.a#` expander below is
+ * deliberately minimal — real template expansion (variant selection, register/lens filtering,
+ * decorative sublayer composition) is `engine/generation/description.ts`'s job (roadmap 2GN.39),
+ * which supersedes this once it lands.
  *
  * Pure and framework-free per the engine boundary (doc 08 §2.1): no console output, no CLI
  * concerns — `printAnatomy` in `scripts/dev/shared.ts` owns those.
  */
 
 import type { NormalisedComponent } from '../../types/artefact.ts';
+import type { DescriptionTemplate } from '../../types/description.ts';
+import { OBSERVATIONAL_TEMPLATES } from '../../data/descriptions/observational/index.ts';
 
 /** Short display id for a component: its position along the primary axis (`c0`, `c1`…). */
 export function shortId(component: NormalisedComponent): string {
 	return `c${component.position}`;
 }
 
-/** Reads a component property as a display string; `undefined` when absent. */
-function propOf(component: NormalisedComponent, name: string): string | undefined {
-	const value = component.properties.get(name);
-	return value === undefined ? undefined : String(value);
-}
+const VOWEL_SOUND = /^[aeiou]/i;
 
-/** Applies a phrase mapper to a property when present. */
-function fragment(
-	component: NormalisedComponent,
-	name: string,
-	phrase: (value: string) => string | undefined,
-): string | undefined {
-	const value = propOf(component, name);
-	return value === undefined ? undefined : phrase(value);
+/** Matches `#slot#` and `#slot.a#` placeholders; shared with `index.test.ts`'s slot-id extraction. */
+export const SLOT_PATTERN = /#([a-zA-Z][\w-]*?)(\.a)?#/g;
+
+/** Prefixes a value with "a"/"an" per its leading sound. */
+function withArticle(value: string): string {
+	return `${VOWEL_SOUND.test(value) ? 'an' : 'a'} ${value}`;
 }
 
 /**
- * Phrase builders per primitive, in display order. Each maps a raw parameter value to a prose
- * fragment, or `undefined` to omit it (e.g. `point=none` says nothing). Unknown values pass
- * through raw so new grammar vocabulary is still visible rather than hidden.
+ * Expands `#slot#` and `#slot.a#` placeholders against a component's raw property values.
+ * `undefined` when any referenced slot is absent — the whole sentence is dropped rather than
+ * rendered with a hole, matching doc 05 §5.3's per-primitive parameter scoping (a template only
+ * ever references its own primitive's parameters, per the 2GN.35 authoring contract). A slot
+ * valued `'none'` also drops the clause here — that's the right behaviour for parameters where
+ * `'none'` means "nothing to observe" (e.g. `elongated.taper`). Parameters where `'none'` is
+ * itself an observable fact (e.g. a sealed vessel's `opening`) instead get a dedicated
+ * `<property>.none` template with no slots, handled by `describeProse` before this function runs.
  */
-const PROSE: Record<string, ((c: NormalisedComponent) => string | undefined)[]> = {
-	'elongated': [
-		(c) => propOf(c, 'length'),
-		(c) => fragment(c, 'crossSection', (v) => `${v} section`),
-		(c) => fragment(c, 'taper', (v) => v === 'none' ? undefined : `${v} taper`),
-		(c) => fragment(c, 'edge', (v) => v === 'none' ? undefined : `${v} edge`),
-		(c) => fragment(c, 'point', (v) => v === 'none' ? undefined : `${v} point`),
-	],
-	'cylindrical': [
-		(c) => propOf(c, 'length'),
-		(c) => fragment(c, 'diameter', (v) => `${v} bore`),
-		(c) => fragment(c, 'wall', (v) => `${v} wall`),
-		(c) => fragment(c, 'opening', (v) => v === 'open' ? 'open' : `${v} opening`),
-		(c) => fragment(c, 'base', (v) => `${v} base`),
-	],
-	'hollow-enclosed': [
-		(c) => propOf(c, 'shape'),
-		(c) => propOf(c, 'size'),
-		(c) => fragment(c, 'wall', (v) => `${v} wall`),
-		(c) => fragment(c, 'opening', (v) => v === 'none' ? 'no opening' : `${v} opening`),
-		(c) => fragment(c, 'base', (v) => `${v} base`),
-	],
-	'flat-broad': [
-		(c) => propOf(c, 'shape'),
-		(c) => propOf(c, 'size'),
-		(c) => propOf(c, 'thickness'),
-		(c) =>
-			fragment(c, 'curvature', (v) => {
-				if (v === 'flat') return 'flat';
-				return v === 'deep' ? 'deeply curved' : `${v} curve`;
-			}),
-		(c) =>
-			fragment(c, 'perforation', (v) => {
-				if (v === 'none') return undefined;
-				return v === 'multiple' ? 'multiple perforations' : `${v} perforation`;
-			}),
-	],
-	'ring-form': [
-		(c) => propOf(c, 'diameter'),
-		(c) => fragment(c, 'crossSection', (v) => `${v} section`),
-		(c) => fragment(c, 'gap', (v) => `${v} gap`),
-	],
-	'disc-form': [
-		(c) => propOf(c, 'diameter'),
-		(c) => propOf(c, 'thickness'),
-		(c) => fragment(c, 'perforation', (v) => v === 'none' ? undefined : `${v} perforation`),
-	],
-	'bar-form': [
-		(c) => propOf(c, 'length'),
-		(c) => fragment(c, 'crossSection', (v) => `${v} section`),
-		(c) =>
-			fragment(c, 'taper', (v) => {
-				if (v === 'none') return 'untapered';
-				if (v === 'single-end') return 'tapered one end';
-				return v === 'both-ends' ? 'tapered both ends' : `${v} taper`;
-			}),
-	],
-	'sheet-form': [
-		(c) => propOf(c, 'size'),
-		(c) => propOf(c, 'shape'),
-		(c) => propOf(c, 'flexibility'),
-	],
-};
+function expand(template: string, properties: Map<string, string | number>): string | undefined {
+	let sawNoneOrMissing = false;
+	const expanded = template.replace(
+		SLOT_PATTERN,
+		(_match, slot: string, article) => {
+			const value = properties.get(slot);
+			if (value === undefined || value === 'none') {
+				sawNoneOrMissing = true;
+				return '';
+			}
+			return article ? withArticle(String(value)) : String(value);
+		},
+	);
+	if (sawNoneOrMissing) return undefined;
+	return expanded.charAt(0).toUpperCase() + expanded.slice(1);
+}
 
-/** Prose rendering of a component's parameters; raw `key=value` for unknown primitives. */
+/**
+ * Picks which variant renders a property: the `<property>.none` template when the property's own
+ * slot is present in `OBSERVATIONAL_TEMPLATES` and the component's value for it is literally
+ * `'none'`, otherwise the base `<property>` template. `<property>.none` templates carry no slots
+ * (fixed text), so they always render regardless of what else the component carries.
+ */
+function selectTemplate(
+	template: DescriptionTemplate,
+	properties: Map<string, string | number>,
+): DescriptionTemplate {
+	const parameter = template.property.split('.').at(-1);
+	if (parameter !== undefined && properties.get(parameter) === 'none') {
+		const noneVariant = OBSERVATIONAL_TEMPLATES.find(
+			(t) => t.property === `${template.property}.none`,
+		);
+		if (noneVariant !== undefined) return noneVariant;
+	}
+	return template;
+}
+
+/**
+ * Prose rendering of a component's parameters; raw `key=value` for unknown primitives.
+ *
+ * Always renders `variants[0]` — 2GN.35's templates author exactly one variant per property, so
+ * there's nothing to select between yet. Variant selection by lens/hypothesis alignment (roadmap
+ * 2GN.38) will need to replace this indexing once a property can carry more than one.
+ */
 export function describeProse(component: NormalisedComponent): string {
-	const builders = PROSE[component.primitiveType];
-	if (builders === undefined) {
+	const templates = OBSERVATIONAL_TEMPLATES.filter((t) =>
+		t.property.startsWith(`${component.primitiveType}.`) && !t.property.endsWith('.none')
+	);
+	if (templates.length === 0) {
 		return [...component.properties.entries()].map(([k, v]) => `${k}=${v}`).join(', ');
 	}
-	return builders
-		.map((build) => build(component))
-		.filter((piece): piece is string => piece !== undefined)
-		.join(', ');
+	return templates
+		.map((t) => selectTemplate(t, component.properties))
+		.map((t) => expand(t.variants[0].template, component.properties))
+		.filter((sentence): sentence is string => sentence !== undefined)
+		.join(' ');
 }
