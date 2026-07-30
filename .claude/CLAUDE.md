@@ -24,16 +24,18 @@ This project has **14 comprehensive design documents** (docs/00-13) that specify
 detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on this codebase:
 
 1. **Always check the design docs first** before implementing anything
-2. The docs are the source of truth for design; `docs/roadmaps/mvp.md` is the source of truth for
-   task sequencing and completion state
+2. The docs are the source of truth for design; `.claude/roadmaps.json` is the machine-readable
+   source of truth for task sequencing, dependency edges and completion state. `docs/roadmaps/mvp.md`
+   is its human-readable projection (task lines, annotations, Mermaid diagram), kept in sync by the
+   `/roadmap-maintain` skill; when the two disagree, the JSON governs
 3. Current implementation is ~2% complete; most systems exist only in specification
 
 ### Reading Guide by Task
 
 - **Understanding the vision**: Read docs 02 (Design Pillars) → 03 (Core Loop) → 04 (Interpretive
   Lens)
-- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (authoritative task list + status) →
-  relevant spec doc → doc 08 (Architecture)
+- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (readable task list + status, projected
+  from `.claude/roadmaps.json`) → relevant spec doc → doc 08 (Architecture)
 - **Working on generation**: Doc 05 (Generation Architecture) — most technically dense
 - **Working on documents/career**: Doc 06 (Knowledge Model) → doc 07 (Career) → doc 10 (Documents)
 - **Understanding decisions**: Doc 11 (Deferred Decisions) → doc 13 (Post-MVP)
@@ -234,10 +236,12 @@ From doc 11, section 2.8:
 
 ## Implementation Roadmap
 
-The execution roadmap is **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP NPC
-Systems) with task IDs, checkbox completion state, dependency edges and a status table. Always take
-task selection and completion state from it. Doc 09 is the narrative source it was derived from (24
-phases with design rationale); when they diverge on sequencing, `mvp.md` governs.
+The execution roadmap lives in **`.claude/roadmaps.json`** (canonical: task IDs, statuses,
+`dependsOn` edges), projected into **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP
+NPC Systems) with task lines, checkbox completion state and the dependency diagram. Take task
+selection and completion state from the JSON; read `mvp.md` for the per-task delivery notes and
+design commentary the JSON doesn't carry. Doc 09 is the narrative source the roadmap was derived
+from (24 phases with design rationale); when they diverge on sequencing, the roadmap governs.
 
 Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Generation Pipeline → 3
 World State & Integration → 4 Player Interface → 5 Knowledge Model → 6 Lens System → 7
@@ -327,7 +331,7 @@ For complex outputs (generated artefacts, lens-filtered descriptions).
   lens mechanics, document tradition, career/reputation system, contradiction detection, persistence
   layer, NPC scholars
 
-Take exact completion state from `docs/roadmaps/mvp.md`'s checkboxes, not this summary — it's
+Take exact completion state from `.claude/roadmaps.json`'s `status` fields, not this summary — it's
 deliberately coarse and will drift.
 
 ## Design Pillars (Non-Negotiable)
@@ -410,7 +414,8 @@ tasks (pipeline at 2GN.x, stores at 3WS.x).
 
 ## References
 
-- `docs/roadmaps/mvp.md`: Execution roadmap (TASK SEQUENCE — authoritative for what to build next)
+- `.claude/roadmaps.json`: Execution roadmap (TASK SEQUENCE — authoritative for what to build next)
+- `docs/roadmaps/mvp.md`: Human-readable roadmap projection (delivery notes, dependency diagram)
 - Doc 00: Project overview (navigation guide)
 - Doc 01: Project audit (historical snapshot of the pre-reset codebase)
 - Doc 02: Design pillars
