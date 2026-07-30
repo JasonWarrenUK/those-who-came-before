@@ -434,9 +434,10 @@
 					{
 						"id": "2GN.15",
 						"description": "`engine/generation/plausibility.ts` — material-structural compatibility (material tags constrain joins/forms)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.12"
+							"2GN.12",
+							"2GN.10"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -582,7 +583,8 @@
 						"description": "`engine/generation/decoration.ts` — material prerequisite enforcement (engraving → hard material, glaze → ceramic, etc.)",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.29"
+							"2GN.29",
+							"2GN.75"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -685,7 +687,8 @@
 							"2GN.68",
 							"2GN.35",
 							"2GN.36",
-							"2GN.37"
+							"2GN.37",
+							"2GN.27"
 						],
 						"notes": "`ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance` generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s inline default into an exported `mockProvenance` fixture) rather than reordering — matches the 2GN.23 M2-provisional convention. Revisit once 2GN.47 lands real provenance.",
 						"assignee": "Jason Warren"
@@ -722,7 +725,8 @@
 						"description": "`engine/generation/description.ts` — `physicalLabel` composite label from observable properties",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.39"
+							"2GN.39",
+							"2GN.21"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -780,7 +784,6 @@
 						"description": "`engine/world/scholars.ts` — `generateNPCScholars(cultures, chronology, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.44",
 							"2GN.66"
 						],
 						"notes": "Signature takes the loose `Culture[]`/`WorldChronology` bag M2 can actually supply rather than `WorldState` (see 2GN.56's note); also needs an `InterpretiveModel` fixture factory added to `tests/fixtures/` since none exists (dependency sweep 2026-07-25).",
@@ -800,7 +803,9 @@
 						"description": "`engine/generation/corpus.ts` — `simulateExcavations(npcs, cultures, geology, trade, prng): SimulatedExcavation[]` — 6-8 campaigns biased by NPC preferences",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.49"
+							"2GN.49",
+							"2GN.44",
+							"2GN.47"
 						],
 						"notes": "Signature drops `WorldState` for the loose bag M2 can supply (see 2GN.56's note; dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
@@ -877,7 +882,9 @@
 						"description": "`engine/generation/pipeline.ts` — `runGenerationPipeline(culture, period, geology, trade, corpus, prng): ClassifiedArtefact` — full 9-stage orchestrator",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.53"
+							"2GN.53",
+							"2GN.16",
+							"2GN.30"
 						],
 						"notes": "`WorldState` does not exist as a type until 3WS.9 (`save.ts` confirms: \"No runtime `WorldState` aggregate exists yet\"), so this and the four corpus-chain signatures above (2GN.48/50/51) take the loose bag M2 can actually supply; 3WS.15 collapses them to the real `WorldState` parameter once it lands (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
@@ -1060,7 +1067,8 @@
 						"description": "`engine/generation/description.ts` + `engine/generation/classification.ts` — consume assemblage membership: describe/classify a multi-part assemblage distinctly from a single object once 2GN.69 lands",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.69"
+							"2GN.69",
+							"2GN.39"
 						],
 						"assignee": "Jason Warren"
 					},
