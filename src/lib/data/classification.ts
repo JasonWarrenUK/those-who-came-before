@@ -40,6 +40,26 @@
  * that sample instead (`decorativeLayerCount` p50 6/p75 10/p90 13, `decorativeComplexity` p50
  * 11.2/p75 16.3/p90 22.3, `techniqueComplexity` p90 9, `decorativeComplexity / partCount` p75 4.05);
  * see doc 12 §2.24 for the full distribution table and rationale.
+ *
+ * **Re-measured against modelled geology** (roadmap 2GN.79, doc 12 §2.25). The 2GN.34 sample above
+ * ran against `mockGeologicalContext`, which models only 4 of the catalogue's 16 materials, so the
+ * other twelve passed `isAvailable`'s "unmodelled → obtainable" lenience at full weight — silver
+ * came out the second most common material and jade outranked gold. Re-sampling 7200 artefacts
+ * across six named regional worlds that model every material (`tests/fixtures/world.ts`) corrected
+ * the material distribution but left `elite` almost untouched (89.8% presence, 89.2–90.8% in every
+ * world), proving it was never material-driven. Two rules were retuned as a result, both for
+ * intent-behaviour divergence: the applied-element rule (a saturating boolean replaced by
+ * `appliedElementCount >= 4`) and the structural-complexity rule (`attachmentDiversity >= 3`, its
+ * inert `partCount` clause dropped). The any-decoration nudge stays universal by design, as §2.24
+ * ruled — its 98% firing rate is documented behaviour, and `ornament`'s leadership fell from 27.0%
+ * to 18.8% on the applied-element fix alone, without touching it.
+ *
+ * **Every threshold here is absolute, and phase-sensitive.** Fire rates swing by an order of
+ * magnitude across `decorativeEmphasis` and `craftSpecialisation` (the applied-element rule: 4.3%
+ * at emphasis 0.1, 48.1% at 1.0). Whether a status tag should mean "unusual in this world" or
+ * "unusual for this culture" is an open design question — roadmap 2GN.80's spike — and every
+ * threshold in this file is provisional pending its ruling. Thresholds are, by contrast, robust to
+ * catalogue growth: measured identical at 10× the decorative-technique pool.
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
@@ -252,9 +272,21 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 
 	// --- Structural complexity -----------------------------------------------------------------------
 
-	/** Many parts joined many different ways: an engineered, crafted assembly — hafted tool, mounted fitting. */
+	/**
+	 * Many parts joined many different ways: an engineered, crafted assembly — hafted tool, mounted
+	 * fitting. Originally `partCount >= 3 && attachmentDiversity >= 2`, which measured at 44.4% of a
+	 * 7200-artefact sample (roadmap 2GN.79, doc 12 §2.25) — two joint types is the ordinary case,
+	 * not an engineered assembly. Retuned to `>= 3` distinct joint types (22.3%, the measured p75 of
+	 * `attachmentDiversity` and the same percentile the decoration family uses).
+	 *
+	 * The `partCount >= 3` clause is **dropped as inert**, not merely redundant: measurement showed
+	 * the compound condition fires at exactly 44.4% with the clause, without it, and even with it
+	 * raised to `>= 4` — an artefact cannot carry three distinct joint types without carrying the
+	 * parts to join, so the diversity term already subsumes it. A clause that never changes the
+	 * outcome misrepresents what the rule tests.
+	 */
 	{
-		condition: (f) => f.partCount >= 3 && f.attachmentDiversity >= 2,
+		condition: (f) => f.attachmentDiversity >= 3,
 		tags: new Map([['tool', 0.3], ['artisanal', 0.3]]),
 	},
 
@@ -271,9 +303,28 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['ornament', 0.3], ['elite', 0.4], ['ceremonial', 0.3]]),
 	},
 
-	/** An applied element (inlay, gilding, studs, overlay, wire-wrapping) is a deliberate embellishment. */
+	/**
+	 * Several applied elements (inlay, gilding, studs, overlay, wire-wrapping) mark deliberate
+	 * embellishment. Originally read the bare `appliedElementPresent` flag, which measured at 84.6%
+	 * of a 7200-artefact sample (roadmap 2GN.79, doc 12 §2.25) — the rule claimed "deliberate
+	 * embellishment" while firing on five artefacts in six.
+	 *
+	 * That saturation is **structural, not a mistuned threshold**: `expandDecoration` gives each BNF
+	 * category its own per-component slot rolls, so at the fixture phase every component has a 0.45
+	 * chance of carrying an applied element and a ~4.15-component artefact reaches ~87% by
+	 * arithmetic alone. No weight on a boolean fixes that. The underlying *count* does discriminate
+	 * (p50 2, p75 4, p90 5, max 15), so this reads `appliedElementCount` at its measured p75,
+	 * firing on 25.2% — within a point of retuned R30's 25.3%, so the two elite-bearing decoration
+	 * rules carry comparable selectivity rather than one drowning the other.
+	 *
+	 * Robust to catalogue growth: measured identical at 2×, 4× and 10× the applied-element technique
+	 * pool, because slot count sets the number and pool size only decides which technique fills a
+	 * slot. **Not** robust to phase attributes (4.3% at `decorativeEmphasis` 0.1, 48.1% at 1.0) — a
+	 * property shared by every measured threshold in this file, and the subject of the
+	 * absolute-vs-culture-relative status spike (roadmap 2GN.80).
+	 */
 	{
-		condition: (f) => f.appliedElementPresent,
+		condition: (f) => f.appliedElementCount >= 4,
 		tags: new Map([['elite', 0.4], ['ornament', 0.3]]),
 	},
 
