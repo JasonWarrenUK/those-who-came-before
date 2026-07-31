@@ -30,21 +30,24 @@ import {
 	printAnatomy,
 	sampleSeed,
 	sampleWorld,
+	sampleWorldRegion,
 	shortId,
+	WORLD_FLAG_USAGE,
 } from './shared.ts';
 
 const USAGE = `sample-features — extract classification features from sampled artefacts
 
-Usage: deno task sample:features [--seed <string>] [--count <n>] [--bare] [--json]
+Usage: deno task sample:features [--seed <string>] [--count <n>] [--bare] [--world <region>] [--json]
 
   --seed   Base PRNG seed (default: dev-sample). Sample n of a batch uses "<seed>-<n>".
   --count  Number of artefacts to sample (default: 1).
   --bare   Skip decorative expansion (extract from the bare structure).
+${WORLD_FLAG_USAGE}
   --json   Emit JSON of the full ExtractedFeatures contract instead of the reading.`;
 
 const options = parseSampleOptions(USAGE, { '--bare': 'boolean' });
 const bare = options.values.has('--bare');
-const world = sampleWorld();
+const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);

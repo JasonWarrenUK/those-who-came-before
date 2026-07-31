@@ -19,17 +19,20 @@ import {
 	printAnatomy,
 	sampleSeed,
 	sampleWorld,
+	sampleWorldRegion,
 	shortId,
+	WORLD_FLAG_USAGE,
 } from './shared.ts';
 
 const USAGE = `sample-materials — assign materials to sampled artefact components
 
-Usage: deno task sample:materials [--seed <string>] [--count <n>] [--draws <n>] [--json]
+Usage: deno task sample:materials [--seed <string>] [--count <n>] [--draws <n>] [--world <region>] [--json]
 
   --seed   Base PRNG seed (default: dev-sample). Sample n of a batch uses "<seed>-<n>".
   --count  Number of artefacts to sample (default: 1).
   --draws  Redraw the FIRST sample's assignments n times and print the pick distribution
            per component (default: off) — the affinity/scarcity tilt becomes visible around 100+.
+${WORLD_FLAG_USAGE}
   --json   Emit JSON instead of the report.`;
 
 const options = parseSampleOptions(USAGE, { '--draws': 'value' });
@@ -39,7 +42,7 @@ if (!Number.isInteger(draws) || draws < 0) {
 	Deno.exit(1);
 }
 
-const world = sampleWorld();
+const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);

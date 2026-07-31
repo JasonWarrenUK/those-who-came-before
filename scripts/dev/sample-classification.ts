@@ -38,20 +38,23 @@ import {
 	printAnatomy,
 	sampleSeed,
 	sampleWorld,
+	sampleWorldRegion,
+	WORLD_FLAG_USAGE,
 } from './shared.ts';
 
 const USAGE = `sample-classification — score sampled artefacts against the shipped rules
 
-Usage: deno task sample:classification [--seed <string>] [--count <n>] [--bare] [--json]
+Usage: deno task sample:classification [--seed <string>] [--count <n>] [--bare] [--world <region>] [--json]
 
   --seed   Base PRNG seed (default: dev-sample). Sample n of a batch uses "<seed>-<n>".
   --count  Number of artefacts to sample (default: 1).
   --bare   Skip decorative expansion (classify the bare structure).
+${WORLD_FLAG_USAGE}
   --json   Emit JSON (tag map, fired rules and contributions) instead of the chart.`;
 
 const options = parseSampleOptions(USAGE, { '--bare': 'boolean' });
 const bare = options.values.has('--bare');
-const world = sampleWorld();
+const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
 /** One rule's additive contribution to one tag. */
 interface Contribution {

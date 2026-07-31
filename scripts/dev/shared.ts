@@ -24,7 +24,8 @@ import { expandGrammar, normaliseArtefact } from '../../src/lib/engine/generatio
 import { describeProse, shortId } from '../../src/lib/engine/generation/prose.ts';
 import { CORE_GRAMMAR_RULES } from '../../src/lib/data/grammars/core.ts';
 import { mockCulturalProfile, mockPhaseCharacteristics } from '../../tests/fixtures/culture.ts';
-import { mockGeologicalContext, mockMaterialFlow } from '../../tests/fixtures/world.ts';
+import { MOCK_WORLD_REGIONS, mockRegionalWorld } from '../../tests/fixtures/world.ts';
+import type { MockWorldRegion } from '../../tests/fixtures/world.ts';
 import type { NormalisedArtefact, NormalisedComponent } from '../../src/lib/types/artefact.ts';
 import type {
 	CulturalProfile,
@@ -42,12 +43,18 @@ export { describeProse, shortId };
 /** Flag spec: `value` flags consume the next argument, `boolean` flags stand alone. */
 export type FlagSpec = Record<string, 'value' | 'boolean'>;
 
-/** Flags every sampler shares: `--seed <string>`, `--count <n>`, `--json`. */
+/** Flags every sampler shares: `--seed <string>`, `--count <n>`, `--world <region>`, `--json`. */
 export const COMMON_FLAGS: FlagSpec = {
 	'--seed': 'value',
 	'--count': 'value',
+	'--world': 'value',
 	'--json': 'boolean',
 };
+
+/** The `--world` line every sampler's usage string shares (roadmap 2GN.79). */
+export const WORLD_FLAG_USAGE =
+	`  --world  Named regional geology (default: coastalPort). One of:\n` +
+	`           riverValley, highlandMine, coastalPort, forestInterior, desertMargin, steppeMargin.`;
 
 export interface SampleOptions {
 	/** Base PRNG seed; sample N uses `${seed}-${n}` when count > 1. */
@@ -120,16 +127,53 @@ export interface SampleWorld {
 	phase: PhaseCharacteristics;
 	geology: GeologicalContext;
 	trade: readonly MaterialFlow[];
+	/** Which named region `geology`/`trade` came from, for the sampler header. */
+	region: MockWorldRegion;
+	/** One-line description of that region. */
+	summary: string;
 }
 
-/** Builds the fixture-backed world: metal-leaning culture, flat 0.5 phase, mixed geology. */
-export function sampleWorld(): SampleWorld {
+/**
+ * Builds the fixture-backed world: metal-leaning culture, flat 0.5 phase, and one of the six named
+ * regional geologies (roadmap 2GN.79, `tests/fixtures/world.ts`).
+ *
+ * Before 2GN.79 this used `mockGeologicalContext`, which models only 4 of 16 catalogue materials —
+ * the other twelve fell through `isAvailable`'s unmodelled lenience at full weight, making silver
+ * the second most common material in sampled output and gold rarer than jade. The named regions
+ * model every material explicitly, so sampled material distribution reflects a stated geology.
+ *
+ * @param region - Which of the six worlds. Defaults to `coastalPort`, the most materially varied.
+ */
+export function sampleWorld(region: MockWorldRegion = 'coastalPort'): SampleWorld {
+	const world = mockRegionalWorld(region);
+
 	return {
 		culture: mockCulturalProfile(),
 		phase: mockPhaseCharacteristics(),
-		geology: mockGeologicalContext(),
-		trade: [mockMaterialFlow()],
+		geology: world.geology,
+		trade: world.trade,
+		region: world.region,
+		summary: world.summary,
 	};
+}
+
+/**
+ * Reads the shared `--world <region>` flag, validating it against the six named regions. Exits
+ * loudly on an unknown region rather than silently sampling the default, matching
+ * `parseSampleOptions`' unrecognised-argument behaviour.
+ */
+export function sampleWorldRegion(options: SampleOptions, usage: string): MockWorldRegion {
+	const requested = options.values.get('--world');
+	if (requested === undefined) return 'coastalPort';
+
+	if (!(MOCK_WORLD_REGIONS as readonly string[]).includes(requested)) {
+		console.error(
+			`Unknown --world "${requested}". One of: ${MOCK_WORLD_REGIONS.join(', ')}\n\n${usage}`,
+		);
+		Deno.exit(1);
+	}
+
+	return requested as MockWorldRegion;
 }
 
 /** Expands and normalises one artefact from `seed` against `world`. */
