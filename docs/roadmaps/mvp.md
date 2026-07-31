@@ -559,10 +559,12 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields
       (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new
       `materials`/`assignments` parameter on `extractFeatures`, and fixture updates
-      (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves _(depends
-      on 2GN.20, 2GN.75)_ — dependency sweep 2026-07-25 corrected the 2GN.23 edge to 2GN.75
-      (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope
-      the original line hid
+      (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves _(blocked
+      — depends on 2GN.20, 2GN.75, 2GN.77)_ — dependency sweep 2026-07-25 corrected the 2GN.23 edge
+      to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the
+      breaking scope the original line hid; 2GN.77 edge added 2026-07-31 — the "precious metals →
+      elite/ceremonial" framing above assumes static preciousness, which the spike may overturn in
+      favour of a world-relative value model, so no rule is authored until it resolves
 - [x] **2GN.28** — `src/lib/data/decorations.ts` — decorative technique definitions: surface
       treatments (polish, patina, scoring, engraving, relief, painting, glaze), applied elements
       (inlay, overlay, studs, wire-wrapping, gilding), textile elements (wrapping, tassels, beading)
@@ -689,6 +691,46 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs
       at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds
       the phase-driven salience dimension
+- [ ] **2GN.79** — `tests/fixtures/world.ts` + `src/lib/data/classification.ts` — geological fixture
+      correction and whole-rule-set tag-contribution rebalance _(no dependencies — unblocked)_ —
+      `mockGeologicalContext` models only 4 of 16 catalogue materials (bronze/iron/gold/flint), so
+      the other twelve fall through `isAvailable`'s "unmodelled → obtainable" lenience at full
+      weight — measuring 1200 pipeline artefacts found silver the second most common material at
+      10.3% of components and jade 6.6%, while genuinely-scarce gold sits at 1.4%, giving 53.4% of
+      artefacts at least one "precious" component. Separately, `elite` appears on 91.5% of artefacts
+      and is the top-scoring tag on 31.3%, driven chiefly by rules [30] (`appliedElementPresent` →
+      elite 0.4) firing on 86.4% and [31] (`decorativeLayerCount >= 1` → ornament 0.2) on 99.3% — the
+      two decoration rules 2GN.34 left untouched when it retuned the `decorativeLayerCount` family.
+      Under `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21) this is a near-constant
+      contribution rather than a discriminating one, the failure mode doc 12 §2.24 diagnosed. Adds
+      `mockFullGeologicalContext` modelling all 16 materials (keeping `mockGeologicalContext`
+      unchanged for its deliberate one-per-level lenience coverage), switches `sampleWorld()` to it,
+      and retunes weights/thresholds so `elite` is no longer the most-fired tag. Runs ahead of
+      2GN.77 so that spike reasons from corrected numbers. ⚠️ per the classification-branch
+      oversight preference, retunes need decision-by-decision sign-off, same as 2GN.17/2GN.20/2GN.34
+      (doc 12 §2.19/§2.21/§2.24)
+- [ ] **2GN.77** — design spike — does a material's classificatory value derive from static
+      catalogue tags (`precious-metal`/`precious-stone`) or from its situation in the generated
+      world? _(blocked — depends on 2GN.79)_ — the static model bakes an Earth judgement into
+      `data/materials.ts`: a generated culture with abundant gold would have `elite` stamped across
+      most of its material record under a naive material→tag rule — the tag system reporting a
+      society composed entirely of elites — while obsidian in a culture with no volcanic geology
+      reads ordinary despite being genuinely scarce there. The world-relative alternative derives
+      value from `GeologicalContext.materialAvailability` × `CulturalProfile.materialAffinities` ×
+      `MaterialAssignment.provenance.source` × `PhaseCharacteristics.society.stratification` (the
+      last currently read by nothing, despite doc 05 §3.2 commenting "Affects elite/utilitarian
+      distribution"). Deliverables: decision recorded in doc 11 (locked decisions) and doc 12
+      (propagation register); the derived-value formula if world-relative wins; a ruling on whether
+      `MaterialTag`'s `precious-*` members survive as classification inputs; and the resulting
+      contract for whether `extractFeatures` needs world context, which determines whether doc 12
+      §2.20's pure-function contract breaks. Surfaced 2026-07-31 during 2GN.27 planning, before any
+      material→tag rule was authored
+- [ ] **2GN.78** — `src/lib/types/tags.ts` + `src/lib/data/materials.ts` — revisit `MaterialTag`'s
+      `precious-metal`/`precious-stone` members per the 2GN.77 ruling _(blocked — depends on
+      2GN.77)_ — ⚠️ breaking if removed or stop feeding classification: referenced by
+      `INTRODUCED_MATERIAL_TAGS` in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`,
+      and doc 12 §2.22's interviewed gilding/inlay/overlay/studs/beading tag sets. Conditional on
+      the spike's outcome — may resolve to no code change if 2GN.77 keeps the static model
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
@@ -731,7 +773,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from
       `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from
-      `DecorativeLayer.material`→precious-material lookup) _(depends on 2GN.33, 2GN.20 — unblocked)_
+      `DecorativeLayer.material`→precious-material lookup) _(blocked — depends on 2GN.33, 2GN.20,
+      2GN.77)_ — 2GN.77 edge added 2026-07-31: `preciousMaterialsInDecoration` is static
+      preciousness by construction, gated on the material value model the spike settles
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -1083,7 +1127,8 @@ integration with real culture data
       — depends on 3WS.1)_
 - [ ] **3WS.3** — `engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture
       generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)
-      _(blocked — depends on 3WS.2)_
+      _(blocked — depends on 3WS.2, 2GN.77)_ — 2GN.77 edge added 2026-07-31: `materialAffinities`
+      feeds the material value model the spike settles
 - [ ] **3WS.4** — `engine/world/culture.ts` — `generatePhases(culture, prng): CulturePhase[]` — 3-4
       phases per culture with `PhaseCharacteristics` (technology, economy, society, aesthetics)
       _(blocked — depends on 3WS.3)_
@@ -1094,10 +1139,11 @@ integration with real culture data
       materials, direction, volume) _(blocked — depends on 3WS.5)_
 - [ ] **3WS.7** — `engine/world/seed.ts` — geological context generation: `GeologicalContext` with
       material availability per region, `AvailabilityLevel` per material _(blocked — depends on
-      3WS.1)_ — inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here:
-      decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or
-      stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47
-      already mint against mock fixtures
+      3WS.1, 2GN.77)_ — inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred
+      here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️
+      breaking) or stay convention-agreed strings, and reconcile the provisional region strings
+      2GN.26 and 2GN.47 already mint against mock fixtures; 2GN.77 edge added 2026-07-31:
+      `materialAvailability` feeds the material value model the spike settles
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
       sets for cultural fingerprinting) _(blocked — depends on 3WS.3)_ — generated vocabularies must
       be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's
@@ -1290,7 +1336,8 @@ surfacing, retcon flow
       detector _(blocked — depends on 6LS.5, M6)_
 - [ ] **7CD.2** — `engine/contradiction/detection.ts` — material contradiction rules (agent claims
       culture doesn't use material X, but artefact from that culture contains it) _(blocked —
-      depends on 7CD.1)_
+      depends on 7CD.1, 2GN.77)_ — 2GN.77 edge added 2026-07-31: "culture doesn't use material X"
+      needs a definition of material value to detect a contradiction against
 - [ ] **7CD.3** — `engine/contradiction/detection.ts` — temporal contradiction rules (chronology
       conflicts with stratigraphic evidence) _(blocked — depends on 7CD.1)_
 - [ ] **7CD.4** — `engine/contradiction/detection.ts` — cultural contradiction rules (agent's
@@ -1307,7 +1354,8 @@ surfacing, retcon flow
       diverges from occluded distribution) _(blocked — depends on 7CD.1)_
 - [ ] **7CD.9** — `engine/contradiction/detection.ts` — material provenance contradiction rules
       (wrong explanation for material presence despite correct identification) _(blocked — depends
-      on 7CD.1)_
+      on 7CD.1, 2GN.77)_ — 2GN.77 edge added 2026-07-31: what a provenance explanation is "wrong"
+      about depends on the material value model the spike settles
 - [ ] **7CD.10** — `engine/contradiction/detection.ts` — severity scoring:
       `minor`/`moderate`/`major`/`critical` based on type, evidence weight, stakes _(blocked —
       depends on 7CD.1)_
@@ -1628,6 +1676,9 @@ graph LR
 	2GN.11["2GN.11: `src/lib/data/plausibility.ts` — plausi…"]
 	2GN.22["2GN.22: `src/lib/data/materials.ts` — material…"]
 	2GN.28["2GN.28: `src/lib/data/decorations.ts` — decorat…"]
+	2GN.79["2GN.79: `tests/fixtures/world.ts` + `src/lib/da…"]
+	2GN.77["2GN.77: design spike — does a material's classi…"]
+	2GN.78["2GN.78: `src/lib/types/tags.ts` + `src/lib/data…"]
 	2GN.35["2GN.35: `src/lib/data/descriptions/observationa…"]
 	2GN.36["2GN.36: `src/lib/data/descriptions/interpretive…"]
 	2GN.37["2GN.37: `src/lib/data/descriptions/technical/`…"]
@@ -1959,6 +2010,15 @@ graph LR
 	2GN.11 --> 2GN.12
 	2GN.22 --> 2GN.23
 	2GN.28 --> 2GN.29
+	2GN.79 --> 2GN.77
+	2GN.77 --> 2GN.78
+	2GN.77 --> 2GN.27
+	2GN.77 --> 2GN.68
+	2GN.77 --> 3WS.3
+	2GN.77 --> 3WS.7
+	2GN.77 --> 7CD.2
+	2GN.77 --> 7CD.9
+	2GN.78 --> M2
 	2GN.35 --> 2GN.38
 	2GN.36 --> 2GN.38
 	2GN.37 --> 2GN.38
@@ -2381,8 +2441,8 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.27,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.74,2GN.76 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.79 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.77,2GN.78,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
 	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.8,2GN.9 done
 ```
 

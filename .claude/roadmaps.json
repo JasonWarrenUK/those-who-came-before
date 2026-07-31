@@ -550,10 +550,11 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.20",
-							"2GN.75"
+							"2GN.75",
+							"2GN.77"
 						],
 						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid.",
 						"assignee": "Jason Warren"
@@ -625,6 +626,34 @@
 						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension."
 					},
 					{
+						"id": "2GN.79",
+						"description": "`tests/fixtures/world.ts` + `src/lib/data/classification.ts` — geological fixture correction and whole-rule-set tag-contribution rebalance",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "`mockGeologicalContext` models only 4 of 16 catalogue materials (bronze/iron/gold/flint), so the other twelve fall through `isAvailable`'s \"unmodelled → obtainable\" lenience at full weight — measuring 1200 pipeline artefacts found silver the second most common material at 10.3% of components and jade 6.6%, while genuinely-scarce gold sits at 1.4%, giving 53.4% of artefacts at least one \"precious\" component. Separately, `elite` appears on 91.5% of artefacts and is the top-scoring tag on 31.3%, driven chiefly by rules [30] (`appliedElementPresent` → elite 0.4) firing on 86.4% and [31] (`decorativeLayerCount >= 1` → ornament 0.2) on 99.3% — the two decoration rules 2GN.34 left untouched when it retuned the `decorativeLayerCount` family. Under `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21) this is a near-constant contribution rather than a discriminating one, the failure mode doc 12 §2.24 diagnosed. Adds `mockFullGeologicalContext` modelling all 16 materials (keeping `mockGeologicalContext` unchanged for its deliberate one-per-level lenience coverage), switches `sampleWorld()` to it, and retunes weights/thresholds so `elite` is no longer the most-fired tag. Runs ahead of 2GN.77 so that spike reasons from corrected numbers. ⚠️ per the classification-branch oversight preference, retunes need decision-by-decision sign-off, same as 2GN.17/2GN.20/2GN.34 (doc 12 §2.19/§2.21/§2.24).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.77",
+						"description": "design spike — does a material's classificatory value derive from static catalogue tags (`precious-metal`/`precious-stone`) or from its situation in the generated world?",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.79"
+						],
+						"notes": "The static model bakes an Earth judgement into `data/materials.ts`: a generated culture with abundant gold would have `elite` stamped across most of its material record under a naive material→tag rule — the tag system reporting a society composed entirely of elites — while obsidian in a culture with no volcanic geology reads ordinary despite being genuinely scarce there. The world-relative alternative derives value from `GeologicalContext.materialAvailability` × `CulturalProfile.materialAffinities` × `MaterialAssignment.provenance.source` × `PhaseCharacteristics.society.stratification` (the last currently read by nothing, despite doc 05 §3.2 commenting \"Affects elite/utilitarian distribution\"). Deliverables: decision recorded in doc 11 (locked decisions) and doc 12 (propagation register); the derived-value formula if world-relative wins; a ruling on whether `MaterialTag`'s `precious-*` members survive as classification inputs; and the resulting contract for whether `extractFeatures` needs world context, which determines whether doc 12 §2.20's pure-function contract breaks. Surfaced 2026-07-31 during 2GN.27 planning, before any material→tag rule was authored.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.78",
+						"description": "`src/lib/types/tags.ts` + `src/lib/data/materials.ts` — revisit `MaterialTag`'s `precious-metal`/`precious-stone` members per the 2GN.77 ruling",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.77"
+						],
+						"notes": "⚠️ breaking if removed or stop feeding classification: referenced by `INTRODUCED_MATERIAL_TAGS` in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`, and doc 12 §2.22's interviewed gilding/inlay/overlay/studs/beading tag sets. Conditional on the spike's outcome — may resolve to no code change if 2GN.77 keeps the static model.",
+						"assignee": "Jason Warren"
+					},
+					{
 						"id": "2GN.34",
 						"description": "`src/lib/data/classification.ts` — decorative classification rules consuming layer count, technique variety and depth",
 						"status": "done",
@@ -671,10 +700,11 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.33",
-							"2GN.20"
+							"2GN.20",
+							"2GN.77"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1131,7 +1161,8 @@
 						"description": "`engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)",
 						"status": "blocked",
 						"dependsOn": [
-							"3WS.2"
+							"3WS.2",
+							"2GN.77"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1167,7 +1198,8 @@
 						"description": "`engine/world/seed.ts` — geological context generation: `GeologicalContext` with material availability per region, `AvailabilityLevel` per material",
 						"status": "blocked",
 						"dependsOn": [
-							"3WS.1"
+							"3WS.1",
+							"2GN.77"
 						],
 						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.",
 						"assignee": "Jason Warren"
@@ -1817,7 +1849,8 @@
 						"description": "`engine/contradiction/detection.ts` — material contradiction rules (agent claims culture doesn't use material X, but artefact from that culture contains it)",
 						"status": "blocked",
 						"dependsOn": [
-							"7CD.1"
+							"7CD.1",
+							"2GN.77"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1880,7 +1913,8 @@
 						"description": "`engine/contradiction/detection.ts` — material provenance contradiction rules (wrong explanation for material presence despite correct identification)",
 						"status": "blocked",
 						"dependsOn": [
-							"7CD.1"
+							"7CD.1",
+							"2GN.77"
 						],
 						"assignee": "Jason Warren"
 					},
