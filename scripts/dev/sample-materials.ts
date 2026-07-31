@@ -53,8 +53,8 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 			world.phase,
 			world.geology,
 			world.trade,
-			MATERIALS,
 			prng,
+			MATERIALS,
 		),
 	]));
 	return { seed, artefact, assignments };
@@ -73,8 +73,8 @@ function drawDistribution(): Map<string, Map<string, number>> {
 				world.phase,
 				world.geology,
 				world.trade,
-				MATERIALS,
 				prng,
+				MATERIALS,
 			);
 			const tally = tallies.get(shortId(component)) ?? new Map<string, number>();
 			tally.set(material.id, (tally.get(material.id) ?? 0) + 1);

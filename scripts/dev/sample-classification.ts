@@ -69,9 +69,9 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		world.phase,
 		world.geology,
 		world.trade,
+		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng(`${seed}-decoration`),
 	);
 	const features = extractFeatures(artefact, layers);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES);
