@@ -63,4 +63,11 @@ export const panels: ExplorerPanel[] = [
 		milestone: 2,
 		status: 'available',
 	},
+	{
+		id: 'calibration',
+		label: 'Rule Calibration',
+		path: '/dev/explorer/calibration',
+		milestone: 2,
+		status: 'available',
+	},
 ];
