@@ -691,30 +691,128 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs
       at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds
       the phase-driven salience dimension
-- [ ] **2GN.79** — `tests/fixtures/world.ts` + `src/lib/data/classification.ts` — geological fixture
-      correction and whole-rule-set tag-contribution rebalance _(no dependencies — unblocked)_ —
-      `mockGeologicalContext` models only 4 of 16 catalogue materials (bronze/iron/gold/flint), so
-      the other twelve fall through `isAvailable`'s "unmodelled → obtainable" lenience at full
-      weight — measuring 1200 pipeline artefacts found silver the second most common material at
-      10.3% of components and jade 6.6%, while genuinely-scarce gold sits at 1.4%, giving 53.4% of
-      artefacts at least one "precious" component. Separately, `elite` appears on 91.5% of artefacts
-      and is the top-scoring tag on 31.3%, driven chiefly by rules [30] (`appliedElementPresent` →
-      elite 0.4) firing on 86.4% and [31] (`decorativeLayerCount >= 1` → ornament 0.2) on 99.3% — the
-      two decoration rules 2GN.34 left untouched when it retuned the `decorativeLayerCount` family.
-      Under `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21) this is a near-constant
-      contribution rather than a discriminating one, the failure mode doc 12 §2.24 diagnosed. Adds
-      `mockFullGeologicalContext` modelling all 16 materials (keeping `mockGeologicalContext`
-      unchanged for its deliberate one-per-level lenience coverage), switches `sampleWorld()` to it,
-      and retunes weights/thresholds so `elite` is no longer the most-fired tag. Runs ahead of
-      2GN.77 so that spike reasons from corrected numbers. ⚠️ per the classification-branch
-      oversight preference, retunes need decision-by-decision sign-off, same as 2GN.17/2GN.20/2GN.34
-      (doc 12 §2.19/§2.21/§2.24)
+- [x] **2GN.79** — `tests/fixtures/world.ts` + `src/lib/data/classification.ts` +
+      `src/lib/types/artefact.ts` — geological fixture correction and whole-rule-set
+      tag-contribution rebalance — `mockGeologicalContext` models only 4 of 16 catalogue materials
+      (bronze/iron/gold/flint), so the other twelve fell through `isAvailable`'s "unmodelled →
+      obtainable" lenience at full weight: 1200 sampled artefacts put silver second most common at
+      10.3% of components and jade at 6.6% against genuinely-scarce gold's 1.4%, with 53.4% of
+      artefacts carrying a "precious" component. Landed (interviewed decision-by-decision per the
+      classification-branch oversight preference; doc 12 §2.25 records the session) as **six named
+      regional worlds** rather than the single `mockFullGeologicalContext` originally scoped —
+      `riverValley`, `highlandMine`, `coastalPort`, `forestInterior`, `desertMargin`,
+      `steppeMargin`, each modelling all 16 materials explicitly with its own `MaterialFlow[]`, so a
+      threshold tuned against one geology is exposed by another. Between them they cover every
+      `AvailabilityLevel` and both exclusion paths (`absent` in `desertMargin`;
+      trade-only-with-no-matching-flow in `forestInterior`, which carries an empty flow array).
+      `mockGeologicalContext` is deliberately untouched — it is now the fixture covering the
+      unmodelled-lenience path the six full worlds no longer reach. `sampleWorld()` takes a region
+      argument (default `coastalPort`) and all five samplers gained `--world`, a scope expansion
+      agreed at interview beyond the task's original two files. **The fixture fix corrected
+      materials but not `elite`, which was the substantive finding**: re-measuring 7200 artefacts
+      across the six worlds moved precious-bearing artefacts 55.3% → 27.1%, silver 11.1% → 3.9%,
+      jade 6.6% → 1.4% and put gold above jade, yet `elite` was unmoved (89.8% presence, 35.4%
+      leader) and near-identical in all six worlds (89.2–90.8%) — proving it was never
+      material-driven. The applied-element rule's 84.6% firing turned out **structural, not a
+      mistuned threshold**: `expandDecoration` gives each BNF category its own per-component slot
+      rolls (0.45 base chance at the fixture phase), so a ~4.15-component artefact reaches ~87% by
+      arithmetic alone and no weight on a boolean fixes it. **Two rules retuned**, both for
+      intent-behaviour divergence (the agreed criterion — a rule firing often because its structure
+      is genuinely common is honest and was left alone): R31 now reads a new
+      `ExtractedFeatures.appliedElementCount` at its measured p75 (`>= 4`, firing 25.2%, within a
+      point of retuned R30's 25.3%) instead of the saturating boolean, an extraction-side change
+      agreed at interview so this task was not data-only; R29 raised to `attachmentDiversity >= 3`
+      (44.4% → 22.3%) with its `partCount >= 3` clause **dropped as inert** (identical fire rate
+      with it, without it, and with it raised to `>= 4`). R32's 98% firing was investigated and
+      deliberately left — it does not diverge from its stated intent, doc 12 §2.24 had already ruled
+      the same way, and `ornament`'s leadership fell 27.0% → 18.8% on the R31 fix alone; this task's
+      original entry blaming it is corrected in doc 12 §2.25. Result: `elite` leadership 35.4% →
+      27.4%, top four tags now within 12 points rather than 25. **Durability tested**: robust to
+      catalogue growth (identical at 2×, 4× and 10× the applied-element technique pool — slot count
+      sets the quantity, pool size only picks which technique fills a slot) and to geology (22–26%
+      across the six worlds), but **not** to phase attributes (R31 fires 4.3% at
+      `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0)
+      — which affects every measured threshold including §2.24's seven, and spawned spike 2GN.80
+      plus recalibration tasks 2GN.82–85. Also spawned 2GN.81 (Rule Calibration panel) and fixed
+      five pre-existing broken `assignMaterial`/`expandDecoration` call sites in the samplers
+      (argument order; `deno check` was failing on `scripts/dev/` and two samplers threw at
+      runtime). New coverage: `tests/fixtures/world.test.ts` (11 tests) and
+      `src/lib/data/calibration.test.ts` (fire-rate regression guard over all 43 rules — the gap
+      that let R31 sit at 85% since 2GN.34), plus extraction and rule tests for the new field
+- [ ] **2GN.80** — design spike — are status tags absolute across the world, or relative to the
+      producing culture's norms? _(depends on 2GN.79 — done; unblocked)_ — surfaced 2026-07-31
+      during 2GN.79's durability testing. Every threshold in `data/classification.ts` is an absolute
+      constant and every one is strongly phase-sensitive: the retuned applied-element rule fires on
+      4.3% of output at `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1
+      and 74.5% at 1.0. So `elite` currently means "unusually decorated _in absolute terms_", making
+      a highly decorative culture read as composed almost entirely of elites and an austere one as
+      having none — the same failure 2GN.77 identifies for materials, reached from the decoration
+      side. The alternative derives the threshold from the producing culture's own expected
+      decorative volume, so "lavish" means lavish _for this culture_. ⚠️
+      `ClassificationRule.condition` currently receives only `ExtractedFeatures` (doc 12 §2.20's
+      pure-function contract), so a culture-relative reading breaks that signature — the ruling's
+      main irreversible consequence. Deliverables: decision recorded in doc 11 and doc 12; if
+      culture-relative wins, the derivation formula and the new `condition` contract; a ruling on
+      whether `PhaseCharacteristics.society.stratification` (read by nothing today, despite doc 05
+      §3.2 naming it an elite/utilitarian driver) becomes an input. Sibling to 2GN.77 — consider
+      ruling on both together. The Rule Calibration panel (2GN.81) is the instrument: switching
+      culture preset shows the swing directly (`elite` leads 35.4% against the flat-0.5 fixtures,
+      0.4% against the low-decoration Tarpan preset)
+- [x] **2GN.81** — Explorer: rule calibration panel — per-rule fire rates and per-tag
+      presence/leadership across a sampled population — requested during the 2GN.79 interview and
+      delivered with it. The Tag Inspector (2GN.59) answers "why did _this artefact_ score this
+      way"; this answers the population question underneath it, which no surface previously covered
+      — a rule can look sensible on one artefact while firing on 85% of output, and under
+      `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21) that adds a near-constant to
+      every score rather than discriminating. Landed as `/dev/explorer/calibration` with a pure
+      `ruleCalibration.ts` model (16 tests) per the `tagInspector.ts` precedent: samples 100–1000
+      artefacts against any Explorer culture preset and reports per-rule fire rate with a
+      saturated/discriminating/rare/dormant verdict, plus per-tag presence, leadership, mean score
+      and top contributing rule — which is what turns "elite is everywhere" into "because R31 fires
+      on 85%". Samples against `EXPLORER_CULTURES`, which already model all 16 materials, so the
+      panel was never affected by the fixture defect 2GN.79 corrected _(depended on 2GN.20, 2GN.59 —
+      both done)_
+- [ ] **2GN.82** — recalibrate the measured classification thresholds per the 2GN.80 ruling
+      _(blocked — depends on 2GN.80)_ — recalibration of already-built work. Eleven thresholds in
+      `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions
+      (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become culture-relative,
+      every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES` in
+      `src/lib/data/calibration.test.ts` re-recorded with it. Resolves to no code change plus a doc
+      12 note if the ruling keeps the absolute model. Sits upstream of anything whose correctness
+      depends on what the tag scores mean
+- [ ] **2GN.83** — recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling _(blocked —
+      depends on 2GN.80)_ — recalibration of already-built work. `BASE_FILL_PROBABILITY` (0.9),
+      `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s equal-weight
+      craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and together they are
+      what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each BNF category draws
+      its own per-component slots, so P(≥1 applied element) ≈ 1-(1-0.45)^partCount). Under a
+      culture-relative reading these set the per-culture baseline every threshold measures against,
+      so they stop being free parameters. ⚠️ changing them moves every measured threshold in
+      `data/classification.ts` — sequence with 2GN.82, and expect `calibration.test.ts` to fail
+      loudly, which is the guard working
+- [ ] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
+      rulings _(blocked — depends on 2GN.80, 2GN.77)_ — recalibration of already-built work.
+      `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15)
+      and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured
+      against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value
+      question directly — may merge with it — and 2GN.80 touches it via
+      `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2
+      naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
+      six different scarcity profiles to calibrate against rather than one lenient fixture
+- [ ] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
+      _(blocked — depends on 2GN.80)_ — recalibration of already-built work; documentation rather
+      than code, and the piece every later system inherits. Whether
+      `elite`/`ceremonial`/`ritual`/`votive` mean "unusual in this world" or "unusual for this
+      culture" is currently unstated, so description generation (2GN.38+), the lens (M6) and NPC
+      interpretation (M10) would each be free to assume differently. Deliverables: the semantics
+      recorded as a locked decision in doc 11, a doc 12 propagation entry, and the tag-vocabulary
+      JSDoc in `src/lib/types/tags.ts` stating it at the definition site
 - [ ] **2GN.77** — design spike — does a material's classificatory value derive from static
       catalogue tags (`precious-metal`/`precious-stone`) or from its situation in the generated
-      world? _(blocked — depends on 2GN.79)_ — the static model bakes an Earth judgement into
-      `data/materials.ts`: a generated culture with abundant gold would have `elite` stamped across
-      most of its material record under a naive material→tag rule — the tag system reporting a
-      society composed entirely of elites — while obsidian in a culture with no volcanic geology
+      world? _(depends on 2GN.79 — done; unblocked)_ — the static model bakes an Earth judgement
+      into `data/materials.ts`: a generated culture with abundant gold would have `elite` stamped
+      across most of its material record under a naive material→tag rule — the tag system reporting
+      a society composed entirely of elites — while obsidian in a culture with no volcanic geology
       reads ordinary despite being genuinely scarce there. The world-relative alternative derives
       value from `GeologicalContext.materialAvailability` × `CulturalProfile.materialAffinities` ×
       `MaterialAssignment.provenance.source` × `PhaseCharacteristics.society.stratification` (the
@@ -1677,6 +1775,12 @@ graph LR
 	2GN.22["2GN.22: `src/lib/data/materials.ts` — material…"]
 	2GN.28["2GN.28: `src/lib/data/decorations.ts` — decorat…"]
 	2GN.79["2GN.79: `tests/fixtures/world.ts` + `src/lib/da…"]
+	2GN.80["2GN.80: design spike — are status tags absolute acro…"]
+	2GN.81["2GN.81: Explorer: rule calibration panel — per-rule …"]
+	2GN.82["2GN.82: recalibrate the measured classification thre…"]
+	2GN.83["2GN.83: recalibrate `expandDecoration`'s fill consta…"]
+	2GN.84["2GN.84: recalibrate `SCARCITY_WEIGHT` and material w…"]
+	2GN.85["2GN.85: propagate the 2GN.80 ruling into the tag voc…"]
 	2GN.77["2GN.77: design spike — does a material's classi…"]
 	2GN.78["2GN.78: `src/lib/types/tags.ts` + `src/lib/data…"]
 	2GN.35["2GN.35: `src/lib/data/descriptions/observationa…"]
@@ -2011,6 +2115,26 @@ graph LR
 	2GN.22 --> 2GN.23
 	2GN.28 --> 2GN.29
 	2GN.79 --> 2GN.77
+	2GN.79 --> 2GN.80
+	2GN.20 --> 2GN.81
+	2GN.59 --> 2GN.81
+	2GN.80 --> 2GN.82
+	2GN.80 --> 2GN.83
+	2GN.80 --> 2GN.84
+	2GN.77 --> 2GN.84
+	2GN.80 --> 2GN.85
+	2GN.82 --> 2GN.68
+	2GN.83 --> 2GN.68
+	2GN.84 --> 2GN.68
+	2GN.85 --> 2GN.68
+	2GN.82 --> 2GN.27
+	2GN.83 --> 2GN.27
+	2GN.84 --> 2GN.27
+	2GN.85 --> 2GN.27
+	2GN.82 --> 2GN.38
+	2GN.83 --> 2GN.38
+	2GN.84 --> 2GN.38
+	2GN.85 --> 2GN.38
 	2GN.77 --> 2GN.78
 	2GN.77 --> 2GN.27
 	2GN.77 --> 2GN.68
@@ -2441,9 +2565,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.79 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.77,2GN.78,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.8,2GN.9 done
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.77,2GN.80 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.78,2GN.82,2GN.83,2GN.84,2GN.85,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.79,2GN.8,2GN.81,2GN.9 done
 ```
 
 ## Links

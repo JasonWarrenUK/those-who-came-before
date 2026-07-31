@@ -693,5 +693,102 @@ or new. Raised to `decorativeLayerCount: 20`, `techniqueComplexity: 12`, `decora
 
 ---
 
+### 2.25 Modelled Geology + Structural Saturation in Classification (2026-07-31)
+
+**Origin:** Roadmap task 2GN.79 implementation (2026-07-31) **Source of truth:**
+`tests/fixtures/world.ts`, `src/lib/data/classification.ts` and `src/lib/data/calibration.test.ts` —
+this entry records why, not what
+
+**The fixture modelled a quarter of the catalogue.** `mockGeologicalContext` carries four of the
+sixteen shipped materials (bronze/iron/gold/flint), so the other twelve reached `isAvailable`'s
+"unmodelled → obtainable" lenience at full weight. Every measured number in §2.24 was taken against
+that fixture. Measured effect: silver was the second most common material at 11.1% of components,
+jade 6.6% against genuinely-scarce gold's 1.4%, and 55.3% of artefacts carried at least one
+"precious" component — a world where precious materials are ordinary, produced by a gap in a test
+fixture rather than by any design decision.
+
+**Six named regional worlds, not one corrected fixture.** The task originally scoped a single
+`mockFullGeologicalContext`; the interview widened it to six internally coherent places
+(`riverValley`, `highlandMine`, `coastalPort`, `forestInterior`, `desertMargin`, `steppeMargin`),
+each modelling all sixteen materials explicitly and paired with its own `MaterialFlow[]`. The reason
+is calibration integrity: a threshold measured against one geology is indistinguishable from a
+threshold overfitted to it, and six divergent worlds make that difference visible. Coverage of
+`isAvailable`'s branches emerges from the places rather than being designed in — `desertMargin` has
+no forest or flax so `oak`/`ash`/`linen` are `absent`, and `forestInterior` carries an empty flow
+array so its `trade-only` metals are excluded through the no-matching-flow branch instead.
+`mockGeologicalContext` is deliberately unchanged: it is now the fixture that covers the
+unmodelled-lenience path the six full worlds no longer reach. `sampleWorld()` gained a region
+parameter (default `coastalPort`) and every sampler a `--world` flag — a scope expansion beyond the
+task's two stated files, agreed at interview.
+
+**Correcting the geology fixed materials and left `elite` untouched, which was the finding.**
+Re-measuring 7200 artefacts across the six worlds: precious-bearing artefacts 55.3% → 27.1%, silver
+11.1% → 3.9%, jade 6.6% → 1.4%, gold now commoner than jade. But `elite` barely moved (89.8%
+presence, 35.4% leader) and sat within 1.6 points across all six worlds (89.2–90.8%) despite
+radically different material availability. A tag that flat across that much variation is not
+responding to materials at all, which redirected the task from the material hypothesis its roadmap
+entry assumed to the decoration rules underneath.
+
+**Saturation can be structural, and then no weight fixes it.** `appliedElementPresent` fired on
+84.6% not because its threshold was wrong but because `expandDecoration` gives each BNF category its
+own per-component slot rolls: at the fixture phase every component has a 0.45 chance of carrying an
+applied element, so a ~4.15-component artefact reaches ~87% by arithmetic (measured 87.2% at
+emphasis 0.5, against 91.6% predicted by the closed form — the gap is slot-0 misses stopping the
+category). The distribution underneath still discriminates (p50 2, p75 4, p90 5, max 15); the
+boolean discarded it. **General lesson for future rules: a boolean over a quantity the generator
+produces repeatedly will saturate, and reweighting it only shrinks a constant.** Hence
+`ExtractedFeatures.appliedElementCount`, an extraction-side addition agreed at interview — this task
+was therefore not the data-only change its roadmap entry scoped.
+
+**Retunes followed one criterion: does stated intent match measured behaviour.** A rule firing often
+because the structure it reads is genuinely common is reporting the truth and was left alone (the
+edge rule at 39%, the heavy-container rule at 40%). Two rules diverged. The applied-element rule now
+reads `appliedElementCount >= 4` (measured p75, 25.2%, within a point of §2.24's retuned
+`decorativeLayerCount >= 10` at 25.3%). The structural-complexity rule rose to
+`attachmentDiversity >= 3` (44.4% → 22.3%), and its `partCount >= 3` clause was **dropped as inert**
+— measurement showed identical firing with the clause, without it, and with it raised to `>= 4`,
+because three joint types cannot occur without the parts to carry them. A clause that never changes
+the outcome misrepresents what a rule tests.
+
+**§2.24's ruling on the any-decoration nudge is upheld, and 2GN.79's entry corrected.** The roadmap
+entry for this task named `decorativeLayerCount >= 1` (98% firing) as a co-driver of the `elite`
+problem. It is not: it does not diverge from its stated intent, §2.24 had already reasoned this
+through, and `ornament`'s leadership fell 27.0% → 18.8% on the applied-element fix alone without
+touching it. Recorded here so the register does not carry a diagnosis the measurement disproved. Net
+result: `elite` leadership 35.4% → 27.4%, and the top four tags now sit within 12 points of each
+other rather than 25.
+
+**Thresholds survive catalogue growth; they do not survive phase variation.** Measured identical at
+2×, 4× and 10× the applied-element technique pool, because slot count sets the quantity and pool
+size only decides which technique fills a slot — so new decorative content does not silently
+invalidate these numbers. Geology likewise barely moves them (22–26% across the six worlds). Phase
+attributes do: the applied-element rule fires on 4.3% at `decorativeEmphasis` 0.1 and 48.1% at 1.0,
+2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0. **Every threshold in the file is absolute and
+carries this sensitivity, including §2.24's seven.** That means `elite` currently reads "unusually
+decorated in absolute terms", so a decorative culture reads as composed of elites and an austere one
+as having none — the same failure 2GN.77 identifies for materials, reached from the decoration side.
+Spike 2GN.80 owns the ruling; recalibration tasks 2GN.82–85 sit between it and any work whose
+correctness depends on what the tag scores mean.
+
+**Fire rates are now under test.** Nothing checked that a rule still fires at the rate its author
+measured, which is how the applied-element rule sat at 84.6% from 2GN.34 to here while its comment
+claimed it marked deliberate embellishment: the rules were tested only in isolation, so the rule set
+and the generator drifted apart silently. `src/lib/data/calibration.test.ts` drives the full chain
+across all six worlds and pins every rule's rate within 10 points, plus asserts that no rule
+claiming selectivity exceeds 60% (the any-decoration nudge exempted by name). It fails loudly and
+legibly — verified by reverting the retune, which named the drift and its size.
+
+| Doc | What changed                                                                                                                                                                                                                                                   | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `tests/fixtures/world.ts`: six named regional worlds modelling all 16 materials, each with its own trade flows; `mockGeologicalContext` deliberately unchanged; new `tests/fixtures/world.test.ts`                                                             | 2026-07-31 |
+| —   | `src/lib/types/artefact.ts` + `engine/generation/classification.ts`: new `ExtractedFeatures.appliedElementCount`; `appliedElementPresent` retained, now derived from it                                                                                        | 2026-07-31 |
+| —   | `src/lib/data/classification.ts`: applied-element rule reads the count at `>= 4`; structural-complexity rule at `attachmentDiversity >= 3` with its inert `partCount` clause dropped; module JSDoc records the re-measurement and the phase-sensitivity caveat | 2026-07-31 |
+| —   | `src/lib/data/calibration.test.ts`: new fire-rate regression guard over all 43 rules, plus a saturation-ceiling invariant                                                                                                                                      | 2026-07-31 |
+| —   | `scripts/dev/`: `sampleWorld(region)` and `--world` across five samplers; five pre-existing broken `assignMaterial`/`expandDecoration` call sites fixed (argument order — `deno check` was failing and two samplers threw at runtime)                          | 2026-07-31 |
+| —   | Explorer: new Rule Calibration panel (`/dev/explorer/calibration`, roadmap 2GN.81) reporting per-rule fire rates and per-tag presence/leadership over a sampled population                                                                                     | 2026-07-31 |
+| —   | Roadmap: 2GN.79 done; new 2GN.80 (absolute-vs-culture-relative status spike), 2GN.81 (calibration panel), 2GN.82–85 (recalibration of thresholds, fill constants, scarcity weights, tag semantics); 2GN.27/2GN.38/2GN.68 gated behind the recalibration set    | 2026-07-31 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
