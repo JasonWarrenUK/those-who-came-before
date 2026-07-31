@@ -478,6 +478,7 @@ Deno.test('extractFeatures: no layers — decorative fields at zero/false defaul
 
 	assertEquals(features.decorativeLayerCount, 0);
 	assertEquals(features.appliedElementPresent, false);
+	assertEquals(features.appliedElementCount, 0);
 	assertEquals(features.motifPresent, false);
 	assertEquals(features.motifCulturalOrigins, []);
 	assertEquals(features.techniqueComplexity, 0);
@@ -494,6 +495,42 @@ Deno.test('extractFeatures: layer count and technique variety walk sublayers rec
 	assertEquals(features.decorativeLayerCount, 4); // engraving + inlay + scoring + polish.
 	assertEquals(features.techniqueComplexity, 3 * 4); // Depth 3 × 4 distinct techniques.
 	assertEquals(features.appliedElementPresent, true); // Inlay is applied-element, found in a sublayer.
+	assertEquals(features.appliedElementCount, 1); // Only the inlay; engraving/scoring/polish are surface.
+});
+
+/**
+ * `appliedElementCount` (roadmap 2GN.79) is the discriminating form of `appliedElementPresent`,
+ * which saturates at ~85% of real pipeline output because `expandDecoration` rolls each BNF
+ * category's slots per component. The count must tally every applied element, including those
+ * nested in sublayers, and stay consistent with the boolean.
+ */
+Deno.test('extractFeatures: appliedElementCount tallies every applied element, nested included', () => {
+	const layers = [
+		layer('inlay'),
+		layer('engraving', [layer('gilding'), layer('studs', [layer('overlay')])]),
+		layer('polish'),
+	];
+	const features = extractFeatures(artefactOf([component('c0', 'bar-form')]), layers);
+
+	// inlay + gilding + studs + overlay = 4; engraving and polish are surface-treatment.
+	assertEquals(features.appliedElementCount, 4);
+	assertEquals(features.appliedElementPresent, true);
+});
+
+Deno.test('extractFeatures: appliedElementPresent is exactly appliedElementCount > 0', () => {
+	const surfaceOnly = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving'), layer('polish')],
+	);
+	assertEquals(surfaceOnly.appliedElementCount, 0);
+	assertEquals(surfaceOnly.appliedElementPresent, false);
+
+	const withOne = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving'), layer('inlay')],
+	);
+	assertEquals(withOne.appliedElementCount, 1);
+	assertEquals(withOne.appliedElementPresent, true);
 });
 
 Deno.test('extractFeatures: techniqueComplexity is currently a bare distinct-technique count — 2GN.31 regression guard', () => {

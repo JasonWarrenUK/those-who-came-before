@@ -151,6 +151,7 @@ const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup]
 	['baseType', 'structural'],
 	['decorativeLayerCount', 'decorative'],
 	['appliedElementPresent', 'decorative'],
+	['appliedElementCount', 'decorative'],
 	['motifPresent', 'decorative'],
 	['motifCulturalOrigins', 'decorative'],
 	['techniqueComplexity', 'decorative'],

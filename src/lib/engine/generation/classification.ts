@@ -34,8 +34,10 @@
  *   band-to-centimetre tables (MVP-provisional per the 2GN.8 precedent, tuned once observable in
  *   the Explorer).
  * - **Decorative**: counts and technique variety walk `sublayers` recursively;
- *   `appliedElementPresent` resolves technique category against `DECORATIVE_TECHNIQUES`
- *   (roadmap 2GN.28) rather than hardcoding the applied-element list.
+ *   `appliedElementPresent`/`appliedElementCount` resolve technique category against
+ *   `DECORATIVE_TECHNIQUES` (roadmap 2GN.28) rather than hardcoding the applied-element list. The
+ *   count is the discriminating form — the boolean saturates at ~85% because `expandDecoration`
+ *   rolls each BNF category's slots per component (roadmap 2GN.79, doc 12 §2.25).
  * - **Dormant** (no producer yet): `motifPresent` honestly reads `motifRef` presence — always
  *   `false` until motif assignment lands (roadmap 2GN.33); `motifCulturalOrigins` stays `[]` and
  *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
@@ -274,7 +276,7 @@ interface DecorativeTally {
 	techniques: Set<string>;
 	maxDepth: number;
 	motifCount: number;
-	appliedElementPresent: boolean;
+	appliedElementCount: number;
 }
 
 /** Walks `sublayers` recursively, accumulating the tally. `depth` is 1-based. */
@@ -288,7 +290,7 @@ function tallyLayers(
 		tally.techniques.add(layer.technique);
 		tally.maxDepth = Math.max(tally.maxDepth, depth);
 		if (layer.motifRef !== undefined) tally.motifCount++;
-		if (APPLIED_ELEMENT_TECHNIQUES.has(layer.technique)) tally.appliedElementPresent = true;
+		if (APPLIED_ELEMENT_TECHNIQUES.has(layer.technique)) tally.appliedElementCount++;
 		tallyLayers(layer.sublayers, depth + 1, tally);
 	}
 }
@@ -414,7 +416,7 @@ export function extractFeatures(
 		techniques: new Set(),
 		maxDepth: 0,
 		motifCount: 0,
-		appliedElementPresent: false,
+		appliedElementCount: 0,
 	};
 	tallyLayers(decorativeLayers, 1, tally);
 	const motifDensity = tally.layerCount > 0 ? tally.motifCount / tally.layerCount : 0;
@@ -451,7 +453,8 @@ export function extractFeatures(
 		curvature,
 		baseType,
 		decorativeLayerCount: tally.layerCount,
-		appliedElementPresent: tally.appliedElementPresent,
+		appliedElementPresent: tally.appliedElementCount > 0,
+		appliedElementCount: tally.appliedElementCount,
 		motifPresent: tally.motifCount > 0,
 		motifCulturalOrigins: [], // DORMANT — motif→culture lookup is roadmap 2GN.68's.
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,
