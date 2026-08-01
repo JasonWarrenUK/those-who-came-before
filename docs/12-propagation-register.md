@@ -853,5 +853,62 @@ correcting the condition, and deleting the rule.
 
 ---
 
+### 2.27 Calibration Constants Audited (2026-08-01)
+
+**Origin:** Completing the 2GN.79 oversight audit — the retunes and fixtures had per-decision
+sign-off, but nine supporting constants did not **Source of truth:**
+`src/lib/data/calibration.test.ts`, `src/lib/data/classification.ts` and
+`src/routes/dev/explorer/calibration/ruleCalibration.ts`
+
+**A guard's tolerance is only meaningful against its noise floor, and nobody had measured one.**
+`TOLERANCE_POINTS` was set to 10 by feel. Re-running the whole calibration sweep under five
+different seed salts moves the worst-case rule by 3.8pp at n=1800 — so a 10pp band left only 6.2pp
+of genuine headroom, and a rule could shift 9pp of real behaviour and pass silently. Tightened to 6
+(~1.6× headroom), and verified by inducing a regression subtler than the mass rebalance that
+prompted this: reverting the applied-element rule from `>= 4` to `>= 3` drifts it 14.4pp, which the
+tightened band catches and names. `SAMPLES_PER_CELL` stays at 100 but is now justified rather than
+assumed — measured noise by cell size is 25→5.4pp, 50→5.1pp, 100→3.8pp, 200→3.3pp, 400→3.5pp, so 100
+sits at the knee and further sampling stops paying.
+
+**A shared constant was silently duplicated.** `SATURATION_CEILING` was exported from the Explorer
+panel _and_ re-declared as a local const in the guard, with nothing keeping the two in step — a
+defect introduced by §2.25/§2.26's own work. It now lives once in `src/lib/data/classification.ts`,
+beside the rules it describes: it is a fact about the rule set rather than about either consumer,
+and `routes/` may depend on `lib/` but not the reverse. Value unchanged at 60.
+
+**A verdict that maps to no action is noise.** The panel's `rare` band (below `DORMANCY_FLOOR` = 1%)
+was measured across all four Explorer culture presets: it flagged four rules on Tarpan
+(`very-heavy`, heavy-decoration, applied-element, lavish-complexity), one each on Thalassar and
+Khaltiris, none on Xoconahtl. On Tarpan those are the decoration rules, rare precisely because it is
+a low-decoration culture — they are behaving correctly. The badge reported a property of the
+selected culture, not a defect, and the fire-rate column beside it already said "uncommon here" more
+precisely. Removed. Three verdicts remain, each mapping to an action: `dormant` (investigate — a
+rule can be unreachable rather than merely rare, as R4 is and R27 was), `saturated` (check stated
+intent against behaviour), `discriminating` (working).
+
+**Defaults hide decisions.** `mockRegionalWorld`, `mockFullGeologicalContext` and `sampleWorld` all
+defaulted to `coastalPort`, chosen for being the most materially varied — which is true, and also
+makes it the least typical (almost nothing is locally abundant, so its mix is dominated by trade).
+Which world you generate against changes material distribution substantially, so the engine-side
+fixtures now take no default and callers must name one. The CLI keeps a `DEFAULT_SAMPLE_REGION` so
+samplers run bare, and every sampler now prints its world in a header — an omitted `--world` was
+previously invisible in output, which is the failure mode the removal guards against.
+
+**R31's weights were reviewed and kept.** `elite 0.4, ornament 0.3` carried over unchanged from the
+saturating boolean version, so the condition was ruled on at §2.25 but the weights never were. They
+were authored for a rule meaning "deliberate embellishment", and the retuned condition finally
+delivers that meaning at a selectivity matching the heavy-decoration rule's (25.2% vs 25.3%). Any
+further change belongs to 2GN.82's systematic pass rather than to one rule in isolation.
+
+| Doc | What changed                                                                                                                                      | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `src/lib/data/calibration.test.ts`: `TOLERANCE_POINTS` 10 → 6 with its noise measurement recorded; `SAMPLES_PER_CELL` justified; ceiling imported | 2026-08-01 |
+| —   | `src/lib/data/classification.ts`: `SATURATION_CEILING` defined here as the single source for both consumers                                       | 2026-08-01 |
+| —   | `routes/dev/explorer/calibration/`: `DORMANCY_FLOOR` and the `rare` verdict removed; ceiling re-exported from the data layer                      | 2026-08-01 |
+| —   | `tests/fixtures/world.ts`, `scripts/dev/shared.ts`: region defaults removed; `DEFAULT_SAMPLE_REGION` and a per-run world header added             | 2026-08-01 |
+| —   | Roadmap: 2GN.88 records the audit                                                                                                                 | 2026-08-01 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
