@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
-import { calibrateRules, DORMANCY_FLOOR, SATURATION_CEILING } from './ruleCalibration.ts';
+import { calibrateRules, SATURATION_CEILING } from './ruleCalibration.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 
@@ -57,7 +57,6 @@ Deno.test('calibrateRules: verdict follows the documented thresholds', () => {
 	for (const rule of report.rules) {
 		if (rule.firePercent === 0) assertEquals(rule.verdict, 'dormant');
 		else if (rule.firePercent > SATURATION_CEILING) assertEquals(rule.verdict, 'saturated');
-		else if (rule.firePercent < DORMANCY_FLOOR) assertEquals(rule.verdict, 'rare');
 		else assertEquals(rule.verdict, 'discriminating');
 	}
 });

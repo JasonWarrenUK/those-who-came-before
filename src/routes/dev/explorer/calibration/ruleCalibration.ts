@@ -32,7 +32,7 @@ import {
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
+import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../../../lib/types/tags.ts';
@@ -42,19 +42,23 @@ import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts'
 /** Either half of the tag vocabulary. */
 export type Tag = FunctionTag | ContextTag;
 
+// `SATURATION_CEILING` is re-exported from the data layer (`lib/data/classification.ts`) so the
+// panel and the calibration guard read one definition; it is a fact about the rule set, not about
+// this panel.
+export { SATURATION_CEILING };
+
 /**
- * Above this fire rate a rule contributes a near-constant rather than a discriminating signal
- * (doc 12 §2.21). Rules crossing it are flagged `saturated` — a prompt to check the rule's stated
- * intent, not an automatic defect: the any-decoration nudge is documented as deliberately universal
- * (doc 12 §2.24) and still crosses it.
+ * How a rule's fire rate reads.
+ *
+ * Three verdicts, each mapping to an action: `dormant` (fires on nothing — investigate, since a
+ * rule can be unreachable rather than merely rare, as R4 is and R27 was before roadmap 2GN.86),
+ * `saturated` (above `SATURATION_CEILING` — check the stated intent against the behaviour), and
+ * `discriminating` (working). A fourth `rare` band below 1% was measured and dropped: it flagged
+ * the decoration rules on low-decoration cultures, where they are behaving correctly, so it
+ * reported a property of the selected culture rather than anything actionable — and the fire-rate
+ * column already says "uncommon here" more precisely.
  */
-export const SATURATION_CEILING = 60;
-
-/** Below this a rule fires too rarely to be doing much work, and may have an unreachable condition. */
-export const DORMANCY_FLOOR = 1;
-
-/** How a rule's fire rate reads against the two thresholds above. */
-export type CalibrationVerdict = 'saturated' | 'discriminating' | 'rare' | 'dormant';
+export type CalibrationVerdict = 'saturated' | 'discriminating' | 'dormant';
 
 /** One rule's measured behaviour across the sample. */
 export interface RuleCalibration {
@@ -70,7 +74,7 @@ export interface RuleCalibration {
 	/** `fireCount` as a percentage of the sample. */
 	firePercent: number;
 
-	/** How that rate reads: saturated, discriminating, rare or dormant. */
+	/** How that rate reads: saturated, discriminating or dormant. */
 	verdict: CalibrationVerdict;
 
 	/** The tags this rule contributes to, with their weights, in the rule's own order. */
@@ -132,7 +136,6 @@ export interface CalibrationReport {
 function verdictFor(firePercent: number): CalibrationVerdict {
 	if (firePercent === 0) return 'dormant';
 	if (firePercent > SATURATION_CEILING) return 'saturated';
-	if (firePercent < DORMANCY_FLOOR) return 'rare';
 	return 'discriminating';
 }
 

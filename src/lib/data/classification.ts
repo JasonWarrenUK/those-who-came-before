@@ -64,6 +64,22 @@
 
 import type { ClassificationRule } from '../types/tags.ts';
 
+/**
+ * Fire rate above which a rule has stopped discriminating (roadmap 2GN.79, doc 12 §2.21).
+ *
+ * `classifyArtefact` folds matching rules by plain, unbounded sum, so a rule firing on most of its
+ * population adds a near-constant to every score rather than separating one artefact from another.
+ * Crossing this line is a prompt to check the rule's stated intent against its behaviour, **not an
+ * automatic defect**: the any-decoration nudge is documented as deliberately universal (doc 12
+ * §2.24) and sits far above it by design.
+ *
+ * Lives here rather than with either consumer because it is a fact about this rule set: both the
+ * calibration guard (`calibration.test.ts`) and the Explorer's calibration panel
+ * (`routes/dev/explorer/calibration/`) read it, and `routes/` may depend on `lib/` but not the
+ * reverse.
+ */
+export const SATURATION_CEILING = 60;
+
 export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	// --- Edge ------------------------------------------------------------------------------------
 

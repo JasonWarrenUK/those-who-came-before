@@ -29,14 +29,12 @@ const report = $derived(calibrateRules(baseSeed, culture, sampleSize));
 const VERDICT_LABEL: Record<CalibrationVerdict, string> = {
 	saturated: 'saturated',
 	discriminating: 'discriminating',
-	rare: 'rare',
 	dormant: 'dormant',
 };
 
 const VERDICT_CLASS: Record<CalibrationVerdict, string> = {
 	saturated: 'badge-warning',
 	discriminating: 'badge-success',
-	rare: 'badge-ghost',
 	dormant: 'badge-ghost',
 };
 

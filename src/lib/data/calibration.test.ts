@@ -20,9 +20,10 @@
  * each moved rule still matches its stated intent, and update `EXPECTED_FIRE_RATES` deliberately —
  * the same decision-by-decision process 2GN.17/2GN.20/2GN.34/2GN.79 each ran.
  *
- * Sample size is deliberately modest (100 per world per emphasis, n=1800) so the suite stays fast;
- * `TOLERANCE_POINTS` is set wide enough to absorb the resulting sampling noise. The full 7200-sample
- * numbers that set the thresholds live in doc 12 §2.24/§2.25.
+ * Sample size is deliberately modest (100 per world per emphasis, n=1800) so the suite stays fast,
+ * and `TOLERANCE_POINTS` is set from the measured sampling noise at that size rather than by feel —
+ * see both constants' comments. The full 7200-sample numbers that set the thresholds live in doc 12
+ * §2.24/§2.25.
  */
 
 import { assert } from '@std/assert';
@@ -31,24 +32,33 @@ import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.t
 import { expandDecoration } from '../engine/generation/decoration.ts';
 import { extractFeatures } from '../engine/generation/classification.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
-import { CLASSIFICATION_RULES } from './classification.ts';
+import { CLASSIFICATION_RULES, SATURATION_CEILING } from './classification.ts';
 import { MATERIALS } from './materials.ts';
 import { DECORATIVE_TECHNIQUES } from './decorations.ts';
 import { mockCulturalProfile, mockPhaseCharacteristics } from '../../../tests/fixtures/culture.ts';
 import { MOCK_WORLD_REGIONS, mockRegionalWorld } from '../../../tests/fixtures/world.ts';
 
-/** Artefacts sampled per world per emphasis setting. Six worlds × three settings × this. */
+/**
+ * Artefacts sampled per world per emphasis setting. Six worlds × three settings × this.
+ *
+ * Sits at the knee of the noise curve: the worst-case sampling wobble falls steeply to 100 per cell
+ * (5.4pp → 3.8pp) then flattens, with 200 buying only 0.5pp for double the runtime and 400 buying
+ * nothing further. Keeps the whole suite inside a couple of seconds.
+ */
 const SAMPLES_PER_CELL = 100;
 
 /** Emphasis settings sampled, spanning the range a real culture can sit at. */
 const EMPHASES = [0.1, 0.5, 1.0];
 
 /**
- * How far a rule may drift from its recorded rate before this fails, in percentage points. Wide
- * enough that sampling noise at n=1800 never trips it, narrow enough that a rule doubling or
- * halving its selectivity does.
+ * How far a rule may drift from its recorded rate before this fails, in percentage points.
+ *
+ * Measured, not guessed: re-running the whole sweep under five different seed salts moves the
+ * worst-case rule by 3.8pp at this sample size, so 6 leaves roughly 1.6× headroom over pure
+ * sampling noise while still catching a real shift well before it doubles a rule's selectivity.
+ * (Sampling noise by cell size: 25 → 5.4pp, 50 → 5.1pp, 100 → 3.8pp, 200 → 3.3pp, 400 → 3.5pp.)
  */
-const TOLERANCE_POINTS = 10;
+const TOLERANCE_POINTS = 6;
 
 /**
  * Measured fire rate per rule, in `CLASSIFICATION_RULES` order, as a percentage of all sampled
@@ -69,7 +79,7 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	39.3, // R1  hasEdge && !short → weapon/tool
 	4.3, // R2  short sharp blade → dagger family
 	6.6, // R3  short blunt blade → utility knife
-	0.0, // R4  short body, non-short blade band (grammar cannot currently produce this)
+	0.0, // R4  short body, non-short blade band — never observed (roadmap 2GN.87)
 	24.8, // R5  edgeCount >= 2 → composite implement
 	4.4, // R6  sharp point, no edge → piercing
 	4.7, // R7  blunt point, no edge → craft tool
@@ -193,7 +203,6 @@ Deno.test('calibration: every rule fires within tolerance of its recorded rate',
 Deno.test('calibration: no rule claiming selectivity fires near-universally', () => {
 	const { rates } = measureFireRates();
 	const UNIVERSAL_BY_DESIGN = new Set([31]); // 0-based index of the any-decoration nudge (R32).
-	const SATURATION_CEILING = 60;
 
 	const saturated = rates
 		.map((rate, index) => ({ rate, index }))
