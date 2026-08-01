@@ -790,5 +790,68 @@ legibly — verified by reverting the retune, which named the drift and its size
 
 ---
 
+### 2.26 Mass Proxy Saturation + Band Rebalance (2026-08-01)
+
+**Origin:** Per-rule audit of all 43 classification rules, requested after 2GN.79 cleared 41 of them
+in prose rather than individually **Source of truth:** `deriveDimensions` and `MASS_BAND_CM2` in
+`src/lib/engine/generation/grammar.ts`
+
+**Auditing every rule found three that read `massBand`, and all three were wrong.** R27
+(`very-heavy` → communal/ceremonial) fired on 0 of 7200 artefacts. R25 and R26 fired on 55.8% of
+edged and 61.1% of container artefacts while their JSDocs claimed contrasts — "labour, _not_ a blade
+weapon", "storage jar _rather than_ tableware" — that only hold for a minority. The 2GN.79 session
+had cleared all three as "structural, therefore honest" without measuring their conditional
+populations.
+
+**The defect was the proxy, not the boundaries, and no boundary could have fixed it.**
+`deriveDimensions` scored mass as `primaryExtent * secondaryExtent * (1 + 0.1 * (parts - 1))`, and
+both extents are _maxima_ across components. Each component draws its size from a three-value
+ordinal table (4/14/40, 5/15/45, 3/8/18), so with 2–13 components at least one almost always rolled
+`large`: both axes pinned to 45cm and **57.4% of a 7200-artefact sample landed on exactly
+45×45=2025**. When one value holds the majority of output, every possible cut point either includes
+it (that band ≥57%) or excludes it (everything below sums to ≤43%). `heavy` swallowing 57% was that
+spike, not a mis-set threshold. Separately the proxy's reachable maximum was 4658 against a
+`very-heavy` cut of 5000, so that band was unreachable by arithmetic rather than merely rare — R27
+was dead code carrying an authored intent.
+
+**This is the same failure as `appliedElementPresent` (§2.25), one layer down.** Both collapse a
+multi-part quantity to a maximum-or-presence over components, and both saturate because the
+generator produces enough components that the extreme is almost always reached. **Recorded as a
+general hazard: any statistic defined as a max or an any-of across a generated collection will
+saturate as that collection grows.** Sums, counts and proportions do not.
+
+**Summed footprints.** Mass now sums each component's own major×minor. A many-part object is
+genuinely more massive than a one-part object sharing its largest axis, which a maximum can never
+express. The distribution went from 21 distinct products (top value 57.4%) to 1810 (top value 1.8%),
+range 9–4658 to 16–12183. Bands are pinned to measured p15/p45/p80/p95 (233/2033/2892/5007),
+deliberately tapering rather than equal-sized: most excavated finds are portable, with heavy objects
+uncommon and immovable ones rare, so band populations should thin towards the top. Equal quintiles
+were measured and rejected — they would have claimed a quarter of all finds are too heavy for one
+person to lift. Resulting spread: negligible 15.3% · light 29.2% · moderate 35.2% · heavy 15.6% ·
+very-heavy 4.8%.
+
+**Downstream, all measured rather than assumed.** R27 0% → 5.0%, alive for the first time. R25 55.8%
+→ 19.5% of edged, R26 61.1% → 24.8% of containers, so both contrast claims now hold. R37 1.1% → 1.9%
+and R39 8.5% → 10.6%, because their gated presence flags require `massBand` at most `light` and more
+artefacts now qualify as wearable. `portability` reads mass too, so `major-effort` and `team-lift`
+became reachable. Every other rule unchanged to the decimal. **The §2.25 calibration guard caught
+the drift**, naming both moved rules with their sizes — the first time it did the job it was built
+for. Five recorded rates were re-recorded and annotated with their previous values.
+
+**R4 remains unreachable and is not fixed here** (roadmap 2GN.87). Only 50 of 7200 artefacts are
+edged with a short primary axis, and all 50 carry a short blade band, so R2/R3 always claim them
+first. Unlike R27 it has no identified upstream cause; the task decides between fixing the grammar,
+correcting the condition, and deleting the rule.
+
+| Doc | What changed                                                                                                                                                                       | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `engine/generation/grammar.ts`: mass proxy sums per-component footprints; new `MASS_BAND_CM2` pinned to measured percentiles, replacing the unreachable 60/300/1500/5000 constants | 2026-08-01 |
+| —   | `engine/generation/grammar.test.ts`: two new invariants — mass grows with part count, and no single band holds a majority of output                                                | 2026-08-01 |
+| —   | `src/lib/data/classification.ts`: R25/R26/R27 JSDocs record their measured rates and why they previously diverged; conditions unchanged, since the defect was upstream             | 2026-08-01 |
+| —   | `src/lib/data/calibration.test.ts`: five rates re-recorded with their previous values annotated; the expected-zero note corrected now that R27 fires                               | 2026-08-01 |
+| —   | Roadmap: 2GN.86 (this change) done; 2GN.87 added for R4's unreachable condition                                                                                                    | 2026-08-01 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
