@@ -576,6 +576,28 @@ const DEFAULT_EXTENT_CM = 5;
 const SLENDER_MINOR_CM = 2;
 
 /**
+ * Upper bound (exclusive) in cm² of summed component footprint for each mass band below
+ * `very-heavy`, which takes everything above the last (roadmap 2GN.86, doc 12 §2.26).
+ *
+ * Pinned to measured percentiles of `deriveDimensions`' summed-footprint score over 7200 artefacts
+ * across the six regional worlds (`tests/fixtures/world.ts`) at three `decorativeEmphasis`
+ * settings, deliberately tapering rather than equal-sized: most excavated finds are portable, with
+ * genuinely heavy objects uncommon and immovable ones rare, so the band populations should thin out
+ * towards the top. Equal quintiles would have claimed a quarter of all finds are too heavy for one
+ * person to lift.
+ *
+ * The previous boundaries (60/300/1500/5000) were authored before any pipeline existed to measure,
+ * against a proxy that could not exceed 4658 — so `very-heavy` was unreachable by arithmetic, and
+ * `heavy` held 57% of output. See `deriveDimensions` for why the proxy itself changed.
+ */
+const MASS_BAND_CM2 = {
+	negligible: 233, // measured p15
+	light: 2033, // measured p45
+	moderate: 2892, // measured p80
+	heavy: 5007, // measured p95
+} as const;
+
+/**
  * Reads a named property band off a component and maps it through a band table, falling back to
  * `DEFAULT_EXTENT_CM` when the property is absent or the value isn't in the table — normalisation
  * degrades gracefully rather than throwing, since the primitive vocabulary may grow.
@@ -648,14 +670,30 @@ function deriveDimensions(components: readonly NormalisedComponent[]): ObjectDim
 		secondaryExtent = Math.max(secondaryExtent, minor);
 	}
 
-	const sizeScore = primaryExtent * secondaryExtent * (1 + 0.1 * (components.length - 1));
-	const mass: ObjectDimensions['mass'] = sizeScore < 60
+	// Mass sums every component's own footprint rather than reading the object's largest single
+	// axes (roadmap 2GN.86, doc 12 §2.26). The previous proxy was
+	// `primaryExtent * secondaryExtent * (1 + 0.1 * (parts - 1))`, and both extents are *maxima*
+	// across components — with 2–13 components each drawing from three fixed ordinal sizes, at
+	// least one almost always rolled `large`, so both axes pinned to 45cm and 57.4% of a
+	// 7200-artefact sample landed on exactly 45×45=2025. One value held the majority of output, so
+	// no choice of band boundary could separate anything, `heavy` swallowed 57% and `very-heavy`
+	// (cut at 5000, above the reachable maximum of 4658) never occurred at all. Summing per-component
+	// footprints scales with both part size and part count and cannot saturate the same way: a
+	// many-part object is genuinely more massive than a one-part object of the same largest axis,
+	// which the maximum could never express.
+	let sizeScore = 0;
+	for (const component of components) {
+		const { major, minor } = extractComponentExtents(component);
+		sizeScore += major * minor;
+	}
+
+	const mass: ObjectDimensions['mass'] = sizeScore < MASS_BAND_CM2.negligible
 		? 'negligible'
-		: sizeScore < 300
+		: sizeScore < MASS_BAND_CM2.light
 		? 'light'
-		: sizeScore < 1500
+		: sizeScore < MASS_BAND_CM2.moderate
 		? 'moderate'
-		: sizeScore < 5000
+		: sizeScore < MASS_BAND_CM2.heavy
 		? 'heavy'
 		: 'very-heavy';
 
