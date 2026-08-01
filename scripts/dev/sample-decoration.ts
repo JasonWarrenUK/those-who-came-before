@@ -18,6 +18,7 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
 	sampleWorldRegion,
@@ -64,6 +65,7 @@ function layerLines(layer: DecorativeLayer, depth: number, into: string[]): void
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const { seed, artefact, layers } of samples) {
 		const decorationOf = (component: NormalisedComponent): string[] => {
 			const lines: string[] = [];

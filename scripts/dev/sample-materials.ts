@@ -17,6 +17,7 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
 	sampleWorldRegion,
@@ -99,6 +100,7 @@ if (options.json) {
 	}));
 	console.log(JSON.stringify({ samples: flat, draws, distribution }, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	const materialOf =
 		(assignments: Map<string, { displayName: string }>) => (component: NormalisedComponent) => {
 			const material = assignments.get(component.id);

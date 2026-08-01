@@ -51,9 +51,16 @@ export const COMMON_FLAGS: FlagSpec = {
 	'--json': 'boolean',
 };
 
+/**
+ * The region a sampler uses when `--world` is omitted: the most materially varied of the six, so a
+ * bare run shows the widest material spread. The engine-side fixtures take no default (see
+ * `mockRegionalWorld`) — this exists only so the CLI stays usable without a flag.
+ */
+export const DEFAULT_SAMPLE_REGION: MockWorldRegion = 'coastalPort';
+
 /** The `--world` line every sampler's usage string shares (roadmap 2GN.79). */
 export const WORLD_FLAG_USAGE =
-	`  --world  Named regional geology (default: coastalPort). One of:\n` +
+	`  --world  Named regional geology (default: ${DEFAULT_SAMPLE_REGION}). One of:\n` +
 	`           riverValley, highlandMine, coastalPort, forestInterior, desertMargin, steppeMargin.`;
 
 export interface SampleOptions {
@@ -142,9 +149,13 @@ export interface SampleWorld {
  * the second most common material in sampled output and gold rarer than jade. The named regions
  * model every material explicitly, so sampled material distribution reflects a stated geology.
  *
- * @param region - Which of the six worlds. Defaults to `coastalPort`, the most materially varied.
+ * No default region: `sampleWorldRegion` below resolves the `--world` flag, and every sampler
+ * passes its result, so which geology a run used is always a stated choice rather than an
+ * inherited one (roadmap 2GN.79 audit).
+ *
+ * @param region - Which of the six worlds to generate against.
  */
-export function sampleWorld(region: MockWorldRegion = 'coastalPort'): SampleWorld {
+export function sampleWorld(region: MockWorldRegion): SampleWorld {
 	const world = mockRegionalWorld(region);
 
 	return {
@@ -159,12 +170,16 @@ export function sampleWorld(region: MockWorldRegion = 'coastalPort'): SampleWorl
 
 /**
  * Reads the shared `--world <region>` flag, validating it against the six named regions. Exits
- * loudly on an unknown region rather than silently sampling the default, matching
+ * loudly on an unknown region rather than silently sampling something else, matching
  * `parseSampleOptions`' unrecognised-argument behaviour.
+ *
+ * This is the one place a region is chosen without the caller naming it: an omitted `--world`
+ * resolves to `DEFAULT_SAMPLE_REGION` so the samplers stay usable bare, and the chosen region is
+ * printed in each sampler's header so the run is never ambiguous about which world it used.
  */
 export function sampleWorldRegion(options: SampleOptions, usage: string): MockWorldRegion {
 	const requested = options.values.get('--world');
-	if (requested === undefined) return 'coastalPort';
+	if (requested === undefined) return DEFAULT_SAMPLE_REGION;
 
 	if (!(MOCK_WORLD_REGIONS as readonly string[]).includes(requested)) {
 		console.error(
@@ -181,6 +196,21 @@ export function generateArtefact(seed: string, world: SampleWorld): NormalisedAr
 	const prng = createPrng(seed);
 	const expanded = expandGrammar(CORE_GRAMMAR_RULES, world.culture, world.phase, prng);
 	return normaliseArtefact(expanded, `sample-${seed}`);
+}
+
+/**
+ * Prints the world a run generated against, once, before any artefacts (roadmap 2GN.79 audit).
+ *
+ * Which of the six regions a sampler used changes its material distribution substantially, and
+ * `--world` is easy to omit — so the run states its own geology rather than leaving the reader to
+ * infer it from the default.
+ */
+export function printWorldHeader(world: SampleWorld): void {
+	console.log(
+		`${paint('world', 'heading')} ${paint(world.region, 'seed')} ${
+			paint(`— ${world.summary}`, 'dim')
+		}`,
+	);
 }
 
 // --- Anatomy tree ------------------------------------------------------------------------------

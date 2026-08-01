@@ -28,6 +28,7 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
 	sampleWorldRegion,
@@ -354,6 +355,7 @@ function printReading(artefact: NormalisedArtefact, features: ExtractedFeatures)
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const { seed, artefact, layers, features } of samples) {
 		console.log();
 		printAnatomy(artefact, seed);

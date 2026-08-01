@@ -77,7 +77,7 @@ export function mockMaterialFlow(overrides: Partial<MaterialFlow> = {}): Materia
 // `mockGeologicalContext` above models only 4 of the catalogue's 16 materials, so the other twelve
 // fall through `isAvailable`'s "unmodelled → obtainable" lenience at full weight. That lenience is
 // deliberate and still worth covering, so that fixture is left untouched; these six model every
-// material explicitly, and are what `sampleWorld()` and the measured classification thresholds run
+// material explicitly, and are what the samplers and the measured classification thresholds run
 // against (doc 12 §2.25).
 //
 // Each is an internally coherent place rather than a constructed axis position: coverage of
@@ -226,8 +226,8 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 
 	/**
 	 * A port with little worth digging up and exceptional reach: seven of sixteen materials exist
-	 * here only because trade brings them. The default `sampleWorld()` region, being the most
-	 * materially varied of the six.
+	 * here only because trade brings them. The most materially varied of the six, and so the usual
+	 * choice when a sampler run wants to show the widest spread.
 	 */
 	coastalPort: {
 		region: 'coastalPort',
@@ -324,10 +324,13 @@ export const MOCK_WORLD_REGIONS = Object.keys(REGIONAL_WORLDS) as readonly MockW
  * tested or sampled depends on realistic material distribution; use `mockGeologicalContext` when
  * the lenience path itself is what's under test.
  *
- * @param region - Which of the six worlds to build. Defaults to `coastalPort`, the most materially
- *   varied of the six.
+ * **No default region, deliberately.** Which world you generate against changes the material
+ * distribution substantially, so it is always a decision worth making explicitly rather than
+ * inheriting — a caller that hasn't thought about geology should be made to.
+ *
+ * @param region - Which of the six worlds to build.
  */
-export function mockRegionalWorld(region: MockWorldRegion = 'coastalPort'): MockRegionalWorld {
+export function mockRegionalWorld(region: MockWorldRegion): MockRegionalWorld {
 	return REGIONAL_WORLDS[region];
 }
 
@@ -336,10 +339,8 @@ export function mockRegionalWorld(region: MockWorldRegion = 'coastalPort'): Mock
  * Shorthand for `mockRegionalWorld(region).geology` — the trade flows that make its `trade-only`
  * entries reachable live on the same record, so prefer `mockRegionalWorld` when both are needed.
  *
- * @param region - Which of the six worlds. Defaults to `coastalPort`.
+ * @param region - Which of the six worlds. No default, per `mockRegionalWorld`.
  */
-export function mockFullGeologicalContext(
-	region: MockWorldRegion = 'coastalPort',
-): GeologicalContext {
+export function mockFullGeologicalContext(region: MockWorldRegion): GeologicalContext {
 	return REGIONAL_WORLDS[region].geology;
 }

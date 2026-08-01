@@ -39,9 +39,15 @@ Deno.test('mockRegionalWorld: every region models every catalogue material expli
 	}
 });
 
-Deno.test('mockRegionalWorld: defaults to coastalPort', () => {
-	assertEquals(mockRegionalWorld().region, 'coastalPort');
-	assertEquals(mockFullGeologicalContext(), mockRegionalWorld('coastalPort').geology);
+/**
+ * `mockRegionalWorld` takes no default region (roadmap 2GN.79 audit): which world you generate
+ * against changes the material distribution substantially, so callers must name one. This pins
+ * the shorthand's agreement with the full record rather than a default that no longer exists.
+ */
+Deno.test('mockFullGeologicalContext: is mockRegionalWorld(region).geology', () => {
+	for (const region of MOCK_WORLD_REGIONS) {
+		assertEquals(mockFullGeologicalContext(region), mockRegionalWorld(region).geology);
+	}
 });
 
 Deno.test('mockRegionalWorld: each region reports its own id and a non-empty summary', () => {

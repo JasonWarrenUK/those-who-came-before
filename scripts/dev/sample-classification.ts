@@ -36,6 +36,7 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
 	sampleWorldRegion,
@@ -203,6 +204,7 @@ function printSilence(tags: Map<FunctionTag | ContextTag, number>): void {
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const sample of samples) {
 		console.log();
 		printAnatomy(sample.artefact, sample.seed);

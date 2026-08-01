@@ -12,6 +12,7 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
 	sampleWorldRegion,
@@ -39,6 +40,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const { seed, artefact, plausibility } of samples) {
 		console.log();
 		printAnatomy(artefact, seed);
