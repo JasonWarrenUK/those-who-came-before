@@ -52,13 +52,18 @@ const TOLERANCE_POINTS = 10;
 
 /**
  * Measured fire rate per rule, in `CLASSIFICATION_RULES` order, as a percentage of all sampled
- * artefacts. Recorded 2026-07-31 at n=1800 (roadmap 2GN.79).
+ * artefacts. Recorded 2026-07-31 at n=1800 (roadmap 2GN.79); five entries re-recorded 2026-08-01
+ * after the mass-band rebalance (roadmap 2GN.86) and annotated with their previous values.
  *
  * Rules at `0` have no producer in the current pipeline and are expected to stay there: the two
- * dormant decorative rules await roadmap 2GN.68's lookups, and the two structural rules below have
- * conditions the shipped grammar cannot currently satisfy. A dormant rule starting to fire is
- * itself a signal worth failing on — it means its producer landed and its threshold has never been
- * calibrated against real output.
+ * dormant decorative rules await roadmap 2GN.68's lookups. R4 is the remaining structural zero —
+ * every edged short-axis artefact measured carries a short blade band, so R2/R3 claim them all and
+ * its safety net has never caught anything (roadmap 2GN.87 investigates). A dormant rule starting
+ * to fire is itself a signal worth failing on — it means its producer landed and its threshold has
+ * never been calibrated against real output.
+ *
+ * R27 was a third such zero until 2GN.86: `very-heavy` sat above the old proxy's reachable maximum,
+ * so the rule was unreachable by arithmetic rather than merely rare. It now fires on 4.3%.
  */
 const EXPECTED_FIRE_RATES: readonly number[] = [
 	39.3, // R1  hasEdge && !short → weapon/tool
@@ -85,9 +90,9 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	25.3, // R22 open/overlapping ring → fastener
 	9.4, // R23 rigid sheet → structural
 	7.7, // R24 flexible sheet → covering
-	21.6, // R25 heavy edge → labour tool
-	40.5, // R26 heavy container → storage (structural: fires with the form's frequency)
-	0.0, // R27 very-heavy → communal (grammar cannot currently reach this mass band)
+	7.5, // R25 heavy edge → labour tool (2GN.86 mass rebalance: was 21.6)
+	15.4, // R26 heavy container → storage (2GN.86 mass rebalance: was 40.5)
+	4.3, // R27 very-heavy → communal (2GN.86 made the band reachable: was 0.0)
 	2.8, // R28 small size → personal
 	24.0, // R29 attachmentDiversity >= 3 → engineered assembly (retuned, 2GN.79)
 	26.8, // R30 decorativeLayerCount >= 10 → heavily worked (measured p75, 2GN.34)
@@ -97,9 +102,9 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	0.0, // R34 DORMANT: motifCulturalOrigins awaits roadmap 2GN.68
 	24.7, // R35 edged && layers >= 6 → the engraved-blade archetype (measured p50, 2GN.34)
 	40.8, // R36 container && layers >= 6 → ritual vessel (measured p50, 2GN.34)
-	1.0, // R37 fastening mechanism → fastener
+	2.2, // R37 fastening mechanism → fastener (2GN.86: more artefacts light enough)
 	31.2, // R38 impact surface → percussion
-	8.1, // R39 wearable → adornment
+	10.8, // R39 wearable → adornment (2GN.86: more artefacts light enough)
 	29.6, // R40 decorativeComplexity >= 16 → lavish (measured p75, 2GN.34)
 	7.7, // R41 decorativeComplexity >= 25 → exceptionally lavish (~p93, 2GN.34)
 	33.2, // R42 complexity/partCount >= 4 → lavish for its size (measured p75, 2GN.34)

@@ -244,19 +244,37 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 
 	// --- Mass ------------------------------------------------------------------------------------
 
-	/** A heavy edge reads axe/adze/billhook — labour, not a blade weapon; counterweights the long-edge rule. */
+	/**
+	 * A heavy edge reads axe/adze/billhook — labour, not a blade weapon; counterweights the long-edge
+	 * rule. Fires on 19.5% of edged artefacts. Unchanged by 2GN.79's audit, but worth recording that
+	 * it measured at 55.8% before roadmap 2GN.86 rebalanced the mass bands: the "not a blade weapon"
+	 * contrast was describing the majority of edged objects, because the old mass proxy put 57% of
+	 * all output in `heavy`. The defect was upstream in `deriveDimensions`, not in this threshold.
+	 */
 	{
 		condition: (f) => f.hasEdge && (f.massBand === 'heavy' || f.massBand === 'very-heavy'),
 		tags: new Map([['tool', 0.5], ['agricultural', 0.3]]),
 	},
 
-	/** A heavy container reads storage jar or cauldron rather than tableware. */
+	/**
+	 * A heavy container reads storage jar or cauldron rather than tableware. Fires on 24.8% of
+	 * containers, down from 61.1% before roadmap 2GN.86 — see the heavy-edge rule above for why the
+	 * "rather than" contrast previously described the majority.
+	 */
 	{
 		condition: (f) => f.hasContainer && (f.massBand === 'heavy' || f.massBand === 'very-heavy'),
 		tags: new Map([['utilitarian', 0.4], ['domestic', 0.3]]),
 	},
 
-	/** Too heavy for one person: a shared or monumental object. */
+	/**
+	 * Too heavy for one person: a shared or monumental object. Fires on 5.0%.
+	 *
+	 * Fired on **nothing at all** until roadmap 2GN.86: `very-heavy`'s threshold sat above the old
+	 * mass proxy's arithmetic maximum, so the band was unreachable rather than merely rare and this
+	 * rule was dead code carrying an authored intent. Rules reading a band no generator can emit
+	 * fail silently — the calibration guard (`calibration.test.ts`) now pins every rule's rate so a
+	 * zero is visible rather than assumed.
+	 */
 	{
 		condition: (f) => f.massBand === 'very-heavy',
 		tags: new Map([['communal', 0.4], ['ceremonial', 0.2]]),
