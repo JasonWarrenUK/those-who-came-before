@@ -910,7 +910,7 @@ further change belongs to 2GN.82's systematic pass rather than to one rule in is
 
 ---
 
-### 2.28 Status-Tag Relativity Ruled: Relative by Tag, Empirical by Culture-Phase (2026-08-04)
+### 2.28 Tag Relativity Ruled: Relative by Tag, Empirical by Culture-Phase, Vocabulary Re-Split (2026-08-04)
 
 **Origin:** Roadmap spikes 2GN.80 and 2GN.77, ruled jointly **Source of truth:** doc 11 §2.9 holds
 the decision; this entry records why it went the way it did and what the measurement found
@@ -922,14 +922,47 @@ answer turned out to depend on machinery the decoration answer needed anyway.
 
 **The boundary is drawn by what a rule awards, not what it reads.** The intuitive cut — physical
 conditions absolute, decorative conditions relative — was rejected on inspection of the shipped rule
-set. Parsing all 43 rules found the decoration-conditioned family (R30–R36, R40–R43) awards `elite`
-in every case but R32, which is the clean part. But two rules with purely physical conditions, R12
-(thin-walled container) and R15 (pedestal base), also award `ceremonial`+`elite`. A condition-side
-cut would leave those two making absolute status claims while their eleven siblings made relative
-ones, and no explanation of the boundary would survive contact with them. Cutting by awarded tag
-costs per-culture baselines for wall thickness and base type, which nothing models — and which
-empirical calibration produces for free, for any feature. That cost is what decided the sampling
-question below rather than the other way round.
+set. Parsing all 43 rules found the decoration-conditioned family (eleven rules) awards `elite` in
+every case but the any-decoration nudge, which is the clean part. But two rules with purely physical
+conditions, the thin-walled container and the pedestal base, also award `ceremonial`+`elite`. A
+condition-side cut would leave those two making absolute standing claims while their eleven siblings
+made relative ones, and no explanation of the boundary would survive contact with them. Cutting by
+awarded tag costs per-culture baselines for wall thickness and base type, which nothing models — and
+which empirical calibration produces for free, for any feature. That cost is what decided the
+sampling question below rather than the other way round.
+
+**The award-side cut selects far more of the rule set than the decoration family, and the first
+draft of this ruling undercounted it.** Applying the stated selector mechanically gives **34 of 43
+rules**; only 9 award purely absolute tags. The original enumeration named thirteen and reached for
+"this includes" to stay technically true, which would have led 2GN.82 to size its work at a third of
+the real figure. The rules it missed are not exotic: the thick-walled and heavy-container rules
+award `utilitarian` off the same `wallThickness`/`massBand` axis the thin-walled rule awards `elite`
+off, so the justification for pulling one in was the justification for pulling in all three; the
+slit and sealed container rules award `votive`/`funerary`; and the perforation, ring-gap,
+sheet-flexibility, size-band and wearability families all award `personal`, `everyday`, `artisanal`,
+`communal` or `military`. **General lesson: when a ruling states a selector, run it over the data
+rather than enumerating by hand — a hand-written list of examples reads as a specification to
+whoever implements it.** The count is now pinned by a test (`classification.test.ts`) rather than
+restated in prose, because rule indices shift whenever the array is edited and prose enumerations go
+stale silently.
+
+**The tag vocabulary was reorganised to carry the split, and `ritual`/`votive`/`funerary` moved.**
+Recording the boundary exposed that `ritual` and `votive` were `FunctionTag` members and so filed
+absolute by the ruling, while 2GN.85's brief named them alongside `elite`/`ceremonial` as tags whose
+standing semantics it had to settle. The decoration-conditioned edged-artefact rule made the
+friction concrete: one condition awarding `ritual`+`ceremonial`+`elite` would have split two
+relative and one absolute from a single firing. The wrong thing was the vocabulary, not the ruling.
+`FunctionTag` (FOR) / `ContextTag` (USED) was replaced by `AbsoluteTag` / `RelativeTag`, with
+`ritual`, `votive` and `funerary` relative: each is an inference about intent from morphology or
+decorative excess, and `DepositionType` (doc 05 §3.5) already carries the objective deposition axis
+separately. The FOR/USED axis had no branch point anywhere in the codebase, while the axis that
+decides whether a rule needs a baseline was implicit and recoverable only by inspection — replacing
+one with the other costs nothing and makes the governing question answerable from the type. Done now
+because both `FunctionTag[]` consumers (`NPCScholarSeed.specialisation`,
+`DescriptionVariant.emphasis`) were still unpopulated; after Milestone 3 seeds scholars the same
+change would have meant migrating real data. **This is the same shape as §2.25's saturating boolean:
+a representation inherited from an earlier framing quietly stopped matching the question being asked
+of it.**
 
 **Percentile stability is not fire-rate stability, and the difference is large.** §2.27 measured
 sampling noise for _fire rates_ and found n=100 at the knee (3.8pp worst case). Inheriting that
@@ -994,13 +1027,16 @@ explicit one.
 absolute reading this decision replaces, so 2GN.82–85's recalibration is gated on this ruling rather
 than merely sequenced after it.
 
-| Doc | What changed                                                                                                   | Completed  |
-| --- | -------------------------------------------------------------------------------------------------------------- | ---------- |
-| 11  | New §2.9 Status-Tag Relativity — the locked decision, its consequences and the rejected alternatives           | 2026-08-04 |
-| 12  | This entry — measurement findings, the boundary rationale, and the two constraints the ruling surfaced         | 2026-08-04 |
-| 05  | Pending: §3.2 `stratification` becomes a live classification input; §9.2 records the relative/absolute split   | —          |
-| 08  | Pending: `ClassificationContext` type; world state carries cached per-culture-phase baselines                  | —          |
-| —   | Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 gated on this ruling; new 3WS.21 for phase-attribute continuity | 2026-08-04 |
+| Doc | What changed                                                                                                          | Completed  |
+| --- | --------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 11  | New §2.9 Status-Tag Relativity — the locked decision, the vocabulary reorganisation, and the rejected alternatives    | 2026-08-04 |
+| 12  | This entry — measurement findings, the boundary rationale, the undercount correction, and the two constraints raised  | 2026-08-04 |
+| —   | `types/tags.ts`: `FunctionTag`/`ContextTag` replaced by `AbsoluteTag`/`RelativeTag`/`ArtefactTag` ⚠️ breaking         | 2026-08-04 |
+| —   | `data/classification.ts`: ruling recorded at the rule set; 34/43 and 9/43 counts pinned by test                       | 2026-08-04 |
+| 05  | Pending: §3.2 `stratification` becomes a live classification input; §9.2's tag code block supersedes to the new split | —          |
+| 08  | Pending: `ClassificationContext` type; world state carries cached per-culture-phase baselines                         | —          |
+| 12  | Pending: §2.22's tag sets re-keyed to the new vocabulary (lands with 2GN.78)                                          | —          |
+| —   | Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 gated on this ruling; new 3WS.21 for phase-attribute continuity        | 2026-08-04 |
 
 ---
 

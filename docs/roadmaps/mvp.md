@@ -813,13 +813,19 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
       six different scarcity profiles to calibrate against rather than one lenient fixture
 - [ ] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
-      _(depends on 2GN.80)_ — recalibration of already-built work; documentation rather than code,
-      and the piece every later system inherits. Whether `elite`/`ceremonial`/`ritual`/`votive` mean
-      "unusual in this world" or "unusual for this culture" is currently unstated, so description
-      generation (2GN.38+), the lens (M6) and NPC interpretation (M10) would each be free to assume
-      differently. Deliverables: the semantics recorded as a locked decision in doc 11, a doc 12
-      propagation entry, and the tag-vocabulary JSDoc in `src/lib/types/tags.ts` stating it at the
-      definition site
+      _(depends on 2GN.80)_ — gated on 2GN.80's ruling; **substantially delivered by the ruling PR
+      itself** (doc 11 §2.9, doc 12 §2.28). The ruling replaced `FunctionTag`/`ContextTag` with
+      `AbsoluteTag`/`RelativeTag`/`ArtefactTag`, which settles the question this task existed to
+      ask: `elite`/`ceremonial`/`ritual`/`votive` mean "unusual for this culture-phase", and that is
+      now stated by the type a tag sits in rather than by prose alone. `ritual`, `votive` and
+      `funerary` moved to the relative side in the process. Per-tag JSDoc at the definition site is
+      written. **What remains:** propagate the semantics into the consumers that inherit them but do
+      not yet exist — description generation (2GN.38+) must not describe a relative tag as though it
+      were an absolute property; the lens (M6) must weight relative tags against the culture-phase
+      the agent _believes_ produced the artefact, not the true one; and NPC interpretation (M10)
+      inherits the same. Also doc 05 §9.2's superseded code block, currently carrying an
+      implementation note rather than a rewrite. Re-scope on pickup: this may reduce to a doc 05
+      pass plus per-consumer notes rather than a standalone task
 - [x] **2GN.86** — `engine/generation/grammar.ts` — mass proxy sums component footprints; mass bands
       rebalanced to measured percentiles — surfaced 2026-08-01 auditing all 43 classification rules
       at the user's request (2GN.79 had cleared 41 in prose without per-rule sign-off). Three rules
@@ -901,8 +907,12 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `precious-metal`/`precious-stone` members per the 2GN.77 ruling _(depends on 2GN.77)_ — ⚠️
       breaking if removed or stop feeding classification: referenced by `INTRODUCED_MATERIAL_TAGS`
       in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`, and doc 12 §2.22's
-      interviewed gilding/inlay/overlay/studs/beading tag sets. Conditional on the spike's outcome —
-      may resolve to no code change if 2GN.77 keeps the static model
+      interviewed gilding/inlay/overlay/studs/beading tag sets. **2GN.77 ruled world-relative (doc
+      11 §2.9), so this is no longer conditional:** `precious-metal`/`precious-stone` survive as
+      material descriptors but lose any classification-input role, and no rule may read them to
+      award a `RelativeTag`. Material-derived standing comes from the material's situation instead
+      (availability × cultural affinity × provenance × stratification). Doc 12 §2.22's tag sets are
+      re-keyed to the `AbsoluteTag`/`RelativeTag` vocabulary as part of this task
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via

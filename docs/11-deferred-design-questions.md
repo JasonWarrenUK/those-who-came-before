@@ -259,9 +259,16 @@ resolution timing).
 
 ### 2.9 Status-Tag Relativity (roadmap 2GN.80 + 2GN.77)
 
-**Decision:** Status tags are scored **relative to the producing culture-phase**; physical and
-functional tags stay **absolute**. The boundary is drawn by the tag a rule awards, not by the
-feature its condition reads.
+**Decision:** Tags asserting an artefact's standing among its culture's own output are scored
+**relative to the producing culture-phase**; tags reading physical affordance stay **absolute**. The
+boundary is drawn by the tag a rule awards, not by the feature its condition reads.
+
+**The tag vocabulary is reorganised to carry this split directly.** `FunctionTag` (what an object
+was FOR) and `ContextTag` (how it was USED) are replaced by `AbsoluteTag` and `RelativeTag`
+(`src/lib/types/tags.ts`), with `ArtefactTag` as the union. The FOR/USED axis was not the axis that
+governs anything: nothing branched on it, while the axis that decides whether a rule needs a
+culture-phase baseline was left implicit and had to be recovered by inspection. One vocabulary now
+answers the question the engine actually asks.
 
 Ruled on jointly with 2GN.77, which asks the same question of materials. One question, two surfaces:
 decoration and material value are both cultural judgements, and answering them separately risked two
@@ -281,20 +288,61 @@ aesthetics rather than a real social distinction within it.
 
 **The boundary: cut by tag, not by condition.** An artefact's physical affordances are objective —
 an edge cuts, a heavy object is heavy, a pedestal base is a pedestal base — and these read the same
-in any culture. Status is a social judgement and only means anything against local norms. Applying
-this to the shipped rule set:
+in any culture. Standing is a social judgement and only means anything against local norms.
 
-- **Relative** — every rule contributing to `elite`, `ceremonial`, `utilitarian`, `everyday`,
-  `personal`, `communal`, `artisanal`, `military`. This includes the eleven decoration-conditioned
-  rules (R30–R36, R40–R43) and also R12 (thin-walled container) and R15 (pedestal base), whose
-  conditions are physical but whose awards are status claims.
-- **Absolute** — every rule awarding only function tags (`tool`, `weapon`, `container`, `ornament`,
-  `fastener` and the rest). R32's any-decoration nudge stays absolute and universal by design (doc
-  12 §2.24).
+The membership test for each vocabulary:
 
-Cutting by tag rather than condition means R12/R15 need per-culture baselines for wall thickness and
-base type — data nothing currently models. Empirical calibration (below) produces these for free,
-which is why the two decisions were taken together.
+- **`AbsoluteTag`** (10 members) — could a scholar from any culture, shown only the object, reach
+  this tag from its physical affordances alone? `weapon`, `tool`, `container`, `fastener`,
+  `ornament`, `domestic`, `agricultural`, `maritime`, `trade-good`, `currency`.
+- **`RelativeTag`** (11 members) — does the tag assert something about the artefact's standing among
+  its culture's other output? `personal`, `communal`, `elite`, `utilitarian`, `ceremonial`,
+  `everyday`, `military`, `artisanal`, `ritual`, `votive`, `funerary`.
+
+Three placements are worth stating rather than leaving to inference:
+
+- **`ritual`, `votive` and `funerary` are relative**, despite reading as purposes rather than
+  registers. Each is an _inference from morphology or decorative excess_ about intent, not a
+  recorded fact: what counts as elaborated beyond ordinary use, or as a burial deposit rather than a
+  storage vessel, is a per-culture question. `DepositionType` (doc 05 §3.5) is the objective
+  deposition axis and stays separate and absolute; these tags are the interpretive layer above it.
+- **`ornament` is absolute.** It is awarded on morphology (`isWearable`, `perforation`, `ringGap`),
+  never on decorative volume. "Is a wearable thing" is objective; "is a _lavish_ wearable thing" is
+  `elite`, which is relative. ⚠️ `ExtractedFeatures.isWearable` is broader than the tag — it covers
+  clothing and textile fittings as much as adornment. Nothing is misclassified today because the
+  grammar rolls no clothing forms, but the rule keying it straight to `ornament` will over-fire once
+  it does; splitting worn-for-display from worn-for-covering is the fix, not moving the tag.
+- **`military` is relative while `weapon` is absolute.** An edge on a long body is objectively a
+  weapon; whether it signals a warrior class depends on whether the culture has one. Rigid sheet
+  reads armour in a stratified culture and roofing in a flat one.
+
+**The relative basis selects 34 of the 43 shipped rules; only 9 award purely absolute tags.** This
+is far wider than the decoration family, and the count is what recalibration (2GN.82) is sized
+against. Read the vocabulary arrays in `types/tags.ts` for membership rather than any list of rule
+indices — indices shift whenever the rule array is edited. `classification.test.ts` pins both
+counts, so a rule edit that moves a rule across the boundary fails loudly.
+
+The non-obvious inclusions, all of which a condition-side cut would have missed:
+
+- The **thin-walled container** and **pedestal base** rules, whose conditions are purely physical
+  but whose awards (`elite`, `ceremonial`) are standing claims. These are what forced the cut onto
+  the award side in the first place.
+- Their **siblings on the same physical axes**: the thick-walled and heavy-container rules award
+  `utilitarian` off `wallThickness`/`massBand` exactly as the thin-walled rule awards `elite`.
+  Leaving them absolute would reintroduce the incoherence the tag-side cut exists to avoid, on the
+  same feature.
+- The **slit and sealed container** rules, which award `votive`/`funerary` off opening morphology.
+- The **perforation, ring-gap, sheet-flexibility, size-band and wearability** families, which award
+  `personal`, `everyday`, `artisanal`, `communal` or `military` alongside their function tags.
+
+Most rules award from both vocabularies at once, and that is expected: the sealed-container rule
+awards `container` (absolute) alongside `votive` and `funerary` (relative) from one condition. The
+basis is a property of each awarded tag, not of the rule. The any-decoration nudge awards only
+`ornament` and so stays absolute and universal by design (doc 12 §2.24).
+
+Cutting by tag rather than condition means the thin-walled and pedestal rules need per-culture
+baselines for wall thickness and base type — data nothing currently models. Empirical calibration
+(below) produces these for free, which is why the two decisions were taken together.
 
 **Baselines are empirical, sampled per culture-phase at world generation.** A calibration pass runs
 pipeline stages 1–7 for each culture-phase, collects the raw `ExtractedFeatures` distribution, and
@@ -357,6 +405,19 @@ culture is not — nothing binds a culture to a single region — so a culture s
 faces different material availability in each. Decoration baselines need no region key; material
 ones do.
 
+**Consequence: `FunctionTag`/`ContextTag` retire in favour of `AbsoluteTag`/`RelativeTag`.** ⚠️
+Breaking type change, landed with this decision. `ArtefactTag` is the union and replaces every
+`FunctionTag | ContextTag` site. Two fields widen from `FunctionTag[]` to `ArtefactTag[]`:
+`NPCScholarSeed.specialisation` (a funerary-vessel specialist is as ordinary an academic identity as
+a weapons specialist, and a scholar anchored to a relative tag is the more interesting case, since
+their expertise rests on a culture-relative judgement they may be reading wrong) and
+`DescriptionVariant.emphasis` (a variant framing an artefact as ceremonial is precisely the framing
+the lens selects on). Neither had any populated data at the time of the change — every shipped
+`emphasis` is empty and no scholars are seeded yet — so there was no migration; doing this after
+Milestone 3 seeds scholars would have cost real work. `TAG_ORDER` becomes
+`[...ABSOLUTE_TAGS, ...RELATIVE_TAGS]`; the ordering is arbitrary but must stay fixed, since
+reordering churns every serialised map.
+
 **Every threshold in `data/classification.ts` is provisional pending recalibration** (roadmap
 2GN.82–85), since the numbers were all measured under the absolute reading this decision replaces.
 
@@ -368,10 +429,12 @@ recorded as a requirement on it rather than a defect: per-phase change must be b
 breaks as deliberate rare events rather than the default. Drift measured across incoherent phases
 measures noise. Raised as roadmap task 3WS.21.
 
-**Affects:** doc 05 (§3.2 stratification becomes live, §9.2 classification inputs), doc 08 (world
-state carries cached baselines; `ClassificationContext` type), doc 12 (§2.20's pure-function
-contract amended). Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 recalibration gated on this;
-3WS.21 raised for phase continuity.
+**Affects:** doc 05 (§3.2 stratification becomes live; §9.2's `FunctionTag`/`ContextTag` code block
+is superseded by `AbsoluteTag`/`RelativeTag`), doc 08 (world state carries cached baselines;
+`ClassificationContext` type), doc 12 (§2.20's pure-function contract amended; §2.22's tag sets
+re-keyed to the new vocabulary). Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 recalibration gated
+on this; 2GN.85 inherits the vocabulary split rather than having to rule on it; 3WS.21 raised for
+phase continuity.
 
 ---
 

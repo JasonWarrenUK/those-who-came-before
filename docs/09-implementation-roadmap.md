@@ -157,7 +157,8 @@ thresholds so the grammar + plausibility pipeline produces a good hit rate.
 
 ### What Gets Built
 
-- Tag taxonomy (`FunctionTag`, `ContextTag`)
+- Tag taxonomy (`AbsoluteTag`, `RelativeTag`, `ArtefactTag` — re-split from the original
+  `FunctionTag`/`ContextTag` pair by roadmap 2GN.80/2GN.77, doc 11 §2.9)
 - Unified feature extraction (doc 05 §9.1): a single pass over the complete plausibility-checked
   structure produces one `ExtractedFeatures` set, run after Phase 3 rather than accumulated during
   it
