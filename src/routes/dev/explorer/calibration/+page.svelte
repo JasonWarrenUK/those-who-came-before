@@ -24,7 +24,27 @@ const culture = $derived(
 const SAMPLE_SIZES = [100, 250, 500, 1000];
 let sampleSize = $state(250);
 
-const report = $derived(calibrateRules(baseSeed, culture, sampleSize));
+// Committed on request rather than re-derived on every control change: at 1000 artefacts
+// `calibrateRules` runs the whole generation pipeline synchronously per sample and would block
+// paint until it finished, with no feedback while it ran. Captures the resolved culture, not just
+// its id, so changing the dropdown after a run can't silently swap the report's culture without a
+// fresh run.
+let request = $state<
+	{ seed: string; culture: (typeof EXPLORER_CULTURES)[number]; size: number } | undefined
+>(undefined);
+let running = $state(false);
+const report = $derived(
+	request === undefined ? undefined : calibrateRules(request.seed, request.culture, request.size),
+);
+
+function runCalibration(): void {
+	running = true;
+	request = { seed: baseSeed, culture, size: sampleSize };
+	// Yield a frame so the pending state paints before the synchronous sweep below blocks it.
+	requestAnimationFrame(() => {
+		running = false;
+	});
+}
 
 const VERDICT_LABEL: Record<CalibrationVerdict, string> = {
 	saturated: 'saturated',
@@ -74,104 +94,119 @@ function contributionText(rule: RuleCalibration): string {
 			</select>
 		</label>
 
+		<button type="button" class="btn btn-primary btn-sm" onclick={runCalibration} disabled={running}>
+			{running ? 'Running…' : 'Run calibration'}
+		</button>
+
 		<p class="text-base-content/60 pb-1 text-xs">
 			seed <span class="font-mono">{baseSeed}</span> · {culture.description}
 		</p>
 	</div>
 
-	{#if report.saturatedRules.length > 0}
-		<div class="alert alert-warning">
-			<div class="text-sm">
-				<p class="font-semibold">
-					{report.saturatedRules.length} rule{report.saturatedRules.length === 1 ? '' : 's'} above
-					{SATURATION_CEILING}%
-				</p>
-				<p>
-					{report.saturatedRules.map((rule) => `${rule.label} ${rule.firePercent.toFixed(1)}%`).join(
-						' · ',
-					)}
-					— check each against its stated intent. One is expected: the any-decoration nudge is
-					documented as deliberately universal (doc 12 §2.24).
-				</p>
+	{#if running}
+		<p class="text-base-content/60 text-sm">
+			Sampling {sampleSize} artefacts against every rule — this runs the full generation pipeline
+			synchronously and may take a moment.
+		</p>
+	{:else if report === undefined}
+		<p class="text-base-content/60 text-sm">
+			Choose a culture and sample size, then run calibration to see fire rates.
+		</p>
+	{:else}
+		{#if report.saturatedRules.length > 0}
+			<div class="alert alert-warning">
+				<div class="text-sm">
+					<p class="font-semibold">
+						{report.saturatedRules.length} rule{report.saturatedRules.length === 1 ? '' : 's'} above
+						{SATURATION_CEILING}%
+					</p>
+					<p>
+						{report.saturatedRules
+							.map((rule) => `${rule.label} ${rule.firePercent.toFixed(1)}%`)
+							.join(' · ')}
+						— check each against its stated intent. One is expected: the any-decoration nudge is
+						documented as deliberately universal (doc 12 §2.24).
+					</p>
+				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
 
-	<section>
-		<h3 class="font-semibold">Tags</h3>
-		<p class="text-base-content/60 mb-2 text-xs">
-			Present = carries the tag at all. Leads = is that artefact's highest-scoring tag. A tag
-			leading on most output is not discriminating, whatever its individual scores look like.
-		</p>
-		<div class="overflow-x-auto">
-			<table class="table table-sm">
-				<thead>
-					<tr>
-						<th>Tag</th>
-						<th class="text-right">Present</th>
-						<th class="text-right">Leads</th>
-						<th class="text-right">Mean score</th>
-						<th>Top contributor</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each report.tags as tag (tag.tag)}
+		<section>
+			<h3 class="font-semibold">Tags</h3>
+			<p class="text-base-content/60 mb-2 text-xs">
+				Present = carries the tag at all. Leads = is that artefact's highest-scoring tag. A tag
+				leading on most output is not discriminating, whatever its individual scores look like.
+			</p>
+			<div class="overflow-x-auto">
+				<table class="table table-sm">
+					<thead>
 						<tr>
-							<td class="font-mono">{tag.tag}</td>
-							<td class="text-right font-mono">{tag.presentPercent.toFixed(1)}%</td>
-							<td class="text-right font-mono">{tag.leadPercent.toFixed(1)}%</td>
-							<td class="text-right font-mono">{tag.meanScoreWhenPresent.toFixed(2)}</td>
-							<td class="text-base-content/70 font-mono text-xs">
-								{#if tag.topContributor}
-									{tag.topContributor.label}
-									<span class="text-base-content/50">
-										(fires {tag.topContributor.firePercent.toFixed(1)}%)
+							<th>Tag</th>
+							<th class="text-right">Present</th>
+							<th class="text-right">Leads</th>
+							<th class="text-right">Mean score</th>
+							<th>Top contributor</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each report.tags as tag (tag.tag)}
+							<tr>
+								<td class="font-mono">{tag.tag}</td>
+								<td class="text-right font-mono">{tag.presentPercent.toFixed(1)}%</td>
+								<td class="text-right font-mono">{tag.leadPercent.toFixed(1)}%</td>
+								<td class="text-right font-mono">{tag.meanScoreWhenPresent.toFixed(2)}</td>
+								<td class="text-base-content/70 font-mono text-xs">
+									{#if tag.topContributor}
+										{tag.topContributor.label}
+										<span class="text-base-content/50">
+											(fires {tag.topContributor.firePercent.toFixed(1)}%)
+										</span>
+									{:else}
+										—
+									{/if}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section>
+			<h3 class="font-semibold">Rules</h3>
+			<p class="text-base-content/60 mb-2 text-xs">
+				In `CLASSIFICATION_RULES` order, so labels match the Tag Inspector and the pinned test
+				blocks. Dormant rules have no producer in the current pipeline yet.
+			</p>
+			<div class="overflow-x-auto">
+				<table class="table table-sm">
+					<thead>
+						<tr>
+							<th>Rule</th>
+							<th class="text-right">Fires</th>
+							<th>Verdict</th>
+							<th>Contributes</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each report.rules as rule (rule.ruleIndex)}
+							<tr>
+								<td class="font-mono">{rule.label}</td>
+								<td class="text-right font-mono">
+									{rule.firePercent.toFixed(1)}%
+									<span class="text-base-content/50 text-xs">({rule.fireCount})</span>
+								</td>
+								<td>
+									<span class="badge badge-sm {VERDICT_CLASS[rule.verdict]}">
+										{VERDICT_LABEL[rule.verdict]}
 									</span>
-								{:else}
-									—
-								{/if}
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</section>
-
-	<section>
-		<h3 class="font-semibold">Rules</h3>
-		<p class="text-base-content/60 mb-2 text-xs">
-			In `CLASSIFICATION_RULES` order, so labels match the Tag Inspector and the pinned test blocks.
-			Dormant rules have no producer in the current pipeline yet.
-		</p>
-		<div class="overflow-x-auto">
-			<table class="table table-sm">
-				<thead>
-					<tr>
-						<th>Rule</th>
-						<th class="text-right">Fires</th>
-						<th>Verdict</th>
-						<th>Contributes</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each report.rules as rule (rule.ruleIndex)}
-						<tr>
-							<td class="font-mono">{rule.label}</td>
-							<td class="text-right font-mono">
-								{rule.firePercent.toFixed(1)}%
-								<span class="text-base-content/50 text-xs">({rule.fireCount})</span>
-							</td>
-							<td>
-								<span class="badge badge-sm {VERDICT_CLASS[rule.verdict]}">
-									{VERDICT_LABEL[rule.verdict]}
-								</span>
-							</td>
-							<td class="text-base-content/70 font-mono text-xs">{contributionText(rule)}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</section>
+								</td>
+								<td class="text-base-content/70 font-mono text-xs">{contributionText(rule)}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/if}
 </div>
