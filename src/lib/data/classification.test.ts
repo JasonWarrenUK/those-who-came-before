@@ -67,6 +67,10 @@ function maximalFeatures(): ExtractedFeatures {
 		baseType: 'pedestal',
 		decorativeLayerCount: 20,
 		appliedElementPresent: true,
+		// Above the retuned rule's `>= 4` threshold (roadmap 2GN.79): left at the neutral 0, the
+		// sweeps below would silently stop exercising the applied-element rule, the same coverage gap
+		// doc 12 §2.24 caught when it raised the other decorative fields here.
+		appliedElementCount: 8,
 		motifPresent: true,
 		motifCulturalOrigins: ['culture-a', 'culture-b'],
 		techniqueComplexity: 12,
@@ -573,13 +577,24 @@ if (R27.tags.get('artisanal') !== 0.3 || !R27.tags.has('tool')) {
 	throw new Error('CLASSIFICATION_RULES[28] must be the composite-complexity rule');
 }
 
-Deno.test('R27: three or more parts with two or more attachment types fires', () => {
-	assert(R27.condition(features({ partCount: 3, attachmentDiversity: 2 })));
+Deno.test('R27: three or more distinct attachment types fires', () => {
+	assert(R27.condition(features({ partCount: 4, attachmentDiversity: 3 })));
 });
 
-Deno.test('R27: too few parts, or too little join variety, does not fire', () => {
-	assert(!R27.condition(features({ partCount: 2, attachmentDiversity: 2 })));
-	assert(!R27.condition(features({ partCount: 3, attachmentDiversity: 1 })));
+Deno.test('R27: two or fewer join types does not fire', () => {
+	assert(!R27.condition(features({ partCount: 4, attachmentDiversity: 2 })));
+	assert(!R27.condition(features({ partCount: 4, attachmentDiversity: 0 })));
+});
+
+/**
+ * Guards the 2GN.79 finding that made `partCount` inert here: three distinct joint types cannot
+ * occur without the parts to carry them, so the rule reads diversity alone. If someone reintroduces
+ * a `partCount` clause, this fails.
+ */
+Deno.test('R27: partCount does not gate the rule — diversity alone decides', () => {
+	assert(R27.condition(features({ partCount: 0, attachmentDiversity: 3 })));
+	assert(R27.condition(features({ partCount: 99, attachmentDiversity: 3 })));
+	assert(!R27.condition(features({ partCount: 99, attachmentDiversity: 2 })));
 });
 
 // --- R28-R30: decoration (real signals) ---------------------------------------------------------------
@@ -602,9 +617,23 @@ Deno.test('R28: ten or more decorative layers fires; fewer does not', () => {
 	assert(!R28.condition(features({ decorativeLayerCount: 9 })));
 });
 
-Deno.test('R29: an applied element present fires; absent does not', () => {
-	assert(R29.condition(features({ appliedElementPresent: true })));
-	assert(!R29.condition(features({ appliedElementPresent: false })));
+Deno.test('R29: four or more applied elements fires; three does not', () => {
+	assert(R29.condition(features({ appliedElementCount: 4 })));
+	assert(!R29.condition(features({ appliedElementCount: 3 })));
+	assert(!R29.condition(features({ appliedElementCount: 0 })));
+});
+
+/**
+ * Guards the 2GN.79 retune: the rule must read the count, not the saturating boolean. A single
+ * applied element sets `appliedElementPresent` but leaves the count below threshold, so an artefact
+ * that would have fired the old rule must not fire this one.
+ */
+Deno.test('R29: reads the count, not the presence flag', () => {
+	assert(
+		!R29.condition(features({ appliedElementPresent: true, appliedElementCount: 1 })),
+		'one applied element must not read as deliberate embellishment',
+	);
+	assert(R29.condition(features({ appliedElementPresent: true, appliedElementCount: 4 })));
 });
 
 Deno.test('R30: any decorative layer fires; zero layers does not', () => {

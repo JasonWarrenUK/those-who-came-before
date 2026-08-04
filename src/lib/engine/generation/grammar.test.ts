@@ -1154,6 +1154,62 @@ Deno.test('normaliseArtefact: mass band is monotone in size', () => {
 	assert(massRank(massFor('medium')) <= massRank(massFor('long')));
 });
 
+/**
+ * Mass sums per-component footprints rather than reading the object's largest single axes (roadmap
+ * 2GN.86). The previous proxy multiplied the two *maxima* across components, so a one-part object
+ * and a ten-part object sharing one large component scored identically — which is how 57.4% of a
+ * 7200-artefact sample landed on the same value and `heavy` swallowed the distribution.
+ */
+Deno.test('normaliseArtefact: mass grows with part count, not just the largest part', () => {
+	const massScoreFor = (parts: number) =>
+		massRank(
+			normaliseArtefact({
+				groups: Array.from({ length: parts }, () => ({
+					primary: sizedComponent('flat-broad', { size: 'large' }),
+					attachments: [],
+				})),
+			}, 'a').dimensions.mass,
+		);
+
+	assert(
+		massScoreFor(1) < massScoreFor(6),
+		'six large components must read heavier than one — the old max-based proxy rated them equal',
+	);
+});
+
+/**
+ * The defect 2GN.86 fixed, pinned as an invariant: no single mass band may hold a majority of
+ * output. The old proxy put 57.4% in `heavy` and made `very-heavy` unreachable by arithmetic (its
+ * threshold sat above the proxy's maximum), so the band carried no information.
+ */
+Deno.test('normaliseArtefact: no mass band dominates generated output', () => {
+	const counts = new Map<string, number>();
+	const total = 600;
+
+	for (let index = 0; index < total; index++) {
+		const artefact = normaliseArtefact(
+			expandGrammar(
+				CORE_GRAMMAR_RULES,
+				mockCulturalProfile(),
+				mockPhaseCharacteristics(),
+				createPrng(`mass-spread-${index}`),
+			),
+			`a-${index}`,
+		);
+		const band = artefact.dimensions.mass;
+		counts.set(band, (counts.get(band) ?? 0) + 1);
+	}
+
+	for (const [band, count] of counts) {
+		assert(
+			count / total < 0.5,
+			`${band} holds ${((count / total) * 100).toFixed(1)}% of output — a band this dominant ` +
+				`carries no classificatory information (see 2GN.86)`,
+		);
+	}
+	assert(counts.size >= 4, `only ${counts.size} mass bands reachable; expected at least 4`);
+});
+
 Deno.test('deriveInspectionDepth: boundary cases match doc 05 §5.2 verbatim', () => {
 	assertEquals(deriveInspectionDepth(dimensionsOf(30, 0)), 'full');
 	assertEquals(deriveInspectionDepth(dimensionsOf(31, 0)), 'detailed');

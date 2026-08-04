@@ -36,22 +36,26 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
+	sampleWorldRegion,
+	WORLD_FLAG_USAGE,
 } from './shared.ts';
 
 const USAGE = `sample-classification — score sampled artefacts against the shipped rules
 
-Usage: deno task sample:classification [--seed <string>] [--count <n>] [--bare] [--json]
+Usage: deno task sample:classification [--seed <string>] [--count <n>] [--bare] [--world <region>] [--json]
 
   --seed   Base PRNG seed (default: dev-sample). Sample n of a batch uses "<seed>-<n>".
   --count  Number of artefacts to sample (default: 1).
   --bare   Skip decorative expansion (classify the bare structure).
+${WORLD_FLAG_USAGE}
   --json   Emit JSON (tag map, fired rules and contributions) instead of the chart.`;
 
 const options = parseSampleOptions(USAGE, { '--bare': 'boolean' });
 const bare = options.values.has('--bare');
-const world = sampleWorld();
+const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
 /** One rule's additive contribution to one tag. */
 interface Contribution {
@@ -69,9 +73,9 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		world.phase,
 		world.geology,
 		world.trade,
+		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng(`${seed}-decoration`),
 	);
 	const features = extractFeatures(artefact, layers);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES);
@@ -200,6 +204,7 @@ function printSilence(tags: Map<FunctionTag | ContextTag, number>): void {
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const sample of samples) {
 		console.log();
 		printAnatomy(sample.artefact, sample.seed);

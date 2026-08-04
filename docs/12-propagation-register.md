@@ -693,5 +693,222 @@ or new. Raised to `decorativeLayerCount: 20`, `techniqueComplexity: 12`, `decora
 
 ---
 
+### 2.25 Modelled Geology + Structural Saturation in Classification (2026-07-31)
+
+**Origin:** Roadmap task 2GN.79 implementation (2026-07-31) **Source of truth:**
+`tests/fixtures/world.ts`, `src/lib/data/classification.ts` and `src/lib/data/calibration.test.ts` —
+this entry records why, not what
+
+**The fixture modelled a quarter of the catalogue.** `mockGeologicalContext` carries four of the
+sixteen shipped materials (bronze/iron/gold/flint), so the other twelve reached `isAvailable`'s
+"unmodelled → obtainable" lenience at full weight. Every measured number in §2.24 was taken against
+that fixture. Measured effect: silver was the second most common material at 11.1% of components,
+jade 6.6% against genuinely-scarce gold's 1.4%, and 55.3% of artefacts carried at least one
+"precious" component — a world where precious materials are ordinary, produced by a gap in a test
+fixture rather than by any design decision.
+
+**Six named regional worlds, not one corrected fixture.** The task originally scoped a single
+`mockFullGeologicalContext`; the interview widened it to six internally coherent places
+(`riverValley`, `highlandMine`, `coastalPort`, `forestInterior`, `desertMargin`, `steppeMargin`),
+each modelling all sixteen materials explicitly and paired with its own `MaterialFlow[]`. The reason
+is calibration integrity: a threshold measured against one geology is indistinguishable from a
+threshold overfitted to it, and six divergent worlds make that difference visible. Coverage of
+`isAvailable`'s branches emerges from the places rather than being designed in — `desertMargin` has
+no forest or flax so `oak`/`ash`/`linen` are `absent`, and `forestInterior` carries an empty flow
+array so its `trade-only` metals are excluded through the no-matching-flow branch instead.
+`mockGeologicalContext` is deliberately unchanged: it is now the fixture that covers the
+unmodelled-lenience path the six full worlds no longer reach. `sampleWorld()` gained a region
+parameter (default `coastalPort`) and every sampler a `--world` flag — a scope expansion beyond the
+task's two stated files, agreed at interview.
+
+**Correcting the geology fixed materials and left `elite` untouched, which was the finding.**
+Re-measuring 7200 artefacts across the six worlds: precious-bearing artefacts 55.3% → 27.1%, silver
+11.1% → 3.9%, jade 6.6% → 1.4%, gold now commoner than jade. But `elite` barely moved (89.8%
+presence, 35.4% leader) and sat within 1.6 points across all six worlds (89.2–90.8%) despite
+radically different material availability. A tag that flat across that much variation is not
+responding to materials at all, which redirected the task from the material hypothesis its roadmap
+entry assumed to the decoration rules underneath.
+
+**Saturation can be structural, and then no weight fixes it.** `appliedElementPresent` fired on
+84.6% not because its threshold was wrong but because `expandDecoration` gives each BNF category its
+own per-component slot rolls: at the fixture phase every component has a 0.45 chance of carrying an
+applied element, so a ~4.15-component artefact reaches ~87% by arithmetic (measured 87.2% at
+emphasis 0.5, against 91.6% predicted by the closed form — the gap is slot-0 misses stopping the
+category). The distribution underneath still discriminates (p50 2, p75 4, p90 5, max 15); the
+boolean discarded it. **General lesson for future rules: a boolean over a quantity the generator
+produces repeatedly will saturate, and reweighting it only shrinks a constant.** Hence
+`ExtractedFeatures.appliedElementCount`, an extraction-side addition agreed at interview — this task
+was therefore not the data-only change its roadmap entry scoped.
+
+**Retunes followed one criterion: does stated intent match measured behaviour.** A rule firing often
+because the structure it reads is genuinely common is reporting the truth and was left alone (the
+edge rule at 39%, the heavy-container rule at 40%). Two rules diverged. The applied-element rule now
+reads `appliedElementCount >= 4` (measured p75, 25.2%, within a point of §2.24's retuned
+`decorativeLayerCount >= 10` at 25.3%). The structural-complexity rule rose to
+`attachmentDiversity >= 3` (44.4% → 22.3%), and its `partCount >= 3` clause was **dropped as inert**
+— measurement showed identical firing with the clause, without it, and with it raised to `>= 4`,
+because three joint types cannot occur without the parts to carry them. A clause that never changes
+the outcome misrepresents what a rule tests.
+
+**§2.24's ruling on the any-decoration nudge is upheld, and 2GN.79's entry corrected.** The roadmap
+entry for this task named `decorativeLayerCount >= 1` (98% firing) as a co-driver of the `elite`
+problem. It is not: it does not diverge from its stated intent, §2.24 had already reasoned this
+through, and `ornament`'s leadership fell 27.0% → 18.8% on the applied-element fix alone without
+touching it. Recorded here so the register does not carry a diagnosis the measurement disproved. Net
+result: `elite` leadership 35.4% → 27.4%, and the top four tags now sit within 12 points of each
+other rather than 25.
+
+**Thresholds survive catalogue growth; they do not survive phase variation.** Measured identical at
+2×, 4× and 10× the applied-element technique pool, because slot count sets the quantity and pool
+size only decides which technique fills a slot — so new decorative content does not silently
+invalidate these numbers. Geology likewise barely moves them (22–26% across the six worlds). Phase
+attributes do: the applied-element rule fires on 4.3% at `decorativeEmphasis` 0.1 and 48.1% at 1.0,
+2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0. **Every threshold in the file is absolute and
+carries this sensitivity, including §2.24's seven.** That means `elite` currently reads "unusually
+decorated in absolute terms", so a decorative culture reads as composed of elites and an austere one
+as having none — the same failure 2GN.77 identifies for materials, reached from the decoration side.
+Spike 2GN.80 owns the ruling; recalibration tasks 2GN.82–85 sit between it and any work whose
+correctness depends on what the tag scores mean.
+
+**Fire rates are now under test.** Nothing checked that a rule still fires at the rate its author
+measured, which is how the applied-element rule sat at 84.6% from 2GN.34 to here while its comment
+claimed it marked deliberate embellishment: the rules were tested only in isolation, so the rule set
+and the generator drifted apart silently. `src/lib/data/calibration.test.ts` drives the full chain
+across all six worlds and pins every rule's rate within 10 points, plus asserts that no rule
+claiming selectivity exceeds 60% (the any-decoration nudge exempted by name). It fails loudly and
+legibly — verified by reverting the retune, which named the drift and its size.
+
+| Doc | What changed                                                                                                                                                                                                                                                   | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `tests/fixtures/world.ts`: six named regional worlds modelling all 16 materials, each with its own trade flows; `mockGeologicalContext` deliberately unchanged; new `tests/fixtures/world.test.ts`                                                             | 2026-07-31 |
+| —   | `src/lib/types/artefact.ts` + `engine/generation/classification.ts`: new `ExtractedFeatures.appliedElementCount`; `appliedElementPresent` retained, now derived from it                                                                                        | 2026-07-31 |
+| —   | `src/lib/data/classification.ts`: applied-element rule reads the count at `>= 4`; structural-complexity rule at `attachmentDiversity >= 3` with its inert `partCount` clause dropped; module JSDoc records the re-measurement and the phase-sensitivity caveat | 2026-07-31 |
+| —   | `src/lib/data/calibration.test.ts`: new fire-rate regression guard over all 43 rules, plus a saturation-ceiling invariant                                                                                                                                      | 2026-07-31 |
+| —   | `scripts/dev/`: `sampleWorld(region)` and `--world` across five samplers; five pre-existing broken `assignMaterial`/`expandDecoration` call sites fixed (argument order — `deno check` was failing and two samplers threw at runtime)                          | 2026-07-31 |
+| —   | Explorer: new Rule Calibration panel (`/dev/explorer/calibration`, roadmap 2GN.81) reporting per-rule fire rates and per-tag presence/leadership over a sampled population                                                                                     | 2026-07-31 |
+| —   | Roadmap: 2GN.79 done; new 2GN.80 (absolute-vs-culture-relative status spike), 2GN.81 (calibration panel), 2GN.82–85 (recalibration of thresholds, fill constants, scarcity weights, tag semantics); 2GN.27/2GN.38/2GN.68 gated behind the recalibration set    | 2026-07-31 |
+
+---
+
+### 2.26 Mass Proxy Saturation + Band Rebalance (2026-08-01)
+
+**Origin:** Per-rule audit of all 43 classification rules, requested after 2GN.79 cleared 41 of them
+in prose rather than individually **Source of truth:** `deriveDimensions` and `MASS_BAND_CM2` in
+`src/lib/engine/generation/grammar.ts`
+
+**Auditing every rule found three that read `massBand`, and all three were wrong.** R27
+(`very-heavy` → communal/ceremonial) fired on 0 of 7200 artefacts. R25 and R26 fired on 55.8% of
+edged and 61.1% of container artefacts while their JSDocs claimed contrasts — "labour, _not_ a blade
+weapon", "storage jar _rather than_ tableware" — that only hold for a minority. The 2GN.79 session
+had cleared all three as "structural, therefore honest" without measuring their conditional
+populations.
+
+**The defect was the proxy, not the boundaries, and no boundary could have fixed it.**
+`deriveDimensions` scored mass as `primaryExtent * secondaryExtent * (1 + 0.1 * (parts - 1))`, and
+both extents are _maxima_ across components. Each component draws its size from a three-value
+ordinal table (4/14/40, 5/15/45, 3/8/18), so with 2–13 components at least one almost always rolled
+`large`: both axes pinned to 45cm and **57.4% of a 7200-artefact sample landed on exactly
+45×45=2025**. When one value holds the majority of output, every possible cut point either includes
+it (that band ≥57%) or excludes it (everything below sums to ≤43%). `heavy` swallowing 57% was that
+spike, not a mis-set threshold. Separately the proxy's reachable maximum was 4658 against a
+`very-heavy` cut of 5000, so that band was unreachable by arithmetic rather than merely rare — R27
+was dead code carrying an authored intent.
+
+**This is the same failure as `appliedElementPresent` (§2.25), one layer down.** Both collapse a
+multi-part quantity to a maximum-or-presence over components, and both saturate because the
+generator produces enough components that the extreme is almost always reached. **Recorded as a
+general hazard: any statistic defined as a max or an any-of across a generated collection will
+saturate as that collection grows.** Sums, counts and proportions do not.
+
+**Summed footprints.** Mass now sums each component's own major×minor. A many-part object is
+genuinely more massive than a one-part object sharing its largest axis, which a maximum can never
+express. The distribution went from 21 distinct products (top value 57.4%) to 1810 (top value 1.8%),
+range 9–4658 to 16–12183. Bands are pinned to measured p15/p45/p80/p95 (233/2033/2892/5007),
+deliberately tapering rather than equal-sized: most excavated finds are portable, with heavy objects
+uncommon and immovable ones rare, so band populations should thin towards the top. Equal quintiles
+were measured and rejected — they would have claimed a quarter of all finds are too heavy for one
+person to lift. Resulting spread: negligible 15.3% · light 29.2% · moderate 35.2% · heavy 15.6% ·
+very-heavy 4.8%.
+
+**Downstream, all measured rather than assumed.** R27 0% → 5.0%, alive for the first time. R25 55.8%
+→ 19.5% of edged, R26 61.1% → 24.8% of containers, so both contrast claims now hold. R37 1.1% → 1.9%
+and R39 8.5% → 10.6%, because their gated presence flags require `massBand` at most `light` and more
+artefacts now qualify as wearable. `portability` reads mass too, so `major-effort` and `team-lift`
+became reachable. Every other rule unchanged to the decimal. **The §2.25 calibration guard caught
+the drift**, naming both moved rules with their sizes — the first time it did the job it was built
+for. Five recorded rates were re-recorded and annotated with their previous values.
+
+**R4 remains unreachable and is not fixed here** (roadmap 2GN.87). Only 50 of 7200 artefacts are
+edged with a short primary axis, and all 50 carry a short blade band, so R2/R3 always claim them
+first. Unlike R27 it has no identified upstream cause; the task decides between fixing the grammar,
+correcting the condition, and deleting the rule.
+
+| Doc | What changed                                                                                                                                                                       | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `engine/generation/grammar.ts`: mass proxy sums per-component footprints; new `MASS_BAND_CM2` pinned to measured percentiles, replacing the unreachable 60/300/1500/5000 constants | 2026-08-01 |
+| —   | `engine/generation/grammar.test.ts`: two new invariants — mass grows with part count, and no single band holds a majority of output                                                | 2026-08-01 |
+| —   | `src/lib/data/classification.ts`: R25/R26/R27 JSDocs record their measured rates and why they previously diverged; conditions unchanged, since the defect was upstream             | 2026-08-01 |
+| —   | `src/lib/data/calibration.test.ts`: five rates re-recorded with their previous values annotated; the expected-zero note corrected now that R27 fires                               | 2026-08-01 |
+| —   | Roadmap: 2GN.86 (this change) done; 2GN.87 added for R4's unreachable condition                                                                                                    | 2026-08-01 |
+
+---
+
+### 2.27 Calibration Constants Audited (2026-08-01)
+
+**Origin:** Completing the 2GN.79 oversight audit — the retunes and fixtures had per-decision
+sign-off, but nine supporting constants did not **Source of truth:**
+`src/lib/data/calibration.test.ts`, `src/lib/data/classification.ts` and
+`src/routes/dev/explorer/calibration/ruleCalibration.ts`
+
+**A guard's tolerance is only meaningful against its noise floor, and nobody had measured one.**
+`TOLERANCE_POINTS` was set to 10 by feel. Re-running the whole calibration sweep under five
+different seed salts moves the worst-case rule by 3.8pp at n=1800 — so a 10pp band left only 6.2pp
+of genuine headroom, and a rule could shift 9pp of real behaviour and pass silently. Tightened to 6
+(~1.6× headroom), and verified by inducing a regression subtler than the mass rebalance that
+prompted this: reverting the applied-element rule from `>= 4` to `>= 3` drifts it 14.4pp, which the
+tightened band catches and names. `SAMPLES_PER_CELL` stays at 100 but is now justified rather than
+assumed — measured noise by cell size is 25→5.4pp, 50→5.1pp, 100→3.8pp, 200→3.3pp, 400→3.5pp, so 100
+sits at the knee and further sampling stops paying.
+
+**A shared constant was silently duplicated.** `SATURATION_CEILING` was exported from the Explorer
+panel _and_ re-declared as a local const in the guard, with nothing keeping the two in step — a
+defect introduced by §2.25/§2.26's own work. It now lives once in `src/lib/data/classification.ts`,
+beside the rules it describes: it is a fact about the rule set rather than about either consumer,
+and `routes/` may depend on `lib/` but not the reverse. Value unchanged at 60.
+
+**A verdict that maps to no action is noise.** The panel's `rare` band (below `DORMANCY_FLOOR` = 1%)
+was measured across all four Explorer culture presets: it flagged four rules on Tarpan
+(`very-heavy`, heavy-decoration, applied-element, lavish-complexity), one each on Thalassar and
+Khaltiris, none on Xoconahtl. On Tarpan those are the decoration rules, rare precisely because it is
+a low-decoration culture — they are behaving correctly. The badge reported a property of the
+selected culture, not a defect, and the fire-rate column beside it already said "uncommon here" more
+precisely. Removed. Three verdicts remain, each mapping to an action: `dormant` (investigate — a
+rule can be unreachable rather than merely rare, as R4 is and R27 was), `saturated` (check stated
+intent against behaviour), `discriminating` (working).
+
+**Defaults hide decisions.** `mockRegionalWorld`, `mockFullGeologicalContext` and `sampleWorld` all
+defaulted to `coastalPort`, chosen for being the most materially varied — which is true, and also
+makes it the least typical (almost nothing is locally abundant, so its mix is dominated by trade).
+Which world you generate against changes material distribution substantially, so the engine-side
+fixtures now take no default and callers must name one. The CLI keeps a `DEFAULT_SAMPLE_REGION` so
+samplers run bare, and every sampler now prints its world in a header — an omitted `--world` was
+previously invisible in output, which is the failure mode the removal guards against.
+
+**R31's weights were reviewed and kept.** `elite 0.4, ornament 0.3` carried over unchanged from the
+saturating boolean version, so the condition was ruled on at §2.25 but the weights never were. They
+were authored for a rule meaning "deliberate embellishment", and the retuned condition finally
+delivers that meaning at a selectivity matching the heavy-decoration rule's (25.2% vs 25.3%). Any
+further change belongs to 2GN.82's systematic pass rather than to one rule in isolation.
+
+| Doc | What changed                                                                                                                                      | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `src/lib/data/calibration.test.ts`: `TOLERANCE_POINTS` 10 → 6 with its noise measurement recorded; `SAMPLES_PER_CELL` justified; ceiling imported | 2026-08-01 |
+| —   | `src/lib/data/classification.ts`: `SATURATION_CEILING` defined here as the single source for both consumers                                       | 2026-08-01 |
+| —   | `routes/dev/explorer/calibration/`: `DORMANCY_FLOOR` and the `rare` verdict removed; ceiling re-exported from the data layer                      | 2026-08-01 |
+| —   | `tests/fixtures/world.ts`, `scripts/dev/shared.ts`: region defaults removed; `DEFAULT_SAMPLE_REGION` and a per-run world header added             | 2026-08-01 |
+| —   | Roadmap: 2GN.88 records the audit                                                                                                                 | 2026-08-01 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

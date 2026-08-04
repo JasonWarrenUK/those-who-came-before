@@ -550,10 +550,15 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.20",
-							"2GN.75"
+							"2GN.75",
+							"2GN.77",
+							"2GN.82",
+							"2GN.83",
+							"2GN.84",
+							"2GN.85"
 						],
 						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid.",
 						"assignee": "Jason Warren"
@@ -625,6 +630,34 @@
 						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension."
 					},
 					{
+						"id": "2GN.79",
+						"description": "`tests/fixtures/world.ts` + `src/lib/data/classification.ts` + `src/lib/types/artefact.ts` — geological fixture correction and whole-rule-set tag-contribution rebalance",
+						"status": "done",
+						"dependsOn": [],
+						"notes": "`mockGeologicalContext` models only 4 of 16 catalogue materials (bronze/iron/gold/flint), so the other twelve fell through `isAvailable`'s \"unmodelled → obtainable\" lenience at full weight — measuring 1200 pipeline artefacts found silver the second most common material at 10.3% of components and jade 6.6%, while genuinely-scarce gold sat at 1.4%, giving 53.4% of artefacts at least one \"precious\" component. Landed (interviewed decision-by-decision per the classification-branch oversight preference; doc 12 §2.25 records the session) as **six named regional worlds** rather than the single `mockFullGeologicalContext` originally scoped — `riverValley`, `highlandMine`, `coastalPort`, `forestInterior`, `desertMargin`, `steppeMargin`, each modelling all 16 materials explicitly and paired with its own `MaterialFlow[]`, so a threshold tuned against one geology is exposed by another. Between them they cover every `AvailabilityLevel` and both exclusion paths (`absent` in `desertMargin`; trade-only-with-no-matching-flow in `forestInterior`, which carries an empty flow array). `mockGeologicalContext` is deliberately left untouched — it is now the fixture that covers the unmodelled-lenience path the six full worlds no longer reach. `sampleWorld()` takes a region argument (default `coastalPort` at the time — superseded by 2GN.88, which dropped the default entirely) and all five samplers gained `--world`, a scope expansion agreed at interview beyond the task's original two files.\n\n**The fixture fix corrected materials but not `elite`, which was the substantive finding.** Re-measuring 7200 artefacts across the six worlds: precious-bearing artefacts fell 55.3% → 27.1%, silver 11.1% → 3.9%, jade 6.6% → 1.4%, and gold rose above jade — the ordering is now archaeologically sane. But `elite` was unmoved (89.8% presence, 35.4% leader) and near-identical in all six worlds (89.2–90.8%) despite radically different material availability, proving it was never material-driven. Investigation found the applied-element rule's 84.6% firing is **structural, not a mistuned threshold**: `expandDecoration` gives each BNF category its own per-component slot rolls (0.45 base chance at the fixture phase), so a ~4.15-component artefact reaches ~87% by arithmetic alone — no weight on a boolean fixes that.\n\n**Two rules retuned**, both for intent-behaviour divergence (the criterion agreed at interview; a rule firing often because the structure is genuinely common is honest and was left alone): R31 now reads a new `ExtractedFeatures.appliedElementCount` at its measured p75 (`>= 4`, firing 25.2%, within a point of retuned R30's 25.3%) instead of the saturating boolean — an extraction-side change agreed at interview, so this task was not data-only; R29 raised to `attachmentDiversity >= 3` (44.4% → 22.3%) with its `partCount >= 3` clause **dropped as inert** (measured identical fire rate with the clause, without it, and with it raised to `>= 4`). R32's 98% firing was investigated and deliberately left: it does not diverge from its stated intent, doc 12 §2.24 had already ruled the same way, and `ornament`'s leadership fell 27.0% → 18.8% on the R31 fix alone — the 2GN.79 entry's original diagnosis blaming it is corrected in doc 12 §2.25. Result: `elite` leadership 35.4% → 27.4%, top four tags now within 12 points rather than 25.\n\n**Durability tested, and one axis failed.** Thresholds are robust to catalogue growth (measured identical at 2×, 4× and 10× the applied-element technique pool — slot count sets the number, pool size only decides which technique fills a slot) and to geology (22–26% across the six worlds). They are **not** robust to phase attributes: R31 fires 4.3% at `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0. That affects every measured threshold in the file including §2.24's seven, and spawned spike 2GN.80 plus recalibration tasks 2GN.82–85. Also spawned 2GN.81 (Rule Calibration Explorer panel) and fixed five pre-existing broken `assignMaterial`/`expandDecoration` call sites in the samplers (argument order; `deno check` was failing on `scripts/dev/` and two samplers threw at runtime). New coverage: `tests/fixtures/world.test.ts` (11 tests), `src/lib/data/calibration.test.ts` (fire-rate regression guard over all 43 rules — the gap that let R31 sit at 85% since 2GN.34), plus extraction and rule tests for the new field.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.77",
+						"description": "design spike — does a material's classificatory value derive from static catalogue tags (`precious-metal`/`precious-stone`) or from its situation in the generated world?",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.79"
+						],
+						"notes": "The static model bakes an Earth judgement into `data/materials.ts`: a generated culture with abundant gold would have `elite` stamped across most of its material record under a naive material→tag rule — the tag system reporting a society composed entirely of elites — while obsidian in a culture with no volcanic geology reads ordinary despite being genuinely scarce there. The world-relative alternative derives value from `GeologicalContext.materialAvailability` × `CulturalProfile.materialAffinities` × `MaterialAssignment.provenance.source` × `PhaseCharacteristics.society.stratification` (the last currently read by nothing, despite doc 05 §3.2 commenting \"Affects elite/utilitarian distribution\"). Deliverables: decision recorded in doc 11 (locked decisions) and doc 12 (propagation register); the derived-value formula if world-relative wins; a ruling on whether `MaterialTag`'s `precious-*` members survive as classification inputs; and the resulting contract for whether `extractFeatures` needs world context, which determines whether doc 12 §2.20's pure-function contract breaks. Surfaced 2026-07-31 during 2GN.27 planning, before any material→tag rule was authored.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.78",
+						"description": "`src/lib/types/tags.ts` + `src/lib/data/materials.ts` — revisit `MaterialTag`'s `precious-metal`/`precious-stone` members per the 2GN.77 ruling",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.77"
+						],
+						"notes": "⚠️ breaking if removed or stop feeding classification: referenced by `INTRODUCED_MATERIAL_TAGS` in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`, and doc 12 §2.22's interviewed gilding/inlay/overlay/studs/beading tag sets. Conditional on the spike's outcome — may resolve to no code change if 2GN.77 keeps the static model.",
+						"assignee": "Jason Warren"
+					},
+					{
 						"id": "2GN.34",
 						"description": "`src/lib/data/classification.ts` — decorative classification rules consuming layer count, technique variety and depth",
 						"status": "done",
@@ -671,10 +704,15 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.33",
-							"2GN.20"
+							"2GN.20",
+							"2GN.77",
+							"2GN.82",
+							"2GN.83",
+							"2GN.84",
+							"2GN.85"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -688,7 +726,11 @@
 							"2GN.35",
 							"2GN.36",
 							"2GN.37",
-							"2GN.27"
+							"2GN.27",
+							"2GN.82",
+							"2GN.83",
+							"2GN.84",
+							"2GN.85"
 						],
 						"notes": "`ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance` generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s inline default into an exported `mockProvenance` fixture) rather than reordering — matches the 2GN.23 M2-provisional convention. Revisit once 2GN.47 lands real provenance.",
 						"assignee": "Jason Warren"
@@ -1098,6 +1140,99 @@
 						"dependsOn": [
 							"2GN.23"
 						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.80",
+						"description": "design spike — are status tags absolute across the world, or relative to the producing culture's norms?",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.79"
+						],
+						"notes": "Surfaced 2026-07-31 during 2GN.79's durability testing. Every threshold in `data/classification.ts` is an absolute constant, and every one is strongly phase-sensitive: the retuned applied-element rule fires on 4.3% of output at `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0. So `elite` currently means \"unusually decorated *in absolute terms*\", which makes a highly decorative culture read as composed almost entirely of elites and an austere one as having none — the same failure 2GN.77 identifies for materials, reached from the decoration side. The alternative derives the threshold from the producing culture's own expected decorative volume, so \"lavish\" means lavish *for this culture*. ⚠️ `ClassificationRule.condition` currently receives only `ExtractedFeatures` and nothing else (doc 12 §2.20's pure-function contract), so a culture-relative reading breaks that signature — the ruling's main irreversible consequence. Deliverables: decision recorded in doc 11 (locked decisions) and doc 12 (propagation register); if culture-relative wins, the derivation formula and the new `condition` contract; a ruling on whether `PhaseCharacteristics.society.stratification` (read by nothing today, despite doc 05 §3.2 commenting \"Affects elite/utilitarian distribution\") becomes an input. Sibling to 2GN.77 — consider ruling on both together, since one asks the same question of materials. The Rule Calibration panel (2GN.81) is the instrument for reasoning about this: switching culture preset shows the swing directly (`elite` leads 35.4% against the flat-0.5 fixtures, 0.4% against the low-decoration Tarpan preset).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.81",
+						"description": "Explorer: rule calibration panel — per-rule fire rates and per-tag presence/leadership across a sampled population",
+						"status": "done",
+						"dependsOn": [
+							"2GN.20",
+							"2GN.59"
+						],
+						"notes": "Requested during the 2GN.79 interview and delivered with it. The Tag Inspector (2GN.59) answers \"why did *this artefact* score this way\"; this answers the population question underneath it, which no surface previously covered — a rule can look sensible on one artefact while firing on 85% of output, and under `classifyArtefact`'s plain-sum unbounded fold (doc 12 §2.21) that adds a near-constant to every score rather than discriminating. Landed as `/dev/explorer/calibration` with a pure `ruleCalibration.ts` model (16 tests) per the `tagInspector.ts` precedent: samples 100–1000 artefacts against any Explorer culture preset and reports per-rule fire rate with a saturated/discriminating/rare/dormant verdict (the `rare` band was measured and dropped by 2GN.88; three verdicts remain), and per-tag presence, leadership, mean score and top contributing rule — which is what turns \"elite is everywhere\" into \"because R31 fires on 85%\". Samples against `EXPLORER_CULTURES`, which already model all 16 materials, so the panel was never affected by the fixture defect 2GN.79 corrected. Switching preset makes 2GN.80's phase-sensitivity question directly visible.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.82",
+						"description": "recalibrate the measured classification thresholds per the 2GN.80 ruling",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.80"
+						],
+						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. Eleven thresholds in `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become culture-relative, every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES` in `src/lib/data/calibration.test.ts` re-recorded with it. If the ruling keeps the absolute model, this resolves to no code change and a doc 12 note. Sits upstream of anything whose correctness depends on what the tag scores mean.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.83",
+						"description": "recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.80"
+						],
+						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. `BASE_FILL_PROBABILITY` (0.9), `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s equal-weight craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and together they are what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each BNF category draws its own per-component slots, so P(≥1 applied element) ≈ 1-(1-0.45)^partCount). Under a culture-relative reading these constants set the per-culture baseline every threshold measures against, so they stop being free parameters. ⚠️ changing them moves every measured threshold in `data/classification.ts` — sequence with 2GN.82, and expect `calibration.test.ts` to fail loudly, which is the guard working.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.84",
+						"description": "recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.80",
+							"2GN.77"
+						],
+						"notes": "Recalibration of already-built work, gated on both spikes. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value question directly — may merge with it — and 2GN.80 touches it too via `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2 naming it as an elite/utilitarian driver. Now measurable per world: the six named regions (2GN.79) give six different scarcity profiles to calibrate against rather than one lenient fixture.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.85",
+						"description": "propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.80"
+						],
+						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. Documentation rather than code, and the piece every later system inherits: whether `elite`/`ceremonial`/`ritual`/`votive` mean \"unusual in this world\" or \"unusual for this culture\" is currently unstated, so description generation (2GN.38+), the lens (M6) and NPC interpretation (M10) would each be free to assume differently. Deliverables: the semantics recorded as a locked decision in doc 11, a doc 12 propagation entry, and the tag-vocabulary JSDoc in `src/lib/types/tags.ts` stating it at the definition site.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.86",
+						"description": "`engine/generation/grammar.ts` — mass proxy sums component footprints; mass bands rebalanced to measured percentiles",
+						"status": "done",
+						"dependsOn": [
+							"2GN.79"
+						],
+						"notes": "Surfaced 2026-08-01 auditing all 43 classification rules at the user's request (the 2GN.79 session had cleared 41 of them in prose without per-rule sign-off). Three rules read `massBand` and all three were misbehaving: R27 (`very-heavy` → communal) fired on 0 of 7200 artefacts, and R25/R26 (heavy edge → labour tool; heavy container → storage) fired on 55.8% of edged and 61.1% of container artefacts while their JSDocs claimed contrasts (\"labour, **not** a blade weapon\"; \"storage jar **rather than** tableware\") that only hold for a minority.\n\n**Root cause was the proxy, not the band boundaries.** `deriveDimensions` computed `primaryExtent * secondaryExtent * (1 + 0.1 * (parts - 1))`, and both extents are *maxima* across components. Each component draws its size from a three-value ordinal table (4/14/40, 5/15/45, 3/8/18), so with 2–13 components at least one almost always rolled `large` and both axes pinned to 45cm: **57.4% of a 7200-artefact sample landed on exactly 45×45=2025**, one value holding the majority of output. No choice of boundary can separate a distribution like that — any cut either includes the spike (that band ≥57%) or excludes it (everything below sums to ≤43%). Compounding it, the proxy's reachable maximum was 4658 against a `very-heavy` threshold of 5000, making that band unreachable by arithmetic rather than merely rare. Same saturation-by-maximum failure as `appliedElementPresent` in 2GN.79, in a different guise.\n\nFixed by summing each component's own major×minor footprint instead: a many-part object is genuinely more massive than a one-part object sharing its largest axis, which a maximum can never express. Distribution went from 21 distinct products (top value 57.4%) to 1810 (top value 1.8%), range 9–4658 → 16–12183. Bands then pinned to measured p15/p45/p80/p95 (233/2033/2892/5007), deliberately tapering rather than equal-sized — most excavated finds are portable, and equal quintiles would have claimed a quarter of all finds are too heavy for one person to lift. Resulting spread: negligible 15.3% · light 29.2% · moderate 35.2% · heavy 15.6% · very-heavy 4.8%.\n\nDownstream: R27 0% → 5.0% (alive for the first time), R25 55.8% → 19.5% of edged, R26 61.1% → 24.8% of containers, R37 1.1% → 1.9% and R39 8.5% → 10.6% (their gated presence flags require `massBand` at most `light`, so more artefacts now qualify as wearable). `portability` also reads mass, so `major-effort` and `team-lift` became reachable. Every other rule unchanged to the decimal. The 2GN.79 calibration guard caught the drift and named both moved rules with their sizes — five recorded rates re-recorded and annotated. Two new grammar tests pin the invariants: mass grows with part count (the old proxy rated one and six large components equal), and no single band may hold a majority of output.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.87",
+						"description": "`src/lib/data/classification.ts` — R4's edge-family safety net catches nothing; decide whether to fix the grammar, the condition, or delete the rule",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.79"
+						],
+						"notes": "Surfaced 2026-08-01 during the 43-rule audit. R4 (`hasEdge && primaryAxisLength === 'short' && bladeLengthBand !== 'short'` → tool 0.4, everyday 0.2) fired on 0 of 7200 artefacts. Its own JSDoc states it exists \"so no edged artefact leaves the edge family with zero function signal\" — a deliberate safety net that has never caught anything.\n\nMeasured cause: only 50 of 7200 artefacts are edged with a short primary axis, and **all 50 carry `bladeLengthBand: 'short'`**, so R2 (dagger) or R3 (utility knife) always claims them first. The edged axis distribution is long 2214 / medium 444 / short 50, and no short-axis edged artefact has ever had a non-short blade band. Either the grammar cannot produce that combination — worth knowing as a generation gap — or the condition describes a shape that should not exist and the rule is dead code.\n\nDeliverable: determine whether the combination is reachable, then either fix the grammar, correct the condition, or delete R4 and record why. ⚠️ deleting shifts rule indices, so the pinned-index blocks in `classification.test.ts` and `EXPECTED_FIRE_RATES` in `calibration.test.ts` both need updating. Sibling R27 had the same shape (unreachable condition) and was resolved by 2GN.86's mass rebalance; R4 has no equivalent upstream fix identified.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.88",
+						"description": "calibration constants audited and justified; `SATURATION_CEILING` moved to the data layer",
+						"status": "done",
+						"dependsOn": [
+							"2GN.79",
+							"2GN.81"
+						],
+						"notes": "Completing the 2GN.79 oversight audit: the retunes and fixtures had per-decision sign-off, but nine supporting constants were chosen without it. Each was measured or removed.\n\n`TOLERANCE_POINTS` 10 → 6. Re-running the whole calibration sweep under five different seed salts moves the worst-case rule by 3.8pp at n=1800, so 10 left only 6.2pp of genuine headroom — a rule could shift 9pp of real behaviour and pass. 6 keeps ~1.6× headroom over noise. Verified by inducing a subtler regression than the mass rebalance (R31 `>= 4` → `>= 3`, a 14.4pp drift), which the tightened band catches and names.\n\n`SAMPLES_PER_CELL` kept at 100, now justified rather than assumed: measured noise floor by cell size is 25→5.4pp, 50→5.1pp, 100→3.8pp, 200→3.3pp, 400→3.5pp, so 100 sits at the knee — 200 buys 0.5pp for double the runtime and 400 buys nothing.\n\n`SATURATION_CEILING` was **defined twice** (exported from the Explorer panel, re-declared as a local const in the guard) with nothing keeping them in sync — a defect introduced by 2GN.79/2GN.81. Now a single export in `src/lib/data/classification.ts`, since it is a fact about the rule set rather than about either consumer, and `routes/` may depend on `lib/` but not the reverse. Value kept at 60.\n\n`DORMANCY_FLOOR` removed along with the `rare` verdict. Measured across all four Explorer culture presets it flagged 4 rules on Tarpan (R27/R30/R31/R40), 1 each on Thalassar and Khaltiris, none on Xoconahtl — and on Tarpan those are the decoration rules, rare because it is a low-decoration culture, i.e. behaving correctly. The verdict reported a property of the selected culture rather than anything actionable, and the fire-rate column already says \"uncommon here\" more precisely. Three verdicts remain, each mapping to an action: `dormant` (investigate — a rule can be unreachable, as R4 is and R27 was), `saturated` (check intent against behaviour), `discriminating`.\n\nR31's weights (`elite 0.4, ornament 0.3`) reviewed and kept: they were authored for a rule meaning \"deliberate embellishment\", and the retuned condition finally delivers that meaning at a selectivity matching R30's (25.2% vs 25.3%). Any further weight change belongs to 2GN.82's systematic pass rather than one rule in isolation.\n\n`mockRegionalWorld`/`mockFullGeologicalContext`/`sampleWorld` lost their `coastalPort` default: which world you generate against changes material distribution substantially, so it is now always a stated choice. The CLI keeps a `DEFAULT_SAMPLE_REGION` so samplers run bare, and every sampler now prints its world in a header — an omitted `--world` was previously invisible in output.",
 						"assignee": "Jason Warren"
 					}
 				]

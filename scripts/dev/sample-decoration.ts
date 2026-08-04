@@ -18,20 +18,24 @@ import {
 	jsonReplacer,
 	parseSampleOptions,
 	printAnatomy,
+	printWorldHeader,
 	sampleSeed,
 	sampleWorld,
+	sampleWorldRegion,
+	WORLD_FLAG_USAGE,
 } from './shared.ts';
 
 const USAGE = `sample-decoration — expand decorative layers over sampled artefacts
 
-Usage: deno task sample:decoration [--seed <string>] [--count <n>] [--json]
+Usage: deno task sample:decoration [--seed <string>] [--count <n>] [--world <region>] [--json]
 
   --seed   Base PRNG seed (default: dev-sample). Sample n of a batch uses "<seed>-<n>".
   --count  Number of artefacts to sample (default: 1).
+${WORLD_FLAG_USAGE}
   --json   Emit JSON instead of the report.`;
 
 const options = parseSampleOptions(USAGE);
-const world = sampleWorld();
+const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);
@@ -42,9 +46,9 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		world.phase,
 		world.geology,
 		world.trade,
+		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
-		createPrng(`${seed}-decoration`),
 	);
 	return { seed, artefact, layers };
 });
@@ -61,6 +65,7 @@ function layerLines(layer: DecorativeLayer, depth: number, into: string[]): void
 if (options.json) {
 	console.log(JSON.stringify(samples, jsonReplacer, '\t'));
 } else {
+	printWorldHeader(world);
 	for (const { seed, artefact, layers } of samples) {
 		const decorationOf = (component: NormalisedComponent): string[] => {
 			const lines: string[] = [];

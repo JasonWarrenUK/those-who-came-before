@@ -434,6 +434,18 @@ export interface ExtractedFeatures {
 	 */
 	appliedElementPresent: boolean;
 
+	/**
+	 * How many decorative layers fall in the `applied-element` category (roadmap 2GN.79).
+	 *
+	 * `appliedElementPresent` above saturates by construction: `expandDecoration` gives each BNF
+	 * category its own per-component slot rolls, so at the fixture phase a ~4-component artefact
+	 * carries at least one applied element ~85% of the time. Measured across all six named regional
+	 * worlds (n=7200) the *count* still discriminates — p50 2, p75 4, p90 5, max 15 — so
+	 * classification rules wanting "deliberately embellished" read this, and the boolean stays for
+	 * consumers that genuinely only need presence. See doc 12 §2.25.
+	 */
+	appliedElementCount: number;
+
 	/** Whether any decorative layer carries a motif. */
 	motifPresent: boolean;
 
