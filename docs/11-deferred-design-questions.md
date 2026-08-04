@@ -257,5 +257,123 @@ resolution timing).
 
 ---
 
+### 2.9 Status-Tag Relativity (roadmap 2GN.80 + 2GN.77)
+
+**Decision:** Status tags are scored **relative to the producing culture-phase**; physical and
+functional tags stay **absolute**. The boundary is drawn by the tag a rule awards, not by the
+feature its condition reads.
+
+Ruled on jointly with 2GN.77, which asks the same question of materials. One question, two surfaces:
+decoration and material value are both cultural judgements, and answering them separately risked two
+incompatible answers.
+
+**The problem.** Every threshold in `data/classification.ts` is an absolute constant, and 2GN.79's
+durability testing measured them as strongly phase-sensitive: the applied-element rule fires on 4.3%
+of output at `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1 and 74.5%
+at 1.0. So `elite` currently means "unusually decorated **in absolute terms**", which makes a
+decorative culture read as composed almost entirely of elites and an austere one as having none. The
+material side fails the same way from the other direction: a static `precious-metal` tag stamps
+Earth's judgement onto a generated culture with abundant gold, while genuinely-scarce obsidian in a
+culture with no volcanic geology reads ordinary.
+
+Both are violations of **Simulation Honesty** (doc 02): the tag reports a property of the culture's
+aesthetics rather than a real social distinction within it.
+
+**The boundary: cut by tag, not by condition.** An artefact's physical affordances are objective —
+an edge cuts, a heavy object is heavy, a pedestal base is a pedestal base — and these read the same
+in any culture. Status is a social judgement and only means anything against local norms. Applying
+this to the shipped rule set:
+
+- **Relative** — every rule contributing to `elite`, `ceremonial`, `utilitarian`, `everyday`,
+  `personal`, `communal`, `artisanal`, `military`. This includes the eleven decoration-conditioned
+  rules (R30–R36, R40–R43) and also R12 (thin-walled container) and R15 (pedestal base), whose
+  conditions are physical but whose awards are status claims.
+- **Absolute** — every rule awarding only function tags (`tool`, `weapon`, `container`, `ornament`,
+  `fastener` and the rest). R32's any-decoration nudge stays absolute and universal by design (doc
+  12 §2.24).
+
+Cutting by tag rather than condition means R12/R15 need per-culture baselines for wall thickness and
+base type — data nothing currently models. Empirical calibration (below) produces these for free,
+which is why the two decisions were taken together.
+
+**Baselines are empirical, sampled per culture-phase at world generation.** A calibration pass runs
+pipeline stages 1–7 for each culture-phase, collects the raw `ExtractedFeatures` distribution, and
+derives percentile baselines which are cached in world state. There is no bootstrap circularity:
+classification is the last pipeline stage and nothing upstream reads tags, so the dependency was
+never mutual.
+
+Chosen over a closed-form analytic estimate because the analytic form drifts silently whenever
+`expandDecoration` changes — exactly the failure mode 2GN.79 spent a session correcting. Sampling is
+always accurate to the generator that actually exists. Determinism holds: baselines derive from the
+world seed, so the same seed reproduces the same baselines.
+
+**Sample size: n=400 per culture-phase.** Measured, not assumed. Doc 12 §2.27's noise floor measured
+a _fire rate_, which is a proportion; a baseline is a _percentile_, a different statistic with
+noisier tails, so the n=100 knee could not be inherited. Re-measuring percentile stability across
+five seed salts gives a worst-case relative spread of 20–28% at n=100, 8–17% at n=400, and 0–6% at
+n=800 for p50/p75 with no further improvement above. n=400 is the knee.
+
+**Percentiles interpolate; they do not snap to a value.** `appliedElementCount` takes only 9–16
+distinct integer values (at `decorativeEmphasis` 0.1 the entire tail above 4 is 5.1% of output), so
+a nearest-rank p90 flips between adjacent integers at any sample size — the granularity is in the
+generator, not the sample. Baselines are therefore stored as fractional thresholds and rules compare
+`value >= baseline`, so the cut point moves smoothly with the culture.
+
+**`PhaseCharacteristics.society.stratification` becomes a live input.** Read by nothing today
+despite doc 05 §3.2 commenting "Affects elite/utilitarian distribution". It gates how much `elite`
+can exist at all: a low-stratification culture should produce few elite-tagged artefacts regardless
+of how much it decorates, and a highly stratified one should show a real spread. Without it,
+culture-relative normalisation would flatten every culture to an identical elite proportion, which
+is its own falsehood — every society having exactly the same proportion of elites is no more true
+than every society being entirely elite.
+
+**Drift is measured against the preceding phase only.** Each phase carries its own baselines plus a
+per-metric delta (magnitude and direction) against the phase immediately before it. There is no
+culture-wide baseline spanning the whole timeline: time moves forward, so scoring an early-phase
+artefact against an average that includes phases which had not yet happened is incoherent for a game
+about inferring the past from partial evidence. A culture-wide average also erases the signal — a
+culture growing steadily more lavish would have every phase read "normal" against it. The first
+phase has no predecessor and its drift is null, not zero.
+
+This makes "this culture grew steadily more lavish" and "this phase was an austere break"
+distinguishable, which the lens and contradiction systems can later use directly: a scholar
+misreading a phase boundary is precisely the class of error the game is about.
+
+**Consequence: the rule condition contract widens.** `ClassificationRule.condition` is today
+`(features: ExtractedFeatures) => boolean` (doc 12 §2.20's pure-function contract). It becomes
+`(features: ExtractedFeatures, context: ClassificationContext) => boolean`, where the context
+carries the culture-phase baselines. Rules remain pure functions of their inputs — purity survives,
+only the signature widens. Chosen over pre-normalising into `ExtractedFeatures`, which would have
+made `extractFeatures` depend on world context and broken its purity instead.
+
+**Consequence: `MaterialTag`'s `precious-*` members survive as material descriptors, not as
+classification inputs.** `precious-metal`/`precious-stone` remain facts about a material's physical
+character. No classification rule may read them directly to award status; material-derived status
+comes from the material's situation in the world (availability × cultural affinity × provenance ×
+stratification).
+
+**Consequence: material baselines are keyed by culture-phase × region.** Geology is regional and
+culture is not — nothing binds a culture to a single region — so a culture spanning two regions
+faces different material availability in each. Decoration baselines need no region key; material
+ones do.
+
+**Every threshold in `data/classification.ts` is provisional pending recalibration** (roadmap
+2GN.82–85), since the numbers were all measured under the absolute reading this decision replaces.
+
+**Dependency:** the drift measure requires that phase attributes evolve continuously between
+adjacent phases. Nothing currently enforces this — `CulturePhase.characteristics` is a free
+`PhaseCharacteristics` per phase, and doc 05's coherence rules are all within-artefact (structural,
+geological, decorative), none temporal. Culture generation is unbuilt (Milestone 3), so this is
+recorded as a requirement on it rather than a defect: per-phase change must be bounded, with sharp
+breaks as deliberate rare events rather than the default. Drift measured across incoherent phases
+measures noise. Raised as roadmap task 3WS.21.
+
+**Affects:** doc 05 (§3.2 stratification becomes live, §9.2 classification inputs), doc 08 (world
+state carries cached baselines; `ClassificationContext` type), doc 12 (§2.20's pure-function
+contract amended). Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 recalibration gated on this;
+3WS.21 raised for phase continuity.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._
