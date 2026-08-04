@@ -660,7 +660,7 @@ working documents at MVP.
 > contradiction-detection consequence — two agents can disagree about a relative tag without either
 > misreading the artefact, if they hold different provenance beliefs. Nothing further to add for NPCs
 > specifically; the mechanism is identical to the player's.
-
+>
 > **Superseded (doc 12 §2.23, 2026-07-27):** the `InterpretiveModel` interface below predates doc 08
 > §3.2's agent-generic claim-map shape (`agentId`, `culturalClaims`, `artefactClaims`,
 > `chronologicalClaims`, `agentAssessments`, `methodologicalWeights`, `strainScores`,

@@ -553,12 +553,13 @@
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
+							"2GN.78",
 							"2GN.82",
 							"2GN.83",
 							"2GN.84",
 							"2GN.85"
 						],
-						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid.",
+						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid. Depends on 2GN.78: that task retires `precious-metal`/`precious-stone` as classification inputs entirely, so this task's \"precious metals → elite/ceremonial\" rule must derive standing from material situation (availability × affinity × provenance × stratification) rather than a static precious-tag lookup — without 2GN.78 sequenced first, this task could restore the static reading 2GN.77 ruled against.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1088,7 +1089,7 @@
 							"2GN.32",
 							"2GN.33"
 						],
-						"notes": "Dependency sweep 2026-07-25 corrected the dependency from 2GN.23 to 2GN.75: \"as a set\" requires the whole-artefact material assignment, which only 2GN.75 produces.",
+						"notes": "Dependency sweep 2026-07-25 corrected the dependency from 2GN.23 to 2GN.75: \"as a set\" requires the whole-artefact material assignment, which only 2GN.75 produces. The direct 2GN.75 edge was pruned in the 2GN.85 dependency sweep (2026-08-04) as transitively implied by 2GN.30, which already depends on it.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1590,7 +1591,7 @@
 					},
 					{
 						"id": "5KN.8",
-						"description": "Tag assignment on observations (`FunctionTag`/`ContextTag` multi-select)",
+						"description": "Tag assignment on observations (`ArtefactTag` multi-select)",
 						"status": "blocked",
 						"dependsOn": [
 							"5KN.5"

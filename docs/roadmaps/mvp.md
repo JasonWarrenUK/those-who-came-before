@@ -560,11 +560,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new
       `materials`/`assignments` parameter on `extractFeatures`, and fixture updates
       (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves _(blocked
-      — depends on 2GN.20, 2GN.75, 2GN.77)_ — dependency sweep 2026-07-25 corrected the 2GN.23 edge
-      to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the
-      breaking scope the original line hid; 2GN.77 edge added 2026-07-31 — the "precious metals →
-      elite/ceremonial" framing above assumes static preciousness, which the spike may overturn in
-      favour of a world-relative value model, so no rule is authored until it resolves
+      — depends on 2GN.20, 2GN.75, 2GN.78, 2GN.82, 2GN.83, 2GN.84, 2GN.85)_ — dependency sweep
+      2026-07-25 corrected the 2GN.23 edge to 2GN.75 (assignments, not just the single-component
+      `assignMaterial`) and flagged the breaking scope the original line hid; 2GN.78 edge added
+      2026-08-04 (CodeRabbit review, PR #49) — 2GN.78 retires `precious-metal`/`precious-stone` as
+      classification inputs entirely, so this task's rule must derive standing from material
+      situation (availability × affinity × provenance × stratification) rather than a static
+      precious-tag lookup, and needs 2GN.78 sequenced first to avoid restoring the reading 2GN.77
+      ruled against
 - [x] **2GN.28** — `src/lib/data/decorations.ts` — decorative technique definitions: surface
       treatments (polish, patina, scoring, engraving, relief, painting, glaze), applied elements
       (inlay, overlay, studs, wire-wrapping, gilding), textile elements (wrapping, tassels, beading)
@@ -1076,9 +1079,11 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.70** — `engine/generation/materials.ts` + `engine/generation/decoration.ts` —
       whole-object coherence pass: check material and decorative choices are coherent across an
       artefact's components as a set (not necessarily mono-material) rather than validating each
-      component in isolation _(blocked — depends on 2GN.75, 2GN.29, 2GN.30, 2GN.31, 2GN.32, 2GN.33)_
-      — dependency sweep 2026-07-25 added the 2GN.75 edge: "as a set" requires the whole-artefact
-      material assignment, which only 2GN.75 produces
+      component in isolation _(blocked — depends on 2GN.30, 2GN.31, 2GN.32, 2GN.33)_ — dependency
+      sweep 2026-07-25 corrected the dependency from 2GN.23 to 2GN.75: "as a set" requires the
+      whole-artefact material assignment, which only 2GN.75 produces. The direct 2GN.75 (and 2GN.29)
+      edges were pruned in the 2GN.85 dependency sweep (2026-08-04) as transitively implied by
+      2GN.30, which already depends on both
 - [ ] **2GN.71** — `engine/generation/description.ts` + `engine/generation/classification.ts` —
       consume assemblage membership: describe/classify a multi-part assemblage distinctly from a
       single object once 2GN.69 lands _(blocked — depends on 2GN.69, 2GN.39)_ — 2GN.39 edge added by
@@ -1417,8 +1422,8 @@ evidence chains
       depends on 5KN.5)_
 - [ ] **5KN.7** — Epistemic mode toggle (observational vs interpretive) _(blocked — depends on
       5KN.5)_
-- [ ] **5KN.8** — Tag assignment on observations (`FunctionTag`/`ContextTag` multi-select) _(blocked
-      — depends on 5KN.5)_
+- [ ] **5KN.8** — Tag assignment on observations (`ArtefactTag` multi-select) _(blocked — depends on
+      5KN.5)_
 - [ ] **5KN.9** — Observation list per artefact: view, edit, delete _(blocked — depends on 5KN.5)_
 - [ ] **5KN.10** — `engine/interpretation/inference.ts` —
       `createInference(conclusion, evidenceChain, tags, scope, confidence): Inference` — link
@@ -2272,6 +2277,7 @@ graph LR
 	2GN.26 --> 2GN.75
 	2GN.75 --> 2GN.30
 	2GN.75 --> 2GN.27
+	2GN.78 --> 2GN.27
 	2GN.29 --> 2GN.30
 	2GN.29 --> 2GN.31
 	2GN.29 --> 2GN.32

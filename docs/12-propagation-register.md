@@ -1042,8 +1042,9 @@ than merely sequenced after it.
 
 ### 2.29 2GN.85 Landed Doc-Only: Vocabulary Propagated to Consumers, §9.2 Rewritten (2026-08-04)
 
-**Origin:** Roadmap 2GN.85, gated on 2GN.80 **Source of truth:** doc 11 §2.9 holds the decision; this
-entry records what 2GN.85 itself delivered
+**Origin:** Roadmap 2GN.85, gated on 2GN.80.
+
+**Source of truth:** doc 11 §2.9 holds the decision; this entry records what 2GN.85 itself delivered
 
 **No code changed.** `deno task check` reported 0 errors across 549 files before this task started —
 the ruling PR (#48) shipped `AbsoluteTag`/`RelativeTag`/`ArtefactTag` completely, and no
