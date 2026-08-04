@@ -4,7 +4,11 @@ import { calibrateRules, SATURATION_CEILING } from './ruleCalibration.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 
-const [culture] = EXPLORER_CULTURES;
+// Tarpan explicitly, not EXPLORER_CULTURES[0]: preset order isn't a contract, and the R31/R32
+// verdict assertions below depend on this specific culture's decorativeEmphasis (0.4) keeping
+// firePercent on the correct side of SATURATION_CEILING.
+const culture = EXPLORER_CULTURES.find((c) => c.id === 'tarpan');
+if (culture === undefined) throw new Error("explorer culture 'tarpan' not found");
 
 Deno.test('calibrateRules: same seed and count produce an identical report', () => {
 	const a = calibrateRules('determinism', culture, 40);

@@ -125,7 +125,7 @@ export interface CalibrationReport {
 	/** Per-tag results, strongest lead rate first; tags with no evidence at all are omitted. */
 	tags: TagCalibration[];
 
-	/** Rules at or above `SATURATION_CEILING`, worth reviewing against their stated intent. */
+	/** Rules above `SATURATION_CEILING`, worth reviewing against their stated intent. */
 	saturatedRules: RuleCalibration[];
 
 	/** Rules that never fired — either dormant by design, or carrying an unreachable condition. */
