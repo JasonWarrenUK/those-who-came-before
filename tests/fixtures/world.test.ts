@@ -1,5 +1,5 @@
 /// <reference lib="deno.ns" />
-import { assert, assertEquals, assertNotEquals } from '@std/assert';
+import { assert, assertEquals, assertNotEquals, assertStrictEquals } from '@std/assert';
 import {
 	MOCK_WORLD_REGIONS,
 	mockFullGeologicalContext,
@@ -135,7 +135,10 @@ Deno.test('mockGeologicalContext: kept deliberately partial for the unmodelled-l
 });
 
 Deno.test('mockRegionalWorld: returns equal geology across calls (stable identity for callers)', () => {
-	assertEquals(mockRegionalWorld('riverValley').geology, mockRegionalWorld('riverValley').geology);
+	assertStrictEquals(
+		mockRegionalWorld('riverValley').geology,
+		mockRegionalWorld('riverValley').geology,
+	);
 	assertNotEquals(
 		mockRegionalWorld('riverValley').geology,
 		mockRegionalWorld('highlandMine').geology,

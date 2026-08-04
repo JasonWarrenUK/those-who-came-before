@@ -8,6 +8,7 @@
  */
 
 import { createPrng } from '../../src/lib/engine/prng.ts';
+import { MATERIALS } from '../../src/lib/data/materials.ts';
 import type {
 	AvailabilityLevel,
 	GeologicalContext,
@@ -107,25 +108,8 @@ export interface MockRegionalWorld {
 	trade: readonly MaterialFlow[];
 }
 
-/** Every material id in the shipped catalogue (`src/lib/data/materials.ts`). */
-const CATALOGUE_MATERIAL_IDS = [
-	'bronze',
-	'iron',
-	'gold',
-	'silver',
-	'obsidian',
-	'flint',
-	'granite',
-	'jade',
-	'oak',
-	'ash',
-	'bone',
-	'antler',
-	'fired-clay',
-	'glass',
-	'linen',
-	'leather',
-] as const;
+/** Every material id in the shipped catalogue, read from the catalogue itself. */
+const CATALOGUE_MATERIAL_IDS: readonly string[] = MATERIALS.map((material) => material.id);
 
 /**
  * Builds a `GeologicalContext` from a level→material-ids mapping, in one named region. Throws if
@@ -177,7 +161,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	riverValley: {
 		region: 'riverValley',
 		summary: 'alluvial floodplain — clay and reed abundant, every metal imported',
-		geology: regionalGeology('river-valley', {
+		geology: regionalGeology('riverValley', {
 			abundant: ['fired-clay', 'linen'],
 			available: ['oak', 'ash', 'bone', 'antler', 'leather'],
 			scarce: ['flint', 'granite', 'obsidian'],
@@ -207,7 +191,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	highlandMine: {
 		region: 'highlandMine',
 		summary: 'ore-rich uplands — metal and stone abundant, organics and pottery scarce',
-		geology: regionalGeology('highland-mine', {
+		geology: regionalGeology('highlandMine', {
 			abundant: ['bronze', 'iron', 'granite', 'flint'],
 			available: ['silver', 'obsidian', 'oak', 'ash'],
 			scarce: ['bone', 'antler', 'leather', 'linen', 'fired-clay'],
@@ -232,7 +216,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	coastalPort: {
 		region: 'coastalPort',
 		summary: 'trading port — poor locally, rich by trade; 7 materials arrive only by flow',
-		geology: regionalGeology('coastal-port', {
+		geology: regionalGeology('coastalPort', {
 			abundant: ['linen', 'leather'],
 			available: ['fired-clay', 'oak'],
 			scarce: ['granite', 'flint', 'bone', 'antler', 'ash'],
@@ -256,7 +240,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	forestInterior: {
 		region: 'forestInterior',
 		summary: 'isolated forest — organics abundant, no trade at all; 7 materials unreachable',
-		geology: regionalGeology('forest-interior', {
+		geology: regionalGeology('forestInterior', {
 			abundant: ['oak', 'ash', 'bone', 'antler', 'leather'],
 			available: ['linen', 'fired-clay'],
 			scarce: ['flint', 'granite'],
@@ -274,7 +258,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	desertMargin: {
 		region: 'desertMargin',
 		summary: 'volcanic desert margin — stone abundant, wood and fibre absent',
-		geology: regionalGeology('desert-margin', {
+		geology: regionalGeology('desertMargin', {
 			abundant: ['obsidian', 'flint', 'granite'],
 			available: ['leather', 'bone', 'antler'],
 			scarce: ['fired-clay', 'bronze', 'iron'],
@@ -299,7 +283,7 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	steppeMargin: {
 		region: 'steppeMargin',
 		summary: 'steppe pastoralists — hide and bone abundant, metals by long-distance trade',
-		geology: regionalGeology('steppe-margin', {
+		geology: regionalGeology('steppeMargin', {
 			abundant: ['leather', 'bone', 'antler'],
 			available: ['linen', 'oak'],
 			scarce: ['ash', 'fired-clay', 'flint', 'granite', 'obsidian'],
