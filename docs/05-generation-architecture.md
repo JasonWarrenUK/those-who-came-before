@@ -40,7 +40,7 @@ the engine uses internally.
 | Structural Normalisation + Plausibility         | Engine-internal                                 | Validation logic, not a world property                                                                    |
 | Material Assignment                             | Mixed                                           | Material identity is observable; geological provenance is inferable; cultural significance is occluded    |
 | Decorative Grammar                              | Observable (layers) / Inferable (motif meaning) | Decoration is visible; its significance requires interpretation                                           |
-| Unified Feature Extraction + Tag Classification | Mixed                                           | Physical features are observable; their classificatory weight and true function/context tags are occluded |
+| Unified Feature Extraction + Tag Classification | Mixed                                           | Physical features are observable; their classificatory weight and true tag scores are occluded            |
 | Description Generation                          | Observable but lens-shaped                      | What the player reads is filtered through registers and the interpretive lens                             |
 
 The lens operates exclusively on observable and inferable properties. It cannot reveal occluded
@@ -362,7 +362,7 @@ At world generation time, after cultures and chronology exist:
 interface NPCScholarSeed {
 	id: string;
 	name: string;
-	specialisation: FunctionTag[];
+	specialisation: ArtefactTag[];
 	cultureFocus: string[];
 	interpretiveModel: InterpretiveModel; // Agent-generic: same interface as player
 	sitePreference: SiteType[];
@@ -1058,7 +1058,7 @@ contradiction systems, but the extraction itself is unified.
 ### 9.2 Tag Classification
 
 Tags are assigned by rule-based scoring from extracted features. Tags are not mutually exclusive —
-an object can be `['weapon', 'ritual', 'status']` simultaneously.
+an object can score on `weapon`, `ritual` and `elite` simultaneously.
 
 > **Implementation note (2026-07-22, roadmap 2GN.17, doc 12 §2.19):** the worked rule array below is
 > illustrative, not the shipped rule set. The authoritative, signal-derived rules live in
@@ -1068,24 +1068,23 @@ an object can be `['weapon', 'ritual', 'status']` simultaneously.
 > derivation).
 
 ```typescript
-// Function tags: what is this object FOR?
-type FunctionTag =
+// Absolute tags: reachable from an object's physical affordances alone. Scored against
+// fixed thresholds, without consulting culture-phase context.
+type AbsoluteTag =
 	| 'weapon'
 	| 'tool'
 	| 'container'
 	| 'fastener'
 	| 'ornament'
-	| 'ritual'
 	| 'domestic'
 	| 'agricultural'
 	| 'maritime'
-	| 'funerary'
-	| 'votive'
 	| 'trade-good'
 	| 'currency';
 
-// Context tags: how was this object USED?
-type ContextTag =
+// Relative tags: assert something about the artefact's standing among its culture's own
+// output. Scored against baselines sampled per culture-phase.
+type RelativeTag =
 	| 'personal'
 	| 'communal'
 	| 'elite'
@@ -1093,7 +1092,12 @@ type ContextTag =
 	| 'ceremonial'
 	| 'everyday'
 	| 'military'
-	| 'artisanal';
+	| 'artisanal'
+	| 'ritual'
+	| 'votive'
+	| 'funerary';
+
+type ArtefactTag = AbsoluteTag | RelativeTag;
 
 type MaterialTag =
 	| 'bone'
@@ -1154,17 +1158,11 @@ does.
 > confidences: compare by rank and margin, read absent tags as zero (`tags.get(tag) ?? 0`). The full
 > fold contract and its rationale live in the function's JSDoc and doc 12 §2.21.
 >
-> **Implementation note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
-> `FunctionTag` (what an object was FOR) / `ContextTag` (how it was USED) split shown above is
-> **superseded**. The shipped vocabulary is `AbsoluteTag` / `RelativeTag`, with `ArtefactTag` as the
-> union, partitioned by **scoring basis** rather than by what a tag describes: `RelativeTag` members
-> are scored against baselines sampled from the producing culture-phase, `AbsoluteTag` members
-> against fixed thresholds. Membership is otherwise value-identical to the two unions above with
-> three exceptions — `ritual`, `votive` and `funerary` moved to the relative side, since each is an
-> inference about intent from morphology or decorative excess rather than a recorded fact
-> (`DepositionType`, §3.5, remains the objective deposition axis). The FOR/USED distinction survives
-> only in per-tag JSDoc, never in the type. `NPCScholarSeed.specialisation` (§4.1) and
-> `DescriptionVariant.emphasis` (§13.1) widen from `FunctionTag[]` to `ArtefactTag[]` accordingly.
+> **Historical note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
+> vocabulary above previously split as `FunctionTag` (what an object was FOR) / `ContextTag` (how it
+> was USED). The ruling replaced it with the scoring-basis split shown, moving `ritual`, `votive` and
+> `funerary` to the relative side. The FOR/USED distinction survives only in per-tag JSDoc
+> (`src/lib/types/tags.ts`), never in the type.
 >
 > **Implementation note (2026-07-28, roadmap 2GN.34, doc 12 §2.24):** the
 > `decorativeComplexity > 2`/ `> 1` constants above are illustrative only and do not reflect the
@@ -1183,7 +1181,7 @@ interface ClassifiedArtefact extends NormalisedArtefact {
 	materials: MaterialAssignment[];
 	decorativeLayers: DecorativeLayer[];
 	features: ExtractedFeatures;
-	groundTruthTags: Map<FunctionTag | ContextTag, number>; // Visibility: occluded
+	groundTruthTags: Map<ArtefactTag, number>; // Visibility: occluded
 	physicalLabel: string; // Visibility: observable — neutral physical description, not interpretive
 	provenance: Provenance;
 	materialProvenance: MaterialProvenance[];
@@ -1375,7 +1373,7 @@ interface DescriptionTemplate {
 
 interface DescriptionVariant {
 	template: string; // Tracery-style template with slots
-	emphasis: FunctionTag[];
+	emphasis: ArtefactTag[];
 	register: ObservationRegister;
 }
 ```
@@ -1384,6 +1382,12 @@ The lens selects which variant to use based on alignment with the player's hypot
 04, Section 3.4: Descriptive Framing). The register system gates which variants are available — a
 player without the `technical` register never sees the technical framing, even if their lens would
 select it.
+
+> **Constraint (roadmap 2GN.38+):** a `RelativeTag` must never be described as an intrinsic property
+> of the object. `elite` means "unusually rich for this culture-phase" — a template that renders it as
+> "an object of obvious wealth" without qualifying against the culture's own norms misrepresents what
+> the score measured. `DescriptionVariant.emphasis` spans both bases; only its `RelativeTag` members
+> carry this constraint.
 
 ### 13.2 Observation Assembly
 
@@ -1410,7 +1414,7 @@ interface PresentedObservation {
 }
 
 interface TagSuggestion {
-	tag: FunctionTag | ContextTag;
+	tag: ArtefactTag;
 	groundTruthScore: number; // Visibility: occluded — engine use only
 	lensBoost: number; // From agent's interpretive model
 	presentedScore: number; // What the agent sees

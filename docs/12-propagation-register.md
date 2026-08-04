@@ -1040,5 +1040,49 @@ than merely sequenced after it.
 
 ---
 
+### 2.29 2GN.85 Landed Doc-Only: Vocabulary Propagated to Consumers, §9.2 Rewritten (2026-08-04)
+
+**Origin:** Roadmap 2GN.85, gated on 2GN.80 **Source of truth:** doc 11 §2.9 holds the decision; this
+entry records what 2GN.85 itself delivered
+
+**No code changed.** `deno task check` reported 0 errors across 549 files before this task started —
+the ruling PR (#48) shipped `AbsoluteTag`/`RelativeTag`/`ArtefactTag` completely, and no
+`FunctionTag`/`ContextTag` identifier survived anywhere in `src/`, `scripts/` or `tests/`. 2GN.85's
+own notes anticipated this ("substantially delivered by the ruling PR itself") and left a re-scope
+instruction on pickup, which this entry resolves: the task reduced to a documentation pass.
+
+**§2.28's own "pending" line is now closed.** That entry's change table named doc 05 §9.2's code
+block as pending supersession. It carried the retired `FunctionTag`/`ContextTag` declarations with
+the supersession note appended fifty lines below — a reader met dead types before the ruling that
+retired them. The block now declares `AbsoluteTag`/`RelativeTag`/`ArtefactTag` directly, matching
+`src/lib/types/tags.ts` member-for-member; the 2026-08-04 note demotes to a short historical marker
+rather than carrying the explanation. Four stale type references elsewhere in doc 05 (§4.1
+`specialisation`, §9.3 `groundTruthTags`, §13.1 `emphasis`, §13.2 `TagSuggestion.tag`) were corrected
+to match.
+
+**The relative-tag constraint is now recorded ahead of the three consumers that inherit it.** None of
+description generation (2GN.38+), the lens (M6) or NPC interpretation (M10) exist yet, so each spec
+now carries a short note stating what it must respect once built: descriptions must not render a
+`RelativeTag` as an intrinsic property (doc 05 §13.1); the lens scores a `RelativeTag` against the
+culture-phase it currently *attributes* the artefact to, not the true one (doc 04 §3.2); and
+`InterpretiveModel` being agent-generic means the same indexing applies to NPC scholars without
+further work (doc 06 §6).
+
+**Two small corrections surfaced in doc 06 while reading it for the NPC note.** Its existing §2.28
+supersession banner cited "§7's tag-belief entry" for the sole `FunctionTag` field; the document ends
+at §6, and the field is in §3.3's `functionalEmphasis`. Separately, §2's introductory paragraph still
+glossed the retired FOR/USED split in the present tense ("Function tags describe..."); reworded to
+past tense with a pointer to the shipped types.
+
+| Doc | What changed                                                                                                                             | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 05  | §9.2 code block rewritten to `AbsoluteTag`/`RelativeTag`/`ArtefactTag`; four stale references corrected; constraint note added at §13.1     | 2026-08-04 |
+| 04  | Constraint note added at §3.2, after `ClassificationSuggestion`                                                                             | 2026-08-04 |
+| 06  | Constraint note added at §6; §2's FOR/USED gloss and §2.28 banner's §7 reference corrected                                                  | 2026-08-04 |
+| 12  | This entry — closes §2.28's doc 05 pending line                                                                                             | 2026-08-04 |
+| —   | Roadmap: 2GN.85 resolved, doc-only; 2GN.82–84 recalibration remain gated on 2GN.80                                                          | 2026-08-04 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

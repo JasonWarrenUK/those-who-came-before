@@ -127,6 +127,12 @@ interface ClassificationSuggestion {
 }
 ```
 
+> **Constraint (roadmap M6, doc 11 §2.9):** a `RelativeTag` suggestion (doc 05 §9.2) is scored
+> against the culture-phase baseline of whichever culture the *lens* currently attributes the artefact
+> to — not the true producing culture-phase. Two players holding different provenance beliefs will see
+> different suggestion weights for the same artefact, and that divergence is the lens working as
+> designed, not a bug.
+
 ### 3.3 Cross-Reference Priming
 
 **What it does:** When the player inspects an artefact, the system suggests related artefacts and

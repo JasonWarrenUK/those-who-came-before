@@ -27,20 +27,21 @@ publication requires public retraction with career consequences.
 > **Implementation note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
 > `FunctionTag`/`ContextTag` pair used throughout this document is **superseded** by `AbsoluteTag` /
 > `RelativeTag`, with `ArtefactTag` as the union. Every `(FunctionTag | ContextTag)[]` below reads
-> `ArtefactTag[]` in the shipped types; the sole `FunctionTag` field (§7's tag-belief entry) reads
-> `ArtefactTag`. Nothing in this document's logic depends on the distinction — it uses the pair only
-> to mean "any classification tag" — so the substitution is mechanical. The new split is by scoring
-> basis (fixed threshold versus culture-phase baseline), which matters to contradiction detection in
-> one way worth noting: a relative tag's meaning is indexed to the producing culture-phase, so two
-> agents can disagree about a `RelativeTag` without either misreading the artefact, if they hold
-> different beliefs about which culture-phase produced it.
+> `ArtefactTag[]` in the shipped types; the sole `FunctionTag` field (§3.3's `functionalEmphasis`
+> entry) reads `ArtefactTag`. Nothing in this document's logic depends on the distinction — it uses
+> the pair only to mean "any classification tag" — so the substitution is mechanical. The new split
+> is by scoring basis (fixed threshold versus culture-phase baseline), which matters to contradiction
+> detection in one way worth noting: a relative tag's meaning is indexed to the producing
+> culture-phase, so two agents can disagree about a `RelativeTag` without either misreading the
+> artefact, if they hold different beliefs about which culture-phase produced it.
 
 Throughout this document, `FunctionTag` and `ContextTag` refer to the tag classification system
-defined in doc 05, section 9.2. Function tags describe what an object is _for_ (weapon, tool,
-container, ritual, etc.). Context tags describe how it was _used_ (personal, communal, elite,
-ceremonial, etc.). Tags are not mutually exclusive — an artefact can carry multiple function and
-context tags simultaneously, and resolving which tags apply is a core part of the player's
-analytical work. `MaterialTag` is similarly defined in doc 05, section 9.2.
+defined in doc 05, section 9.2 — now shipped as `AbsoluteTag` and `RelativeTag`, unioned as
+`ArtefactTag` (see the note above). Function tags described what an object is _for_ (weapon, tool,
+container, ritual, etc.). Context tags described how it was _used_ (personal, communal, elite,
+ceremonial, etc.). Tags are not mutually exclusive — an artefact can carry multiple tags
+simultaneously, and resolving which tags apply is a core part of the player's analytical work.
+`MaterialTag` is similarly defined in doc 05, section 9.2.
 
 ### 2.1 Observations
 
@@ -652,6 +653,13 @@ positions. Engine functions accept any `InterpretiveModel` without knowing whose
 For the player, additional state tracks working documents, contradiction queues, and lens
 computation. This extended state is player-specific — NPCs don't need contradiction queues or
 working documents at MVP.
+
+> **Constraint (roadmap M10, doc 11 §2.9):** `InterpretiveModel` is agent-generic, so this indexing
+> applies to NPC scholars identically: an NPC's belief about a `RelativeTag` is only as good as its
+> belief about the producing culture-phase. §2 above (lines 27–36) already makes the
+> contradiction-detection consequence — two agents can disagree about a relative tag without either
+> misreading the artefact, if they hold different provenance beliefs. Nothing further to add for NPCs
+> specifically; the mechanism is identical to the player's.
 
 > **Superseded (doc 12 §2.23, 2026-07-27):** the `InterpretiveModel` interface below predates doc 08
 > §3.2's agent-generic claim-map shape (`agentId`, `culturalClaims`, `artefactClaims`,
