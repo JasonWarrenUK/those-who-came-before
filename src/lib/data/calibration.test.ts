@@ -121,7 +121,15 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	20.9, // R43 techniqueComplexity >= 8 → technique breadth (measured p90, 2GN.34)
 ];
 
-/** Runs the pipeline across every world and emphasis, returning each rule's fire rate as a percentage. */
+/**
+ * Runs the pipeline across every world and emphasis, returning each rule's fire rate as a
+ * percentage.
+ *
+ * `expandGrammar` (structural rules R1–R29) takes no region-specific input, so those rules'
+ * measured rates reflect region-wide availability rather than any one world; only
+ * `expandDecoration` (decorative rules R30 onward) reads `world.geology` and `world.trade`
+ * per region. Sampled at `SAMPLES_PER_CELL` per world per emphasis, n=1800 total.
+ */
 function measureFireRates(): { rates: number[]; sampleSize: number } {
 	const culture = mockCulturalProfile();
 	const fires = new Array(CLASSIFICATION_RULES.length).fill(0);
@@ -162,6 +170,13 @@ function measureFireRates(): { rates: number[]; sampleSize: number } {
 	return { rates: fires.map((count) => (count / sampleSize) * 100), sampleSize };
 }
 
+/** Measured once: the sweep is deterministic, and both tests below read the same rates. */
+let measured: { rates: number[]; sampleSize: number } | undefined;
+function fireRates(): { rates: number[]; sampleSize: number } {
+	measured ??= measureFireRates();
+	return measured;
+}
+
 Deno.test('calibration: EXPECTED_FIRE_RATES covers every shipped rule', () => {
 	assert(
 		EXPECTED_FIRE_RATES.length === CLASSIFICATION_RULES.length,
@@ -172,7 +187,7 @@ Deno.test('calibration: EXPECTED_FIRE_RATES covers every shipped rule', () => {
 });
 
 Deno.test('calibration: every rule fires within tolerance of its recorded rate', () => {
-	const { rates, sampleSize } = measureFireRates();
+	const { rates, sampleSize } = fireRates();
 	const drifted: string[] = [];
 
 	rates.forEach((actual, index) => {
@@ -201,7 +216,7 @@ Deno.test('calibration: every rule fires within tolerance of its recorded rate',
  * its near-universal firing as intended behaviour, not divergence.
  */
 Deno.test('calibration: no rule claiming selectivity fires near-universally', () => {
-	const { rates } = measureFireRates();
+	const { rates } = fireRates();
 	const UNIVERSAL_BY_DESIGN = new Set([31]); // 0-based index of the any-decoration nudge (R32).
 
 	const saturated = rates
