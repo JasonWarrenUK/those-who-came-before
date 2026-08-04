@@ -707,38 +707,39 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       trade-only-with-no-matching-flow in `forestInterior`, which carries an empty flow array).
       `mockGeologicalContext` is deliberately untouched — it is now the fixture covering the
       unmodelled-lenience path the six full worlds no longer reach. `sampleWorld()` takes a region
-      argument (default `coastalPort`) and all five samplers gained `--world`, a scope expansion
-      agreed at interview beyond the task's original two files. **The fixture fix corrected
-      materials but not `elite`, which was the substantive finding**: re-measuring 7200 artefacts
-      across the six worlds moved precious-bearing artefacts 55.3% → 27.1%, silver 11.1% → 3.9%,
-      jade 6.6% → 1.4% and put gold above jade, yet `elite` was unmoved (89.8% presence, 35.4%
-      leader) and near-identical in all six worlds (89.2–90.8%) — proving it was never
-      material-driven. The applied-element rule's 84.6% firing turned out **structural, not a
-      mistuned threshold**: `expandDecoration` gives each BNF category its own per-component slot
-      rolls (0.45 base chance at the fixture phase), so a ~4.15-component artefact reaches ~87% by
-      arithmetic alone and no weight on a boolean fixes it. **Two rules retuned**, both for
-      intent-behaviour divergence (the agreed criterion — a rule firing often because its structure
-      is genuinely common is honest and was left alone): R31 now reads a new
-      `ExtractedFeatures.appliedElementCount` at its measured p75 (`>= 4`, firing 25.2%, within a
-      point of retuned R30's 25.3%) instead of the saturating boolean, an extraction-side change
-      agreed at interview so this task was not data-only; R29 raised to `attachmentDiversity >= 3`
-      (44.4% → 22.3%) with its `partCount >= 3` clause **dropped as inert** (identical fire rate
-      with it, without it, and with it raised to `>= 4`). R32's 98% firing was investigated and
-      deliberately left — it does not diverge from its stated intent, doc 12 §2.24 had already ruled
-      the same way, and `ornament`'s leadership fell 27.0% → 18.8% on the R31 fix alone; this task's
-      original entry blaming it is corrected in doc 12 §2.25. Result: `elite` leadership 35.4% →
-      27.4%, top four tags now within 12 points rather than 25. **Durability tested**: robust to
-      catalogue growth (identical at 2×, 4× and 10× the applied-element technique pool — slot count
-      sets the quantity, pool size only picks which technique fills a slot) and to geology (22–26%
-      across the six worlds), but **not** to phase attributes (R31 fires 4.3% at
-      `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at `craftSpecialisation` 0.1 and 74.5% at 1.0)
-      — which affects every measured threshold including §2.24's seven, and spawned spike 2GN.80
-      plus recalibration tasks 2GN.82–85. Also spawned 2GN.81 (Rule Calibration panel) and fixed
-      five pre-existing broken `assignMaterial`/`expandDecoration` call sites in the samplers
-      (argument order; `deno check` was failing on `scripts/dev/` and two samplers threw at
-      runtime). New coverage: `tests/fixtures/world.test.ts` (11 tests) and
-      `src/lib/data/calibration.test.ts` (fire-rate regression guard over all 43 rules — the gap
-      that let R31 sit at 85% since 2GN.34), plus extraction and rule tests for the new field
+      argument (default `coastalPort` at the time — superseded by 2GN.88, which dropped the default
+      entirely) and all five samplers gained `--world`, a scope expansion agreed at interview beyond
+      the task's original two files. **The fixture fix corrected materials but not `elite`, which
+      was the substantive finding**: re-measuring 7200 artefacts across the six worlds moved
+      precious-bearing artefacts 55.3% → 27.1%, silver 11.1% → 3.9%, jade 6.6% → 1.4% and put gold
+      above jade, yet `elite` was unmoved (89.8% presence, 35.4% leader) and near-identical in all
+      six worlds (89.2–90.8%) — proving it was never material-driven. The applied-element rule's
+      84.6% firing turned out **structural, not a mistuned threshold**: `expandDecoration` gives
+      each BNF category its own per-component slot rolls (0.45 base chance at the fixture phase), so
+      a ~4.15-component artefact reaches ~87% by arithmetic alone and no weight on a boolean fixes
+      it. **Two rules retuned**, both for intent-behaviour divergence (the agreed criterion — a rule
+      firing often because its structure is genuinely common is honest and was left alone): R31 now
+      reads a new `ExtractedFeatures.appliedElementCount` at its measured p75 (`>= 4`, firing 25.2%,
+      within a point of retuned R30's 25.3%) instead of the saturating boolean, an extraction-side
+      change agreed at interview so this task was not data-only; R29 raised to
+      `attachmentDiversity >= 3` (44.4% → 22.3%) with its `partCount >= 3` clause **dropped as
+      inert** (identical fire rate with it, without it, and with it raised to `>= 4`). R32's 98%
+      firing was investigated and deliberately left — it does not diverge from its stated intent,
+      doc 12 §2.24 had already ruled the same way, and `ornament`'s leadership fell 27.0% → 18.8% on
+      the R31 fix alone; this task's original entry blaming it is corrected in doc 12 §2.25. Result:
+      `elite` leadership 35.4% → 27.4%, top four tags now within 12 points rather than 25.
+      **Durability tested**: robust to catalogue growth (identical at 2×, 4× and 10× the
+      applied-element technique pool — slot count sets the quantity, pool size only picks which
+      technique fills a slot) and to geology (22–26% across the six worlds), but **not** to phase
+      attributes (R31 fires 4.3% at `decorativeEmphasis` 0.1 and 48.1% at 1.0; 2.3% at
+      `craftSpecialisation` 0.1 and 74.5% at 1.0) — which affects every measured threshold including
+      §2.24's seven, and spawned spike 2GN.80 plus recalibration tasks 2GN.82–85. Also spawned
+      2GN.81 (Rule Calibration panel) and fixed five pre-existing broken
+      `assignMaterial`/`expandDecoration` call sites in the samplers (argument order; `deno check`
+      was failing on `scripts/dev/` and two samplers threw at runtime). New coverage:
+      `tests/fixtures/world.test.ts` (11 tests) and `src/lib/data/calibration.test.ts` (fire-rate
+      regression guard over all 43 rules — the gap that let R31 sit at 85% since 2GN.34), plus
+      extraction and rule tests for the new field
 - [ ] **2GN.80** — design spike — are status tags absolute across the world, or relative to the
       producing culture's norms? _(depends on 2GN.79 — done; unblocked)_ — surfaced 2026-07-31
       during 2GN.79's durability testing. Every threshold in `data/classification.ts` is an absolute
@@ -767,11 +768,12 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       every score rather than discriminating. Landed as `/dev/explorer/calibration` with a pure
       `ruleCalibration.ts` model (16 tests) per the `tagInspector.ts` precedent: samples 100–1000
       artefacts against any Explorer culture preset and reports per-rule fire rate with a
-      saturated/discriminating/rare/dormant verdict, plus per-tag presence, leadership, mean score
-      and top contributing rule — which is what turns "elite is everywhere" into "because R31 fires
-      on 85%". Samples against `EXPLORER_CULTURES`, which already model all 16 materials, so the
-      panel was never affected by the fixture defect 2GN.79 corrected _(depended on 2GN.20, 2GN.59 —
-      both done)_
+      saturated/discriminating/rare/dormant verdict (the `rare` band was measured and dropped by
+      2GN.88; three verdicts remain), plus per-tag presence, leadership, mean score and top
+      contributing rule — which is what turns "elite is everywhere" into "because R31 fires on 85%".
+      Samples against `EXPLORER_CULTURES`, which already model all 16 materials, so the panel was
+      never affected by the fixture defect 2GN.79 corrected _(depended on 2GN.20, 2GN.59 — both
+      done)_
 - [ ] **2GN.82** — recalibrate the measured classification thresholds per the 2GN.80 ruling
       _(blocked — depends on 2GN.80)_ — recalibration of already-built work. Eleven thresholds in
       `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions
@@ -1285,8 +1287,7 @@ integration with real culture data
       — depends on 3WS.1)_
 - [ ] **3WS.3** — `engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture
       generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)
-      _(blocked — depends on 3WS.2, 2GN.77)_ — 2GN.77 edge added 2026-07-31: `materialAffinities`
-      feeds the material value model the spike settles
+      _(blocked — depends on 3WS.2)_
 - [ ] **3WS.4** — `engine/world/culture.ts` — `generatePhases(culture, prng): CulturePhase[]` — 3-4
       phases per culture with `PhaseCharacteristics` (technology, economy, society, aesthetics)
       _(blocked — depends on 3WS.3)_
@@ -1297,11 +1298,10 @@ integration with real culture data
       materials, direction, volume) _(blocked — depends on 3WS.5)_
 - [ ] **3WS.7** — `engine/world/seed.ts` — geological context generation: `GeologicalContext` with
       material availability per region, `AvailabilityLevel` per material _(blocked — depends on
-      3WS.1, 2GN.77)_ — inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred
-      here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️
-      breaking) or stay convention-agreed strings, and reconcile the provisional region strings
-      2GN.26 and 2GN.47 already mint against mock fixtures; 2GN.77 edge added 2026-07-31:
-      `materialAvailability` feeds the material value model the spike settles
+      3WS.1)_ — inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here:
+      decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or
+      stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47
+      already mint against mock fixtures
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
       sets for cultural fingerprinting) _(blocked — depends on 3WS.3)_ — generated vocabularies must
       be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's
@@ -1494,8 +1494,7 @@ surfacing, retcon flow
       detector _(blocked — depends on 6LS.5, M6)_
 - [ ] **7CD.2** — `engine/contradiction/detection.ts` — material contradiction rules (agent claims
       culture doesn't use material X, but artefact from that culture contains it) _(blocked —
-      depends on 7CD.1, 2GN.77)_ — 2GN.77 edge added 2026-07-31: "culture doesn't use material X"
-      needs a definition of material value to detect a contradiction against
+      depends on 7CD.1)_
 - [ ] **7CD.3** — `engine/contradiction/detection.ts` — temporal contradiction rules (chronology
       conflicts with stratigraphic evidence) _(blocked — depends on 7CD.1)_
 - [ ] **7CD.4** — `engine/contradiction/detection.ts` — cultural contradiction rules (agent's
@@ -1512,8 +1511,7 @@ surfacing, retcon flow
       diverges from occluded distribution) _(blocked — depends on 7CD.1)_
 - [ ] **7CD.9** — `engine/contradiction/detection.ts` — material provenance contradiction rules
       (wrong explanation for material presence despite correct identification) _(blocked — depends
-      on 7CD.1, 2GN.77)_ — 2GN.77 edge added 2026-07-31: what a provenance explanation is "wrong"
-      about depends on the material value model the spike settles
+      on 7CD.1)_
 - [ ] **7CD.10** — `engine/contradiction/detection.ts` — severity scoring:
       `minor`/`moderate`/`major`/`critical` based on type, evidence weight, stakes _(blocked —
       depends on 7CD.1)_
@@ -2205,10 +2203,6 @@ graph LR
 	2GN.77 --> 2GN.78
 	2GN.77 --> 2GN.27
 	2GN.77 --> 2GN.68
-	2GN.77 --> 3WS.3
-	2GN.77 --> 3WS.7
-	2GN.77 --> 7CD.2
-	2GN.77 --> 7CD.9
 	2GN.78 --> M2
 	2GN.35 --> 2GN.38
 	2GN.36 --> 2GN.38
