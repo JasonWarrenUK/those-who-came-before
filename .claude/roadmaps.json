@@ -650,7 +650,7 @@
 					{
 						"id": "2GN.78",
 						"description": "`src/lib/types/tags.ts` + `src/lib/data/materials.ts` — revisit `MaterialTag`'s `precious-metal`/`precious-stone` members per the 2GN.77 ruling",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.77"
 						],
@@ -1166,7 +1166,7 @@
 					{
 						"id": "2GN.82",
 						"description": "recalibrate the measured classification thresholds per the 2GN.80 ruling",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.80"
 						],
@@ -1176,7 +1176,7 @@
 					{
 						"id": "2GN.83",
 						"description": "recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.80"
 						],
@@ -1186,7 +1186,7 @@
 					{
 						"id": "2GN.84",
 						"description": "recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.80",
 							"2GN.77"
@@ -1197,7 +1197,7 @@
 					{
 						"id": "2GN.85",
 						"description": "propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.80"
 						],
