@@ -56,10 +56,23 @@
  *
  * **Every threshold here is absolute, and phase-sensitive.** Fire rates swing by an order of
  * magnitude across `decorativeEmphasis` and `craftSpecialisation` (the applied-element rule: 4.3%
- * at emphasis 0.1, 48.1% at 1.0). Whether a status tag should mean "unusual in this world" or
- * "unusual for this culture" is an open design question — roadmap 2GN.80's spike — and every
- * threshold in this file is provisional pending its ruling. Thresholds are, by contrast, robust to
- * catalogue growth: measured identical at 10× the decorative-technique pool.
+ * at emphasis 0.1, 48.1% at 1.0). Thresholds are, by contrast, robust to catalogue growth:
+ * measured identical at 10× the decorative-technique pool.
+ *
+ * **Status tags are ruled culture-relative and this file has not yet been converted** (roadmap
+ * 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28). The phase sensitivity above is the defect, not a
+ * quirk: an absolute threshold makes `elite` mean "unusually decorated in absolute terms", so a
+ * decorative culture reads as composed of elites and an austere one as having none. The ruling
+ * splits the rule set **by the tag a rule awards, not by the feature its condition reads** — every
+ * rule contributing to `elite`, `ceremonial`, `utilitarian`, `everyday`, `personal`, `communal`,
+ * `artisanal` or `military` becomes relative to the producing culture-phase, scored against
+ * empirically sampled baselines (n=400 per culture-phase, stored as fractional thresholds).
+ * Function-tag rules stay absolute. Note this catches R12 and R15, whose conditions are physical
+ * but whose awards are status claims, alongside the eleven decoration-conditioned rules.
+ *
+ * Consequently `ClassificationRule.condition` widens to take a `ClassificationContext` carrying
+ * those baselines, and **every threshold below is provisional** — all were measured under the
+ * absolute reading the ruling replaces. Recalibration is roadmap 2GN.82–85.
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
