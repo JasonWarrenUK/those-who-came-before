@@ -2,28 +2,26 @@
 import { assert, assertEquals } from '@std/assert';
 import { CLASSIFICATION_RULES } from './classification.ts';
 import { neutralExtractedFeatures as features } from '../../../tests/fixtures/artefact.ts';
-import type { ContextTag, FunctionTag } from '../types/tags.ts';
+import { RELATIVE_TAGS as ALL_RELATIVE_TAGS } from '../types/tags.ts';
+import type { AbsoluteTag, ArtefactTag, RelativeTag } from '../types/tags.ts';
 import type { ExtractedFeatures } from '../types/artefact.ts';
 
-/** Keyed by `FunctionTag` so the compiler flags a missing entry when the union gains a member. */
-const ALL_FUNCTION_TAGS_RECORD: Record<FunctionTag, true> = {
+/** Keyed by `AbsoluteTag` so the compiler flags a missing entry when the union gains a member. */
+const ALL_ABSOLUTE_TAGS_RECORD: Record<AbsoluteTag, true> = {
 	weapon: true,
 	tool: true,
 	container: true,
 	fastener: true,
 	ornament: true,
-	ritual: true,
 	domestic: true,
 	agricultural: true,
 	maritime: true,
-	funerary: true,
-	votive: true,
 	'trade-good': true,
 	currency: true,
 };
 
-/** Keyed by `ContextTag` so the compiler flags a missing entry when the union gains a member. */
-const ALL_CONTEXT_TAGS_RECORD: Record<ContextTag, true> = {
+/** Keyed by `RelativeTag` so the compiler flags a missing entry when the union gains a member. */
+const ALL_RELATIVE_TAGS_RECORD: Record<RelativeTag, true> = {
 	personal: true,
 	communal: true,
 	elite: true,
@@ -32,12 +30,15 @@ const ALL_CONTEXT_TAGS_RECORD: Record<ContextTag, true> = {
 	everyday: true,
 	military: true,
 	artisanal: true,
+	ritual: true,
+	votive: true,
+	funerary: true,
 };
 
-const ALL_TAGS = new Set<FunctionTag | ContextTag>([
-	...Object.keys(ALL_FUNCTION_TAGS_RECORD),
-	...Object.keys(ALL_CONTEXT_TAGS_RECORD),
-] as (FunctionTag | ContextTag)[]);
+const ALL_TAGS = new Set<ArtefactTag>([
+	...Object.keys(ALL_ABSOLUTE_TAGS_RECORD),
+	...Object.keys(ALL_RELATIVE_TAGS_RECORD),
+] as ArtefactTag[]);
 
 /** A feature set with every boolean `true` and every count/complexity pushed high, for no-throw sweeps. */
 function maximalFeatures(): ExtractedFeatures {
@@ -89,12 +90,42 @@ Deno.test('rules: every rule has a non-empty tags map', () => {
 	}
 });
 
-Deno.test('rules: every emitted tag is a real FunctionTag or ContextTag', () => {
+Deno.test('rules: every emitted tag is a real ArtefactTag', () => {
 	for (const rule of CLASSIFICATION_RULES) {
 		for (const tag of rule.tags.keys()) {
 			assert(ALL_TAGS.has(tag), tag);
 		}
 	}
+});
+
+/**
+ * Pins how much of the rule set the 2GN.80 ruling's relative basis actually selects (doc 11 §2.9).
+ *
+ * The ruling cuts by awarded tag, not by condition, so the boundary is invisible from a rule's
+ * shape: a rule reading nothing but `wallThickness` still needs a culture-phase baseline if it
+ * awards `elite`. The count is what 2GN.82's recalibration is sized against, and prose enumerations
+ * of it go stale the moment a rule is inserted. Guard the number instead.
+ *
+ * Failing here is not automatically a defect — adding a rule that awards a `RelativeTag` legitimately
+ * moves it. Update the count and doc 11 §2.9 together, deliberately.
+ */
+Deno.test('ruling: 34 of the 43 rules award at least one RelativeTag', () => {
+	const relative = new Set<string>(ALL_RELATIVE_TAGS);
+	const needsBaseline = CLASSIFICATION_RULES.filter((rule) =>
+		[...rule.tags.keys()].some((tag) => relative.has(tag))
+	);
+
+	assertEquals(CLASSIFICATION_RULES.length, 43);
+	assertEquals(needsBaseline.length, 34);
+});
+
+Deno.test('ruling: the remaining rules award only AbsoluteTags', () => {
+	const relative = new Set<string>(ALL_RELATIVE_TAGS);
+	const absoluteOnly = CLASSIFICATION_RULES.filter((rule) =>
+		[...rule.tags.keys()].every((tag) => !relative.has(tag))
+	);
+
+	assertEquals(absoluteOnly.length, 9);
 });
 
 Deno.test('rules: every weight is greater than 0 and at most 1', () => {
@@ -803,7 +834,7 @@ Deno.test('integration: an engraved long bronze blade fires weapon, ritual, cere
 	});
 
 	const firing = CLASSIFICATION_RULES.filter((rule) => rule.condition(engravedBlade));
-	const firedTags = new Set<FunctionTag | ContextTag>();
+	const firedTags = new Set<ArtefactTag>();
 	for (const rule of firing) {
 		for (const tag of rule.tags.keys()) firedTags.add(tag);
 	}
