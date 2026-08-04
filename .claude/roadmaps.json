@@ -1197,11 +1197,11 @@
 					{
 						"id": "2GN.85",
 						"description": "propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.80"
 						],
-						"notes": "Gated on 2GN.80's ruling; **substantially delivered by the ruling PR itself** (doc 11 §2.9, doc 12 §2.28). The ruling replaced `FunctionTag`/`ContextTag` with `AbsoluteTag`/`RelativeTag`/`ArtefactTag`, which settles the question this task existed to ask: `elite`/`ceremonial`/`ritual`/`votive` mean \"unusual for this culture-phase\", and that is now stated by the type a tag sits in rather than by prose alone. `ritual`, `votive` and `funerary` moved to the relative side in the process. Per-tag JSDoc at the definition site is written. **What remains:** propagate the semantics into the consumers that inherit them but do not yet exist — description generation (2GN.38+) must not describe a relative tag as though it were an absolute property; the lens (M6) must weight relative tags against the culture-phase the agent *believes* produced the artefact, not the true one; and NPC interpretation (M10) inherits the same. Also doc 05 §9.2's superseded code block, currently carrying an implementation note rather than a rewrite. Re-scope on pickup: this may reduce to a doc 05 pass plus per-consumer notes rather than a standalone task.",
+						"notes": "Landed doc-only (2026-08-04, doc 12 §2.29) — the re-scope anticipated on pickup. No code changed: `deno task check` was already 0 errors/549 files before this task started, since the 2GN.80 ruling PR (#48) shipped `AbsoluteTag`/`RelativeTag`/`ArtefactTag` completely, with no `FunctionTag`/`ContextTag` identifier surviving anywhere in `src/`, `scripts/` or `tests/`. Delivered: doc 05 §9.2's code block rewritten from the retired declarations to the shipped vocabulary (closing §2.28's own \"pending\" line), four stale type references elsewhere in doc 05 corrected to match, constraint notes recorded at the three unbuilt consumer sites (doc 05 §13.1 for description generation/2GN.38+, doc 04 §3.2 for the lens/M6, doc 06 §6 for NPC interpretation/M10), and two small corrections in doc 06 (a stale §7 cross-reference corrected to §3.3; the FOR/USED gloss reworded to past tense). Full detail in doc 12 §2.29.",
 						"assignee": "Jason Warren"
 					},
 					{

@@ -812,20 +812,17 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2
       naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
       six different scarcity profiles to calibrate against rather than one lenient fixture
-- [ ] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
-      _(depends on 2GN.80)_ — gated on 2GN.80's ruling; **substantially delivered by the ruling PR
-      itself** (doc 11 §2.9, doc 12 §2.28). The ruling replaced `FunctionTag`/`ContextTag` with
-      `AbsoluteTag`/`RelativeTag`/`ArtefactTag`, which settles the question this task existed to
-      ask: `elite`/`ceremonial`/`ritual`/`votive` mean "unusual for this culture-phase", and that is
-      now stated by the type a tag sits in rather than by prose alone. `ritual`, `votive` and
-      `funerary` moved to the relative side in the process. Per-tag JSDoc at the definition site is
-      written. **What remains:** propagate the semantics into the consumers that inherit them but do
-      not yet exist — description generation (2GN.38+) must not describe a relative tag as though it
-      were an absolute property; the lens (M6) must weight relative tags against the culture-phase
-      the agent _believes_ produced the artefact, not the true one; and NPC interpretation (M10)
-      inherits the same. Also doc 05 §9.2's superseded code block, currently carrying an
-      implementation note rather than a rewrite. Re-scope on pickup: this may reduce to a doc 05
-      pass plus per-consumer notes rather than a standalone task
+- [x] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
+      — landed doc-only (2026-08-04, doc 12 §2.29), the re-scope anticipated on pickup. No code
+      changed: `deno task check` was already 0 errors/549 files before this task started, since the
+      2GN.80 ruling PR (#48) shipped `AbsoluteTag`/`RelativeTag`/`ArtefactTag` completely, with no
+      `FunctionTag`/`ContextTag` identifier surviving anywhere in `src/`, `scripts/` or `tests/`.
+      Delivered: doc 05 §9.2's code block rewritten from the retired declarations to the shipped
+      vocabulary (closing §2.28's own "pending" line), four stale type references elsewhere in doc
+      05 corrected to match, constraint notes recorded at the three unbuilt consumer sites (doc 05
+      §13.1 for description generation/2GN.38+, doc 04 §3.2 for the lens/M6, doc 06 §6 for NPC
+      interpretation/M10), and two small corrections in doc 06 (a stale §7 cross-reference corrected
+      to §3.3; the FOR/USED gloss reworded to past tense). Full detail in doc 12 §2.29
 - [x] **2GN.86** — `engine/generation/grammar.ts` — mass proxy sums component footprints; mass bands
       rebalanced to measured percentiles — surfaced 2026-08-01 auditing all 43 classification rules
       at the user's request (2GN.79 had cleared 41 in prose without per-rule sign-off). Three rules
@@ -2665,9 +2662,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.85,2GN.87 todo
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87 todo
 	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.86,2GN.88,2GN.9 done
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.85,2GN.86,2GN.88,2GN.9 done
 ```
 
 ## Links
