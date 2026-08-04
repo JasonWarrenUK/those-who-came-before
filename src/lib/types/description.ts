@@ -10,7 +10,7 @@
  */
 
 import type { CrossReference, DescriptionRegister } from './lens.ts';
-import type { ContextTag, FunctionTag } from './tags.ts';
+import type { ArtefactTag } from './tags.ts';
 import type {
 	DatingConfidence,
 	DatingMethod,
@@ -41,8 +41,13 @@ export interface DescriptionVariant {
 	/** Tracery-style template with slots. */
 	template: string;
 
-	/** Function tags this variant's framing foregrounds. */
-	emphasis: FunctionTag[];
+	/**
+	 * Tags this variant's framing foregrounds. Spans both scoring bases: a variant may frame an
+	 * artefact by what it is (`weapon`) or by the register it reads as (`ceremonial`), and the
+	 * latter is precisely the framing the lens selects on. Empty across the shipped observational
+	 * set, which by definition foregrounds nothing (doc 12 §2.10).
+	 */
+	emphasis: ArtefactTag[];
 
 	/** Which register the variant belongs to (three-value MVP scope, doc 12 §2.10). */
 	register: DescriptionRegister;
@@ -106,7 +111,7 @@ export interface PresentedObservation {
  */
 export interface TagSuggestion {
 	/** The tag being suggested. */
-	tag: FunctionTag | ContextTag;
+	tag: ArtefactTag;
 
 	/** Visibility: occluded — engine use only. Plausibility from properties alone. */
 	groundTruthScore: number;

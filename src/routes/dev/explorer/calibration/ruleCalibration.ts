@@ -35,12 +35,12 @@ import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../../../lib/types/tags.ts';
-import type { ContextTag, FunctionTag } from '../../../../lib/types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
+import type { ArtefactTag } from '../../../../lib/types/tags.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Either half of the tag vocabulary. */
-export type Tag = FunctionTag | ContextTag;
+export type Tag = ArtefactTag;
 
 // `SATURATION_CEILING` is re-exported from the data layer (`lib/data/classification.ts`) so the
 // panel and the calibration guard read one definition; it is a fact about the rule set, not about
@@ -223,7 +223,7 @@ export function calibrateRules(
 		};
 	});
 
-	const vocabulary: readonly Tag[] = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+	const vocabulary: readonly Tag[] = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 	const tags: TagCalibration[] = vocabulary
 		.filter((tag) => (presentCounts.get(tag) ?? 0) > 0)
 		.map((tag) => {

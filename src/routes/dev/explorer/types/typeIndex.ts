@@ -64,7 +64,7 @@ export interface AliasSummary {
 
 	/**
 	 * The literal texts of a string-literal union's members (the dominant alias shape in
-	 * `src/lib/types/` — `FunctionTag`, `DisseminationState`, …), or `null` when the alias is
+	 * `src/lib/types/` — `MaterialTag`, `DisseminationState`, …), or `null` when the alias is
 	 * anything else and `typeText` should be rendered instead.
 	 */
 	unionMembers: string[] | null;

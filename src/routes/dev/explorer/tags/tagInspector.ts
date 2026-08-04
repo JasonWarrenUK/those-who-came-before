@@ -27,14 +27,14 @@ import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../../../lib/types/tags.ts';
-import type { ContextTag, FunctionTag } from '../../../../lib/types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
+import type { ArtefactTag } from '../../../../lib/types/tags.ts';
 import type { ExtractedFeatures, NormalisedArtefact } from '../../../../lib/types/artefact.ts';
 import type { DecorativeLayer } from '../../../../lib/types/decoration.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Either half of the tag vocabulary. */
-export type Tag = FunctionTag | ContextTag;
+export type Tag = ArtefactTag;
 
 /** One rule's contribution to one tag's score. */
 export interface Contribution {
@@ -98,11 +98,15 @@ export interface TagInspection {
 	/** Every `ExtractedFeatures` field as a display row, in contract order. */
 	featureReadings: FeatureReading[];
 
-	/** Function tags that scored, strongest first. */
-	functionTags: ScoredTag[];
+	/** Absolute-basis tags that scored, strongest first — these thresholds are final. */
+	absoluteTags: ScoredTag[];
 
-	/** Context tags that scored, strongest first. */
-	contextTags: ScoredTag[];
+	/**
+	 * Relative-basis tags that scored, strongest first. Every score here is provisional: the
+	 * thresholds behind them were measured under the absolute reading the 2GN.80 ruling replaces
+	 * (doc 11 §2.9), and will move once culture-phase baselines land (roadmap 2GN.82–85).
+	 */
+	relativeTags: ScoredTag[];
 
 	/** Tags with no evidence at all. Absence provably means zero under the sparse-map contract. */
 	unscored: Tag[];
@@ -114,8 +118,8 @@ export interface TagInspection {
 	ruleCount: number;
 }
 
-/** Canonical vocabulary order: function tags, then context tags, each in declaration order. */
-const TAG_ORDER: readonly Tag[] = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+/** Canonical vocabulary order: absolute tags, then relative ones, each in declaration order. */
+const TAG_ORDER: readonly Tag[] = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 
 /**
  * Which group each `ExtractedFeatures` field belongs to, in contract order.
@@ -289,8 +293,8 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		layers,
 		features,
 		featureReadings: readFeatures(features),
-		functionTags: scoredGroup(FUNCTION_TAGS, scores, contributions, max),
-		contextTags: scoredGroup(CONTEXT_TAGS, scores, contributions, max),
+		absoluteTags: scoredGroup(ABSOLUTE_TAGS, scores, contributions, max),
+		relativeTags: scoredGroup(RELATIVE_TAGS, scores, contributions, max),
 		unscored: TAG_ORDER.filter((tag) => !scores.has(tag)),
 		firedRuleIndices,
 		ruleCount: CLASSIFICATION_RULES.length,

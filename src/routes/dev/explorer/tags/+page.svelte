@@ -30,7 +30,7 @@ function reroll(): void {
 }
 
 const inspection = $derived(inspectTags(seed, culture));
-const scoredCount = $derived(inspection.functionTags.length + inspection.contextTags.length);
+const scoredCount = $derived(inspection.absoluteTags.length + inspection.relativeTags.length);
 const tree = $derived(buildStructureTree(inspection.artefact));
 
 const FEATURE_SECTIONS: { group: FeatureGroup; title: string; note?: string }[] = [
@@ -176,8 +176,8 @@ function breakdown(scored: ScoredTag): string {
 					failure: this artefact carries no feature any shipped rule reads.
 				</p>
 			{:else}
-				{@render chart('Function tags', inspection.functionTags)}
-				{@render chart('Context tags', inspection.contextTags)}
+				{@render chart('Absolute tags', inspection.absoluteTags)}
+				{@render chart('Relative tags (provisional)', inspection.relativeTags)}
 			{/if}
 
 			{#if inspection.unscored.length > 0}

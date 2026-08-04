@@ -11,7 +11,7 @@
  * under `engine/lens/` (roadmap 6LS.*).
  */
 
-import type { ContextTag, FunctionTag } from './tags.ts';
+import type { ArtefactTag } from './tags.ts';
 
 /**
  * Channel 1, observation salience (doc 04 §3.1): the lens-weighted prominence of one observable
@@ -228,7 +228,7 @@ export interface LensState {
 	 * its tags scaled by its strength (roadmap 6LS.3) — this is what lets channel functions run on
 	 * `LensState` alone.
 	 */
-	tagWeights: Map<FunctionTag | ContextTag, number>;
+	tagWeights: Map<ArtefactTag, number>;
 
 	/** Term index when this state was computed — recompute/decay bookkeeping (doc 04 §4.1). */
 	computedAtTerm: number;

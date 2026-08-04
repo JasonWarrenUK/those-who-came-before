@@ -29,8 +29,8 @@ import {
 import { CLASSIFICATION_RULES } from '../../src/lib/data/classification.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../src/lib/data/decorations.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../src/lib/types/tags.ts';
-import type { ContextTag, FunctionTag } from '../../src/lib/types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../src/lib/types/tags.ts';
+import type { ArtefactTag } from '../../src/lib/types/tags.ts';
 import {
 	generateArtefact,
 	jsonReplacer,
@@ -81,7 +81,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES);
 
 	// Re-run each condition to decompose the sums — exact under plain-sum accumulation.
-	const contributions = new Map<FunctionTag | ContextTag, Contribution[]>();
+	const contributions = new Map<ArtefactTag, Contribution[]>();
 	const fired: string[] = [];
 	CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
 		if (!rule.condition(features)) return;
@@ -122,12 +122,12 @@ function breakdown(parts: Contribution[]): string {
 
 /** The group's scored tags, strongest first; ties keep canonical order (stable sort). */
 function scoredGroup(
-	vocabulary: readonly (FunctionTag | ContextTag)[],
-	tags: Map<FunctionTag | ContextTag, number>,
-): [FunctionTag | ContextTag, number][] {
+	vocabulary: readonly (ArtefactTag)[],
+	tags: Map<ArtefactTag, number>,
+): [ArtefactTag, number][] {
 	return vocabulary
 		.filter((tag) => tags.has(tag))
-		.map((tag) => [tag, tags.get(tag) as number] as [FunctionTag | ContextTag, number])
+		.map((tag) => [tag, tags.get(tag) as number] as [ArtefactTag, number])
 		.sort((a, b) => b[1] - a[1]);
 }
 
@@ -142,9 +142,9 @@ function printChart(sample: (typeof samples)[number]): void {
 	}
 
 	const max = Math.max(...tags.values());
-	const groups: [string, readonly (FunctionTag | ContextTag)[]][] = [
-		['function', FUNCTION_TAGS],
-		['context', CONTEXT_TAGS],
+	const groups: [string, readonly (ArtefactTag)[]][] = [
+		['absolute', ABSOLUTE_TAGS],
+		['relative', RELATIVE_TAGS],
 	];
 
 	for (const [name, vocabulary] of groups) {
@@ -167,17 +167,17 @@ function printChart(sample: (typeof samples)[number]): void {
 }
 
 /** Leaders and margins — phrased as evidence, never as a resolved identity (doc 05 §9.2). */
-function printReading(tags: Map<FunctionTag | ContextTag, number>): void {
-	const functions = scoredGroup(FUNCTION_TAGS, tags);
-	const contexts = scoredGroup(CONTEXT_TAGS, tags);
+function printReading(tags: Map<ArtefactTag, number>): void {
+	const absolutes = scoredGroup(ABSOLUTE_TAGS, tags);
+	const relatives = scoredGroup(RELATIVE_TAGS, tags);
 
-	const leaders = [functions[0], contexts[0]]
-		.filter((entry): entry is [FunctionTag | ContextTag, number] => entry !== undefined)
+	const leaders = [absolutes[0], relatives[0]]
+		.filter((entry): entry is [ArtefactTag, number] => entry !== undefined)
 		.map(([tag]) => tag);
 	let sentence = `${leaders.join(' and ')} lead${leaders.length === 1 ? 's' : ''}`;
 
-	if (functions.length >= 2) {
-		const [[leader, top], [runnerUp, second]] = functions;
+	if (absolutes.length >= 2) {
+		const [[leader, top], [runnerUp, second]] = absolutes;
 		const margin = top - second;
 		sentence += `; ${leader}'s margin over ${runnerUp} is ${margin.toFixed(2)}`;
 		sentence += margin < 0.25
@@ -188,10 +188,10 @@ function printReading(tags: Map<FunctionTag | ContextTag, number>): void {
 }
 
 /** Tags with no evidence at all — absence provably means zero (doc 12 §2.21). */
-function printSilence(tags: Map<FunctionTag | ContextTag, number>): void {
-	const silent = (vocabulary: readonly (FunctionTag | ContextTag)[]) =>
+function printSilence(tags: Map<ArtefactTag, number>): void {
+	const silent = (vocabulary: readonly (ArtefactTag)[]) =>
 		vocabulary.filter((tag) => !tags.has(tag)).join(', ');
-	const parts = [silent(FUNCTION_TAGS), silent(CONTEXT_TAGS)].filter((part) => part !== '');
+	const parts = [silent(ABSOLUTE_TAGS), silent(RELATIVE_TAGS)].filter((part) => part !== '');
 	if (parts.length > 0) {
 		console.log(
 			`  ${paint('no evidence'.padEnd(LABEL_WIDTH), 'heading')}${paint(parts.join(' · '), 'dim')}`,

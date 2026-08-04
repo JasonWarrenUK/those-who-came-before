@@ -15,7 +15,7 @@
  * these annotations will migrate onto.
  */
 
-import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
+import type { ArtefactTag, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
 import type { DecorativeLayer } from './decoration.ts';
 import type { PhaseCharacteristics, Provenance } from './world.ts';
@@ -514,7 +514,7 @@ export interface ClassifiedArtefact extends NormalisedArtefact {
 	 * exposed to the player or any agent's interpretive model; they exist solely for the engine to
 	 * evaluate claims against reality.
 	 */
-	groundTruthTags: Map<FunctionTag | ContextTag, number>;
+	groundTruthTags: Map<ArtefactTag, number>;
 
 	/**
 	 * A neutral, observable physical description (doc 05 §9.3) — e.g. 'short bronze elongated

@@ -15,7 +15,7 @@
 
 import type { ContradictionQueue, HypothesisStrain } from './contradiction.ts';
 import type { DescriptionRegister } from './lens.ts';
-import type { ContextTag, FunctionTag, MaterialTag } from './tags.ts';
+import type { ArtefactTag, MaterialTag } from './tags.ts';
 
 /**
  * How strongly an agent commits to a claim (doc 06 §2.1), shared across observations, inferences
@@ -89,7 +89,7 @@ export interface Observation {
 	propertyRefs: string[];
 
 	/** Player-assigned tags (doc 05 §9.2). Not mutually exclusive. */
-	tags: (FunctionTag | ContextTag)[];
+	tags: ArtefactTag[];
 
 	/** How strongly the agent holds this observation. */
 	confidence: Confidence;
@@ -171,7 +171,7 @@ export interface Inference {
 	evidenceChain: EvidenceLink[];
 
 	/** Tags this inference bears on (doc 05 §9.2). Not mutually exclusive. */
-	tags: (FunctionTag | ContextTag)[];
+	tags: ArtefactTag[];
 
 	/** What the inference is claimed to be about. */
 	scope: InferenceScope;
@@ -213,7 +213,7 @@ export interface Hypothesis {
 	contradictingInferences: string[];
 
 	/** Tags this hypothesis bears on (doc 05 §9.2). Not mutually exclusive. */
-	tags: (FunctionTag | ContextTag)[];
+	tags: ArtefactTag[];
 
 	/** What the hypothesis is claimed to be about. */
 	scope: InferenceScope;
@@ -313,7 +313,7 @@ export interface ArtefactClaim {
 	 * (cf. `ArtefactStudy.assignedTags`, doc 06 §3.1). Not mutually exclusive (doc 05 §9.2). Empty
 	 * when the claim isn't a tag assignment.
 	 */
-	assignedTags: (FunctionTag | ContextTag)[];
+	assignedTags: ArtefactTag[];
 
 	/** How strongly the agent holds this claim. */
 	confidence: Confidence;

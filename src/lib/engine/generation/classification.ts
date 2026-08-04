@@ -61,8 +61,8 @@ import type {
 	NormalisedComponent,
 } from '../../types/artefact.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
-import type { ClassificationRule, ContextTag, FunctionTag } from '../../types/tags.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../types/tags.ts';
+import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
 
 // --- Provisional thresholds (MVP-provisional per the 2GN.8 band-table precedent) -------------------
@@ -469,12 +469,15 @@ export function extractFeatures(
 }
 
 /**
- * Canonical position of every tag — function tags before context tags, each in its vocabulary's
+ * Canonical position of every tag — absolute tags before relative ones, each in its vocabulary's
  * declaration order (`types/tags.ts`). Gives `classifyArtefact` a stable sort key so the same
  * features always serialise identically, however the rule array is ordered.
+ *
+ * The ordering is arbitrary but must stay fixed: only its stability matters, not which basis comes
+ * first. Reordering `ABSOLUTE_TAGS`/`RELATIVE_TAGS` churns every serialised map and snapshot.
  */
-const TAG_ORDER: ReadonlyMap<FunctionTag | ContextTag, number> = new Map(
-	[...FUNCTION_TAGS, ...CONTEXT_TAGS].map((tag, index) => [tag, index]),
+const TAG_ORDER: ReadonlyMap<ArtefactTag, number> = new Map(
+	[...ABSOLUTE_TAGS, ...RELATIVE_TAGS].map((tag, index) => [tag, index]),
 );
 
 /**
@@ -505,8 +508,8 @@ const TAG_ORDER: ReadonlyMap<FunctionTag | ContextTag, number> = new Map(
 export function classifyArtefact(
 	features: ExtractedFeatures,
 	rules: readonly ClassificationRule[],
-): Map<FunctionTag | ContextTag, number> {
-	const accumulated = new Map<FunctionTag | ContextTag, number>();
+): Map<ArtefactTag, number> {
+	const accumulated = new Map<ArtefactTag, number>();
 
 	for (const rule of rules) {
 		if (!rule.condition(features)) continue;
