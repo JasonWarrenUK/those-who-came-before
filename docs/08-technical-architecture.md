@@ -168,7 +168,7 @@ those-who-came-before/
 │       │   ├── contradiction.ts        # Contradiction types, queue, strain, resolution
 │       │   ├── career.ts               # CareerEvent, PeerReviewEvent, role definitions
 │       │   ├── grammar.ts              # Geometric primitives, grammar rules, mobility model
-│       │   ├── tags.ts                 # FunctionTag, ContextTag, MaterialTag
+│       │   ├── tags.ts                 # AbsoluteTag, RelativeTag, ArtefactTag, MaterialTag
 │       │   ├── decoration.ts           # Surface treatments, applied elements, layering
 │       │   ├── visibility.ts           # PropertyVisibility enum, visibility annotations
 │       │   └── excavation.ts           # Site composition, ambiguity distribution

@@ -12,8 +12,8 @@ import type {
 } from '../../types/artefact.ts';
 import type { AttachmentType } from '../../types/grammar.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
-import type { ClassificationRule, ContextTag, FunctionTag } from '../../types/tags.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../types/tags.ts';
+import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { CLASSIFICATION_RULES } from '../../data/classification.ts';
 
 /** Builds a component of a given primitive with string properties, distinguishable by id. */
@@ -629,7 +629,7 @@ Deno.test('extractFeatures: unrecognised parameter values degrade to first-liste
  */
 function rule(
 	condition: (f: ExtractedFeatures) => boolean,
-	tags: [FunctionTag | ContextTag, number][],
+	tags: [ArtefactTag, number][],
 ): ClassificationRule {
 	return { condition, tags: new Map(tags) };
 }
@@ -684,7 +684,7 @@ Deno.test('classifyArtefact: absence reads as zero via the ?? 0 convention', () 
 
 Deno.test('classifyArtefact: iteration order is canonical — function tags before context tags, vocabulary order within', () => {
 	// One rule per tag, deliberately supplied in reverse-canonical order.
-	const everyTag = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+	const everyTag = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 	const reversed = [...everyTag].reverse().map((tag) => rule(() => true, [[tag, 0.5]]));
 
 	const scored = classifyArtefact(features(), reversed);
@@ -737,7 +737,7 @@ Deno.test('integration: the real rules score the engraved long blade on weapon, 
 	}
 
 	// The overlap is deliberately unresolved (doc 05 §9.2) — and the map comes back canonical.
-	const everyTag = [...FUNCTION_TAGS, ...CONTEXT_TAGS];
+	const everyTag = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 	const positions = [...scored.keys()].map((tag) => everyTag.indexOf(tag));
 	assertEquals([...positions].sort((a, b) => a - b), positions);
 });

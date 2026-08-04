@@ -910,5 +910,135 @@ further change belongs to 2GN.82's systematic pass rather than to one rule in is
 
 ---
 
+### 2.28 Tag Relativity Ruled: Relative by Tag, Empirical by Culture-Phase, Vocabulary Re-Split (2026-08-04)
+
+**Origin:** Roadmap spikes 2GN.80 and 2GN.77, ruled jointly **Source of truth:** doc 11 §2.9 holds
+the decision; this entry records why it went the way it did and what the measurement found
+
+**Two spikes, one question.** 2GN.80 asked whether status thresholds are absolute or
+culture-relative from the decoration side; 2GN.77 asked the same of materials. They were ruled
+together because separate rulings could have contradicted each other, and because the material
+answer turned out to depend on machinery the decoration answer needed anyway.
+
+**The boundary is drawn by what a rule awards, not what it reads.** The intuitive cut — physical
+conditions absolute, decorative conditions relative — was rejected on inspection of the shipped rule
+set. Parsing all 43 rules found the decoration-conditioned family (eleven rules) awards `elite` in
+every case but the any-decoration nudge, which is the clean part. But two rules with purely physical
+conditions, the thin-walled container and the pedestal base, also award `ceremonial`+`elite`. A
+condition-side cut would leave those two making absolute standing claims while their eleven siblings
+made relative ones, and no explanation of the boundary would survive contact with them. Cutting by
+awarded tag costs per-culture baselines for wall thickness and base type, which nothing models — and
+which empirical calibration produces for free, for any feature. That cost is what decided the
+sampling question below rather than the other way round.
+
+**The award-side cut selects far more of the rule set than the decoration family, and the first
+draft of this ruling undercounted it.** Applying the stated selector mechanically gives **34 of 43
+rules**; only 9 award purely absolute tags. The original enumeration named thirteen and reached for
+"this includes" to stay technically true, which would have led 2GN.82 to size its work at a third of
+the real figure. The rules it missed are not exotic: the thick-walled and heavy-container rules
+award `utilitarian` off the same `wallThickness`/`massBand` axis the thin-walled rule awards `elite`
+off, so the justification for pulling one in was the justification for pulling in all three; the
+slit and sealed container rules award `votive`/`funerary`; and the perforation, ring-gap,
+sheet-flexibility, size-band and wearability families all award `personal`, `everyday`, `artisanal`,
+`communal` or `military`. **General lesson: when a ruling states a selector, run it over the data
+rather than enumerating by hand — a hand-written list of examples reads as a specification to
+whoever implements it.** The count is now pinned by a test (`classification.test.ts`) rather than
+restated in prose, because rule indices shift whenever the array is edited and prose enumerations go
+stale silently.
+
+**The tag vocabulary was reorganised to carry the split, and `ritual`/`votive`/`funerary` moved.**
+Recording the boundary exposed that `ritual` and `votive` were `FunctionTag` members and so filed
+absolute by the ruling, while 2GN.85's brief named them alongside `elite`/`ceremonial` as tags whose
+standing semantics it had to settle. The decoration-conditioned edged-artefact rule made the
+friction concrete: one condition awarding `ritual`+`ceremonial`+`elite` would have split two
+relative and one absolute from a single firing. The wrong thing was the vocabulary, not the ruling.
+`FunctionTag` (FOR) / `ContextTag` (USED) was replaced by `AbsoluteTag` / `RelativeTag`, with
+`ritual`, `votive` and `funerary` relative: each is an inference about intent from morphology or
+decorative excess, and `DepositionType` (doc 05 §3.5) already carries the objective deposition axis
+separately. The FOR/USED axis had no branch point anywhere in the codebase, while the axis that
+decides whether a rule needs a baseline was implicit and recoverable only by inspection — replacing
+one with the other costs nothing and makes the governing question answerable from the type. Done now
+because both `FunctionTag[]` consumers (`NPCScholarSeed.specialisation`,
+`DescriptionVariant.emphasis`) were still unpopulated; after Milestone 3 seeds scholars the same
+change would have meant migrating real data. **This is the same shape as §2.25's saturating boolean:
+a representation inherited from an earlier framing quietly stopped matching the question being asked
+of it.**
+
+**Percentile stability is not fire-rate stability, and the difference is large.** §2.27 measured
+sampling noise for _fire rates_ and found n=100 at the knee (3.8pp worst case). Inheriting that
+number for baselines would have been wrong: a fire rate is a proportion, a baseline is a percentile,
+and percentiles are markedly noisier in the tails where status thresholds actually sit. Measured
+directly over the five continuous decoration metrics under five seed salts, worst-case relative
+spread runs 20–28% at n=100, 8–17% at n=400, and 0–6% at n=800 for p50/p75 with nothing gained
+above. **n=400 per culture-phase** is the knee. **General lesson: a noise floor measured for one
+statistic does not transfer to another statistic over the same data.**
+
+**One metric never converges, and the cause is the generator.** `appliedElementCount` sat at 20%
+spread at p90/p95 and did not improve from n=100 to n=1600. Histogramming it found only 9–16
+distinct integer values, with the entire tail above 4 amounting to 5.1% of output at
+`decorativeEmphasis` 0.1 — so a nearest-rank percentile lands between adjacent integers and flips
+between them regardless of sample size. No sampling budget fixes granularity that lives in the
+generator. Baselines are therefore stored as **fractional thresholds** with rules comparing
+`value >= baseline`, so the cut point moves continuously. **This is the third appearance of the same
+family of defect** (§2.25's saturating boolean, §2.26's max-over-components mass proxy): a statistic
+inherits the coarseness of the generated quantity beneath it, and collapsing or rounding at the
+wrong moment discards the discrimination the distribution still holds.
+
+**No bootstrap circularity exists.** Empirical calibration appears to require classification to
+produce the artefacts it calibrates against. It does not: classification is the final pipeline stage
+and nothing upstream reads tags, so a calibration pass runs stages 1–7 only. The apparent dependency
+was never mutual. Sampling was chosen over a closed-form analytic estimate because the closed form
+drifts silently whenever `expandDecoration` changes — precisely the failure §2.25 spent a session
+correcting, where a threshold and its generator diverged unnoticed for four tasks.
+
+**The culture-wide baseline was proposed and dropped.** The original framing offered per-culture and
+per-culture-phase baselines together. Interrogated, the culture-wide one has no defensible meaning:
+time moves forward, so scoring an early-phase artefact against an average spanning the culture's
+whole lifespan judges it against phases that had not yet happened — incoherent in a game about
+inferring the past from partial evidence. It also destroys the signal it was meant to provide, since
+a culture growing steadily more lavish reads "normal" at every phase against its own average. Drift
+is therefore measured against the **immediately preceding phase only**, carrying magnitude and
+direction, with the first phase's drift null rather than zero.
+
+**The ruling exposed a gap in unbuilt work.** Drift across phases is only meaningful if phases
+evolve continuously, and nothing enforces that: `CulturePhase.characteristics` is a free
+`PhaseCharacteristics` per phase, and doc 05's five coherence rules are all within-artefact
+(structural, geological, decorative), none temporal. As written, a culture could oscillate
+`decorativeEmphasis` 0.1 → 1.0 → 0.1 across three phases unchallenged. Culture generation is
+Milestone 3 and unbuilt, so this is recorded as a requirement on it (roadmap 3WS.21) rather than a
+defect — but recorded now, by the decision that depends on it, rather than discovered when drift
+starts reporting noise.
+
+**Regions are shared between cultures, which keys material baselines differently from decoration
+ones.** `Provenance.site.region` is a plain string and `RegionalAvailability.regions` maps
+availability by region name with no binding to any culture; doc 05's own player-facing example ("all
+the literature on this region comes from the same institution") only works if regions are shared. So
+a culture may span regions with different geology, and material baselines are keyed **culture-phase
+× region** while decoration baselines need only culture-phase.
+
+**§2.20's pure-function contract is amended, not broken.** `ClassificationRule.condition` widens
+from `(features) => boolean` to `(features, context) => boolean`. Rules stay pure functions of their
+inputs. The rejected alternative — pre-normalising relative fields into `ExtractedFeatures` — would
+have kept the signature but made `extractFeatures` itself depend on world context, breaking the
+purity §2.20 actually records. Widening the signature was the smaller violation of the two, and the
+explicit one.
+
+**Every threshold in `data/classification.ts` is now provisional.** All were measured under the
+absolute reading this decision replaces, so 2GN.82–85's recalibration is gated on this ruling rather
+than merely sequenced after it.
+
+| Doc | What changed                                                                                                          | Completed  |
+| --- | --------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 11  | New §2.9 Status-Tag Relativity — the locked decision, the vocabulary reorganisation, and the rejected alternatives    | 2026-08-04 |
+| 12  | This entry — measurement findings, the boundary rationale, the undercount correction, and the two constraints raised  | 2026-08-04 |
+| —   | `types/tags.ts`: `FunctionTag`/`ContextTag` replaced by `AbsoluteTag`/`RelativeTag`/`ArtefactTag` ⚠️ breaking         | 2026-08-04 |
+| —   | `data/classification.ts`: ruling recorded at the rule set; 34/43 and 9/43 counts pinned by test                       | 2026-08-04 |
+| 05  | Pending: §3.2 `stratification` becomes a live classification input; §9.2's tag code block supersedes to the new split | —          |
+| 08  | Pending: `ClassificationContext` type; world state carries cached per-culture-phase baselines                         | —          |
+| 12  | Pending: §2.22's tag sets re-keyed to the new vocabulary (lands with 2GN.78)                                          | —          |
+| —   | Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 gated on this ruling; new 3WS.21 for phase-attribute continuity        | 2026-08-04 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

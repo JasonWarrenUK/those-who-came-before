@@ -17,7 +17,7 @@
  */
 
 import type { InterpretiveModel, MethodologicalBias } from './interpretation.ts';
-import type { FunctionTag } from './tags.ts';
+import type { ArtefactTag } from './tags.ts';
 import type { SiteType } from './world.ts';
 
 /**
@@ -62,7 +62,13 @@ export interface MinimalScholar {
 export interface NPCScholarSeed {
 	id: string;
 	name: string;
-	specialisation: FunctionTag[];
+	/**
+	 * The tags this scholar's work concentrates on. Spans both scoring bases: "the funerary-vessel
+	 * specialist" and "the weapons specialist" are equally ordinary academic identities, and a
+	 * scholar built around a relative tag is the more interesting case, since their expertise is
+	 * anchored to a culture-relative judgement they may be reading wrong.
+	 */
+	specialisation: ArtefactTag[];
 	cultureFocus: string[];
 
 	/** Agent-generic: same interface as the player (doc 11 §2.6). */

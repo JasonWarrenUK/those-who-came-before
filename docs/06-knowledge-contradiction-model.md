@@ -24,6 +24,17 @@ publication requires public retraction with career consequences.
 
 ## 2. The Four Knowledge Layers
 
+> **Implementation note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
+> `FunctionTag`/`ContextTag` pair used throughout this document is **superseded** by `AbsoluteTag` /
+> `RelativeTag`, with `ArtefactTag` as the union. Every `(FunctionTag | ContextTag)[]` below reads
+> `ArtefactTag[]` in the shipped types; the sole `FunctionTag` field (§7's tag-belief entry) reads
+> `ArtefactTag`. Nothing in this document's logic depends on the distinction — it uses the pair only
+> to mean "any classification tag" — so the substitution is mechanical. The new split is by scoring
+> basis (fixed threshold versus culture-phase baseline), which matters to contradiction detection in
+> one way worth noting: a relative tag's meaning is indexed to the producing culture-phase, so two
+> agents can disagree about a `RelativeTag` without either misreading the artefact, if they hold
+> different beliefs about which culture-phase produced it.
+
 Throughout this document, `FunctionTag` and `ContextTag` refer to the tag classification system
 defined in doc 05, section 9.2. Function tags describe what an object is _for_ (weapon, tool,
 container, ritual, etc.). Context tags describe how it was _used_ (personal, communal, elite,

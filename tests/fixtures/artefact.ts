@@ -16,7 +16,7 @@ import type {
 	NormalisedComponent,
 	ObjectDimensions,
 } from '../../src/lib/types/artefact.ts';
-import type { ContextTag, FunctionTag } from '../../src/lib/types/tags.ts';
+import type { ArtefactTag } from '../../src/lib/types/tags.ts';
 import type { Provenance } from '../../src/lib/types/world.ts';
 
 function mockDimensions(): ObjectDimensions {
@@ -210,7 +210,7 @@ export function mockArtefact(overrides: Partial<ClassifiedArtefact> = {}): Class
 		materials,
 		decorativeLayers: [],
 		features: mockExtractedFeatures(),
-		groundTruthTags: new Map<FunctionTag | ContextTag, number>([
+		groundTruthTags: new Map<ArtefactTag, number>([
 			['tool', 0.8],
 			['utilitarian', 0.6],
 		]),

@@ -1148,13 +1148,23 @@ does.
 
 > **Implementation note (2026-07-23, roadmap 2GN.20, doc 12 §2.21):** `classifyArtefact`
 > (`engine/generation/classification.ts`) folds matching rules by plain unbounded sum into a sparse
-> map iterated in canonical vocabulary order — function tags then context tags, per the
-> `FUNCTION_TAGS`/`CONTEXT_TAGS` runtime arrays in `types/tags.ts`. The declared unions shown above
-> remain illustrative; the shipped `FunctionTag`/`ContextTag` are value-identical but derive from
-> those runtime arrays, so declaration order and type membership are a single edit. Scores are
-> evidence tallies, not confidences: compare by rank and margin, read absent tags as zero
-> (`tags.get(tag) ?? 0`). The full fold contract and its rationale live in the function's JSDoc and
-> doc 12 §2.21.
+> map iterated in canonical vocabulary order, per the runtime arrays in `types/tags.ts`. The
+> declared unions shown above remain illustrative and derive from those runtime arrays, so
+> declaration order and type membership are a single edit. Scores are evidence tallies, not
+> confidences: compare by rank and margin, read absent tags as zero (`tags.get(tag) ?? 0`). The full
+> fold contract and its rationale live in the function's JSDoc and doc 12 §2.21.
+>
+> **Implementation note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
+> `FunctionTag` (what an object was FOR) / `ContextTag` (how it was USED) split shown above is
+> **superseded**. The shipped vocabulary is `AbsoluteTag` / `RelativeTag`, with `ArtefactTag` as the
+> union, partitioned by **scoring basis** rather than by what a tag describes: `RelativeTag` members
+> are scored against baselines sampled from the producing culture-phase, `AbsoluteTag` members
+> against fixed thresholds. Membership is otherwise value-identical to the two unions above with
+> three exceptions — `ritual`, `votive` and `funerary` moved to the relative side, since each is an
+> inference about intent from morphology or decorative excess rather than a recorded fact
+> (`DepositionType`, §3.5, remains the objective deposition axis). The FOR/USED distinction survives
+> only in per-tag JSDoc, never in the type. `NPCScholarSeed.specialisation` (§4.1) and
+> `DescriptionVariant.emphasis` (§13.1) widen from `FunctionTag[]` to `ArtefactTag[]` accordingly.
 >
 > **Implementation note (2026-07-28, roadmap 2GN.34, doc 12 §2.24):** the
 > `decorativeComplexity > 2`/ `> 1` constants above are illustrative only and do not reflect the

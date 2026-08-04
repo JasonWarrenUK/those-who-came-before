@@ -3,7 +3,7 @@ import { assertAlmostEquals, assertEquals } from '@std/assert';
 import { inspectTags } from './tagInspector.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 import { classifyArtefact } from '../../../../lib/engine/generation/classification.ts';
-import { CONTEXT_TAGS, FUNCTION_TAGS } from '../../../../lib/types/tags.ts';
+import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 
 const tarpan = EXPLORER_CULTURES.find((culture) => culture.id === 'tarpan')!;
@@ -19,7 +19,7 @@ Deno.test('inspectTags — is deterministic for the same seed and culture', () =
 Deno.test("inspectTags — each tag's contributions sum exactly to its score", () => {
 	for (const seed of ['tag-sum-0', 'tag-sum-1', 'tag-sum-2', 'tag-sum-3']) {
 		const inspection = inspectTags(seed, khaltiris);
-		for (const scored of [...inspection.functionTags, ...inspection.contextTags]) {
+		for (const scored of [...inspection.absoluteTags, ...inspection.relativeTags]) {
 			const summed = scored.contributions.reduce((total, c) => total + c.weight, 0);
 			assertAlmostEquals(summed, scored.score, 1e-9, `${seed} ${scored.tag}`);
 		}
@@ -31,7 +31,7 @@ Deno.test('inspectTags — scores match calling classifyArtefact directly on the
 	const direct = classifyArtefact(inspection.features, CLASSIFICATION_RULES);
 
 	const seen = new Map(
-		[...inspection.functionTags, ...inspection.contextTags].map((s) => [s.tag, s.score]),
+		[...inspection.absoluteTags, ...inspection.relativeTags].map((s) => [s.tag, s.score]),
 	);
 	assertEquals(seen.size, direct.size);
 	for (const [tag, score] of direct) assertEquals(seen.get(tag), score);
@@ -40,17 +40,17 @@ Deno.test('inspectTags — scores match calling classifyArtefact directly on the
 Deno.test('inspectTags — scored and unscored tags together cover the whole vocabulary exactly once', () => {
 	const inspection = inspectTags('tag-coverage', tarpan);
 	const all = [
-		...inspection.functionTags.map((s) => s.tag),
-		...inspection.contextTags.map((s) => s.tag),
+		...inspection.absoluteTags.map((s) => s.tag),
+		...inspection.relativeTags.map((s) => s.tag),
 		...inspection.unscored,
 	];
 	assertEquals(new Set(all).size, all.length); // No tag appears twice.
-	assertEquals(new Set(all), new Set([...FUNCTION_TAGS, ...CONTEXT_TAGS]));
+	assertEquals(new Set(all), new Set([...ABSOLUTE_TAGS, ...RELATIVE_TAGS]));
 });
 
 Deno.test('inspectTags — each group is ordered strongest-first', () => {
 	const inspection = inspectTags('tag-ordering', khaltiris);
-	for (const group of [inspection.functionTags, inspection.contextTags]) {
+	for (const group of [inspection.absoluteTags, inspection.relativeTags]) {
 		for (let i = 1; i < group.length; i++) {
 			assertEquals(group[i - 1].score >= group[i].score, true);
 		}
@@ -59,7 +59,7 @@ Deno.test('inspectTags — each group is ordered strongest-first', () => {
 
 Deno.test("inspectTags — share is score over the artefact's strongest tag, so the leader is 1", () => {
 	const inspection = inspectTags('tag-share', khaltiris);
-	const scored = [...inspection.functionTags, ...inspection.contextTags];
+	const scored = [...inspection.absoluteTags, ...inspection.relativeTags];
 	if (scored.length === 0) return; // An unscored artefact has nothing to normalise.
 
 	const max = Math.max(...scored.map((s) => s.score));
@@ -70,7 +70,7 @@ Deno.test("inspectTags — share is score over the artefact's strongest tag, so 
 Deno.test('inspectTags — every contribution comes from a rule reported as fired', () => {
 	const inspection = inspectTags('tag-fired', khaltiris);
 	const fired = new Set(inspection.firedRuleIndices);
-	for (const scored of [...inspection.functionTags, ...inspection.contextTags]) {
+	for (const scored of [...inspection.absoluteTags, ...inspection.relativeTags]) {
 		for (const contribution of scored.contributions) {
 			assertEquals(fired.has(contribution.ruleIndex), true, contribution.rule);
 		}
@@ -82,7 +82,7 @@ Deno.test('inspectTags — fired rule indices are ascending and label as R{index
 	const indices = inspection.firedRuleIndices;
 	for (let i = 1; i < indices.length; i++) assertEquals(indices[i - 1] < indices[i], true);
 
-	for (const scored of [...inspection.functionTags, ...inspection.contextTags]) {
+	for (const scored of [...inspection.absoluteTags, ...inspection.relativeTags]) {
 		for (const c of scored.contributions) assertEquals(c.rule, `R${c.ruleIndex + 1}`);
 	}
 });

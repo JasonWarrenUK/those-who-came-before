@@ -23,11 +23,10 @@
  * Weights follow doc 05 §9.2's 0.2–0.8 scale and are MVP-provisional, expected to be retuned once
  * observable in the Explorer tag inspector (roadmap 2GN.59). Tags are deliberately overlapping —
  * `classifyArtefact` (roadmap 2GN.20) is the consumer that folds every matching rule's `tags` map
- * into one accumulated `Map<FunctionTag | ContextTag, number>`; this module is static data only,
- * no behaviour.
+ * into one accumulated `Map<ArtefactTag, number>`; this module is static data only, no behaviour.
  *
- * Not every `FunctionTag`/`ContextTag` is reached at MVP — `currency` has no grammar signal to key
- * on yet and is deliberately absent rather than force-fitted.
+ * Not every `ArtefactTag` is reached at MVP — `currency` has no grammar signal to key on yet and is
+ * deliberately absent rather than force-fitted.
  *
  * **Decoration thresholds are measured, not transcribed** (roadmap 2GN.34, doc 12 §2.24). Doc 05
  * §9.2's illustrative `decorativeComplexity > 2`/`> 1` constants, and this file's own original
@@ -56,10 +55,44 @@
  *
  * **Every threshold here is absolute, and phase-sensitive.** Fire rates swing by an order of
  * magnitude across `decorativeEmphasis` and `craftSpecialisation` (the applied-element rule: 4.3%
- * at emphasis 0.1, 48.1% at 1.0). Whether a status tag should mean "unusual in this world" or
- * "unusual for this culture" is an open design question — roadmap 2GN.80's spike — and every
- * threshold in this file is provisional pending its ruling. Thresholds are, by contrast, robust to
- * catalogue growth: measured identical at 10× the decorative-technique pool.
+ * at emphasis 0.1, 48.1% at 1.0). Thresholds are, by contrast, robust to catalogue growth:
+ * measured identical at 10× the decorative-technique pool.
+ *
+ * **Relative-basis tags are ruled culture-relative and this file has not yet been converted**
+ * (roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28). The phase sensitivity above is the defect,
+ * not a quirk: an absolute threshold makes `elite` mean "unusually decorated in absolute terms", so
+ * a decorative culture reads as composed of elites and an austere one as having none.
+ *
+ * The ruling splits the rule set **by the tag a rule awards, not by the feature its condition
+ * reads**: a rule awarding any `RelativeTag` (`types/tags.ts`) is scored against baselines sampled
+ * from the producing culture-phase (n=400, stored as fractional thresholds); a rule awarding only
+ * `AbsoluteTag` members keeps its fixed threshold. Read the vocabulary arrays for the membership,
+ * never a list of rule indices — indices shift whenever this array is edited.
+ *
+ * **The selector catches 34 of the 43 rules below**, which is many more than the decoration family:
+ *
+ * - The eleven decoration-conditioned rules, all but one of which award `elite`.
+ * - The thin-walled-container and pedestal-base rules, whose conditions are purely physical but
+ *   whose awards (`elite`, `ceremonial`) are status claims. These are the cases that forced the cut
+ *   to be made on the award side rather than the condition side.
+ * - Their siblings on the same physical axes: the thick-walled and heavy-container rules award
+ *   `utilitarian` off `wallThickness`/`massBand` exactly as the thin-walled rule awards `elite`.
+ *   Leaving these absolute would reintroduce the incoherence the tag-side cut exists to avoid.
+ * - Every rule awarding `personal`, `everyday`, `artisanal`, `communal` or `military` — the
+ *   perforation, ring-gap, sheet-flexibility, size-band and wearability families.
+ * - The slit and sealed container rules, which award `votive`/`funerary` off opening morphology.
+ *
+ * Only nine rules award purely absolute tags. `classification.test.ts` pins both the 34/43 and the
+ * 9/43 counts, so editing a rule's tags in a way that moves it across the boundary fails loudly
+ * rather than silently changing what needs a baseline.
+ *
+ * Note `ritual`, `votive` and `funerary` are `RelativeTag` members despite reading as purposes
+ * rather than registers: each is an inference from decorative excess or sealed-container morphology
+ * against local norms, so they carry the same phase-sensitivity as `elite` (doc 11 §2.9).
+ *
+ * Consequently `ClassificationRule.condition` widens to take a `ClassificationContext` carrying
+ * those baselines, and **every threshold below is provisional** — all were measured under the
+ * absolute reading the ruling replaces. Recalibration is roadmap 2GN.82–85.
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
