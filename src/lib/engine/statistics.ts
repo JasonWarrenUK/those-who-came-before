@@ -31,6 +31,27 @@ function assertValidInput(values: readonly number[], percentile: number): void {
 }
 
 /**
+ * R-7 interpolation over an already-sorted, non-empty sample — the shared arithmetic behind
+ * `percentileOf` and `percentileLadder`, so a stored threshold is derived the same way regardless
+ * of which caller asked for it.
+ *
+ * R-7: `rank` is a fractional index into `sorted`, interpolated between its floor and ceiling
+ * neighbours.
+ */
+function interpolateSorted(sorted: readonly number[], percentile: number): number {
+	if (sorted.length === 1) {
+		return sorted[0];
+	}
+
+	const rank = percentile * (sorted.length - 1);
+	const lowerIndex = Math.floor(rank);
+	const upperIndex = Math.ceil(rank);
+	const fraction = rank - lowerIndex;
+
+	return sorted[lowerIndex] + fraction * (sorted[upperIndex] - sorted[lowerIndex]);
+}
+
+/**
  * The `percentile` of `values`, by linear interpolation between the two bracketing order
  * statistics (the R-7 / "inclusive" convention — NumPy's default, spreadsheet `PERCENTILE.INC`).
  *
@@ -53,18 +74,7 @@ export function percentileOf(values: readonly number[], percentile: number): num
 	assertValidInput(values, percentile);
 
 	const sorted = [...values].sort((a, b) => a - b);
-	if (sorted.length === 1) {
-		return sorted[0];
-	}
-
-	// R-7: rank is a fractional index into the sorted sample, interpolated between its floor and
-	// ceiling neighbours.
-	const rank = percentile * (sorted.length - 1);
-	const lowerIndex = Math.floor(rank);
-	const upperIndex = Math.ceil(rank);
-	const fraction = rank - lowerIndex;
-
-	return sorted[lowerIndex] + fraction * (sorted[upperIndex] - sorted[lowerIndex]);
+	return interpolateSorted(sorted, percentile);
 }
 
 /**
@@ -80,17 +90,7 @@ export function percentileLadder(values: readonly number[]): Map<number, number>
 	const ladder = new Map<number, number>();
 
 	for (const rung of PERCENTILE_LADDER) {
-		if (sorted.length === 1) {
-			ladder.set(rung, sorted[0]);
-			continue;
-		}
-
-		const rank = rung * (sorted.length - 1);
-		const lowerIndex = Math.floor(rank);
-		const upperIndex = Math.ceil(rank);
-		const fraction = rank - lowerIndex;
-
-		ladder.set(rung, sorted[lowerIndex] + fraction * (sorted[upperIndex] - sorted[lowerIndex]));
+		ladder.set(rung, interpolateSorted(sorted, rung));
 	}
 
 	return ladder;
