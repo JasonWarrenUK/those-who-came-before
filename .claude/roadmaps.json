@@ -682,20 +682,22 @@
 					{
 						"id": "2GN.36",
 						"description": "`src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"1FD.31",
-							"M1"
+							"M1",
+							"2GN.91"
 						],
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.37",
 						"description": "`src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"1FD.31",
-							"M1"
+							"M1",
+							"2GN.91"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1220,6 +1222,36 @@
 							"2GN.81"
 						],
 						"notes": "Completing the 2GN.79 oversight audit: the retunes and fixtures had per-decision sign-off, but nine supporting constants were chosen without it. Each was measured or removed.\n\n`TOLERANCE_POINTS` 10 → 6. Re-running the whole calibration sweep under five different seed salts moves the worst-case rule by 3.8pp at n=1800, so 10 left only 6.2pp of genuine headroom — a rule could shift 9pp of real behaviour and pass. 6 keeps ~1.6× headroom over noise. Verified by inducing a subtler regression than the mass rebalance (R31 `>= 4` → `>= 3`, a 14.4pp drift), which the tightened band catches and names.\n\n`SAMPLES_PER_CELL` kept at 100, now justified rather than assumed: measured noise floor by cell size is 25→5.4pp, 50→5.1pp, 100→3.8pp, 200→3.3pp, 400→3.5pp, so 100 sits at the knee — 200 buys 0.5pp for double the runtime and 400 buys nothing.\n\n`SATURATION_CEILING` was **defined twice** (exported from the Explorer panel, re-declared as a local const in the guard) with nothing keeping them in sync — a defect introduced by 2GN.79/2GN.81. Now a single export in `src/lib/data/classification.ts`, since it is a fact about the rule set rather than about either consumer, and `routes/` may depend on `lib/` but not the reverse. Value kept at 60.\n\n`DORMANCY_FLOOR` removed along with the `rare` verdict. Measured across all four Explorer culture presets it flagged 4 rules on Tarpan (R27/R30/R31/R40), 1 each on Thalassar and Khaltiris, none on Xoconahtl — and on Tarpan those are the decoration rules, rare because it is a low-decoration culture, i.e. behaving correctly. The verdict reported a property of the selected culture rather than anything actionable, and the fire-rate column already says \"uncommon here\" more precisely. Three verdicts remain, each mapping to an action: `dormant` (investigate — a rule can be unreachable, as R4 is and R27 was), `saturated` (check intent against behaviour), `discriminating`.\n\nR31's weights (`elite 0.4, ornament 0.3`) reviewed and kept: they were authored for a rule meaning \"deliberate embellishment\", and the retuned condition finally delivers that meaning at a selectivity matching R30's (25.2% vs 25.3%). Any further weight change belongs to 2GN.82's systematic pass rather than one rule in isolation.\n\n`mockRegionalWorld`/`mockFullGeologicalContext`/`sampleWorld` lost their `coastalPort` default: which world you generate against changes material distribution substantially, so it is now always a stated choice. The CLI keeps a `DEFAULT_SAMPLE_REGION` so samplers run bare, and every sampler now prints its world in a header — an omitted `--world` was previously invisible in output.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.91",
+						"description": "`src/lib/types/description.ts` — add `condition?: VariantCondition` to `DescriptionVariant`; define `VariantCondition` (parameter-value gate + craftDomain/materialId/materialTag material gate)",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.35"
+						],
+						"notes": "Surfaced 2026-08-05 during 2GN.36/2GN.37 planning; widened 2026-08-05 during 2GN.36 authoring. `DescriptionVariant` addresses variants by `property` id + `register` + `emphasis` only — a variant fires for every value of its parameter, since the value itself only reaches the text via a `#slot#`. Two condition gaps surfaced against this:\n\n1. **Within-parameter value gating.** `elongated.crossSection`'s 'round' and 'rectangular' values don't support the same interpretive reading (a round cross-section is held differently to a rectangular one) — one template stretched across every value of a parameter reads as either shallow or false for some values.\n\n2. **Cross-property/material gating.** A geometric reading can depend on the component's *material*, not just its own parameter — 'taper suits a forceful strike' is false if the material is brittle. This was originally scoped as technical-only (craft process is materially determined at the root: grinding bronze, knapping obsidian, paring oak and throwing clay are different processes), but interpretive claims need the same gate for the same reason — a functional reading is a claim about geometry *given* material, not geometry alone. Originally proposed as a technical-only mechanism; interpretive authoring showed the same condition is required there, so both registers share this one field rather than duplicating the concept.\n\n`VariantCondition` fields are optional and any-of within, AND across fields (`{craftDomain: ['stoneWorking'], materialId: ['obsidian']}` requires both). No predicate functions (unlike `DECORATIVE_TECHNIQUES.substrate.test` in `data/decorations.ts`) — description data may cross the save boundary, so the condition must stay serialisable. Component *shape* deliberately has no field: the `property` id already carries it (`elongated.edge` only fires on an elongated component). Sibling-parameter conditions (e.g. edge=double AND crossSection=diamond on the same component) are deliberately out of scope — cheap to add later as a non-breaking extension, and premature inclusion risks the 2GN.87 failure mode (a plausible-looking conjunction that matches zero generated artefacts, silently). Guarded instead by the firing-frequency test added in 2GN.36/2GN.37's own test suites.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.92",
+						"description": "Doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape change and the selection-order contract (condition filters the candidate set, then emphasis selects within it)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.91"
+						],
+						"notes": "Docs task pairing 2GN.91's type change. Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a condition field; update the quoted interface and prose to match. Doc 12 gets a numbered propagation entry (next after §2.29) recording the change and its origin, matching the convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.93",
+						"description": "`engine/generation/description.ts` — variant selection honours `condition`: filter candidates by the component's assigned material (via the `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.91"
+						],
+						"notes": "Nothing currently does the material join at description time — `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant selection — resolve at pickup whether this is a distinct task or 2GN.38's description should instead be amended to state selection honours `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as separately-tracked selection logic.",
 						"assignee": "Jason Warren"
 					}
 				]

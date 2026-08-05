@@ -865,6 +865,51 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       pinned-index blocks in `classification.test.ts` and `EXPECTED_FIRE_RATES` in
       `calibration.test.ts` both need updating. Sibling R27 had the same shape and was resolved by
       2GN.86's upstream fix; R4 has no equivalent identified
+- [ ] **2GN.91** — `src/lib/types/description.ts` — add `condition?: VariantCondition` to
+      `DescriptionVariant`; define `VariantCondition` (parameter-value gate +
+      craftDomain/materialId/materialTag material gate) — surfaced 2026-08-05 during 2GN.36/2GN.37
+      planning; widened 2026-08-05 during 2GN.36 authoring. `DescriptionVariant` addresses variants
+      by `property` id + `register` + `emphasis` only — a variant fires for every value of its
+      parameter, since the value itself only reaches the text via a `#slot#`. Two condition gaps
+      surfaced against this: (1) **within-parameter value gating** — `elongated.crossSection`'s
+      'round' and 'rectangular' values don't support the same interpretive reading (a round
+      cross-section is held differently to a rectangular one), so one template stretched across
+      every value reads as either shallow or false for some values; (2) **cross-property/material
+      gating** — a geometric reading can depend on the component's material, not just its own
+      parameter ('taper suits a forceful strike' is false if the material is brittle). Originally
+      scoped as technical-only (craft process is materially determined at the root: grinding
+      bronze, knapping obsidian, paring oak and throwing clay are different processes), interpretive
+      authoring showed the same gate is needed there too — a functional reading is a claim about
+      geometry *given* material, not geometry alone — so both registers share this one field rather
+      than duplicating the concept. `VariantCondition`'s material fields are optional and any-of
+      within, AND across fields (`{craftDomain: ['stoneWorking'], materialId: ['obsidian']}`
+      requires both). No predicate functions (unlike `DECORATIVE_TECHNIQUES.substrate.test` in
+      `data/decorations.ts`) — description data may cross the save boundary, so the condition must
+      stay serialisable. Component *shape* deliberately has no field: the `property` id already
+      carries it (`elongated.edge` only fires on an elongated component). Sibling-parameter
+      conditions (e.g. edge=double AND crossSection=diamond on the same component) are deliberately
+      out of scope — cheap to add later as a non-breaking extension, and premature inclusion risks
+      the 2GN.87 failure mode (a plausible-looking conjunction that matches zero generated
+      artefacts, silently). Guarded instead by the firing-frequency test added in 2GN.36/2GN.37's
+      own test suites _(depends on 2GN.35 — done; unblocked)_
+- [ ] **2GN.92** — doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape
+      change and the selection-order contract (condition filters the candidate set, then emphasis
+      selects within it) _(blocked — depends on 2GN.91)_ — docs task pairing 2GN.91's type change.
+      Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a
+      condition field; update the quoted interface and prose to match. Doc 12 gets a numbered
+      propagation entry (next after §2.29) recording the change and its origin, matching the
+      convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split
+- [ ] **2GN.93** — `engine/generation/description.ts` — variant selection honours `condition`:
+      filter candidates by the component's assigned material (via the
+      `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based
+      selection _(blocked — depends on 2GN.91)_ — nothing currently does the material join at
+      description time; `NormalisedComponent` carries only `allowedMaterialTags` (a constraint),
+      the actual assignment lives on `ClassifiedArtefact.materials` as a side-table
+      (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns
+      `generateDescription`'s variant selection — resolve at pickup whether this is a distinct
+      task or 2GN.38's description should instead be amended to state selection honours
+      `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as
+      separately-tracked selection logic
 - [x] **2GN.88** — calibration constants audited and justified; `SATURATION_CEILING` moved to the
       data layer — completing the 2GN.79 oversight audit: the retunes and fixtures had per-decision
       sign-off, but nine supporting constants were chosen without it. `TOLERANCE_POINTS` 10 → 6,
@@ -961,9 +1006,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
-      function tag variants _(depends on 1FD.31, M1)_
+      function tag variants _(blocked — depends on 1FD.31, M1, 2GN.91)_
 - [ ] **2GN.37** — `src/lib/data/descriptions/technical/` — technical register templates
-      (craft-process, manufacturing) _(depends on 1FD.31, M1)_
+      (craft-process, manufacturing) _(blocked — depends on 1FD.31, M1, 2GN.91)_
 - [ ] **2GN.38** — `engine/generation/description.ts` —
       `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered
       observation list per component _(blocked — depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37,
@@ -1871,8 +1916,6 @@ graph LR
 	2GN.77["2GN.77: design spike — does a material's classi…"]
 	2GN.78["2GN.78: `src/lib/types/tags.ts` + `src/lib/data…"]
 	2GN.35["2GN.35: `src/lib/data/descriptions/observationa…"]
-	2GN.36["2GN.36: `src/lib/data/descriptions/interpretive…"]
-	2GN.37["2GN.37: `src/lib/data/descriptions/technical/`…"]
 	2GN.66["2GN.66: `src/lib/data/names/` — naming grammars…"]
 	2GN.48["2GN.48: `engine/world/scholars.ts` — `generateN…"]
 	2GN.49["2GN.49: `engine/world/scholars.ts` — NPC `Inter…"]
@@ -1927,6 +1970,12 @@ graph LR
 	2GN.85["2GN.85: propagate the 2GN.80 ruling into the ta…"]
 	2GN.27["2GN.27: `engine/generation/materials.ts` + `eng…"]
 	2GN.68["2GN.68: `engine/generation/classification.ts` —…"]
+	2GN.86["2GN.86: `engine/generation/grammar.ts` — mass p…"]
+	2GN.87["2GN.87: `src/lib/data/classification.ts` — R4's…"]
+	2GN.88["2GN.88: calibration constants audited and justi…"]
+	2GN.91["2GN.91: `src/lib/types/description.ts` — add `c…"]
+	2GN.36["2GN.36: `src/lib/data/descriptions/interpretive…"]
+	2GN.37["2GN.37: `src/lib/data/descriptions/technical/`…"]
 	2GN.38["2GN.38: `engine/generation/description.ts` — `g…"]
 	2GN.39["2GN.39: `engine/generation/description.ts` — te…"]
 	2GN.40["2GN.40: `engine/generation/description.ts` — pe…"]
@@ -1948,9 +1997,8 @@ graph LR
 	2GN.64["2GN.64: Explorer: corpus browser — NPC research…"]
 	2GN.65["2GN.65: Explorer: pipeline stage viewer — stage…"]
 	2GN.71["2GN.71: `engine/generation/description.ts` + `e…"]
-	2GN.86["2GN.86: `engine/generation/grammar.ts` — mass p…"]
-	2GN.87["2GN.87: `src/lib/data/classification.ts` — R4's…"]
-	2GN.88["2GN.88: calibration constants audited and justi…"]
+	2GN.92["2GN.92: Doc 05 §13.1 + doc 12 propagation entry…"]
+	2GN.93["2GN.93: `engine/generation/description.ts` — va…"]
 	M2["M2: Generation Pipeline"]:::mile
 	3WS.1["3WS.1: `engine/world/seed.ts` — `createWorldSee…"]
 	3WS.2["3WS.2: `engine/world/chronology.ts` — `generate…"]
@@ -1991,7 +2039,7 @@ graph LR
 	5KN.5["5KN.5: `components/study/ObservationEditor.svel…"]
 	5KN.6["5KN.6: Confidence level selector (speculative/t…"]
 	5KN.7["5KN.7: Epistemic mode toggle (observational vs…"]
-	5KN.8["5KN.8: Tag assignment on observations (`Functio…"]
+	5KN.8["5KN.8: Tag assignment on observations (`Artefac…"]
 	5KN.9["5KN.9: Observation list per artefact: view, edi…"]
 	5KN.10["5KN.10: `engine/interpretation/inference.ts` —…"]
 	5KN.11["5KN.11: `engine/interpretation/inference.ts` —…"]
@@ -2203,11 +2251,11 @@ graph LR
 	M1 --> 2GN.22
 	M1 --> 2GN.28
 	M1 --> 2GN.35
-	M1 --> 2GN.36
-	M1 --> 2GN.37
 	M1 --> 2GN.66
 	M1 --> 2GN.1
 	M1 --> 2GN.2
+	M1 --> 2GN.36
+	M1 --> 2GN.37
 	2GN.11 --> 2GN.12
 	2GN.22 --> 2GN.23
 	2GN.28 --> 2GN.29
@@ -2218,10 +2266,9 @@ graph LR
 	2GN.79 --> 2GN.88
 	2GN.77 --> 2GN.78
 	2GN.77 --> 2GN.84
-	2GN.78 --> M2
+	2GN.78 --> 2GN.27
+	2GN.35 --> 2GN.91
 	2GN.35 --> 2GN.38
-	2GN.36 --> 2GN.38
-	2GN.37 --> 2GN.38
 	2GN.66 --> 2GN.48
 	2GN.66 --> 2GN.47
 	2GN.48 --> 2GN.49
@@ -2277,7 +2324,6 @@ graph LR
 	2GN.26 --> 2GN.75
 	2GN.75 --> 2GN.30
 	2GN.75 --> 2GN.27
-	2GN.78 --> 2GN.27
 	2GN.29 --> 2GN.30
 	2GN.29 --> 2GN.31
 	2GN.29 --> 2GN.32
@@ -2320,6 +2366,15 @@ graph LR
 	2GN.85 --> 2GN.68
 	2GN.27 --> 2GN.38
 	2GN.68 --> 2GN.38
+	2GN.86 --> M2
+	2GN.87 --> M2
+	2GN.88 --> M2
+	2GN.91 --> 2GN.36
+	2GN.91 --> 2GN.37
+	2GN.91 --> 2GN.92
+	2GN.91 --> 2GN.93
+	2GN.36 --> 2GN.38
+	2GN.37 --> 2GN.38
 	2GN.38 --> 2GN.39
 	2GN.38 --> 2GN.44
 	2GN.39 --> 2GN.40
@@ -2352,9 +2407,8 @@ graph LR
 	2GN.64 --> M2
 	2GN.65 --> M2
 	2GN.71 --> M2
-	2GN.86 --> M2
-	2GN.87 --> M2
-	2GN.88 --> M2
+	2GN.92 --> M2
+	2GN.93 --> M2
 	M2 --> 3WS.1
 	3WS.1 --> 3WS.2
 	3WS.1 --> 3WS.7
@@ -2650,8 +2704,8 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87,2GN.91 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.36,2GN.37,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.92,2GN.93,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
 	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.85,2GN.86,2GN.88,2GN.9 done
 ```
 
