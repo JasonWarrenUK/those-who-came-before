@@ -139,6 +139,14 @@ export function neutralExtractedFeatures(
 	return { ...defaults, ...overrides };
 }
 
+/**
+ * Re-exported for test-file convenience, so a suite importing artefact fixtures doesn't also need
+ * a separate `engine/generation/baselines.ts` import for this one helper. Canonical implementation
+ * lives there (roadmap 2GN.95) since `routes/` may depend on `lib/` but never on `tests/fixtures/`,
+ * and Explorer call sites need the same no-baseline context this suite does.
+ */
+export { emptyClassificationContext } from '../../src/lib/engine/generation/baselines.ts';
+
 function mockProvenance(): Provenance {
 	return {
 		cultureId: 'test-culture',

@@ -132,6 +132,83 @@ export type RelativeTag = (typeof RELATIVE_TAGS)[number];
 export type ArtefactTag = AbsoluteTag | RelativeTag;
 
 /**
+ * Which `ExtractedFeatures` fields carry a sampled baseline (roadmap 2GN.95, doc 11 §2.9).
+ *
+ * Deliberately a closed union, not `keyof ExtractedFeatures`: a percentile over `hasEdge` or
+ * `openingType` is meaningless, and a key type that admitted them would let a rule ask a question
+ * the sampler cannot answer. `decorativePerPart` is derived (`decorativeComplexity / partCount`,
+ * guarded at `partCount` 0) — the sampler computes it once per artefact, matching how a migrated
+ * rule computes it once when reading `ExtractedFeatures`.
+ */
+export type BaselineFeature =
+	| 'decorativeLayerCount'
+	| 'decorativeComplexity'
+	| 'techniqueComplexity'
+	| 'appliedElementCount'
+	| 'decorativePerPart'
+	| 'partCount'
+	| 'attachmentDiversity'
+	| 'edgeCount';
+
+/**
+ * One feature's empirical distribution across a culture-phase's own output (doc 11 §2.9).
+ *
+ * Stored as already-evaluated fractional thresholds at the fixed `PERCENTILE_LADDER` rungs
+ * (`engine/statistics.ts`), not as the raw sample: the sample is `sampleSize` numbers per feature
+ * per culture-phase, while the ladder is five. Thresholds are fractional and a migrated rule
+ * compares `value >= threshold`, so the cut point moves continuously with the culture rather than
+ * snapping between the integer values a raw count could only interpolate between.
+ */
+export interface FeatureBaseline {
+	/** Percentile → fractional threshold. Keys are `PERCENTILE_LADDER` rungs. */
+	thresholds: ReadonlyMap<number, number>;
+
+	/** How many artefacts the distribution was sampled from (doc 11 §2.9: n=400). */
+	sampleSize: number;
+}
+
+/**
+ * Culture-phase baselines a `ClassificationRule.condition` scores `RelativeTag` awards against
+ * (doc 11 §2.9, doc 12 §2.28, roadmap 2GN.95).
+ *
+ * Carries only what a rule reads. It deliberately does **not** carry the producing
+ * `CulturalProfile`, `PhaseCharacteristics` or geology: a rule that could reach those could branch
+ * on `decorativeEmphasis` directly and reintroduce exactly the phase-sensitivity the ruling exists
+ * to remove (`data/classification.ts`'s module JSDoc). The baselines *are* the culture, as far as a
+ * rule is concerned.
+ *
+ * `PhaseCharacteristics.society.stratification` is ruled a live input in its own right (doc 11
+ * §2.9), gating how much `elite` can exist at all independent of any one distribution — but it has
+ * no field here. Nothing reads it until roadmap 2GN.96 (blocked on 3WS.9's real `WorldState`);
+ * declaring it here unread would be a lie the type tells.
+ */
+export interface ClassificationContext {
+	/** Which culture-phase these baselines were sampled from, for provenance and debugging. */
+	readonly cultureId: string;
+	readonly phaseId: string;
+
+	/** Per-feature sampled distributions. A missing entry means the feature was not sampled. */
+	readonly baselines: ReadonlyMap<BaselineFeature, FeatureBaseline>;
+
+	/**
+	 * Whether `value` sits at or above this culture-phase's `percentile` for `feature`.
+	 *
+	 * The single call a migrated rule makes. `percentile` must be a `PERCENTILE_LADDER` rung — an
+	 * off-ladder value throws, loudly, rather than interpolating between rungs and silently
+	 * inventing a threshold nobody measured.
+	 *
+	 * **Returns `false` when `feature` has no baseline**, rather than falling back to an absolute
+	 * constant. A silent absolute fallback is the precise defect the culture-relativity ruling
+	 * exists to remove, and it would be invisible under `classifyArtefact`'s plain-sum fold — no
+	 * baseline reads as no evidence, not as a guess.
+	 */
+	exceeds(feature: BaselineFeature, percentile: number, value: number): boolean;
+
+	/** Whether `feature` carries a sampled baseline at all. */
+	hasBaseline(feature: BaselineFeature): boolean;
+}
+
+/**
  * The material vocabulary components and materials are tagged with (doc 05 §9.2). Used both for
  * `MaterialDefinition.tags` (what a material is) and `NormalisedComponent.allowedMaterialTags`
  * (what a component can physically be made from) — see doc 05 §6.1.
@@ -159,10 +236,15 @@ export type MaterialTag =
  * The basis is a property of each awarded tag, not of the rule, so a rule awarding any
  * `RelativeTag` needs culture-phase baselines even when its condition reads purely physical
  * features (doc 11 §2.9 — this is what catches the thin-walled-container and pedestal-base rules).
+ *
+ * `condition` takes a `ClassificationContext` alongside `features` (roadmap 2GN.95, widening §2.20's
+ * pure-function contract per doc 12 §2.28 — the predicate stays pure, only its arity grows). A rule
+ * that has not yet been migrated to a relative threshold (roadmap 2GN.82) simply ignores the second
+ * parameter; TypeScript accepts a narrower-arity function wherever this wider signature is expected.
  */
 export interface ClassificationRule {
-	/** Predicate over the artefact's unified extracted features (doc 05 §9.1). */
-	condition: (features: ExtractedFeatures) => boolean;
+	/** Predicate over the artefact's unified extracted features and its culture-phase baselines. */
+	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 
 	/** Tag contributions this rule adds when `condition` matches, keyed by tag with a weight. */
 	tags: Map<ArtefactTag, number>;

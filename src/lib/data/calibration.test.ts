@@ -37,6 +37,7 @@ import { MATERIALS } from './materials.ts';
 import { DECORATIVE_TECHNIQUES } from './decorations.ts';
 import { mockCulturalProfile, mockPhaseCharacteristics } from '../../../tests/fixtures/culture.ts';
 import { MOCK_WORLD_REGIONS, mockRegionalWorld } from '../../../tests/fixtures/world.ts';
+import { emptyClassificationContext } from '../../../tests/fixtures/artefact.ts';
 
 /**
  * Artefacts sampled per world per emphasis setting. Six worlds × three settings × this.
@@ -134,6 +135,10 @@ function measureFireRates(): { rates: number[]; sampleSize: number } {
 	const culture = mockCulturalProfile();
 	const fires = new Array(CLASSIFICATION_RULES.length).fill(0);
 	let sampleSize = 0;
+	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one), so
+	// the empty context leaves every rate below identical to its pre-2GN.95 value — the inertness
+	// checkpoint EXPECTED_FIRE_RATES depends on.
+	const context = emptyClassificationContext();
 
 	for (const region of MOCK_WORLD_REGIONS) {
 		const world = mockRegionalWorld(region);
@@ -160,7 +165,7 @@ function measureFireRates(): { rates: number[]; sampleSize: number } {
 				const extracted = extractFeatures(artefact, layers);
 
 				CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
-					if (rule.condition(extracted)) fires[ruleIndex]++;
+					if (rule.condition(extracted, context)) fires[ruleIndex]++;
 				});
 				sampleSize++;
 			}

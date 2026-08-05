@@ -31,6 +31,7 @@ import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
+import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
@@ -163,6 +164,9 @@ export function calibrateRules(
 	const scoreTotals = new Map<Tag, number>();
 	// Per tag, how much total weight each rule contributed — for `topContributor`.
 	const perTagRuleWeight = new Map<Tag, Map<number, number>>();
+	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one); an
+	// empty context keeps this loop cheap until one does (`baselines.ts`'s JSDoc).
+	const context = emptyClassificationContext();
 
 	for (let index = 0; index < count; index++) {
 		const artefactSeed = `${seed}-${index}`;
@@ -181,10 +185,10 @@ export function calibrateRules(
 			DECORATIVE_TECHNIQUES,
 		);
 		const features = extractFeatures(artefact, layers);
-		const scores = classifyArtefact(features, CLASSIFICATION_RULES);
+		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 		CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
-			if (!rule.condition(features)) return;
+			if (!rule.condition(features, context)) return;
 			fireCounts[ruleIndex]++;
 			for (const [tag, weight] of rule.tags) {
 				weightContributed[ruleIndex] += weight;

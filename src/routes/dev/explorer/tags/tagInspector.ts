@@ -23,6 +23,7 @@ import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
+import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
@@ -271,13 +272,16 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	);
 
 	const features = extractFeatures(artefact, layers);
-	const scores = classifyArtefact(features, CLASSIFICATION_RULES);
+	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one);
+	// an empty context keeps this call cheap until one does (`baselines.ts`'s JSDoc).
+	const context = emptyClassificationContext();
+	const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 	// Re-run each condition to attribute the sums. Exact under plain-sum accumulation.
 	const contributions = new Map<Tag, Contribution[]>();
 	const firedRuleIndices: number[] = [];
 	CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
-		if (!rule.condition(features)) return;
+		if (!rule.condition(features, context)) return;
 		firedRuleIndices.push(ruleIndex);
 		for (const [tag, weight] of rule.tags) {
 			const existing = contributions.get(tag) ?? [];

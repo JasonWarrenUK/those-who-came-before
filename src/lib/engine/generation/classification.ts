@@ -61,7 +61,7 @@ import type {
 	NormalisedComponent,
 } from '../../types/artefact.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
-import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
+import type { ArtefactTag, ClassificationContext, ClassificationRule } from '../../types/tags.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
 
@@ -503,16 +503,17 @@ const TAG_ORDER: ReadonlyMap<ArtefactTag, number> = new Map(
  * - A throwing `condition` propagates — rules are internal authored data with their own no-throw
  *   suite, and guarding here would hide a data bug.
  *
- * Pure and PRNG-free: same features and rules in, same map out.
+ * Pure and PRNG-free: same features, rules and context in, same map out.
  */
 export function classifyArtefact(
 	features: ExtractedFeatures,
 	rules: readonly ClassificationRule[],
+	context: ClassificationContext,
 ): Map<ArtefactTag, number> {
 	const accumulated = new Map<ArtefactTag, number>();
 
 	for (const rule of rules) {
-		if (!rule.condition(features)) continue;
+		if (!rule.condition(features, context)) continue;
 		for (const [tag, weight] of rule.tags) {
 			accumulated.set(tag, (accumulated.get(tag) ?? 0) + weight);
 		}
