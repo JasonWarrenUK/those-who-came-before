@@ -109,6 +109,21 @@ Deno.test("prose: bar-form taper 'none' renders as untapered, not a dropped clau
 	assert(!result.includes('narrows'), result);
 });
 
+Deno.test('prose: bar-form taper falls through to the unconditioned variant for a non-none value', () => {
+	const result = describeProse(
+		component({
+			primitiveType: 'bar-form',
+			properties: new Map<string, string | number>([
+				['length', 'long'],
+				['crossSection', 'round'],
+				['taper', 'single-end'],
+			]),
+		}),
+	);
+	assert(result.includes('The form narrows with a single-end taper.'), result);
+	assert(!result.includes('untapered'), result);
+});
+
 Deno.test('prose: "a"/"an" article agreement on .a slots', () => {
 	const vowelLed = describeProse(
 		component({

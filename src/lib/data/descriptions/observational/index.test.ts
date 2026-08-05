@@ -142,3 +142,41 @@ Deno.test('observational: every template has at least one variant with non-empty
 		}
 	}
 });
+
+Deno.test('observational: conditioned variants precede unconditioned ones within a template', () => {
+	for (const { property, variants } of OBSERVATIONAL_TEMPLATES) {
+		let sawUnconditioned = false;
+		for (const variant of variants) {
+			if (variant.condition?.values === undefined) {
+				sawUnconditioned = true;
+				continue;
+			}
+			assert(
+				!sawUnconditioned,
+				`${property}: a conditioned variant follows an unconditioned one — first-match-wins selection would never reach it`,
+			);
+		}
+	}
+});
+
+Deno.test('observational: every condition.values entry is a real value of its own parameter', () => {
+	for (const { property, variants } of OBSERVATIONAL_TEMPLATES) {
+		if (property.startsWith('decoration.')) continue;
+
+		const [primitive, parameter] = property.split('.');
+		const parameters = PRIMITIVE_PARAMETERS[primitive as PrimitiveType] as Record<
+			string,
+			readonly string[]
+		>;
+		const allowedValues = parameters[parameter];
+
+		for (const variant of variants) {
+			for (const value of variant.condition?.values ?? []) {
+				assert(
+					allowedValues.includes(value),
+					`${property}: condition value '${value}' is not a value of '${parameter}'`,
+				);
+			}
+		}
+	}
+});

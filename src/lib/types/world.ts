@@ -43,6 +43,13 @@ export interface WorldSeed {
  * grammar's recursion cap, high `aesthetics.formConservatism` narrows grammar branch variance.
  * Visibility: occluded (the player infers phase character from artefacts, never reads this).
  */
+/**
+ * Which craft-technology axis governs working a material (doc 05 §3.2, §7). Named here because two
+ * types now key on it: `MaterialDefinition.craftDomain` (artefact.ts) and `VariantCondition`'s
+ * material gate (description.ts).
+ */
+export type CraftDomain = keyof PhaseCharacteristics['technology'];
+
 export interface PhaseCharacteristics {
 	/** Craft technology maturity by domain, each 0–1. */
 	technology: {
