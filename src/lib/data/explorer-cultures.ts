@@ -29,6 +29,7 @@ import type {
 	PhaseCharacteristics,
 } from '../types/world.ts';
 import type { MaterialTag } from '../types/tags.ts';
+import type { CulturePhaseSample } from '../engine/generation/baselines.ts';
 
 /** One Explorer preset: a named, described culture paired with a single phase to generate against. */
 export interface ExplorerCulture {
@@ -417,3 +418,21 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		],
 	},
 ];
+
+/**
+ * An `ExplorerCulture` as a `CulturePhaseSample`, for baseline sampling (roadmap 2GN.95).
+ *
+ * `ExplorerCulture` already carries `profile` + `phase` + `geology` + `trade` in one record, all 16
+ * shipped materials modelled — exactly what `sampleBaselines` needs, and the only `src/lib/`
+ * (rather than `tests/fixtures/`) source that does.
+ */
+export function explorerCulturePhase(culture: ExplorerCulture): CulturePhaseSample {
+	return {
+		cultureId: culture.id,
+		phaseId: culture.id, // Each preset carries a single phase; the id doubles as the phase id.
+		profile: culture.profile,
+		phase: culture.phase,
+		geology: culture.geology,
+		trade: culture.trade,
+	};
+}

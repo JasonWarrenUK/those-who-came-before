@@ -788,33 +788,68 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       Samples against `EXPLORER_CULTURES`, which already model all 16 materials, so the panel was
       never affected by the fixture defect 2GN.79 corrected _(depended on 2GN.20, 2GN.59 — both
       done)_
+- [x] **2GN.94** — `src/lib/engine/statistics.ts` — deterministic percentile helper
+      (`percentileOf`/`percentileLadder`, R-7 interpolation) baselines are measured with — surfaced
+      2026-08-05 while scoping 2GN.82: no percentile helper existed anywhere in `src/lib`, so every
+      p50/p75/p90 figure in `classification.ts` was hand-transcribed and the 2GN.34/2GN.79
+      recalibration was not reproducible from the tree. R-7 linear interpolation (NumPy's default),
+      not nearest-rank — required, not a taste call: doc 12 §2.28 measured `appliedElementCount`
+      taking only 9–16 distinct integer values, so a nearest-rank percentile flips between adjacent
+      integers at any sample size. Regression-anchored against the recorded `decorativeLayerCount`
+      p75 (10, roadmap 2GN.34) to catch a disagreement between the new helper and the old
+      hand-transcription before anything depends on it. Prerequisite for 2GN.95
+- [x] **2GN.95** — `ClassificationContext` + baseline sampler (`engine/generation/baselines.ts`) —
+      widen `ClassificationRule.condition` to `(features, context)`; zero rule migrations
+      _(depends on 2GN.94 — done)_ — prerequisite for 2GN.82/83/84, surfaced 2026-08-05: the
+      2GN.80/2GN.77 ruling (doc 11 §2.9, doc 12 §2.28) is fully decided, but `ClassificationContext`
+      was referenced in five places and defined nowhere, and `ClassificationRule.condition` was
+      still single-argument. Widens the signature without migrating a single rule — TypeScript
+      accepts a narrower-arity function wherever the wider signature is expected, so all 43 rules
+      compile and fire identically; `EXPECTED_FIRE_RATES` in `calibration.test.ts` is bit-identical
+      before and after, the checkpoint proving the slice changed no observable behaviour. Ships
+      `sampleBaselines` (stages 1–7 only — `expandGrammar` → `normaliseArtefact` →
+      `expandDecoration` → `extractFeatures`, no bootstrap circularity), `explorerCulturePhase`
+      adapting `EXPLORER_CULTURES`, and `emptyClassificationContext` (used at every current call
+      site, since no shipped rule reads a context yet — wiring real sampled baselines into the
+      interactive Explorer tools now would cost real latency for zero observable effect).
+      Deliberately not cached (`WorldState` doesn't exist until 3WS.9) and not wired to real culture
+      generation (no generator exists until 3WS.3/3WS.4). Load-bearing test: Tarpan
+      (decorativeEmphasis 0.4) vs Thalassar (0.75) must show a strictly higher decorativeComplexity
+      p75 for the latter — the ruling's premise, checked empirically. Baseline caching, drift and
+      `stratification` split out to 2GN.96 (M3), blocked on real `WorldState`
 - [ ] **2GN.82** — recalibrate the measured classification thresholds per the 2GN.80 ruling
-      _(depends on 2GN.80)_ — recalibration of already-built work. Eleven thresholds in
-      `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions
-      (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become culture-relative,
-      every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES` in
-      `src/lib/data/calibration.test.ts` re-recorded with it. Resolves to no code change plus a doc
-      12 note if the ruling keeps the absolute model. Sits upstream of anything whose correctness
-      depends on what the tag scores mean
+      _(depends on 2GN.80, 2GN.95 — both done)_ — recalibration of already-built work. Eleven
+      thresholds in `src/lib/data/classification.ts` are pinned to measured percentiles of absolute
+      distributions (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become
+      culture-relative, every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES`
+      in `src/lib/data/calibration.test.ts` re-recorded with it. **Gated on 2GN.95
+      (`ClassificationContext` + baseline sampler), not merely on the ruling itself** — recalibrating
+      against a culture-relative basis with no implementation would measure the wrong thing; 2GN.95
+      closed that gap 2026-08-05. **Scope corrected**: earlier notes here described the pre-ruling
+      scope ("R12/R15 + eleven decoration-conditioned rules"); doc 12 §2.28 corrected this — the
+      award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that. Sits
+      upstream of anything whose correctness depends on what the tag scores mean
 - [ ] **2GN.83** — recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling _(depends
-      on 2GN.80)_ — recalibration of already-built work. `BASE_FILL_PROBABILITY` (0.9), `SLOT_DECAY`
-      (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s equal-weight
-      craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and together they are
-      what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each BNF category draws
-      its own per-component slots, so P(≥1 applied element) ≈ 1-(1-0.45)^partCount). Under a
-      culture-relative reading these set the per-culture baseline every threshold measures against,
-      so they stop being free parameters. ⚠️ changing them moves every measured threshold in
-      `data/classification.ts` — sequence with 2GN.82, and expect `calibration.test.ts` to fail
-      loudly, which is the guard working
+      on 2GN.80, 2GN.95 — both done)_ — recalibration of already-built work. `BASE_FILL_PROBABILITY`
+      (0.9), `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s
+      equal-weight craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and
+      together they are what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each
+      BNF category draws its own per-component slots, so P(≥1 applied element) ≈
+      1-(1-0.45)^partCount). Under a culture-relative reading these set the per-culture baseline
+      every threshold measures against, so they stop being free parameters. ⚠️ changing them moves
+      every measured threshold in `data/classification.ts` — sequence with 2GN.82, and expect
+      `calibration.test.ts` to fail loudly, which is the guard working. **Gated on 2GN.95, not
+      merely on the ruling** — same reasoning as 2GN.82
 - [ ] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
-      rulings _(depends on 2GN.80, 2GN.77)_ — recalibration of already-built work.
-      `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15)
-      and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured
-      against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value
-      question directly — may merge with it — and 2GN.80 touches it via
+      rulings _(depends on 2GN.80, 2GN.77, 2GN.95 — all done)_ — recalibration of already-built
+      work. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only
+      0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never
+      measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's
+      material-value question directly — may merge with it — and 2GN.80 touches it via
       `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2
       naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
-      six different scarcity profiles to calibrate against rather than one lenient fixture
+      six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated
+      on 2GN.95, not merely on the rulings** — same reasoning as 2GN.82
 - [x] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
       — landed doc-only (2026-08-04, doc 12 §2.29), the re-scope anticipated on pickup. No code
       changed: `deno task check` was already 0 errors/549 files before this task started, since the
@@ -865,7 +900,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       pinned-index blocks in `classification.test.ts` and `EXPECTED_FIRE_RATES` in
       `calibration.test.ts` both need updating. Sibling R27 had the same shape and was resolved by
       2GN.86's upstream fix; R4 has no equivalent identified
-- [ ] **2GN.91** — `src/lib/types/description.ts` — add `condition?: VariantCondition` to
+- [x] **2GN.91** — `src/lib/types/description.ts` — add `condition?: VariantCondition` to
       `DescriptionVariant`; define `VariantCondition` (parameter-value gate +
       craftDomain/materialId/materialTag material gate) — surfaced 2026-08-05 during 2GN.36/2GN.37
       planning; widened 2026-08-05 during 2GN.36 authoring. `DescriptionVariant` addresses variants
@@ -891,18 +926,18 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       out of scope — cheap to add later as a non-breaking extension, and premature inclusion risks
       the 2GN.87 failure mode (a plausible-looking conjunction that matches zero generated
       artefacts, silently). Guarded instead by the firing-frequency test added in 2GN.36/2GN.37's
-      own test suites _(depends on 2GN.35 — done; unblocked)_
+      own test suites _(depended on 2GN.35 — done; unblocked)_
 - [ ] **2GN.92** — doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape
       change and the selection-order contract (condition filters the candidate set, then emphasis
-      selects within it) _(blocked — depends on 2GN.91)_ — docs task pairing 2GN.91's type change.
+      selects within it) _(depends on 2GN.91 — done)_ — docs task pairing 2GN.91's type change.
       Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a
       condition field; update the quoted interface and prose to match. Doc 12 gets a numbered
-      propagation entry (next after §2.29) recording the change and its origin, matching the
+      propagation entry (next after §2.30) recording the change and its origin, matching the
       convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split
 - [ ] **2GN.93** — `engine/generation/description.ts` — variant selection honours `condition`:
       filter candidates by the component's assigned material (via the
       `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based
-      selection _(blocked — depends on 2GN.91)_ — nothing currently does the material join at
+      selection _(depends on 2GN.91 — done)_ — nothing currently does the material join at
       description time; `NormalisedComponent` carries only `allowedMaterialTags` (a constraint),
       the actual assignment lives on `ClassifiedArtefact.materials` as a side-table
       (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns
@@ -1006,9 +1041,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
-      function tag variants _(blocked — depends on 1FD.31, M1, 2GN.91)_
+      function tag variants _(depends on 1FD.31, M1, 2GN.91 — all done)_
 - [ ] **2GN.37** — `src/lib/data/descriptions/technical/` — technical register templates
-      (craft-process, manufacturing) _(blocked — depends on 1FD.31, M1, 2GN.91)_
+      (craft-process, manufacturing) _(depends on 1FD.31, M1, 2GN.91 — all done)_
 - [ ] **2GN.38** — `engine/generation/description.ts` —
       `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered
       observation list per component _(blocked — depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37,
@@ -1416,6 +1451,18 @@ integration with real culture data
       As specified, a culture could oscillate `decorativeEmphasis` 0.1 → 1.0 → 0.1 across three
       phases unchallenged, and drift measured across those phases would report noise. Recorded by
       the decision that depends on it rather than discovered later
+- [ ] **2GN.96** — baselines cached on real `WorldState`; drift-vs-preceding-phase;
+      `PhaseCharacteristics.society.stratification` as a live classification input _(blocked —
+      depends on 2GN.95, 3WS.4, 3WS.9, 3WS.21)_ — split out of 2GN.95's scope 2026-08-05: doc 11
+      §2.9 says baselines are "cached in world state", but `WorldState` does not exist (`types/
+      save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase timeline; every
+      fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc 11 §2.9's own
+      named prerequisite for that measurement to mean anything rather than measure noise across
+      incoherent phases. `stratification` is ruled a live input gating how much `elite` can exist at
+      all, independent of any one distribution — deliberately absent from `ClassificationContext`
+      until this task, since declaring it unread would be a lie the type tells. Moved from M2 to M3
+      2026-08-05: its dependencies are all M3 tasks, and M3's own entry point (3WS.1) gates on the
+      whole of M2 completing — an M2 task cannot depend on M3 work without a cycle
 
 ---
 
@@ -1964,6 +2011,8 @@ graph LR
 	2GN.74["2GN.74: `engine/generation/materials.ts` — `exp…"]
 	2GN.80["2GN.80: design spike — are status tags absolute…"]
 	2GN.81["2GN.81: Explorer: rule calibration panel — per-…"]
+	2GN.94["2GN.94: `src/lib/engine/statistics.ts` — determ…"]
+	2GN.95["2GN.95: `ClassificationContext` + baseline samp…"]
 	2GN.82["2GN.82: recalibrate the measured classification…"]
 	2GN.83["2GN.83: recalibrate `expandDecoration`'s fill c…"]
 	2GN.84["2GN.84: recalibrate `SCARCITY_WEIGHT` and mater…"]
@@ -2021,6 +2070,7 @@ graph LR
 	3WS.19["3WS.19: Explorer: culture relationship graph vi…"]
 	3WS.20["3WS.20: Explorer: store inspector panel — live…"]
 	3WS.21["3WS.21: `engine/world/culture.ts` — phase-attri…"]
+	2GN.96["2GN.96: baselines cached on real `WorldState`;…"]
 	M3["M3: World State & Integration"]:::mile
 	4UI.1["4UI.1: `components/study/ArtefactInspector.svel…"]
 	4UI.2["4UI.2: `components/study/PropertyList.svelte` —…"]
@@ -2356,6 +2406,11 @@ graph LR
 	2GN.80 --> 2GN.84
 	2GN.80 --> 2GN.85
 	2GN.81 --> 2GN.88
+	2GN.94 --> 2GN.95
+	2GN.95 --> 2GN.82
+	2GN.95 --> 2GN.83
+	2GN.95 --> 2GN.84
+	2GN.95 --> 2GN.96
 	2GN.82 --> 2GN.27
 	2GN.82 --> 2GN.68
 	2GN.83 --> 2GN.27
@@ -2418,12 +2473,14 @@ graph LR
 	3WS.3 --> 3WS.8
 	3WS.4 --> 3WS.9
 	3WS.4 --> 3WS.21
+	3WS.4 --> 2GN.96
 	3WS.5 --> 3WS.6
 	3WS.5 --> 3WS.9
 	3WS.6 --> M3
 	3WS.7 --> 3WS.9
 	3WS.8 --> M3
 	3WS.9 --> 3WS.10
+	3WS.9 --> 2GN.96
 	3WS.10 --> 3WS.11
 	3WS.10 --> 3WS.12
 	3WS.10 --> 3WS.13
@@ -2442,7 +2499,8 @@ graph LR
 	3WS.18 --> 3WS.20
 	3WS.19 --> 3WS.20
 	3WS.20 --> M3
-	3WS.21 --> M3
+	3WS.21 --> 2GN.96
+	2GN.96 --> M3
 	M3 --> 4UI.1
 	4UI.1 --> 4UI.2
 	4UI.1 --> 4UI.3
@@ -2704,9 +2762,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87,2GN.91 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.36,2GN.37,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.92,2GN.93,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.85,2GN.86,2GN.88,2GN.9 done
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87,2GN.92,2GN.93 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.85,2GN.86,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95 done
 ```
 
 ## Links

@@ -1085,5 +1085,84 @@ past tense with a pointer to the shipped types.
 
 ---
 
+### 2.30 ClassificationContext Shipped Ahead of World State; 2GN.82 Re-Gated on the Machinery, Not Just the Ruling (2026-08-05)
+
+**Origin:** Roadmap 2GN.94/2GN.95, split out while scoping 2GN.82.
+
+**Source of truth:** doc 11 §2.9 holds the ruling; this entry records the machinery gap the ruling's
+own text flagged (§2.9's "consequently, `ClassificationRule.condition` widens...") but that no task
+built, and how it was closed.
+
+**2GN.82 could not be started as scoped.** The ruling (§2.28, 2026-08-04) is fully decided, but
+`ClassificationContext` was referenced in five places across `types/tags.ts` and `data/
+classification.ts` and defined nowhere; `ClassificationRule.condition` was still the pre-ruling
+single-argument predicate; no baseline-sampling code existed; and no percentile helper existed
+anywhere in `src/lib` — every p50/p75/p90 figure in `classification.ts`'s JSDoc was computed
+out-of-band and hand-transcribed during 2GN.34/2GN.79, so the recalibration this task asks for was
+not reproducible from the tree as it stood. Recalibrating thresholds against a culture-relative basis
+with no implementation would have measured the wrong thing.
+
+**Split into three tasks rather than folding the machinery into 2GN.82 itself.** 2GN.94 ships
+`engine/statistics.ts` (`percentileOf`/`percentileLadder`, R-7 interpolation — required, not a taste
+call, since §2.28 measured `appliedElementCount` taking only 9–16 distinct integer values, so a
+nearest-rank percentile flips between adjacent integers at any sample size). 2GN.95 ships
+`ClassificationContext`, the widened `condition` signature, and `engine/generation/baselines.ts`'s
+`sampleBaselines` — **migrating zero rules**. 2GN.96 is split off and blocked (3WS.4, 3WS.9, 3WS.21):
+it owns baselines cached on real `WorldState`, drift-vs-preceding-phase, and `stratification` as a
+live input, none of which have a real dependency to build against yet.
+
+**The zero-migration slice is the load-bearing design choice.** TypeScript accepts a
+narrower-arity function wherever a wider signature is expected, so all 43 shipped rules — still
+`(f) => boolean` — compile unchanged against the widened `(features, context) => boolean` contract
+and fire identically. `EXPECTED_FIRE_RATES` in `calibration.test.ts` stayed bit-identical through the
+whole change, which is the empirical proof the slice altered no observable behaviour: 2GN.82's actual
+recalibration is the only work licensed to move those numbers, and it now has clean ground to do so
+on.
+
+**Baselines sample against `EXPLORER_CULTURES`, not real culture generation, because no generator
+exists.** `explorerCulturePhase` (`data/explorer-cultures.ts`) adapts an `ExplorerCulture` — which
+already carries `profile` + `phase` + `geology` + `trade` in one record, all 16 shipped materials
+modelled — into `sampleBaselines`' `CulturePhaseSample` parameter. `CulturePhaseSample` is
+deliberately a structural bag rather than `CulturePhase` (`types/world.ts`), which carries none of
+the three `expandDecoration` needs, so nothing in the sampler's signature has to change when 3WS.9
+lands a real `WorldState` culture source.
+
+**No shipped rule reads a context yet, so every current call site passes an empty one.**
+`emptyClassificationContext` (`baselines.ts`, re-exported from `tests/fixtures/artefact.ts` for test
+convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather than
+a freshly-sampled real context: `inspectTags` runs interactively per artefact, and `sampleBaselines`
+draws `BASELINE_SAMPLE_SIZE` (400) extra artefacts through the full stage-1–7 pipeline — real latency
+for zero observable effect until 2GN.82 migrates a rule that actually calls `exceeds`. The empty
+context still honours the type's off-ladder-throws contract for `exceeds` rather than silently
+no-op'ing every call, so a caller bug (an out-of-ladder percentile) surfaces the same way against an
+empty context as a sampled one.
+
+**The culture-discrimination test is the ruling's first empirical checkpoint.** `baselines.test.ts`
+samples Tarpan (`decorativeEmphasis` 0.4) and Thalassar (0.75) and asserts Thalassar's
+`decorativeComplexity` p75 is strictly greater — if a more decorative culture doesn't measurably
+out-decorate a less decorative one under this sampler, the ruling's premise fails before any rule
+migration begins.
+
+**Scope correction carried into 2GN.82/83/84's roadmap notes.** Their notes still described the
+pre-ruling scope ("R12/R15 + eleven decoration-conditioned rules"), which §2.28 corrected to **34 of
+the 43 shipped rules** via the award-side cut. Corrected in the same pass as the dependency repoint,
+so the roadmap and doc 12 read consistently rather than one lagging the other.
+
+**§2.28's doc-08 pending line is closed as partial, not complete.** The `ClassificationContext` type
+now exists (`types/tags.ts`), but "world state carries cached per-culture-phase baselines" remains
+genuinely pending — `WorldState` is not a type yet (`types/save.ts`), so there is nothing to cache
+baselines on. `sampleBaselines` stays a pure function of its inputs until 3WS.9 gives it an owner to
+memoise under; a module-level cache now would be an untestable global with no owner.
+
+| Doc | What changed                                                                                                                    | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — machinery gap, the split, the zero-migration proof, and the `EXPLORER_CULTURES` stand-in | 2026-08-05 |
+| —   | `types/tags.ts`: `BaselineFeature`, `FeatureBaseline`, `ClassificationContext`; `ClassificationRule.condition` widened | 2026-08-05 |
+| —   | `engine/statistics.ts`, `engine/generation/baselines.ts`: new, ship 2GN.94/95 | 2026-08-05 |
+| —   | Roadmap: 2GN.94/95 done, 2GN.96 new and blocked (3WS.4/3WS.9/3WS.21); 2GN.82–84 repointed to depend on 2GN.95; stale 34/43 scope note corrected | 2026-08-05 |
+| 08  | Still pending: `ClassificationContext` now exists in `types/`, but world-state caching remains genuinely blocked on 3WS.9 | — |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

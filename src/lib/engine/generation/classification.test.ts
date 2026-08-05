@@ -2,6 +2,7 @@
 import { assert, assertEquals } from '@std/assert';
 import { classifyArtefact, extractFeatures } from './classification.ts';
 import {
+	emptyClassificationContext,
 	mockNormalisedArtefact,
 	neutralExtractedFeatures as features,
 } from '../../../../tests/fixtures/artefact.ts';
@@ -634,11 +635,18 @@ function rule(
 	return { condition, tags: new Map(tags) };
 }
 
+/**
+ * The no-baseline context every `classifyArtefact` call below runs against (roadmap 2GN.95). This
+ * suite's fixture rules never read the second `condition` parameter, so an empty context leaves
+ * every assertion identical to its pre-2GN.95 behaviour.
+ */
+const ctx = emptyClassificationContext();
+
 Deno.test('classifyArtefact: rules firing on the same tag sum their weights', () => {
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.5], ['tool', 0.25]]),
 		rule((f) => f.hasEdge, [['weapon', 0.25]]),
-	]);
+	], ctx);
 
 	assertEquals(scored.get('weapon'), 0.75);
 	assertEquals(scored.get('tool'), 0.25);
@@ -648,7 +656,7 @@ Deno.test('classifyArtefact: sums are unbounded — accumulated evidence may exc
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.75]]),
 		rule((f) => f.hasEdge, [['weapon', 0.5]]),
-	]);
+	], ctx);
 
 	assertEquals(scored.get('weapon'), 1.25);
 });
@@ -657,7 +665,7 @@ Deno.test('classifyArtefact: a non-matching rule contributes nothing', () => {
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.5]]),
 		rule((f) => f.hasContainer, [['container', 0.75], ['domestic', 0.5]]),
-	]);
+	], ctx);
 
 	assertEquals(scored.get('weapon'), 0.5);
 	assertEquals(scored.get('container'), undefined);
@@ -669,7 +677,7 @@ Deno.test('classifyArtefact: zero matching rules give an empty map, not fabricat
 	const scored = classifyArtefact(features(), [
 		rule((f) => f.hasEdge, [['weapon', 0.5]]),
 		rule((f) => f.hasContainer, [['container', 0.75]]),
-	]);
+	], ctx);
 
 	assertEquals(scored.size, 0);
 });
@@ -677,7 +685,7 @@ Deno.test('classifyArtefact: zero matching rules give an empty map, not fabricat
 Deno.test('classifyArtefact: absence reads as zero via the ?? 0 convention', () => {
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.5]]),
-	]);
+	], ctx);
 
 	assertEquals(scored.get('ritual') ?? 0, 0);
 });
@@ -687,7 +695,7 @@ Deno.test('classifyArtefact: iteration order is canonical — function tags befo
 	const everyTag = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 	const reversed = [...everyTag].reverse().map((tag) => rule(() => true, [[tag, 0.5]]));
 
-	const scored = classifyArtefact(features(), reversed);
+	const scored = classifyArtefact(features(), reversed, ctx);
 
 	assertEquals([...scored.keys()], everyTag);
 });
@@ -700,8 +708,8 @@ Deno.test('classifyArtefact: reordering the rule array never changes the seriali
 	];
 	const input = features({ hasEdge: true, decorativeComplexity: 1 });
 
-	const forward = classifyArtefact(input, rules);
-	const backward = classifyArtefact(input, [...rules].reverse());
+	const forward = classifyArtefact(input, rules, ctx);
+	const backward = classifyArtefact(input, [...rules].reverse(), ctx);
 
 	assertEquals([...forward.entries()], [...backward.entries()]);
 });
@@ -711,8 +719,8 @@ Deno.test('classifyArtefact: pure — same input twice gives equal output, featu
 	const snapshot = structuredClone(input);
 	const rules = [rule((f) => f.hasEdge, [['weapon', 0.5]])];
 
-	const first = classifyArtefact(input, rules);
-	const second = classifyArtefact(input, rules);
+	const first = classifyArtefact(input, rules, ctx);
+	const second = classifyArtefact(input, rules, ctx);
 
 	assertEquals([...first.entries()], [...second.entries()]);
 	assertEquals(input, snapshot);
@@ -730,7 +738,7 @@ Deno.test('integration: the real rules score the engraved long blade on weapon, 
 		decorativeLayerCount: 6,
 	});
 
-	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES);
+	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES, ctx);
 
 	for (const tag of ['weapon', 'ritual', 'ceremonial', 'elite'] as const) {
 		assert((scored.get(tag) ?? 0) > 0, `${tag} should accumulate positive evidence`);

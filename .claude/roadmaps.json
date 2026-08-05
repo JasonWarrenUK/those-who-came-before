@@ -682,7 +682,7 @@
 					{
 						"id": "2GN.36",
 						"description": "`src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"1FD.31",
 							"M1",
@@ -693,7 +693,7 @@
 					{
 						"id": "2GN.37",
 						"description": "`src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"1FD.31",
 							"M1",
@@ -1153,13 +1153,32 @@
 						"assignee": "Jason Warren"
 					},
 					{
+						"id": "2GN.94",
+						"description": "`src/lib/engine/statistics.ts` — deterministic percentile helper (`percentileOf`/`percentileLadder`, R-7 interpolation) baselines are measured with",
+						"status": "done",
+						"dependsOn": [],
+						"notes": "Surfaced 2026-08-05 while scoping 2GN.82: no percentile helper existed anywhere in `src/lib` — every p50/p75/p90 figure in `classification.ts` was computed out-of-band and hand-transcribed, so the 2GN.34/2GN.79 recalibration was not reproducible from the tree. R-7 linear interpolation (NumPy's default), not nearest-rank: doc 12 §2.28 measured `appliedElementCount` taking only 9–16 distinct integer values, so a nearest-rank percentile flips between adjacent integers at any sample size. Regression-anchored against the recorded `decorativeLayerCount` p75 (10, roadmap 2GN.34) to catch a disagreement between the new helper and the old hand-transcription before anything depends on it. Prerequisite for 2GN.95.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.95",
+						"description": "`ClassificationContext` + baseline sampler (`engine/generation/baselines.ts`) — widen `ClassificationRule.condition` to `(features, context)`; zero rule migrations",
+						"status": "done",
+						"dependsOn": [
+							"2GN.94"
+						],
+						"notes": "Prerequisite for 2GN.82/83/84, surfaced 2026-08-05: the 2GN.80/2GN.77 ruling (doc 11 §2.9, doc 12 §2.28) is fully decided, but `ClassificationContext` was referenced in five places and defined nowhere, and `ClassificationRule.condition` was still single-argument. Widens the signature to `(features, context) => boolean` without migrating a single rule — TypeScript accepts a narrower-arity function wherever the wider signature is expected, so all 43 rules compile and fire identically; `EXPECTED_FIRE_RATES` in `calibration.test.ts` is bit-identical before and after, which is the checkpoint proving the slice changed no observable behaviour. Ships `sampleBaselines` (stages 1–7 only — `expandGrammar` → `normaliseArtefact` → `expandDecoration` → `extractFeatures`, no bootstrap circularity), `explorerCulturePhase` adapting `EXPLORER_CULTURES`, and `emptyClassificationContext` (used at every current call site, since no shipped rule reads a context yet — wiring real sampled baselines into the interactive Explorer tools now would cost real latency for zero observable effect). Deliberately not cached (`WorldState` doesn't exist until 3WS.9) and not wired to real culture generation (no generator exists until 3WS.3/3WS.4). Load-bearing test: Tarpan (decorativeEmphasis 0.4) vs Thalassar (0.75) must show a strictly higher decorativeComplexity p75 for the latter — the ruling's premise, checked empirically.",
+						"assignee": "Jason Warren"
+					},
+					{
 						"id": "2GN.82",
 						"description": "recalibrate the measured classification thresholds per the 2GN.80 ruling",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.80"
+							"2GN.80",
+							"2GN.95"
 						],
-						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. Eleven thresholds in `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become culture-relative, every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES` in `src/lib/data/calibration.test.ts` re-recorded with it. If the ruling keeps the absolute model, this resolves to no code change and a doc 12 note. Sits upstream of anything whose correctness depends on what the tag scores mean. **Gated on the 2GN.80/2GN.77 ruling (doc 11 §2.9): every threshold in `classification.ts` was measured under the absolute reading the ruling replaces, and the status-tag rules must be converted to culture-relative baselines before recalibrating them is meaningful.**",
+						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. Eleven thresholds in `src/lib/data/classification.ts` are pinned to measured percentiles of absolute distributions (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become culture-relative, every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES` in `src/lib/data/calibration.test.ts` re-recorded with it. If the ruling keeps the absolute model, this resolves to no code change and a doc 12 note. Sits upstream of anything whose correctness depends on what the tag scores mean. **Gated on roadmap 2GN.95 (`ClassificationContext` + baseline sampler), not merely on the 2GN.80/2GN.77 ruling itself.** The ruling (doc 11 §2.9) is fully decided, but recalibrating against a culture-relative basis that has no implementation would measure the wrong thing. Also correcting scope: earlier notes on this task described the pre-ruling scope (\"R12/R15 + eleven decoration-conditioned rules\"), which doc 12 §2.28 corrected — the award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1167,9 +1186,10 @@
 						"description": "recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.80"
+							"2GN.80",
+							"2GN.95"
 						],
-						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. `BASE_FILL_PROBABILITY` (0.9), `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s equal-weight craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and together they are what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each BNF category draws its own per-component slots, so P(≥1 applied element) ≈ 1-(1-0.45)^partCount). Under a culture-relative reading these constants set the per-culture baseline every threshold measures against, so they stop being free parameters. ⚠️ changing them moves every measured threshold in `data/classification.ts` — sequence with 2GN.82, and expect `calibration.test.ts` to fail loudly, which is the guard working. **Gated on the 2GN.80/2GN.77 ruling (doc 11 §2.9): every threshold in `classification.ts` was measured under the absolute reading the ruling replaces, and the status-tag rules must be converted to culture-relative baselines before recalibrating them is meaningful.**",
+						"notes": "Recalibration of already-built work, gated on 2GN.80's ruling. `BASE_FILL_PROBABILITY` (0.9), `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s equal-weight craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and together they are what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each BNF category draws its own per-component slots, so P(≥1 applied element) ≈ 1-(1-0.45)^partCount). Under a culture-relative reading these constants set the per-culture baseline every threshold measures against, so they stop being free parameters. ⚠️ changing them moves every measured threshold in `data/classification.ts` — sequence with 2GN.82, and expect `calibration.test.ts` to fail loudly, which is the guard working. **Gated on roadmap 2GN.95 (`ClassificationContext` + baseline sampler), not merely on the 2GN.80/2GN.77 ruling itself.** The ruling (doc 11 §2.9) is fully decided, but recalibrating against a culture-relative basis that has no implementation would measure the wrong thing. Also correcting scope: earlier notes on this task described the pre-ruling scope (\"R12/R15 + eleven decoration-conditioned rules\"), which doc 12 §2.28 corrected — the award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1178,9 +1198,10 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.80",
-							"2GN.77"
+							"2GN.77",
+							"2GN.95"
 						],
-						"notes": "Recalibration of already-built work, gated on both spikes. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value question directly — may merge with it — and 2GN.80 touches it too via `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2 naming it as an elite/utilitarian driver. Now measurable per world: the six named regions (2GN.79) give six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated on the 2GN.80/2GN.77 ruling (doc 11 §2.9): every threshold in `classification.ts` was measured under the absolute reading the ruling replaces, and the status-tag rules must be converted to culture-relative baselines before recalibrating them is meaningful.**",
+						"notes": "Recalibration of already-built work, gated on both spikes. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value question directly — may merge with it — and 2GN.80 touches it too via `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2 naming it as an elite/utilitarian driver. Now measurable per world: the six named regions (2GN.79) give six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated on roadmap 2GN.95 (`ClassificationContext` + baseline sampler), not merely on the 2GN.80/2GN.77 ruling itself.** The ruling (doc 11 §2.9) is fully decided, but recalibrating against a culture-relative basis that has no implementation would measure the wrong thing. Also correcting scope: earlier notes on this task described the pre-ruling scope (\"R12/R15 + eleven decoration-conditioned rules\"), which doc 12 §2.28 corrected — the award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1227,7 +1248,7 @@
 					{
 						"id": "2GN.91",
 						"description": "`src/lib/types/description.ts` — add `condition?: VariantCondition` to `DescriptionVariant`; define `VariantCondition` (parameter-value gate + craftDomain/materialId/materialTag material gate)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.35"
 						],
@@ -1237,7 +1258,7 @@
 					{
 						"id": "2GN.92",
 						"description": "Doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape change and the selection-order contract (condition filters the candidate set, then emphasis selects within it)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.91"
 						],
@@ -1247,7 +1268,7 @@
 					{
 						"id": "2GN.93",
 						"description": "`engine/generation/description.ts` — variant selection honours `condition`: filter candidates by the component's assigned material (via the `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.91"
 						],
@@ -1460,6 +1481,19 @@
 						],
 						"assignee": "Jason Warren",
 						"notes": "Surfaced 2026-08-04 by the 2GN.80/2GN.77 ruling (doc 11 §2.9, doc 12 §2.28), which records status-tag drift per culture-phase against the immediately preceding phase. That measure is only meaningful if phases evolve continuously, and nothing enforces it: `CulturePhase.characteristics` is a free `PhaseCharacteristics` per phase, and doc 05's five coherence rules are all within-artefact (structural, geological, decorative), none temporal. As specified, a culture could oscillate `decorativeEmphasis` 0.1 → 1.0 → 0.1 across three phases unchallenged, and drift measured across those phases would report noise. Recorded by the decision that depends on it rather than discovered later."
+					},
+					{
+						"id": "2GN.96",
+						"description": "baselines cached on real `WorldState`; drift-vs-preceding-phase; `PhaseCharacteristics.society.stratification` as a live classification input",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.95",
+							"3WS.4",
+							"3WS.9",
+							"3WS.21"
+						],
+						"notes": "Split out of 2GN.95's scope 2026-08-05: doc 11 §2.9 says baselines are \"cached in world state\", but `WorldState` does not exist (`types/save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase timeline; every fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc 11 §2.9's own named prerequisite for that measurement to mean anything rather than measure noise across incoherent phases. `stratification` is ruled a live input gating how much `elite` can exist at all, independent of any one distribution — deliberately absent from `ClassificationContext` until this task, since declaring it unread would be a lie the type tells. Moved from M2 to M3 2026-08-05: its dependencies (3WS.4/3WS.9/3WS.21) are all M3 tasks, and M3's own entry point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work without a cycle.",
+						"assignee": ""
 					}
 				]
 			},
