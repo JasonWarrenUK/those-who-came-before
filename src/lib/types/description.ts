@@ -10,8 +10,9 @@
  */
 
 import type { CrossReference, DescriptionRegister } from './lens.ts';
-import type { ArtefactTag } from './tags.ts';
+import type { ArtefactTag, MaterialTag } from './tags.ts';
 import type {
+	CraftDomain,
 	DatingConfidence,
 	DatingMethod,
 	DepositionType,
@@ -33,9 +34,49 @@ export interface DescriptionTemplate {
 }
 
 /**
+ * Gates whether a variant is a candidate at all (doc 05 §13.1). Fields are optional and any-of
+ * within, AND across: `{ values: ['round'], craftDomain: ['stoneWorking'] }` requires both. An
+ * absent field constrains nothing; an absent `condition` fires unconditionally.
+ *
+ * Deliberately data, not predicates (unlike `DECORATIVE_TECHNIQUES.substrate.test` in
+ * `data/decorations.ts`) — description data crosses the save boundary, so the condition must stay
+ * serialisable.
+ *
+ * Two axes are deliberately absent. Component *shape* needs no field: the owning template's
+ * `property` id already carries it (`elongated.edge` only fires on an elongated component). Sibling
+ * parameters (gating `elongated.crossSection` on the same component's `edge`) are out of MVP scope
+ * — cheap to add later as a `parameters?: Record<string, string[]>` field alongside `values`, and
+ * premature inclusion risks the 2GN.87 failure mode: a plausible conjunction that silently matches
+ * zero generated artefacts. Guarded meanwhile by the firing-frequency tests in 2GN.36/2GN.37.
+ */
+export interface VariantCondition {
+	/**
+	 * Any-of over the values of the owning template's own parameter — the one named by the suffix
+	 * of its `property` id, so `{ values: ['round', 'oval'] }` on `elongated.crossSection` gates on
+	 * that parameter and no other. Values come from `PRIMITIVE_PARAMETERS` in
+	 * `data/grammars/primitives.ts`, untyped here because `types/` must not import from `data/`
+	 * (same constraint that leaves `NormalisedComponent.primitiveType` a bare `string`).
+	 *
+	 * `NormalisedComponent.properties` is `Map<string, string | number>`, so matching compares
+	 * `String(propertyValue)` against this list — the same coercion `expand` in
+	 * `engine/generation/prose.ts` applies when rendering a slot.
+	 */
+	values?: string[];
+
+	/** Any-of over the craft domain of the component's assigned material (`MaterialDefinition.craftDomain`). */
+	craftDomain?: CraftDomain[];
+
+	/** Any-of over `MaterialDefinition.id` — the narrowest material gate (e.g. `['obsidian']`). */
+	materialId?: string[];
+
+	/** Any-of over `MaterialDefinition.tags` — matches when the material carries any listed tag. */
+	materialTag?: MaterialTag[];
+}
+
+/**
  * One template rendering of a property (doc 05 §13.1). The lens selects among a property's
- * variants by hypothesis alignment (doc 04 §3.4); the register system gates which variants are
- * available at all.
+ * variants by hypothesis alignment (doc 04 §3.4); `condition` gates which variants are candidates
+ * at all, and the register system gates which registers are available at all.
  */
 export interface DescriptionVariant {
 	/** Tracery-style template with slots. */
@@ -51,6 +92,13 @@ export interface DescriptionVariant {
 
 	/** Which register the variant belongs to (three-value MVP scope, doc 12 §2.10). */
 	register: DescriptionRegister;
+
+	/**
+	 * Gates whether this variant is a candidate. Absent means it always fires. Selection order is
+	 * condition-then-emphasis: `condition` filters the candidate set, `emphasis` selects within it
+	 * (roadmap 2GN.92, 2GN.93).
+	 */
+	condition?: VariantCondition;
 }
 
 /**

@@ -17,7 +17,7 @@
  */
 
 import type { NormalisedComponent } from '../../types/artefact.ts';
-import type { DescriptionTemplate } from '../../types/description.ts';
+import type { DescriptionTemplate, DescriptionVariant } from '../../types/description.ts';
 import { OBSERVATIONAL_TEMPLATES } from '../../data/descriptions/observational/index.ts';
 
 /** Short display id for a component: its position along the primary axis (`c0`, `c1`…). */
@@ -42,8 +42,9 @@ function withArticle(value: string): string {
  * ever references its own primitive's parameters, per the 2GN.35 authoring contract). A slot
  * valued `'none'` also drops the clause here — that's the right behaviour for parameters where
  * `'none'` means "nothing to observe" (e.g. `elongated.taper`). Parameters where `'none'` is
- * itself an observable fact (e.g. a sealed vessel's `opening`) instead get a dedicated
- * `<property>.none` template with no slots, handled by `describeProse` before this function runs.
+ * itself an observable fact (e.g. a sealed vessel's `opening`) instead get a sibling variant
+ * gated by `condition: { values: ['none'] }` with no slots, selected by `selectVariant` before
+ * this function runs.
  */
 function expand(template: string, properties: Map<string, string | number>): string | undefined {
 	let sawNoneOrMissing = false;
@@ -63,42 +64,42 @@ function expand(template: string, properties: Map<string, string | number>): str
 }
 
 /**
- * Picks which variant renders a property: the `<property>.none` template when the property's own
- * slot is present in `OBSERVATIONAL_TEMPLATES` and the component's value for it is literally
- * `'none'`, otherwise the base `<property>` template. `<property>.none` templates carry no slots
- * (fixed text), so they always render regardless of what else the component carries.
+ * First variant whose `condition.values` admits the component's value for its own parameter, else
+ * the first unconditioned variant. Provisional: the value gate only — material gating needs the
+ * `componentId -> MaterialAssignment -> MaterialDefinition` join, which this function's signature
+ * can't reach, and belongs to 2GN.93. Full selection (register, lens/emphasis alignment) is 2GN.38.
  */
-function selectTemplate(
+function selectVariant(
 	template: DescriptionTemplate,
 	properties: Map<string, string | number>,
-): DescriptionTemplate {
+): DescriptionVariant | undefined {
 	const parameter = template.property.split('.').at(-1);
-	if (parameter !== undefined && properties.get(parameter) === 'none') {
-		const noneVariant = OBSERVATIONAL_TEMPLATES.find(
-			(t) => t.property === `${template.property}.none`,
-		);
-		if (noneVariant !== undefined) return noneVariant;
-	}
-	return template;
+	const rawValue = parameter === undefined ? undefined : properties.get(parameter);
+	const value = rawValue === undefined ? undefined : String(rawValue);
+	return template.variants.find(
+		(v) =>
+			v.condition?.values === undefined ||
+			(value !== undefined && v.condition.values.includes(value)),
+	);
 }
 
 /**
  * Prose rendering of a component's parameters; raw `key=value` for unknown primitives.
  *
- * Always renders `variants[0]` — 2GN.35's templates author exactly one variant per property, so
- * there's nothing to select between yet. Variant selection by lens/hypothesis alignment (roadmap
- * 2GN.38) will need to replace this indexing once a property can carry more than one.
+ * Selects via `selectVariant`'s value gate only — full lens/hypothesis-aligned selection (roadmap
+ * 2GN.38) supersedes this once material gating and register/emphasis scoring are wired up.
  */
 export function describeProse(component: NormalisedComponent): string {
 	const templates = OBSERVATIONAL_TEMPLATES.filter((t) =>
-		t.property.startsWith(`${component.primitiveType}.`) && !t.property.endsWith('.none')
+		t.property.startsWith(`${component.primitiveType}.`)
 	);
 	if (templates.length === 0) {
 		return [...component.properties.entries()].map(([k, v]) => `${k}=${v}`).join(', ');
 	}
 	return templates
-		.map((t) => selectTemplate(t, component.properties))
-		.map((t) => expand(t.variants[0].template, component.properties))
+		.map((t) => selectVariant(t, component.properties))
+		.filter((v): v is DescriptionVariant => v !== undefined)
+		.map((v) => expand(v.template, component.properties))
 		.filter((sentence): sentence is string => sentence !== undefined)
 		.join(' ');
 }

@@ -18,7 +18,7 @@
 import type { ArtefactTag, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
 import type { DecorativeLayer } from './decoration.ts';
-import type { PhaseCharacteristics, Provenance } from './world.ts';
+import type { CraftDomain, Provenance } from './world.ts';
 
 /**
  * Where an object sits on the single portability axis (doc 05 §5.2) — the one unambiguous
@@ -157,7 +157,7 @@ export interface MaterialDefinition {
 	 * work this material (doc 05 §3.2, §7 point 3 "phase technology"). `computeMaterialWeight`
 	 * (2GN.25) reads `phase.technology[craftDomain]` to gate/weight assignment.
 	 */
-	craftDomain: keyof PhaseCharacteristics['technology'];
+	craftDomain: CraftDomain;
 
 	/**
 	 * Baseline physical properties consulted by the (future, 2GN.28) decorative grammar when

@@ -30,20 +30,17 @@ export const BAR_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 		property: 'bar-form.taper',
 		variants: [
 			{
-				template: 'The form narrows with a #taper# taper.',
+				// `taper: 'none'` (doc 05 §5.3) means the stock runs its full length untapered — a
+				// fixed-text variant so that stays observable rather than dropping the clause like an
+				// unmeasured property (see the unconditioned variant below, selected by `describeProse`
+				// when `taper !== 'none'`).
+				template: 'The form is untapered.',
 				emphasis: [],
 				register: 'observational',
+				condition: { values: ['none'] },
 			},
-		],
-	},
-	{
-		// `taper: 'none'` (doc 05 §5.3) means the stock runs its full length untapered — a fixed-text
-		// variant so that stays observable rather than dropping the clause like an unmeasured
-		// property (see `bar-form.taper` above, selected by `describeProse` when `taper !== 'none'`).
-		property: 'bar-form.taper.none',
-		variants: [
 			{
-				template: 'The form is untapered.',
+				template: 'The form narrows with a #taper# taper.',
 				emphasis: [],
 				register: 'observational',
 			},

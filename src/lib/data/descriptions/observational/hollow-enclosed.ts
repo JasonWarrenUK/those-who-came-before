@@ -40,21 +40,17 @@ export const HOLLOW_ENCLOSED_TEMPLATES: readonly DescriptionTemplate[] = [
 		property: 'hollow-enclosed.opening',
 		variants: [
 			{
-				template: 'The mouth is #opening#.',
+				// `opening: 'none'` (doc 05 §5.3) is a sealed vessel, not an absent measurement — this
+				// fixed-text variant keeps that fact observable rather than dropping the clause like an
+				// unmeasured property (see the unconditioned variant below, selected by `describeProse`
+				// when `opening !== 'none'`).
+				template: 'The form has no opening.',
 				emphasis: [],
 				register: 'observational',
+				condition: { values: ['none'] },
 			},
-		],
-	},
-	{
-		// `opening: 'none'` (doc 05 §5.3) is a sealed vessel, not an absent measurement — this
-		// fixed-text variant keeps that fact observable rather than dropping the clause like an
-		// unmeasured property (see `hollow-enclosed.opening` above, selected by `describeProse` when
-		// `opening !== 'none'`).
-		property: 'hollow-enclosed.opening.none',
-		variants: [
 			{
-				template: 'The form has no opening.',
+				template: 'The mouth is #opening#.',
 				emphasis: [],
 				register: 'observational',
 			},
