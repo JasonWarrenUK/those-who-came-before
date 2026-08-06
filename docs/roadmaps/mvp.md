@@ -2078,9 +2078,9 @@ graph LR
 	2GN.94["2GN.94: `src/lib/engine/statistics.ts` — determ…"]
 	2GN.95["2GN.95: `ClassificationContext` + baseline samp…"]
 	2GN.82["2GN.82: recalibrate the measured classification…"]
-	2GN.97["2GN.97: design spike — categorical relative-awa…"]
+	2GN.97["2GN.97: design spike — what does the 2GN.80 rul…"]
 	2GN.83["2GN.83: recalibrate `expandDecoration`'s fill c…"]
-	2GN.98["2GN.98: design spike — decorative-volume ruling…"]
+	2GN.98["2GN.98: design spike — rule doc 11 §1.5's decor…"]
 	2GN.84["2GN.84: recalibrate `SCARCITY_WEIGHT` and mater…"]
 	2GN.85["2GN.85: propagate the 2GN.80 ruling into the ta…"]
 	2GN.27["2GN.27: `engine/generation/materials.ts` + `eng…"]
@@ -2477,12 +2477,14 @@ graph LR
 	2GN.95 --> 2GN.83
 	2GN.95 --> 2GN.84
 	2GN.95 --> 2GN.96
+	2GN.82 --> 2GN.97
 	2GN.82 --> 2GN.27
 	2GN.82 --> 2GN.68
-	2GN.82 --> 2GN.97
+	2GN.97 --> M2
 	2GN.83 --> 2GN.98
-	2GN.98 --> 2GN.27
-	2GN.98 --> 2GN.68
+	2GN.83 --> 2GN.27
+	2GN.83 --> 2GN.68
+	2GN.98 --> M2
 	2GN.84 --> 2GN.27
 	2GN.84 --> 2GN.68
 	2GN.85 --> 2GN.27
