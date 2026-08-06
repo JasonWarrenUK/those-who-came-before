@@ -81,12 +81,17 @@ Deno.test('materials: glazeable only ever true for clay-tagged materials (doc 05
 	}
 });
 
-Deno.test('materials: engravable only ever true when workable (doc 05 §8.2)', () => {
-	for (const material of MATERIALS) {
-		if (material.decorability.engravable) {
-			assert(material.physicalProperties.workable, material.id);
-		}
-	}
+Deno.test('materials: workability and engravability are independent axes (glass counter-example, roadmap 2GN.84)', () => {
+	// `workable` and `engravable` were true-together for every material until glass: `workable`
+	// describes structural incising/carving (glass fractures rather than holds a cut shape, hence
+	// `false`), while wheel-cut and diamond-point engraving is a distinct, well-attested surface
+	// process (Roman cage cups onward) that doesn't require structural workability. Was asserted as
+	// `engravable implies workable` before this correction — glass falsifies that reading the same
+	// way gold falsifies `soft implies not engravable` below.
+	const glass = MATERIALS.find((material) => material.id === 'glass');
+	assert(glass, 'glass entry must exist');
+	assertEquals(glass.physicalProperties.workable, false);
+	assertEquals(glass.decorability.engravable, true);
 });
 
 Deno.test('materials: hardness and workability are independent axes (gold counter-example)', () => {

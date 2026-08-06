@@ -84,7 +84,10 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'jade',
 		displayName: 'Jade',
-		tags: ['precious-stone'],
+		// Carries both tiers, matching gold/silver's `['metal', 'precious-metal']` (roadmap 2GN.84
+		// catalogue audit) — `precious-stone` alone made jade invisible to any plain `stone` affinity
+		// or `allowedMaterialTags: ['stone']` constraint, which no other precious material exhibits.
+		tags: ['stone', 'precious-stone'],
 		craftDomain: 'stoneWorking',
 		physicalProperties: { hardness: 'hard', workable: true },
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -137,7 +140,13 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		tags: ['glass'],
 		craftDomain: 'glassWorking',
 		physicalProperties: { hardness: 'medium', workable: false },
-		decorability: { engravable: false, paintable: false, glazeable: false },
+		// `engravable`/`paintable` (roadmap 2GN.84): wheel-cut and diamond-point engraving on glass is
+		// attested from Roman cage cups onward, and cold-painting/enamelling from Islamic enamelled
+		// glass through later Bohemian work — both genuine, well-established crafts, independent of
+		// `workable: false` above (that axis is structural incising, not surface decoration).
+		// `glazeable` stays false: glaze is a ceramic process (see its `requires: ceramic` JSDoc on
+		// `MaterialDefinition.decorability`), which glass isn't.
+		decorability: { engravable: true, paintable: true, glazeable: false },
 	},
 	{
 		id: 'linen',
