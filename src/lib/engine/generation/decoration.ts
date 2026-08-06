@@ -47,7 +47,10 @@
  * what it has no engravable material for. The converse does not hold: a culture favouring an
  * engravable material is never thereby forced to engrave it (a culture can work bronze and never
  * decorate it at all, or only via patina). `materialAccessGate` below enforces the forward
- * direction only.
+ * direction only, and composes two independent checks (roadmap 2GN.84): the substrate a technique
+ * is applied *to* (material-kind substrates only), and the material a technique *introduces*
+ * (`INTRODUCED_MATERIAL_TAGS`) when the two differ — `wire-wrapping`'s substrate is the grippable
+ * form it wraps, not the metal wire it introduces, and both must be checked.
  *
  * MVP-provisional numbers below (the technique→craft-axis table, the per-category slot budget, the
  * weight-factor gains) follow the 2GN.2/2GN.8/2GN.25 precedent: doc 05 §8 names the drivers
@@ -135,6 +138,55 @@ const AESTHETIC_EMPHASIS_GAIN = 0.5;
  */
 const MATERIAL_ABSENT_GATE = 0.05;
 
+/**
+ * Which material tags may satisfy each material-introducing technique's BNF `<material>` argument
+ * (doc 05 §8.2), interviewed item-by-item with the user (2026-07-25, roadmap 2GN.33) and grounded
+ * in documented craft practice per technique:
+ * - `gilding` — every documented gilding practice (leaf, fire/amalgam, foil/diffusion, depletion
+ *   gilding; silvering as the silver analogue) uses gold or silver, coinciding with the BNF's
+ *   explicit `<precious-metal>` argument.
+ * - `wire-wrapping` — wire is drawn metal; precious wire on a grippable form is the classic
+ *   sword-grip binding.
+ * - `wrapping` — cord, thong and cloth binding: pliable sheet/cord materials only.
+ * - `inlay` — documented inlay spans metal, gem/glass, bone/shell and wood marquetry; excludes
+ *   only materials that can't sit in an engraved channel as a solid insert (fiber, leather, clay).
+ * - `overlay` — sheet-workable coverings: metal foil/sheet, and leather facing over wood
+ *   (shields, scabbards).
+ * - `studs` — metal studs and rivets dominate the record; bone/antler studs are attested on
+ *   organic substrates.
+ * - `beading` — the four dominant documented bead materials (glass, stone, jade-class,
+ *   bone/antler) plus metal beads, well attested in elite contexts and kept naturally rare by
+ *   scarcity weighting.
+ *
+ * `null` marks a technique whose grammar form introduces no material (`introducesMaterial: false`
+ * in the shipped catalogue); the `Record` stays exhaustive over all sixteen terminals so a new
+ * technique fails to compile until its entry is authored. If an *injected* catalogue flags a
+ * `null`-entry technique as material-introducing, the `null` reads as "no tag constraint" (every
+ * material is a candidate) — mirroring `assignMaterial`'s empty-`allowedMaterialTags` lenience —
+ * rather than silently omitting the material.
+ *
+ * Moved above `materialAccessGate` (roadmap 2GN.84) so the gate can read it directly — see that
+ * function's doc for why it now does.
+ */
+const INTRODUCED_MATERIAL_TAGS: Record<DecorativeTechnique, readonly MaterialTag[] | null> = {
+	'polish': null,
+	'patina': null,
+	'roughening': null,
+	'scoring': null,
+	'engraving': null,
+	'relief': null,
+	'painting': null,
+	'glaze': null,
+	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
+	'overlay': ['metal', 'precious-metal', 'leather'],
+	'studs': ['metal', 'precious-metal', 'bone'],
+	'wire-wrapping': ['metal', 'precious-metal'],
+	'gilding': ['precious-metal'],
+	'wrapping': ['fiber', 'leather'],
+	'tassels': null,
+	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
+};
+
 /** A culture's affinity for one of a material's tags, read as neutral (`1`) when absent — the same reduction `materials.ts`'s `culturalAffinityWeight` performs, inlined here since that helper isn't exported. */
 function bestMaterialAffinity(material: MaterialDefinition, culture: CulturalProfile): number {
 	let best = -Infinity;
@@ -146,19 +198,54 @@ function bestMaterialAffinity(material: MaterialDefinition, culture: CulturalPro
 }
 
 /**
+ * Whether at least one material in `materials` can plausibly supply `tags` — obtainable
+ * (`isAvailable`) and carrying one of the given tags. Availability only, not affinity: unlike
+ * `materialAccessGate`'s substrate check below, a culture reaching for wire to bind a grip, or foil
+ * to overlay a hilt, doesn't need to *favour* metal generally to use it decoratively — it only needs
+ * to be able to get some. Affinity still shapes which specific material wins, downstream, via
+ * `computeMaterialWeight` in `assignDecorativeDetails`.
+ */
+function hasIntroducedMaterialAccess(
+	tags: readonly MaterialTag[],
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	materials: readonly MaterialDefinition[],
+): boolean {
+	return materials.some((material) =>
+		isAvailable(material, geology, trade) && material.tags.some((tag) => tags.includes(tag))
+	);
+}
+
+/**
  * The one-directional material-access gate (module JSDoc, roadmap 2GN.29): whether the culture
- * plausibly has access to a material satisfying `technique`'s substrate at all. Non-material
- * substrates (`'none'`, `'form'`) are never gated here — `'form'` prerequisites are geometric, not
- * material, and are resolved against a specific component by 2GN.30, not at the culture level this
- * function operates on.
+ * plausibly has access to a material satisfying `technique`'s requirements at all. Checks two
+ * independent requirements, either of which can suppress the technique:
  *
- * "Plausibly has access" means: at least one material in `materials` both (a) the culture favours
- * at better than neutral affinity (`bestMaterialAffinity(...) > 1`) and (b) can actually obtain
- * (`isAvailable`), and (c) satisfies the technique's `substrate.test`. Absent any such material, the
- * technique is gated to `MATERIAL_ABSENT_GATE` rather than `0` — see that constant's doc.
+ * 1. **Substrate.** Non-material substrates (`'none'`, `'form'`) are never gated on this axis —
+ *    `'form'` prerequisites are geometric, not material, and are resolved against a specific
+ *    component by 2GN.30, not at the culture level this function operates on. "Plausibly has
+ *    access" for a material substrate means: at least one material in `materials` both (a) the
+ *    culture favours at better than neutral affinity (`bestMaterialAffinity(...) > 1`) and (b) can
+ *    actually obtain (`isAvailable`), and (c) satisfies the technique's `substrate.test`.
+ * 2. **Introduced material** (roadmap 2GN.84). A technique can have a *non*-material substrate
+ *    (`wire-wrapping`'s is `'form'`) while still introducing a material (`INTRODUCED_MATERIAL_TAGS`)
+ *    the culture must be able to obtain — the substrate describes what's decorated, not what
+ *    decorates it. Before this check existed, `expandDecoration` selected `wire-wrapping` without
+ *    ever asking whether the culture could obtain metal wire: measured in a trade-isolated,
+ *    metal-free region (`forestInterior`, `tests/fixtures/world.ts`), wire-wrapping's share rose to
+ *    26.3% of layers (against ~6% everywhere else) as the probability mass freed by correctly
+ *    suppressed metal techniques (gilding: 7.1% → 2.1%) redistributed onto it — a metal-free culture
+ *    producing *more* metal wirework than anywhere else. Gated on availability only
+ *    (`hasIntroducedMaterialAccess`), not affinity — see that helper's doc for why the two checks
+ *    differ.
  *
- * @returns `1` when ungated or satisfied; `MATERIAL_ABSENT_GATE` when the culture has no plausible
- *   access to a satisfying material.
+ * Absent a satisfying material on whichever check(s) apply, the technique is gated to
+ * `MATERIAL_ABSENT_GATE` rather than `0` — see that constant's doc. The two checks compose
+ * multiplicatively: a technique with both a material substrate and an introduced material must pass
+ * both to stay ungated.
+ *
+ * @returns `1` when every applicable check is ungated or satisfied; a product of `1` and/or
+ *   `MATERIAL_ABSENT_GATE` per failing check otherwise.
  */
 function materialAccessGate(
 	technique: DecorativeTechniqueDefinition,
@@ -167,15 +254,30 @@ function materialAccessGate(
 	trade: readonly MaterialFlow[],
 	materials: readonly MaterialDefinition[],
 ): number {
-	if (technique.substrate.kind !== 'material') return 1;
+	let gate = 1;
 
-	const hasAccess = materials.some((material) =>
-		bestMaterialAffinity(material, culture) > 1 &&
-		isAvailable(material, geology, trade) &&
-		technique.substrate.kind === 'material' && technique.substrate.test(material)
-	);
+	if (technique.substrate.kind === 'material') {
+		const substrate = technique.substrate;
+		const hasSubstrateAccess = materials.some((material) =>
+			bestMaterialAffinity(material, culture) > 1 &&
+			isAvailable(material, geology, trade) &&
+			substrate.test(material)
+		);
+		if (!hasSubstrateAccess) gate *= MATERIAL_ABSENT_GATE;
+	}
 
-	return hasAccess ? 1 : MATERIAL_ABSENT_GATE;
+	const introducedTags = INTRODUCED_MATERIAL_TAGS[technique.technique];
+	if (technique.introducesMaterial && introducedTags !== null) {
+		const hasIntroducedAccess = hasIntroducedMaterialAccess(
+			introducedTags,
+			geology,
+			trade,
+			materials,
+		);
+		if (!hasIntroducedAccess) gate *= MATERIAL_ABSENT_GATE;
+	}
+
+	return gate;
 }
 
 /**
@@ -412,52 +514,6 @@ export interface SharedMotifSource {
 	/** The relationship window's `culturalExchange.intensity` (0–1), weighting every motif in `motifs`. */
 	intensity: number;
 }
-
-/**
- * Which material tags may satisfy each material-introducing technique's BNF `<material>` argument
- * (doc 05 §8.2), interviewed item-by-item with the user (2026-07-25, roadmap 2GN.33) and grounded
- * in documented craft practice per technique:
- * - `gilding` — every documented gilding practice (leaf, fire/amalgam, foil/diffusion, depletion
- *   gilding; silvering as the silver analogue) uses gold or silver, coinciding with the BNF's
- *   explicit `<precious-metal>` argument.
- * - `wire-wrapping` — wire is drawn metal; precious wire on a grippable form is the classic
- *   sword-grip binding.
- * - `wrapping` — cord, thong and cloth binding: pliable sheet/cord materials only.
- * - `inlay` — documented inlay spans metal, gem/glass, bone/shell and wood marquetry; excludes
- *   only materials that can't sit in an engraved channel as a solid insert (fiber, leather, clay).
- * - `overlay` — sheet-workable coverings: metal foil/sheet, and leather facing over wood
- *   (shields, scabbards).
- * - `studs` — metal studs and rivets dominate the record; bone/antler studs are attested on
- *   organic substrates.
- * - `beading` — the four dominant documented bead materials (glass, stone, jade-class,
- *   bone/antler) plus metal beads, well attested in elite contexts and kept naturally rare by
- *   scarcity weighting.
- *
- * `null` marks a technique whose grammar form introduces no material (`introducesMaterial: false`
- * in the shipped catalogue); the `Record` stays exhaustive over all sixteen terminals so a new
- * technique fails to compile until its entry is authored. If an *injected* catalogue flags a
- * `null`-entry technique as material-introducing, the `null` reads as "no tag constraint" (every
- * material is a candidate) — mirroring `assignMaterial`'s empty-`allowedMaterialTags` lenience —
- * rather than silently omitting the material.
- */
-const INTRODUCED_MATERIAL_TAGS: Record<DecorativeTechnique, readonly MaterialTag[] | null> = {
-	'polish': null,
-	'patina': null,
-	'roughening': null,
-	'scoring': null,
-	'engraving': null,
-	'relief': null,
-	'painting': null,
-	'glaze': null,
-	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
-	'overlay': ['metal', 'precious-metal', 'leather'],
-	'studs': ['metal', 'precious-metal', 'bone'],
-	'wire-wrapping': ['metal', 'precious-metal'],
-	'gilding': ['precious-metal'],
-	'wrapping': ['fiber', 'leather'],
-	'tassels': null,
-	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
-};
 
 /** A motif candidate in the combined native-plus-borrowed selection pool, carrying its weight. */
 interface MotifCandidate {
