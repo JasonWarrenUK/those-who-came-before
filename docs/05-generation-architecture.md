@@ -961,6 +961,35 @@ Recursion depth is capped by the culture's `craftSpecialisation` and
 - Low craft, high decorative emphasis: 1 layer, simple techniques (painting, scoring)
 - High craft, high decorative emphasis: up to 3 layers deep
 
+> **Implementation note (2026-08-06, roadmap 2GN.98, doc 11 §1.5, doc 12 §§2.32–2.33):** the table
+> above describes recursion depth, which has no producer yet — `expandDecoration`
+> (`src/lib/engine/generation/decoration.ts`) emits flat layers (`sublayers: []` always); nesting is
+> roadmap 2GN.31. Measured directly against the real pipeline, the table's two middle corners proved
+> unsatisfiable by any single volume scalar over `(craftSpecialisation, decorativeEmphasis)` — they
+> differ by *kind* ("technically refined" vs "simple techniques"), not magnitude, which the table's
+> own wording states but a shared fill-probability term cannot express. The shipped implementation
+> splits the table's two axes into two independent mechanisms instead:
+>
+> - **How much decoration appears** (`decorationVolume`) reads `aesthetics.decorativeEmphasis`
+>   alone — the "low emphasis"/"high emphasis" columns above, realised as layers per component
+>   rather than nesting depth.
+> - **How well it is executed** (`DecorativeLayer.grade`, `0`–`1`) reads `society.craftSpecialisation`
+>   scaled by each selected technique's own execution difficulty (`TECHNIQUE_DIFFICULTY`,
+>   `src/lib/data/decorations.ts`) — the "technically refined" vs "simple techniques" rows above,
+>   realised as a per-layer quality value rather than a technique-selection bias. `polish`,
+>   `patina`, `roughening`, `scoring` and `tassels` are the lowest-difficulty techniques; `inlay`
+>   and `gilding` the highest — the table's own named example, "simple techniques (painting,
+>   scoring)", sits toward the low end of this scale, though `painting`'s motif-composition demand
+>   places it materially above the very lowest tier.
+>
+> `craftSpecialisation` retains one further, indirect effect on volume: it drives `partCount` via
+> `deriveComplexityBudget` (§5.5), so a high-craft culture's more-complex objects carry more
+> independent decorative canvases even though `decorationVolume` itself no longer reads craft. This
+> is a legitimate structural consequence of craft, not a second volume term competing with
+> `decorationVolume`. `meanDecorativeGrade` (§9.1's feature extraction) is the sampled feature a
+> classification rule reads to score execution quality independently of decorative volume. Full
+> measurement and the two rejected alternative designs: doc 12 §2.33.
+
 ### 8.4 Temporal Dimension
 
 Decoration-on-decoration creates a temporal dimension within a single artefact. If the base
@@ -1053,7 +1082,11 @@ contradiction systems, but the extraction itself is unified.
 > `ExtractedFeatures` itself carries collapsed scalars with no per-field component references — the
 > source-traceability promised above holds because the selection policies are deterministic and
 > recorded, so a downstream consumer re-derives "which component" by re-running them (explicit
-> provenance fields land only when a concrete consumer demands them).
+> provenance fields land only when a concrete consumer demands them). Two further fields landed
+> since: `appliedElementCount` (roadmap 2GN.79, the discriminating companion to
+> `appliedElementPresent`'s saturating boolean, §2.25) and `meanDecorativeGrade` (roadmap 2GN.98,
+> §8.3's implementation note above and doc 12 §2.33 — execution quality, independent of
+> `decorativeComplexity`'s volume).
 
 ### 9.2 Tag Classification
 

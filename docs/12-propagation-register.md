@@ -1058,30 +1058,30 @@ the supersession note appended fifty lines below — a reader met dead types bef
 retired them. The block now declares `AbsoluteTag`/`RelativeTag`/`ArtefactTag` directly, matching
 `src/lib/types/tags.ts` member-for-member; the 2026-08-04 note demotes to a short historical marker
 rather than carrying the explanation. Four stale type references elsewhere in doc 05 (§4.1
-`specialisation`, §9.3 `groundTruthTags`, §13.1 `emphasis`, §13.2 `TagSuggestion.tag`) were corrected
-to match.
+`specialisation`, §9.3 `groundTruthTags`, §13.1 `emphasis`, §13.2 `TagSuggestion.tag`) were
+corrected to match.
 
-**The relative-tag constraint is now recorded ahead of the three consumers that inherit it.** None of
-description generation (2GN.38+), the lens (M6) or NPC interpretation (M10) exist yet, so each spec
-now carries a short note stating what it must respect once built: descriptions must not render a
-`RelativeTag` as an intrinsic property (doc 05 §13.1); the lens scores a `RelativeTag` against the
-culture-phase it currently *attributes* the artefact to, not the true one (doc 04 §3.2); and
+**The relative-tag constraint is now recorded ahead of the three consumers that inherit it.** None
+of description generation (2GN.38+), the lens (M6) or NPC interpretation (M10) exist yet, so each
+spec now carries a short note stating what it must respect once built: descriptions must not render
+a `RelativeTag` as an intrinsic property (doc 05 §13.1); the lens scores a `RelativeTag` against the
+culture-phase it currently _attributes_ the artefact to, not the true one (doc 04 §3.2); and
 `InterpretiveModel` being agent-generic means the same indexing applies to NPC scholars without
 further work (doc 06 §6).
 
 **Two small corrections surfaced in doc 06 while reading it for the NPC note.** Its existing §2.28
-supersession banner cited "§7's tag-belief entry" for the sole `FunctionTag` field; the document ends
-at §6, and the field is in §3.3's `functionalEmphasis`. Separately, §2's introductory paragraph still
-glossed the retired FOR/USED split in the present tense ("Function tags describe..."); reworded to
-past tense with a pointer to the shipped types.
+supersession banner cited "§7's tag-belief entry" for the sole `FunctionTag` field; the document
+ends at §6, and the field is in §3.3's `functionalEmphasis`. Separately, §2's introductory paragraph
+still glossed the retired FOR/USED split in the present tense ("Function tags describe...");
+reworded to past tense with a pointer to the shipped types.
 
-| Doc | What changed                                                                                                                             | Completed  |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 05  | §9.2 code block rewritten to `AbsoluteTag`/`RelativeTag`/`ArtefactTag`; four stale references corrected; constraint note added at §13.1     | 2026-08-04 |
-| 04  | Constraint note added at §3.2, after `ClassificationSuggestion`                                                                             | 2026-08-04 |
-| 06  | Constraint note added at §6; §2's FOR/USED gloss and §2.28 banner's §7 reference corrected                                                  | 2026-08-04 |
-| 12  | This entry — closes §2.28's doc 05 pending line                                                                                             | 2026-08-04 |
-| —   | Roadmap: 2GN.85 resolved, doc-only; 2GN.82–84 recalibration remain gated on 2GN.80                                                          | 2026-08-04 |
+| Doc | What changed                                                                                                                            | Completed  |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 05  | §9.2 code block rewritten to `AbsoluteTag`/`RelativeTag`/`ArtefactTag`; four stale references corrected; constraint note added at §13.1 | 2026-08-04 |
+| 04  | Constraint note added at §3.2, after `ClassificationSuggestion`                                                                         | 2026-08-04 |
+| 06  | Constraint note added at §6; §2's FOR/USED gloss and §2.28 banner's §7 reference corrected                                              | 2026-08-04 |
+| 12  | This entry — closes §2.28's doc 05 pending line                                                                                         | 2026-08-04 |
+| —   | Roadmap: 2GN.85 resolved, doc-only; 2GN.82–84 recalibration remain gated on 2GN.80                                                      | 2026-08-04 |
 
 ---
 
@@ -1094,28 +1094,29 @@ own text flagged (§2.9's "consequently, `ClassificationRule.condition` widens..
 built, and how it was closed.
 
 **2GN.82 could not be started as scoped.** The ruling (§2.28, 2026-08-04) is fully decided, but
-`ClassificationContext` was referenced in five places across `types/tags.ts` and `data/
-classification.ts` and defined nowhere; `ClassificationRule.condition` was still the pre-ruling
-single-argument predicate; no baseline-sampling code existed; and no percentile helper existed
-anywhere in `src/lib` — every p50/p75/p90 figure in `classification.ts`'s JSDoc was computed
+`ClassificationContext` was referenced in five places across `types/tags.ts` and
+`data/
+classification.ts` and defined nowhere; `ClassificationRule.condition` was still the
+pre-ruling single-argument predicate; no baseline-sampling code existed; and no percentile helper
+existed anywhere in `src/lib` — every p50/p75/p90 figure in `classification.ts`'s JSDoc was computed
 out-of-band and hand-transcribed during 2GN.34/2GN.79, so the recalibration this task asks for was
-not reproducible from the tree as it stood. Recalibrating thresholds against a culture-relative basis
-with no implementation would have measured the wrong thing.
+not reproducible from the tree as it stood. Recalibrating thresholds against a culture-relative
+basis with no implementation would have measured the wrong thing.
 
 **Split into three tasks rather than folding the machinery into 2GN.82 itself.** 2GN.94 ships
 `engine/statistics.ts` (`percentileOf`/`percentileLadder`, R-7 interpolation — required, not a taste
 call, since §2.28 measured `appliedElementCount` taking only 9–16 distinct integer values, so a
 nearest-rank percentile flips between adjacent integers at any sample size). 2GN.95 ships
 `ClassificationContext`, the widened `condition` signature, and `engine/generation/baselines.ts`'s
-`sampleBaselines` — **migrating zero rules**. 2GN.96 is split off and blocked (3WS.4, 3WS.9, 3WS.21):
-it owns baselines cached on real `WorldState`, drift-vs-preceding-phase, and `stratification` as a
-live input, none of which have a real dependency to build against yet.
+`sampleBaselines` — **migrating zero rules**. 2GN.96 is split off and blocked (3WS.4, 3WS.9,
+3WS.21): it owns baselines cached on real `WorldState`, drift-vs-preceding-phase, and
+`stratification` as a live input, none of which have a real dependency to build against yet.
 
-**The zero-migration slice is the load-bearing design choice.** TypeScript accepts a
-narrower-arity function wherever a wider signature is expected, so all 43 shipped rules — still
-`(f) => boolean` — compile unchanged against the widened `(features, context) => boolean` contract
-and fire identically. `EXPECTED_FIRE_RATES` in `calibration.test.ts` stayed bit-identical through the
-whole change, which is the empirical proof the slice altered no observable behaviour: 2GN.82's actual
+**The zero-migration slice is the load-bearing design choice.** TypeScript accepts a narrower-arity
+function wherever a wider signature is expected, so all 43 shipped rules — still `(f) => boolean` —
+compile unchanged against the widened `(features, context) => boolean` contract and fire
+identically. `EXPECTED_FIRE_RATES` in `calibration.test.ts` stayed bit-identical through the whole
+change, which is the empirical proof the slice altered no observable behaviour: 2GN.82's actual
 recalibration is the only work licensed to move those numbers, and it now has clean ground to do so
 on.
 
@@ -1129,13 +1130,13 @@ lands a real `WorldState` culture source.
 
 **No shipped rule reads a context yet, so every current call site passes an empty one.**
 `emptyClassificationContext` (`baselines.ts`, re-exported from `tests/fixtures/artefact.ts` for test
-convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather than
-a freshly-sampled real context: `inspectTags` runs interactively per artefact, and `sampleBaselines`
-draws `BASELINE_SAMPLE_SIZE` (400) extra artefacts through the full stage-1–7 pipeline — real latency
-for zero observable effect until 2GN.82 migrates a rule that actually calls `exceeds`. The empty
-context still honours the type's off-ladder-throws contract for `exceeds` rather than silently
-no-op'ing every call, so a caller bug (an out-of-ladder percentile) surfaces the same way against an
-empty context as a sampled one.
+convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather
+than a freshly-sampled real context: `inspectTags` runs interactively per artefact, and
+`sampleBaselines` draws `BASELINE_SAMPLE_SIZE` (400) extra artefacts through the full stage-1–7
+pipeline — real latency for zero observable effect until 2GN.82 migrates a rule that actually calls
+`exceeds`. The empty context still honours the type's off-ladder-throws contract for `exceeds`
+rather than silently no-op'ing every call, so a caller bug (an out-of-ladder percentile) surfaces
+the same way against an empty context as a sampled one.
 
 **The culture-discrimination test is the ruling's first empirical checkpoint.** `baselines.test.ts`
 samples Tarpan (`decorativeEmphasis` 0.4) and Thalassar (0.75) and asserts Thalassar's
@@ -1154,13 +1155,403 @@ genuinely pending — `WorldState` is not a type yet (`types/save.ts`), so there
 baselines on. `sampleBaselines` stays a pure function of its inputs until 3WS.9 gives it an owner to
 memoise under; a module-level cache now would be an untestable global with no owner.
 
-| Doc | What changed                                                                                                                    | Completed  |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 12  | This entry — machinery gap, the split, the zero-migration proof, and the `EXPLORER_CULTURES` stand-in | 2026-08-05 |
-| —   | `types/tags.ts`: `BaselineFeature`, `FeatureBaseline`, `ClassificationContext`; `ClassificationRule.condition` widened | 2026-08-05 |
-| —   | `engine/statistics.ts`, `engine/generation/baselines.ts`: new, ship 2GN.94/95 | 2026-08-05 |
+| Doc | What changed                                                                                                                                    | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — machinery gap, the split, the zero-migration proof, and the `EXPLORER_CULTURES` stand-in                                           | 2026-08-05 |
+| —   | `types/tags.ts`: `BaselineFeature`, `FeatureBaseline`, `ClassificationContext`; `ClassificationRule.condition` widened                          | 2026-08-05 |
+| —   | `engine/statistics.ts`, `engine/generation/baselines.ts`: new, ship 2GN.94/95                                                                   | 2026-08-05 |
 | —   | Roadmap: 2GN.94/95 done, 2GN.96 new and blocked (3WS.4/3WS.9/3WS.21); 2GN.82–84 repointed to depend on 2GN.95; stale 34/43 scope note corrected | 2026-08-05 |
-| 08  | Still pending: `ClassificationContext` now exists in `types/`, but world-state caching remains genuinely blocked on 3WS.9 | — |
+| 08  | Still pending: `ClassificationContext` now exists in `types/`, but world-state caching remains genuinely blocked on 3WS.9                       | —          |
+
+---
+
+### 2.31 Nine Thresholds Recalibrated; Percentile Rung ≠ Historical Percentile; Categorical Rules Split to 2GN.97 (2026-08-05)
+
+**Origin:** Roadmap 2GN.82.
+
+**Source of truth:** doc 11 §2.9 holds the ruling and its ladder-closure amendment; this entry
+records what recalibration actually found, which is not what a mechanical `1 - percentile` reading
+would have predicted.
+
+**"34 of the 43 rules need a baseline" is not "34 measured thresholds to recalibrate", and the scope
+drifted between those two readings.** §2.28 and §2.30 both state the ruling's selector correctly — a
+rule needs a baseline if it awards any `RelativeTag`, and applying that selector to the shipped rule
+set gives 34. But 2GN.82's roadmap line names a narrower population: **eleven** thresholds pinned to
+a measured percentile of an absolute distribution (§2.24's seven plus 2GN.79's R29/R31). Of the 34
+relative-award rules, only **nine** have a numeric condition `ClassificationContext.exceeds` can
+answer — the structural-complexity rule, the four decoration rules, the two cross-layer rules and
+the two complexity-graded rules. The other 25 read categorical bands (`wallThickness`, `baseType`,
+`openingType`, `massBand`, `perforation`, `ringGap`, `sheetFlexibility`, `sizeBand`) or plain
+booleans (`isWearable`, `hasFasteningMechanism`), for which `BaselineFeature` has no member — its
+own JSDoc rules this out by name: "a percentile over `hasEdge` or `openingType` is meaningless, and
+a key type that admitted them would let a rule ask a question the sampler cannot answer." **General
+lesson, the same one §2.28 already drew from the 13-vs-34 undercount**: a ruling's selector and a
+task's actual measurement surface are two different counts, and conflating them sizes the next task
+wrong. 2GN.82 migrates the nine; the categorical 25 are split to **2GN.97**, a design spike rather
+than an implementation task, since what "relative" even means for a categorical band — a prevalence
+baseline, a `stratification` gate (blocked on 2GN.96), or weight scaling on an unchanged absolute
+condition — is not decided anywhere in doc 11.
+
+**Migrating a rule to a percentile rung does not give it a fire rate of `(1 - percentile) * 100`,
+and the gap is large enough to change which rung a rule should take.** Measured directly against the
+real pipeline (18 culture-phase cells, n=400 baselines, n=1800 artefacts): `attachmentDiversity` has
+roughly eight distinct values, and its sampled p75 lands exactly on the value `2` in the
+overwhelming majority of measured culture-phases, with a large share of all output tied there.
+Because `ClassificationContext.exceeds` uses `>=` (doc 11 §2.9's own convention, chosen so a value
+at the threshold counts as exceeding it), `>= p75` admits the whole tie and fires on **43.4%** of
+the sweep — almost exactly the 44.4% rate roadmap 2GN.79 retuned the rule away from in the first
+place. The p90 rung reproduces the rule's authored intent, at 21.5% against the
+historically-measured 24.0%. **This is a third face of §2.28's granularity defect.** §2.28 found
+that `appliedElementCount`'s coarse integer values make a nearest-rank percentile _flicker_ between
+adjacent values at any sample size, and fixed it with fractional interpolated thresholds. Fractional
+thresholds cure that flicker, but not this: a threshold can still land exactly on a heavily
+populated integer, and `>=` then admits every artefact tied there. **The two defects require
+different fixes and neither implies the other is unnecessary** — fractional interpolation is still
+required for the reason §2.28 gave, and checking the realised fire rate against a hand-reasoned
+expectation is still required for this one. `appliedElementCount` itself shows the same pattern: p75
+fires 37.3% against a historically-measured 25.7%, an 11.6pp move taken deliberately rather than
+moving to p90 (15.3%), because 2GN.79 explicitly sized that rule to sit within a point of the
+`decorativeLayerCount` rule's rate so the two elite-bearing decoration rules stay comparably
+selective — under the ladder the `decorativeLayerCount` rule measures 30.9%, so p75 (37.3%, 6.4pp
+apart) preserves that stated relationship far better than p90 (15.3%, 15.6pp apart) would.
+
+**Two rules' historically-measured percentile had no ladder rung, and both were re-derived from
+intent rather than from the nearest number.** `PERCENTILE_LADDER` (`engine/statistics.ts`) is
+`[0.25, 0.5, 0.75, 0.9, 0.95]` by design — closed, so that two rules asking "p75" ask the same
+question, with an off-ladder value throwing rather than silently interpolating a threshold nobody
+measured. The exceptional-lavishness rule's absolute constant sat at ~p93 of a 1200-artefact
+whole-world sample; that figure was never a chosen percentile, only a description of where the
+constant `>= 25` happened to land. Moving it to p90 would fire 11.2% against the historically
+recorded 7.7%, inflating the top elite tier by roughly 45% — diluting exactly the tier the rule
+exists to mark, since it combines with its sibling rule to reach `elite` 0.9. p95 fires 5.8%, closer
+to 7.7% and preserving the tier's exclusivity, and was taken instead. Symmetrically, the
+technique-breadth rule's absolute constant (`>= 8`) was authored to "sit just inside" the measured
+p90 (9) — a shim with no equivalent on a closed ladder. p90 itself was taken (14.8% against a
+historically-measured 20.9%) rather than p75 (34.7%), because the rule's own JSDoc frames it as a
+tail claim ("many distinct crafts", not "an above-average number"), and p90 keeps it reading as a
+tail while p75 would read as "roughly average". p90 also directly closes a hazard the rule's JSDoc
+already named: `techniqueComplexity` is `maxDepth * distinctTechniques` with `maxDepth` currently
+pinned at 1, so once roadmap 2GN.31 lands variable nesting depth, an absolute constant would
+saturate with no change to this file — a percentile basis moves with the generator instead.
+
+**Two rules' historically-measured percentile was of a sub-population the sampler does not provide,
+and both were re-derived against the whole population instead of building one.** The edged-decorated
+and decorated-container rules were originally measured at the p50 of, respectively, edged artefacts'
+and containers' own `decorativeLayerCount` distributions — not the whole culture- phase output
+`ClassificationContext.baselines` carries. Measured directly: the whole-population p50 fires on
+70.0% of edged artefacts and 66.6% of containers — both saturated within their own gate population,
+the exact defect `SATURATION_CEILING` exists to flag, even though the _whole-sweep_ rate (27.9%,
+43.8%) looks unremarkable. Both rules were moved to the whole-population **p75** instead
+(16.6%/41.4% of edged; 25.0%/38.0% of containers), which does not saturate either gate population.
+Building a sub-population sampler was considered and rejected: it is real machinery —
+`sampleBaselines` would need per-predicate filtered ladders — for a correction that, at p50, would
+only have closed a gap of a few percentage points on the whole-sweep number, and the sub-population
+reading has a weaker claim to being correct in the first place. "More decorated than three-quarters
+of everything this culture makes" is answerable from evidence any in-world scholar could gather;
+"more decorated than three-quarters of everything edged" presupposes a comparison class — the set of
+everything edged this culture ever produced — that no character in the fiction has access to. The
+sub-population measurement was an artefact of how roadmap 2GN.34 happened to measure (a filtered
+sample was already in hand for another purpose), not a considered design requirement.
+
+**The fire-rate regression guard needed two additions to keep catching what it caught before.** Once
+a migrated rule's rate sits near its percentile rung by construction, `EXPECTED_FIRE_RATES` alone
+stops being an independent measurement: a whole-distribution generator shift — the same shape of
+defect roadmap 2GN.86 found in the mass proxy — would move the sampled baseline and the measured
+artefacts together and could pass with no recorded drift at all. Two additions restore that
+sensitivity in `calibration.test.ts`. First, the per-cell sampled _threshold values_ themselves are
+now pinned (`decorativeLayerCount` p75, `decorativeComplexity` p95, across the three emphasis
+settings) — a threshold value has no such self-stabilising property and moves whenever the
+generator's output distribution actually does. Second, a per-cell spread guard on the migrated nine
+catches the opposite failure, a baseline sampler bug that makes every cell read alike: the ruling's
+premise is that relativisation _narrows_ spread relative to the retired absolute rules (the
+exceptional-lavishness rule measures a 2%–10% per-cell spread against its absolute predecessor's
+4.3%–48.1%), so a guard here has to permit narrowing while still catching total collapse. Third,
+R33/R34's own sub-population rates (41.4% of edged, 38.0% of containers) are pinned alongside the
+whole-sweep numbers, since a change in the _share_ of edged artefacts a generator produces could
+move the whole-sweep rate without any change to how selectively either rule reads decoration.
+
+**Consequence for `classification.test.ts`.** The file's 122 assertions all ran against one shared
+`emptyClassificationContext()`; once a rule reads a real percentile, its positive assertions fail
+and — the sharper problem — its negative assertions start passing against the wrong claim (an empty
+context makes every migrated rule return `false` unconditionally, so "does not fire" becomes true of
+everything). Fifteen test bodies plus the worked-example integration test needed a hand-built
+`relativeContext` fixture carrying known thresholds, alongside the unmigrated 34 rules' existing
+shared empty context. Two additions beyond repairing the broken assertions: a migration-coverage
+guard, detecting by construction (comparing a rule's behaviour between an empty context and a
+maximally permissive one) that any context-sensitive rule awards a `RelativeTag`, catching a future
+rule migrated in the wrong direction; and a phase-discrimination test at the rule level — the same
+artefact reading as exceptionally lavish against one hand-built culture-phase and ordinary against
+another — complementing `baselines.test.ts`'s existing discrimination check at the
+sampler/distribution level.
+
+**A pre-existing, unrelated type error was found and fixed in passing.**
+`scripts/dev/sample-classification.ts` had not compiled since roadmap 2GN.95 widened
+`ClassificationRule.condition`'s arity: `deno task check` runs `svelte-check` over the SvelteKit
+project, which never reaches `scripts/`, so the break went unnoticed for two roadmap tasks. Fixed by
+passing a real sampled context, matching the Explorer panels' own resolution. Worth a standing note:
+this project's primary type-check task has a blind spot outside `src/`.
+
+| Doc | What changed                                                                                                         | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — the nine rungs, the tie-mass finding, the scope correction, the categorical deferral                    | 2026-08-05 |
+| 11  | §2.9 amended: the closed `PERCENTILE_LADDER`'s consequence for the ~p93 rule, recorded against the ruling's own text | 2026-08-05 |
+| —   | `data/classification.ts`: nine rules migrated to `ClassificationContext.exceeds`; module JSDoc rewritten             | 2026-08-05 |
+| —   | `data/calibration.test.ts`: real per-cell contexts; threshold and spread guards added                                | 2026-08-05 |
+| —   | `routes/dev/explorer/shared/baselineCache.ts`: new, memoised per-culture baseline for the Tag Inspector              | 2026-08-05 |
+| —   | `scripts/dev/sample-classification.ts`: pre-existing arity break fixed                                               | 2026-08-05 |
+| —   | Roadmap: 2GN.82 done; new 2GN.97 (categorical baselines, M2, sequenced after 2GN.96)                                 | 2026-08-05 |
+
+---
+
+### 2.32 2GN.83 Lands Doc-Only: Its Calibration Target Was Unsound (2026-08-06)
+
+**Origin:** roadmap 2GN.83. **Source of truth:** doc 11 §1.5 holds the raised question; this entry
+records what measurement found and why the task could not proceed as an implementation.
+
+**Recalibration needs a target, and relativisation removed the old one without supplying a new
+one.** 2GN.83's line named four constants to move — `BASE_FILL_PROBABILITY`, `SLOT_DECAY`,
+`MAX_SLOTS_PER_CATEGORY`, `decorationIntensity`'s blend — "per the 2GN.80 ruling", but named nothing
+to move them *toward*. Before §2.9's ruling, these constants were pinned indirectly by
+`EXPECTED_FIRE_RATES`: an absolute fire rate is a real, external measurement of generator behaviour.
+Under a culture-relative reading, `elite` means "above the p75 of what this culture makes", so a
+uniform change to decoration volume moves the sampled baseline and the measured artefacts together
+and largely self-cancels — the fire-rate guard stops being an independent check on volume, the exact
+property §2.31's threshold-value pins were added to compensate for on the classification side. The
+only other stated design intent for decorative volume anywhere in the docs is doc 05 §8.3's
+craft/emphasis four-corner table, so that became the de facto target.
+
+**§8.3's table cannot serve as that target, measured directly.** Full working in doc 11 §1.5; the
+two findings summarised here.
+
+First, **the table's numbers have no producer.** §8.3 caps recursion depth
+(decoration-on-decoration via `DecorativeLayer.sublayers`), but `expandDecoration`
+(`src/lib/engine/generation/decoration.ts`) emits flat layers — every `sublayers` is `[]` — because
+nesting is roadmap 2GN.31, unbuilt. Read as the nearest measurable analogue, layers per component,
+sampling n=400–420 per cell across all six `MOCK_WORLD_REGIONS` (via `mockCulturalProfile` /
+`mockPhaseCharacteristics`) gives `0.41 / 1.64 / 1.72 / 3.14` at the table's four named corners
+(craft/emphasis at `0.15`/`0.85` each) against the stated `0–1 / 0–1 / ~1 / up to 3`: the extreme
+corners land, the two middle corners both sit around 1.7 where the table wants ≤1 and ~1
+respectively.
+
+Second, **the two middle corners are not jointly reachable by any function of
+`(craftSpecialisation, decorativeEmphasis)`.** A joint sweep over `CRAFT_WEIGHT` (the blend weight),
+`BASE_FILL_PROBABILITY`, `SLOT_DECAY` and `MAX_SLOTS_PER_CATEGORY` — 180 combinations, scored
+against the table's four targets — floors residual error at ~0.83 and never approaches zero.
+Narrowing to the blend weight alone confirms why: lowering `CRAFT_WEIGHT` from 0.5 toward 0.25 pulls
+the high-craft/low-emphasis corner from 1.65 down to 0.97 (near the table's ≤1), but pushes the
+low-craft/high-emphasis corner from 1.65 up to 2.33 (away from the table's ~1) — the two corners
+trade against each other because both read the same scalar `decorationIntensity`. Broadening past
+linear blends did not help: every *symmetric* form tested (product, geometric mean) gives the two
+middle corners equal values by construction, since they sit at the same distance from the diagonal;
+every *asymmetric* emphasis-dominant form that separated them overshot the low-craft/high-emphasis
+corner past 2.5 before the high-craft/low-emphasis corner reached the table's target. Best measured
+single-scalar form, `sqrt(craftSpecialisation × decorativeEmphasis)` at base weight 1.0, reaches
+error 1.30 against the current blend's 1.69 — a real but modest improvement, and it still collapses
+the two middle corners toward each other rather than separating them.
+
+**The binding constraint is upstream of `decoration.ts` entirely.** The high-craft/low-emphasis
+corner is dominated by `partCount`: measured mean component count is ~1.97 at craft 0.15 against
+~6.06 at craft 0.85 (roughly 3× at fixed low emphasis), because `craftSpecialisation` also sets the
+complexity budget via `deriveComplexityBudget` (`engine/generation/grammar.ts:265`), and
+`expandDecoration` (`decoration.ts:309`) loops over `artefact.components` — multiplying its
+per-component fill chance against a part count the module has no way to read back and cancel. No
+constant inside `decoration.ts` can compensate for a term the module never sees. §8.3's own text
+confirms this is the right diagnosis rather than a measurement artefact: it distinguishes the middle
+corners by **kind** — "0–1 layers but technically refined" against "1 layer, simple techniques" —
+not by magnitude, and no single volume scalar can express a difference in kind.
+
+**A concrete implementation defect fell out of the same measurement, independent of which way the
+open question is ruled.** `craftSpecialisation` enters decorative volume twice: once through
+`decorationIntensity`'s blend, once through `partCount`. At identical `decorationIntensity` 0.550
+(`craftSpecialisation` 0.1/`decorativeEmphasis` 1.0 vs `craftSpecialisation`
+1.0/`decorativeEmphasis` 0.1), mean layers per artefact measured 3.61 against 11.50 — a 3.2× gap the
+blend's equal weighting asserts should not exist, with mean `partCount` 1.97 against 6.14 tracking
+the same ratio. Recorded rather than fixed: the correct correction is a function of which of doc 11
+§1.5's four candidates is chosen, and picking a weight now would be answering that question by
+default rather than by argument.
+
+**`appliedElementPresent` saturation, recorded and set aside rather than pursued.** Measured
+across the sampled cells: 89.1% at the calibration-sweep fixture phase (craft 0.5, emphasis 0.5),
+rising to 95.5% at emphasis 1.0, 99.3% at the Khaltiris preset, 100% at craft = emphasis = 1.0.
+`src/lib/data/classification.ts:403` already documents this as structural rather than a mistuned
+threshold — with 3 BNF categories × `MAX_SLOTS_PER_CATEGORY` 2 × N components, presence saturates
+for any fill probability above roughly 0.3 regardless of `decorationIntensity`'s exact value. The
+fix, if one is wanted, is the per-category-per-component slot structure itself or reliance on the
+count rather than the boolean (`appliedElementCount`, which R31 already reads and which does
+discriminate at every measured cell) — neither is a constants recalibration, so this is recorded
+here and left for whichever task owns slot structure, rather than folded into 2GN.83's scope by
+default.
+
+**Supporting evidence the split was once intended.** `decoration.ts:121` and `:190`'s JSDoc both
+refer to a function named `decorationSlotBudget`, governing "how many techniques are picked" as
+distinct from `AESTHETIC_EMPHASIS_GAIN` governing "which ones are favoured" — but no such function
+exists; the code has `decorationIntensity`, doing both jobs as one scalar. The volume/refinement
+distinction doc 11 §1.5's option 3 names appears to have been understood when the module was
+written and drifted out of the implementation. Not renamed here — it would be the one code change in
+an otherwise doc-only task, and which name is correct depends on the ruling.
+
+**General lesson, recurring from §2.31.** §2.31 found that a ruling's selector and a task's
+measurement surface are two different counts, and conflating them sizes a task wrong. The failure
+here is adjacent: a task phrased as "recalibrate X per the ruling" presupposes a calibration target,
+and the ruling itself does not automatically supply one — relativisation *removes* the old one
+(absolute fire rate) without installing a replacement. **Roadmap 2GN.84 is phrased identically**
+("recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings") and should
+be checked for the same gap before pickup, not discovered mid-implementation the way this one was.
+
+**Consequence: no `src/` file changed.** `EXPECTED_THRESHOLDS`, `EXPECTED_FIRE_RATES`,
+`EXPECTED_GATED_RATES` (`data/calibration.test.ts`), the `decorativeLayerCount` p75 pin
+(`engine/statistics.regression.test.ts`) and the saturation prose
+(`types/artefact.ts:436-447`) are all unchanged, because nothing they measure moved. `deno task
+check` and `deno test` are unaffected by this task by construction.
+
+| Doc | What changed                                                                                   | Completed  |
+| --- | ----------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — why 2GN.83 could not proceed, the four measured findings, the craft double-count   | 2026-08-06 |
+| 11  | New §1.5: decorative-volume open question, four candidate rulings, no recommendation between them | 2026-08-06 |
+| —   | Roadmap: 2GN.83 done (doc-only); new 2GN.98 (rule §1.5, then recalibrate); 2GN.84 annotated with this entry's general lesson | 2026-08-06 |
+
+---
+
+### 2.33 Decorative Volume Ruled: Emphasis-Only Volume, Craft-and-Difficulty Grade (2026-08-06)
+
+**Origin:** roadmap 2GN.98. **Source of truth:** doc 11 §2.10 holds the ruling; this entry records
+the measurement that produced it, including the paths tried and rejected.
+
+**The ruling, in one line:** `decorationVolume` (`expandDecoration`) reads
+`aesthetics.decorativeEmphasis` alone; a new `DecorativeLayer.grade` field reads
+`society.craftSpecialisation` scaled by a new authored per-technique difficulty rating. §2.32's
+negative result — no single volume scalar over `(craftSpecialisation, decorativeEmphasis)` can
+satisfy doc 05 §8.3's four-corner table, because its two middle corners differ by kind, not
+magnitude — is resolved by no longer using a single scalar at all.
+
+**Path 1, rejected: bias technique selection instead of adding a field.** The cheapest conceivable
+fix keeps `expandDecoration`'s output shape untouched and biases `computeTechniqueWeight`'s
+selection toward `TECHNIQUE_CRAFT_AXIS === null` ("simple": `polish`, `patina`, `roughening`,
+`scoring`, `painting` — §8.3's own named example) at low craft. Measured directly: real and
+directional, ~30% low-difficulty-technique share at low craft against ~15–19% at high craft, but
+capped. The other three factors already in `computeTechniqueWeight`'s weight product (cultural
+technique affinity, material access, gating technology maturity) dominate `weightedSelect`'s
+outcome and cannot be out-weighted by a craft-selection bias without defeating each of their own
+stated purposes. Rejected as too weak a realisation of "technically refined".
+
+**Path 2, rejected: `grade = craftSpecialisation` alone, no per-technique term.** Cleanly orthogonal
+to volume — reads craft only, where volume reads emphasis only, sharing nothing between the two
+terms. Measured directly: **degenerate as a sampled feature.** Every layer on every artefact from
+one culture-phase received the identical value (the phase's craft level, a constant), so within a
+culture-phase cell `p50 = p75 = p90 = mean`, always. `ClassificationContext`'s baseline sampler
+(`sampleBaselines`) exists to answer "how does this value distribute across a culture's own
+output" — a percentile ladder over a constant answers no such question, and a rule reading it via
+`exceeds` would be comparing every artefact against a threshold with no real distribution behind
+it. Adding artificial per-layer jitter was considered and rejected too: it would fix the numbers
+but is fabricated noise with no design basis, the kind of thing that reads as a measurement when it
+is actually an authored decision dressed as one.
+
+**What was built.** `TECHNIQUE_DIFFICULTY` (`src/lib/data/decorations.ts`) rates each of the
+sixteen decorative techniques' real execution difficulty, `0`–`1`, authored and reviewed per-item
+against how each craft actually works in practice — training time, error tolerance, hand-skill
+demand — rather than derived from the catalogue's `substrate`/`carriesMotif`/`introducesMaterial`
+flags, which correlate with difficulty but are not difficulty itself (`polish` has no motif or
+introduced material yet a true mirror finish by hand takes real practice; `gilding` introduces a
+precious material but is procedural once mastered, not the hardest technique in the set). Values,
+ascending: `roughening` 0.10, `patina` 0.15, `polish`/`scoring`/`tassels` 0.20, `wrapping` 0.30,
+`beading`/`studs` 0.35, `overlay` 0.40, `glaze` 0.45, `painting`/`wire-wrapping` 0.50, `gilding`
+0.55, `relief` 0.60, `engraving` 0.65, `inlay` 0.80. `computeLayerGrade(craftSpecialisation,
+technique)` combines craft and difficulty as `craft × (1 − 0.5×difficulty) +
+0.5×difficulty×craft²` — a hard technique's realised grade degrades faster than an easy one's as
+craft falls, so a low-craft culture attempting `inlay` produces markedly worse inlay than its craft
+level alone would suggest, where the same culture's `roughening` reads close to its craft level
+regardless. Measured within-cell spread (p90 − p50 of `meanDecorativeGrade`) across sampled cells:
+`0.006`–`0.025`, small but genuine and driven by which mix of techniques an artefact happened to
+roll — enough for a percentile ladder to mean something, unlike Path 2.
+
+**Doc 05 §8.3's table, measured against the shipped implementation.** Layers per component at the
+table's four named corners: `0.41–0.46 / 0.46–0.54 / 2.7–3.3 / 2.8–3.3` against the stated
+`0–1 / 0–1 / ~1 / up to 3`. All four corners now land within a defensible margin — a substantial
+improvement on the pre-2GN.98 blend's `0.42 / 1.65 / 1.65 / 3.16`, where the two middle corners were
+indistinguishable. `meanDecorativeGrade` separately confirms the craft axis moves in the stated
+direction: mean grade rises monotonically with `craftSpecialisation` at fixed emphasis and
+component count (pinned by `decoration.test.ts`'s new grade-direction test, the same isolation
+pattern the pre-existing intensity-distribution test applies to volume).
+
+**Consequence: `craftSpecialisation`'s "double-counting" (§2.32's own finding) is resolved by
+re-scoping, not by patching.** Under the old blend, craft drove decorative volume twice: directly
+through the blend, and indirectly through `partCount` (`deriveComplexityBudget`,
+`engine/generation/grammar.ts`, unchanged by this task). Once `decorationVolume` no longer reads
+craft at all, craft has exactly two decorative-adjacent effects — `partCount` (structural) and
+`grade` (execution quality) — and two non-overlapping effects of one attribute is not
+double-counting. The original "3.2× gap at identical intensity" measurement described a shared
+scalar that no longer exists once volume and craft are decoupled; re-measuring that specific
+framing under the new code is not meaningful, since there is no longer a shared `intensity` value
+for the two cells to differ at.
+
+**Consequence: `appliedElementPresent` saturation is confirmed structural, unaffected by this
+task.** Measured at the fixture phase (craft 0.5, emphasis 0.5) before and after: 89.1% (§2.32) vs
+86.7% (n=7200, this task) — well within measurement noise, not a directional move. Confirms §2.32's
+diagnosis stands: saturation comes from `MAX_SLOTS_PER_CATEGORY`'s per-category-per-component slot
+structure (doc 05 §8.2), not from how volume or refinement are weighted. `appliedElementCount`'s
+discriminating ladder moved slightly (p50 2, p75 3, p90 5, max 11 — was p50 2, p75 4, p90 5, max
+15) but the count still discriminates, which is the property that matters. Left out of scope here,
+as it was when first diagnosed (roadmap 2GN.79, doc 12 §2.25) and again when re-flagged (§2.32).
+
+**A new classification rule.** `meanDecorativeGrade` is the sampled feature giving doc 05 §8.3's
+"technically refined" its own signal, independent of `decorativeComplexity`'s volume — every
+existing decoration-family rule reads volume; none read execution quality. The new rule
+(`data/classification.ts`, appended after the technique-breadth rule to keep existing indices
+stable, matching §2.31's own precedent) reads `meanDecorativeGrade` at **p90, not p75**: measured
+directly, p75 fires at 26.6% — close enough to the naive "top quarter" expectation that this
+feature doesn't carry the coarse tie-mass §2.31 found on integer-valued features like
+`attachmentDiversity`, but still reading as "above average" rather than the "exceptional" the
+rule's own name and weight split (`artisanal` 0.4, `elite` 0.2, mirroring the technique-breadth
+rule's split) claim. p90 fires at 12.3%, comparable selectivity to the technique-breadth rule's own
+19.3% and consistent with how that rule and the exceptional-lavishness rule were both moved off p75
+for the same tail-claim reasoning (§2.31). Tags `artisanal` primarily rather than compounding the
+volume-driven `elite` weight the `decorativeComplexity` rules already carry — the same design
+choice §2.31's technique-breadth rule made, for the same reason.
+
+**Guard re-measurement.** `decorationVolume`'s emphasis-only reading moved the entire
+decoration-family distribution — every rule from the structural-complexity rule onward that reads a
+decoration feature moved, while every rule reading only structural features (R1–R28, R37–R39) came
+back bit-identical, the same inertness checkpoint §2.31 used to prove its own migration's scope.
+`EXPECTED_THRESHOLDS`' six values moved substantially at the emphasis extremes — `layerP75`/
+`complexityP95` from `5/15` to `2/6.3` at emphasis 0.1, from `14/32` to `20.2/41.7` at emphasis
+1.0 — because removing craft's dilution of the emphasis signal steepened the emphasis-only curve
+materially; the emphasis-0.5 cell stayed near its old figure, unsurprising since that was the old
+blend's midpoint. The largest single `EXPECTED_FIRE_RATES` move: R32 (the universal any-decoration
+nudge) dropped from 98.0% to 89.2% — still comfortably clear of `SATURATION_CEILING` and still
+exempt from it by design (doc 12 §2.24), but the sharpest single consequence of emphasis-only volume
+producing materially more near-zero-decoration artefacts at low emphasis than the old blend did.
+`SPREAD_FLOOR` was checked directly against a concern raised while scoping this task — that
+emphasis-only volume might be a cleaner signal and narrow per-cell spread toward the guard's
+floor — and found unwarranted: measured minimum spread across the migrated nine is 12.0pp, six
+times the 2pp floor, no narrowing-collapse risk.
+
+**Test additions.** `decoration.test.ts` gains four tests: `computeLayerGrade` direction (a hard
+technique at fixed low craft yields a materially lower grade than an easy one), the gap narrowing at
+high craft (the formula's own claim, checked directly), bounds (`[0, 1]` at the craft extremes for
+every technique), and the artefact-level monotonicity check described above. The pre-existing
+textile-isolation test (asserting exact equality of non-textile category fill across two emphasis
+settings) and category-coverage test (all three BNF categories reachable at intensity 1.0) both
+survive unchanged — grade alters what quality value a layer records once a technique is selected,
+never which technique wins a slot or how many slots fill, so neither invariant is touched.
+
+**Consequence for `classification.test.ts`'s rule-count guards.** `CLASSIFICATION_RULES.length`
+moved from 43 to 44; the relative/absolute split moved from 34/43 to 35/44 (`artisanal`/`elite` are
+both `RelativeTag` members). Same guard-update pattern §2.31 established for a rule-count change:
+update the pinned numbers and the array together, deliberately, not by widening a tolerance.
+
+| Doc | What changed                                                                                        | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — the ruling, the two rejected paths, the guard-by-guard re-measurement                   | 2026-08-06 |
+| 11  | §1.5 closed, resolved as new §2.10 (the ruling)                                                      | 2026-08-06 |
+| 05  | §8.3 gains an implementation note; §9.1's `ExtractedFeatures` block notes `meanDecorativeGrade`      | 2026-08-06 |
+| —   | `types/decoration.ts`: new `DecorativeLayer.grade` field                                             | 2026-08-06 |
+| —   | `data/decorations.ts`: new `TECHNIQUE_DIFFICULTY` table (authored, reviewed per-item)                | 2026-08-06 |
+| —   | `engine/generation/decoration.ts`: `decorationIntensity` → `decorationVolume` (emphasis-only); new `computeLayerGrade` | 2026-08-06 |
+| —   | `engine/generation/classification.ts`: new `meanDecorativeGrade` feature; `types/tags.ts`/`baselines.ts` gain the `BaselineFeature` | 2026-08-06 |
+| —   | `data/classification.ts`: new execution-quality rule (R44, p90)                                      | 2026-08-06 |
+| —   | `data/calibration.test.ts`: `EXPECTED_THRESHOLDS`/`EXPECTED_FIRE_RATES`/`EXPECTED_GATED_RATES` re-recorded; new R44 entry | 2026-08-06 |
+| —   | `engine/statistics.regression.test.ts`: p75 pin re-measured (10 → 12) and re-framed against this task rather than 2GN.34's historical figure | 2026-08-06 |
+| —   | Roadmap: 2GN.98 done                                                                                  | 2026-08-06 |
 
 ---
 
