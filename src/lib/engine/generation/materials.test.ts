@@ -140,20 +140,66 @@ Deno.test('computeMaterialWeight: scarcer materials weight lower than abundant o
 	assert(abundant > scarce, `expected abundant (${abundant}) > scarce (${scarce})`);
 });
 
-Deno.test('computeMaterialWeight: a material absent from geology is scarcity-neutral', () => {
+Deno.test('computeMaterialWeight: a material absent from geology ranks at the `available` rung, never above it', () => {
+	// Roadmap 2GN.84: corrected from an earlier version of this test that asserted
+	// `neutral === abundant` — the defect written down as an expectation. An unmodelled material is
+	// one nobody made a claim about, not the most plentiful thing in the region; scoring it above
+	// every honestly-modelled peer let a fixture gap silently promote a material (doc 12 §2.25's
+	// silver/jade defect, from before the six exhaustive `MOCK_WORLD_REGIONS` existed).
 	const culture = mockCulturalProfile({ materialAffinities: new Map() });
 	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
 	const noEntry = mockGeologicalContext({ materialAvailability: new Map() });
+	const availableEntry = mockGeologicalContext({
+		materialAvailability: new Map([
+			['jade', { materialId: 'jade', regions: new Map([['test-region', 'available' as const]]) }],
+		]),
+	});
 	const abundantEntry = mockGeologicalContext({
 		materialAvailability: new Map([
 			['jade', { materialId: 'jade', regions: new Map([['test-region', 'abundant' as const]]) }],
 		]),
 	});
+	const scarceEntry = mockGeologicalContext({
+		materialAvailability: new Map([
+			['jade', { materialId: 'jade', regions: new Map([['test-region', 'scarce' as const]]) }],
+		]),
+	});
 
-	const neutral = computeMaterialWeight(material('jade'), culture, phase, noEntry);
+	const unmodelled = computeMaterialWeight(material('jade'), culture, phase, noEntry);
+	const available = computeMaterialWeight(material('jade'), culture, phase, availableEntry);
 	const abundant = computeMaterialWeight(material('jade'), culture, phase, abundantEntry);
+	const scarce = computeMaterialWeight(material('jade'), culture, phase, scarceEntry);
 
-	assertEquals(neutral, abundant);
+	assertEquals(unmodelled, available, 'unmodelled should read exactly as `available`');
+	assert(abundant > unmodelled, `expected abundant (${abundant}) > unmodelled (${unmodelled})`);
+	assert(unmodelled > scarce, `expected unmodelled (${unmodelled}) > scarce (${scarce})`);
+});
+
+Deno.test('computeMaterialWeight: scarcity rungs form a strict descending order', () => {
+	// Only one adjacent pair (abundant/scarce) was previously spot-checked, so a rung reordering
+	// that didn't cross that pair would pass silently. This checks the whole ladder.
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
+	const geologyAt = (level: 'abundant' | 'available' | 'scarce' | 'trade-only') =>
+		mockGeologicalContext({
+			materialAvailability: new Map([
+				['jade', { materialId: 'jade', regions: new Map([['test-region', level]]) }],
+			]),
+		});
+
+	const abundant = computeMaterialWeight(material('jade'), culture, phase, geologyAt('abundant'));
+	const available = computeMaterialWeight(material('jade'), culture, phase, geologyAt('available'));
+	const scarce = computeMaterialWeight(material('jade'), culture, phase, geologyAt('scarce'));
+	const tradeOnly = computeMaterialWeight(
+		material('jade'),
+		culture,
+		phase,
+		geologyAt('trade-only'),
+	);
+
+	assert(abundant > available, `expected abundant (${abundant}) > available (${available})`);
+	assert(available > scarce, `expected available (${available}) > scarce (${scarce})`);
+	assert(scarce > tradeOnly, `expected scarce (${scarce}) > trade-only (${tradeOnly})`);
 });
 
 // --- assignMaterial ---------------------------------------------------------------------------------
