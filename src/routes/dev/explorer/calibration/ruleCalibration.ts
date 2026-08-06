@@ -31,13 +31,14 @@ import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
-import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
+import { sampleBaselines } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
 import type { ArtefactTag } from '../../../../lib/types/tags.ts';
+import { explorerCulturePhase } from '../../../../lib/data/explorer-cultures.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Either half of the tag vocabulary. */
@@ -164,9 +165,17 @@ export function calibrateRules(
 	const scoreTotals = new Map<Tag, number>();
 	// Per tag, how much total weight each rule contributed — for `topContributor`.
 	const perTagRuleWeight = new Map<Tag, Map<number, number>>();
-	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one); an
-	// empty context keeps this loop cheap until one does (`baselines.ts`'s JSDoc).
-	const context = emptyClassificationContext();
+	// Nine rules now read a ClassificationContext (roadmap 2GN.82). Sampled directly rather than via
+	// the Tag Inspector's `shared/baselineCache.ts` memo: this function already amortises its own
+	// cost over `count` artefacts, and a shared mutable cache would make its report depend on call
+	// order — breaking the "same seed and count always give the same report" contract below.
+	const context = sampleBaselines(
+		seed,
+		explorerCulturePhase(culture),
+		CORE_GRAMMAR_RULES,
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+	);
 
 	for (let index = 0; index < count; index++) {
 		const artefactSeed = `${seed}-${index}`;

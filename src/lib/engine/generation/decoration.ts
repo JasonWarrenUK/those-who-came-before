@@ -23,9 +23,12 @@
  *   (below) operates at the culture level, not per-component, and is a different check.
  * - sublayers / decoration-on-decoration (roadmap 2GN.31) — every emitted `DecorativeLayer` has
  *   `sublayers: []`.
- * - recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis` (roadmap
- *   2GN.32) — the per-category slot budget below draws on the same two drivers, but produces a
- *   single flat pass over one artefact, not nested layering depth.
+ * - recursion depth cap (roadmap 2GN.32) — the per-category slot budget below produces a single
+ *   flat pass over one artefact, not nested layering depth. Doc 05 §8.3's craft/emphasis-driven
+ *   depth table is instead realised flat, split across `decorationVolume` (how much decoration
+ *   appears — `aesthetics.decorativeEmphasis` alone) and each layer's `grade`
+ *   (how well-executed it is — `society.craftSpecialisation` and the technique's own difficulty,
+ *   `computeLayerGrade` below) — roadmap 2GN.98, doc 11 §1.5.
  * - motif and introduced-material assignment — owned by `assignDecorativeDetails` (2GN.33, below)
  *   as a separate pass rather than folded into expansion, so the eventual pipeline can order it
  *   after 2GN.30's substrate stripping (no draws wasted on layers that get stripped) and so
@@ -50,7 +53,9 @@
  * weight-factor gains) follow the 2GN.2/2GN.8/2GN.25 precedent: doc 05 §8 names the drivers
  * (craftSpecialisation, aesthetics.decorativeEmphasis, technology.textiles) but supplies no
  * quantities for a sixteen-technique catalogue, so these are authored fresh, clearly marked, and
- * retunable once decoration is observable in the Explorer (roadmap 2GN.61).
+ * retunable once decoration is observable in the Explorer (roadmap 2GN.61). `TECHNIQUE_DIFFICULTY`
+ * (`data/decorations.ts`) is authored content of the same kind, reviewed per-item against how each
+ * craft actually works, not derived from this module's other constants.
  */
 
 import type {
@@ -67,7 +72,7 @@ import type {
 	PhaseCharacteristics,
 } from '../../types/world.ts';
 import type { MaterialTag } from '../../types/tags.ts';
-import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
+import { DECORATIVE_TECHNIQUES, TECHNIQUE_DIFFICULTY } from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { computeMaterialWeight, isAvailable } from './materials.ts';
 import { resolvePhaseAttribute } from './phase.ts';
@@ -118,7 +123,7 @@ const TECHNIQUE_CRAFT_AXIS: Record<
  */
 const NO_TECHNOLOGY_FLOOR = 0.2;
 
-/** MVP-provisional gain on `aesthetics.decorativeEmphasis`: how strongly high decorative emphasis skews selection toward this technique on top of the count-level effect (`decorationSlotBudget` below already scales *how many* techniques are picked; this scales *which* ones are favoured once picking). */
+/** MVP-provisional gain on `aesthetics.decorativeEmphasis`: how strongly high decorative emphasis skews selection toward this technique on top of the count-level effect (`decorationVolume` below already scales *how many* techniques are picked; this scales *which* ones are favoured once picking). */
 const AESTHETIC_EMPHASIS_GAIN = 0.5;
 
 /**
@@ -187,7 +192,12 @@ function materialAccessGate(
  *    across the phase's matching `technology` axis, or neutral `1` when ungated.
  *  - aesthetic emphasis: all techniques scale mildly with `aesthetics.decorativeEmphasis`, so a
  *    high-emphasis phase skews toward more elaborate technique choices, distinct from
- *    `decorationSlotBudget`'s effect on how *many* techniques are picked.
+ *    `decorationVolume`'s effect on how *many* techniques are picked.
+ *
+ * Does not read `craftSpecialisation` — a technique's *selection* weight is driven by cultural
+ * preference, material access, gating technology and aesthetic emphasis alone. Craft instead
+ * determines how well the selected technique is *executed*, via `computeLayerGrade` below,
+ * applied once selection has already happened (roadmap 2GN.98, doc 11 §1.5).
  *
  * @param technique - The candidate technique definition.
  * @param culture - The producing culture's profile, supplying `techniqueAffinities` and
@@ -223,22 +233,71 @@ export function computeTechniqueWeight(
 /** MVP-provisional per-category slot ceiling (doc 05 §8.2's BNF allows unbounded `*` repetition per category; a hard cap keeps generation bounded pending the real recursion-depth cap, 2GN.32). */
 const MAX_SLOTS_PER_CATEGORY = 2;
 
-/** MVP-provisional base fill probability for a category's first slot, scaled by `decorationIntensity` below. */
+/** MVP-provisional base fill probability for a category's first slot, scaled by `decorationVolume` below. */
 const BASE_FILL_PROBABILITY = 0.9;
 
 /** MVP-provisional per-slot decay: each successive slot within a category is progressively less likely to fill, mirroring `grammar.ts`'s attachment-depth decay shape. */
 const SLOT_DECAY = 0.5;
 
 /**
- * How strongly a phase drives decorative volume (doc 05 §8.3 names `craftSpecialisation` and
- * `aesthetics.decorativeEmphasis` as the two drivers of layering depth, without giving numbers).
- * MVP-provisional equal-weight blend of the two into a single 0–1 intensity.
+ * How strongly a phase drives decorative volume — how MUCH decoration appears, not how well it's
+ * executed (roadmap 2GN.98, doc 11 §1.5). Reads `aesthetics.decorativeEmphasis` alone.
+ *
+ * Does **not** read `craftSpecialisation`, unlike the equal-weight blend this superseded. Doc 05
+ * §8.3's four-corner craft/emphasis table cannot be satisfied by any single scalar over both
+ * attributes: measurement (doc 12 §2.32) found its two middle corners — "high craft, low emphasis:
+ * 0–1 layers but technically refined" vs "low craft, high emphasis: 1 layer, simple techniques" —
+ * differ by *kind* (refined vs simple), not magnitude, so a shared volume term collapses them
+ * together regardless of its weighting. Splitting the axes resolves this: this function answers
+ * "how much" from emphasis alone, and `computeLayerGrade` below answers "how well" from craft
+ * alone. `craftSpecialisation` still affects volume *indirectly*, once, through `partCount`
+ * (`grammar.ts`'s `deriveComplexityBudget` — a high-craft culture's objects have more components,
+ * each an independent decorative canvas here) — that is a legitimate structural effect of craft,
+ * not a second volume term to reconcile with this one.
  */
-function decorationIntensity(phase: PhaseCharacteristics): number {
-	return (
-		resolvePhaseAttribute(phase, 'society.craftSpecialisation') +
-		resolvePhaseAttribute(phase, 'aesthetics.decorativeEmphasis')
-	) / 2;
+function decorationVolume(phase: PhaseCharacteristics): number {
+	return resolvePhaseAttribute(phase, 'aesthetics.decorativeEmphasis');
+}
+
+/**
+ * How well-executed a layer of `technique` is, `0`–`1`, for a phase at `craftSpecialisation`
+ * (roadmap 2GN.98, doc 11 §1.5) — realises doc 05 §8.3's "technically refined vs simple
+ * techniques" distinction as a per-layer quality value, separate from `decorationVolume`'s "how
+ * much decoration appears".
+ *
+ * `TECHNIQUE_DIFFICULTY` (`data/decorations.ts`) rates each technique's real execution difficulty,
+ * authored and reviewed per-item against how the craft actually works (training time, error
+ * tolerance, hand-skill demand), not derived from the catalogue's `substrate`/`carriesMotif`/
+ * `introducesMaterial` flags. A hard technique's realised grade degrades faster than an easy one's
+ * as craft falls — `craft * (1 - 0.5*difficulty) + 0.5*difficulty*craft²` interpolates between a
+ * near-linear response for the easiest techniques (`difficulty` near 0, grade ≈ craft) and a
+ * markedly super-linear one for the hardest (`difficulty` near 1, grade ≈ craft²) — a low-craft
+ * culture attempting `inlay` (difficulty 0.80) produces markedly worse inlay than its craft level
+ * alone would suggest, where the same culture's `roughening` (difficulty 0.10) reads close to its
+ * craft level regardless.
+ *
+ * An earlier shape considered and rejected: biasing `computeTechniqueWeight`'s selection toward
+ * low-difficulty techniques at low craft. Measured real and directional (~30% low-difficulty share
+ * at low craft vs ~15–19% at high craft) but capped — the other three factors already in that
+ * function's weight product dominate `weightedSelect`'s outcome and can't be out-weighted without
+ * defeating their own purpose. A second shape, `grade = craftSpecialisation` alone with no
+ * per-technique term, was cleanly orthogonal to volume but degenerate as a sampled feature: every
+ * layer on every artefact from one culture-phase received the identical value, so a percentile
+ * ladder over it (`p50 = p75 = p90`, always) answered no question. This function's per-technique
+ * term is what gives `meanDecorativeGrade` (`engine/generation/classification.ts`) genuine
+ * within-cell spread to sample a baseline from.
+ *
+ * Exported for direct testing, matching `computeTechniqueWeight`'s precedent — a per-layer formula
+ * this specific is worth asserting on directly rather than only inferring from `expandDecoration`'s
+ * aggregate output.
+ */
+export function computeLayerGrade(
+	craftSpecialisation: number,
+	technique: DecorativeTechnique,
+): number {
+	const difficulty = TECHNIQUE_DIFFICULTY[technique];
+	return craftSpecialisation * (1 - 0.5 * difficulty) +
+		0.5 * difficulty * craftSpecialisation ** 2;
 }
 
 const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-element'] as const;
@@ -247,22 +306,24 @@ const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-
  * Expands the decorative grammar over an artefact (doc 05 §8.1–§8.3, roadmap 2GN.29): iterates
  * every component as a decorative canvas and selects zero-or-more techniques per BNF category
  * (`<decoration> ::= <surface-treatment>* <applied-element>* <textile-element>*`, doc 05 §8.2),
- * weighted by `computeTechniqueWeight`. Returns a flat `DecorativeLayer[]` — one entry per selected
- * technique, every entry's `sublayers` empty, `motifRef`/`material` omitted (module JSDoc's scope
- * boundary: layering is 2GN.31, motif and introduced-material assignment is `assignDecorativeDetails`
- * below; substrate enforcement that would strip invalid technique/component pairings is 2GN.30).
+ * weighted by `computeTechniqueWeight`, each selected layer's `grade` set by `computeLayerGrade`.
+ * Returns a flat `DecorativeLayer[]` — one entry per selected technique, every entry's `sublayers`
+ * empty, `motifRef`/`material` omitted (module JSDoc's scope boundary: layering is 2GN.31, motif
+ * and introduced-material assignment is `assignDecorativeDetails` below; substrate enforcement that
+ * would strip invalid technique/component pairings is 2GN.30).
  *
  * Component iteration follows `artefact.components` order; per component, the three BNF categories
  * fill in fixed order (surface-treatment, applied-element, textile-element). Each category
  * independently draws up to `MAX_SLOTS_PER_CATEGORY` slots: a slot fills when one `prng()` draw
- * falls under `BASE_FILL_PROBABILITY * decorationIntensity(phase) * SLOT_DECAY ** slotIndex`,
+ * falls under `BASE_FILL_PROBABILITY * decorationVolume(phase) * SLOT_DECAY ** slotIndex`,
  * consuming a second `prng()` draw via `weightedSelect` to choose which technique fills it; the
  * first missed slot stops that category's fill (mirrors `grammar.ts`'s attachment-depth decay). A
  * category whose candidate pool is empty (a truncated injected `techniques` catalogue) is skipped
  * entirely rather than calling `weightedSelect` on an empty list. Component-then-category-then-slot
- * order, with a fixed one-or-two-draw cost per slot, is the determinism contract: the same seed
- * against the same artefact/culture/phase always produces the identical draw sequence and layer
- * list.
+ * order, with a fixed one-or-two-draw cost per slot (`grade` costs no extra draw — it's a pure
+ * function of the phase and the already-selected technique), is the determinism contract: the same
+ * seed against the same artefact/culture/phase always produces the identical draw sequence and
+ * layer list.
  *
  * Pure and side-effect-free: never mutates `artefact`, `culture`, `phase`, `materials` or
  * `techniques`.
@@ -272,7 +333,8 @@ const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-
  *   techniques are favoured, `materialAffinities` feeds the material-access gate. Motif vocabulary
  *   is deliberately unread here — that's `assignDecorativeDetails`' job.
  * @param phase - The phase whose `technology` and `aesthetics` attributes bias technique weight and
- *   overall decorative volume.
+ *   volume (`aesthetics.decorativeEmphasis`), and whose `society.craftSpecialisation` sets each
+ *   selected layer's `grade`.
  * @param geology - World-level material scarcity, read by the material-access gate.
  * @param trade - Material flows reachable through cultural relationships, read by the gate.
  * @param prng - A generator from `createPrng`; determinism flows from it alone.
@@ -303,7 +365,7 @@ export function expandDecoration(
 		pools[technique.category].push(technique);
 	}
 
-	const intensity = decorationIntensity(phase);
+	const volume = decorationVolume(phase);
 	const layers: DecorativeLayer[] = [];
 
 	for (const component of artefact.components) {
@@ -312,7 +374,7 @@ export function expandDecoration(
 			if (pool.length === 0) continue; // Truncated injected catalogue — skip, never throw.
 
 			for (let slot = 0; slot < MAX_SLOTS_PER_CATEGORY; slot++) {
-				const fillChance = BASE_FILL_PROBABILITY * intensity * SLOT_DECAY ** slot;
+				const fillChance = BASE_FILL_PROBABILITY * volume * SLOT_DECAY ** slot;
 				if (prng() >= fillChance) break;
 
 				const selected = weightedSelect(
@@ -325,6 +387,7 @@ export function expandDecoration(
 				layers.push({
 					targetComponentId: component.id,
 					technique: selected.technique,
+					grade: computeLayerGrade(phase.society.craftSpecialisation, selected.technique),
 					sublayers: [],
 				});
 			}

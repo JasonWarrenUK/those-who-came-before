@@ -1,9 +1,9 @@
 /// <reference lib="deno.ns" />
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 import { inspectTags } from './tagInspector.ts';
+import { baselineFor } from '../shared/baselineCache.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 import { classifyArtefact } from '../../../../lib/engine/generation/classification.ts';
-import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 
@@ -29,12 +29,13 @@ Deno.test("inspectTags — each tag's contributions sum exactly to its score", (
 
 Deno.test('inspectTags — scores match calling classifyArtefact directly on the same features', () => {
 	const inspection = inspectTags('tag-cross-check', khaltiris);
-	// inspectTags scores against an empty context (no shipped rule reads one yet, roadmap 2GN.95's
-	// baselines.ts), so the direct call must match to stay a fair comparison.
+	// inspectTags scores against khaltiris's memoised real baseline (roadmap 2GN.82,
+	// shared/baselineCache.ts) now that nine rules read one, so the direct call must use the same
+	// context to stay a fair comparison.
 	const direct = classifyArtefact(
 		inspection.features,
 		CLASSIFICATION_RULES,
-		emptyClassificationContext(),
+		baselineFor(khaltiris),
 	);
 
 	const seen = new Map(

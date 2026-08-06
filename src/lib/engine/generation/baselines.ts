@@ -51,6 +51,7 @@ const SAMPLED_FEATURES: readonly BaselineFeature[] = [
 	'partCount',
 	'attachmentDiversity',
 	'edgeCount',
+	'meanDecorativeGrade',
 ];
 
 /**

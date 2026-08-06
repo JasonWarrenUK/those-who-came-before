@@ -33,11 +33,16 @@
  *   thresholded over `dimensions.primaryExtent` at the midpoints of `grammar.ts`'s provisional
  *   band-to-centimetre tables (MVP-provisional per the 2GN.8 precedent, tuned once observable in
  *   the Explorer).
- * - **Decorative**: counts and technique variety walk `sublayers` recursively;
- *   `appliedElementPresent`/`appliedElementCount` resolve technique category against
+ * - **Decorative**: counts, technique variety and mean execution grade walk `sublayers`
+ *   recursively; `appliedElementPresent`/`appliedElementCount` resolve technique category against
  *   `DECORATIVE_TECHNIQUES` (roadmap 2GN.28) rather than hardcoding the applied-element list. The
- *   count is the discriminating form — the boolean saturates at ~85% because `expandDecoration`
- *   rolls each BNF category's slots per component (roadmap 2GN.79, doc 12 §2.25).
+ *   count is the discriminating form — the boolean saturates at ~87% because `expandDecoration`
+ *   rolls each BNF category's slots per component (roadmap 2GN.79, doc 12 §2.25; re-measured
+ *   materially unchanged after 2GN.98's volume/refinement split, doc 12 §2.33). `meanDecorativeGrade`
+ *   (roadmap 2GN.98) is `decorativeLayerCount`'s companion on the *quality* axis rather than the
+ *   volume axis — driven by `society.craftSpecialisation` and each layer's technique difficulty
+ *   (`TECHNIQUE_DIFFICULTY`, `data/decorations.ts`), independently of how much decoration is
+ *   present.
  * - **Dormant** (no producer yet): `motifPresent` honestly reads `motifRef` presence — always
  *   `false` until motif assignment lands (roadmap 2GN.33); `motifCulturalOrigins` stays `[]` and
  *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
@@ -270,13 +275,15 @@ function hasFasteningAnatomy(
 
 // --- Decorative family -------------------------------------------------------------------------------
 
-/** One flattened pass over a decorative layer tree: totals, variety, depth and motif count. */
+/** One flattened pass over a decorative layer tree: totals, variety, depth, motif count and grade. */
 interface DecorativeTally {
 	layerCount: number;
 	techniques: Set<string>;
 	maxDepth: number;
 	motifCount: number;
 	appliedElementCount: number;
+	/** Running sum of `layer.grade` across every layer, divided by `layerCount` for the mean (roadmap 2GN.98). */
+	gradeSum: number;
 }
 
 /** Walks `sublayers` recursively, accumulating the tally. `depth` is 1-based. */
@@ -291,6 +298,7 @@ function tallyLayers(
 		tally.maxDepth = Math.max(tally.maxDepth, depth);
 		if (layer.motifRef !== undefined) tally.motifCount++;
 		if (APPLIED_ELEMENT_TECHNIQUES.has(layer.technique)) tally.appliedElementCount++;
+		tally.gradeSum += layer.grade;
 		tallyLayers(layer.sublayers, depth + 1, tally);
 	}
 }
@@ -417,9 +425,11 @@ export function extractFeatures(
 		maxDepth: 0,
 		motifCount: 0,
 		appliedElementCount: 0,
+		gradeSum: 0,
 	};
 	tallyLayers(decorativeLayers, 1, tally);
 	const motifDensity = tally.layerCount > 0 ? tally.motifCount / tally.layerCount : 0;
+	const meanDecorativeGrade = tally.layerCount > 0 ? tally.gradeSum / tally.layerCount : 0;
 
 	// Combined complexity (doc 05 §9.1's stated compositions, MVP-provisional formulas). The
 	// overall score reads doc 05's "structural + decorative" as functional + decorative — §9.1
@@ -455,6 +465,7 @@ export function extractFeatures(
 		decorativeLayerCount: tally.layerCount,
 		appliedElementPresent: tally.appliedElementCount > 0,
 		appliedElementCount: tally.appliedElementCount,
+		meanDecorativeGrade,
 		motifPresent: tally.motifCount > 0,
 		motifCulturalOrigins: [], // DORMANT — motif→culture lookup is roadmap 2GN.68's.
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,

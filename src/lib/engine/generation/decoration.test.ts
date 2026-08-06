@@ -2,6 +2,7 @@
 import { assert, assertEquals, assertNotEquals } from '@std/assert';
 import {
 	assignDecorativeDetails,
+	computeLayerGrade,
 	computeTechniqueWeight,
 	expandDecoration,
 	type SharedMotifSource,
@@ -473,6 +474,82 @@ Deno.test('expandDecoration: distribution — high decorativeEmphasis/craftSpeci
 	assert(high > low, `expected high-intensity total (${high}) > low-intensity total (${low})`);
 });
 
+Deno.test('computeLayerGrade: low craft yields a materially lower grade on a hard technique than the same craft on an easy one', () => {
+	// `inlay` is the highest-difficulty technique (0.80); `roughening` the lowest (0.10) — the
+	// widest gap `TECHNIQUE_DIFFICULTY` offers, so this isolates the per-technique term's effect at
+	// a single fixed craft level rather than conflating it with craft varying too.
+	const lowCraft = 0.2;
+	const easy = computeLayerGrade(lowCraft, 'roughening');
+	const hard = computeLayerGrade(lowCraft, 'inlay');
+
+	assert(
+		hard < easy,
+		`expected low craft (${lowCraft}) to realise a lower grade on inlay (${hard}) than on roughening (${easy})`,
+	);
+});
+
+Deno.test('computeLayerGrade: high craft narrows the gap between an easy and a hard technique', () => {
+	// The formula's own claim (module JSDoc): a hard technique's realised grade degrades FASTER
+	// than an easy one's as craft falls, so the gap should be wider at low craft than at high craft.
+	const lowGap = computeLayerGrade(0.2, 'roughening') - computeLayerGrade(0.2, 'inlay');
+	const highGap = computeLayerGrade(0.9, 'roughening') - computeLayerGrade(0.9, 'inlay');
+
+	assert(
+		highGap < lowGap,
+		`expected the easy/hard gap to narrow at high craft (${highGap}) versus low craft (${lowGap})`,
+	);
+});
+
+Deno.test('computeLayerGrade: stays within [0, 1] at the craft extremes for every technique', () => {
+	for (const technique of DECORATIVE_TECHNIQUES.map((t) => t.technique)) {
+		for (const craft of [0, 0.5, 1]) {
+			const grade = computeLayerGrade(craft, technique);
+			assert(
+				grade >= 0 && grade <= 1,
+				`expected computeLayerGrade(${craft}, '${technique}') in [0, 1], got ${grade}`,
+			);
+		}
+	}
+});
+
+Deno.test('expandDecoration: mean layer grade rises with craft at fixed emphasis and component count', () => {
+	// Isolates the refinement axis from the volume axis: `multiComponentArtefact()` fixes component
+	// count, and emphasis is held constant, so only `society.craftSpecialisation` varies between the
+	// two measurements — the same isolation the intensity-distribution test above applies to volume.
+	const culture = mockCulturalProfile();
+	const geology = mockGeologicalContext();
+
+	const meanGrade = (craftSpecialisation: number) => {
+		let sum = 0;
+		let count = 0;
+		for (let i = 0; i < 30; i++) {
+			const layers = expandDecoration(
+				multiComponentArtefact(),
+				culture,
+				mockPhaseCharacteristics({
+					society: { craftSpecialisation },
+					aesthetics: { decorativeEmphasis: 0.9 },
+				}),
+				geology,
+				[],
+				createPrng(`grade-seed-${i}`),
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+			);
+			for (const layer of layers) {
+				sum += layer.grade;
+				count++;
+			}
+		}
+		return count > 0 ? sum / count : 0;
+	};
+
+	const low = meanGrade(0.1);
+	const high = meanGrade(0.9);
+
+	assert(high > low, `expected high-craft mean grade (${high}) > low-craft mean grade (${low})`);
+});
+
 Deno.test('expandDecoration: distribution — technology.textiles is isolated to the textile-element category', () => {
 	// Per-category slot filling is independent of other categories (the module JSDoc's
 	// component-then-category-then-slot contract): each category's *count* is driven by
@@ -640,7 +717,7 @@ function detailLayer(
 	name: DecorativeTechnique,
 	sublayers: DecorativeLayer[] = [],
 ): DecorativeLayer {
-	return { targetComponentId: 'c0', technique: name, sublayers };
+	return { targetComponentId: 'c0', technique: name, grade: 0.5, sublayers };
 }
 
 /** A single-motif exchange source whose motif id is distinguishable from the fixture's native one. */

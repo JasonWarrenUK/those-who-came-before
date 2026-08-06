@@ -439,12 +439,28 @@ export interface ExtractedFeatures {
 	 *
 	 * `appliedElementPresent` above saturates by construction: `expandDecoration` gives each BNF
 	 * category its own per-component slot rolls, so at the fixture phase a ~4-component artefact
-	 * carries at least one applied element ~85% of the time. Measured across all six named regional
-	 * worlds (n=7200) the *count* still discriminates — p50 2, p75 4, p90 5, max 15 — so
-	 * classification rules wanting "deliberately embellished" read this, and the boolean stays for
-	 * consumers that genuinely only need presence. See doc 12 §2.25.
+	 * carries at least one applied element ~87% of the time (re-measured 2026-08-06, roadmap 2GN.98,
+	 * after `decorationVolume` moved to an emphasis-only reading — materially unchanged from the
+	 * pre-2GN.98 ~85%, confirming the saturation is structural rather than a volume-weighting effect,
+	 * doc 12 §2.33). Measured across all six named regional worlds (n=7200) the *count* still
+	 * discriminates — p50 2, p75 3, p90 5, max 11 — so classification rules wanting "deliberately
+	 * embellished" read this, and the boolean stays for consumers that genuinely only need presence.
+	 * See doc 12 §2.25.
 	 */
 	appliedElementCount: number;
+
+	/**
+	 * Mean `DecorativeLayer.grade` across every layer, `0`–`1` (roadmap 2GN.98, doc 11 §1.5); `0`
+	 * when `decorativeLayerCount` is `0`. Grade is craft-executed quality, not volume — a phase's
+	 * `society.craftSpecialisation` scaled by each selected technique's own execution difficulty
+	 * (`TECHNIQUE_DIFFICULTY`, `data/decorations.ts`), so a heavily-decorated but low-craft artefact
+	 * and a sparsely-decorated but high-craft one can score oppositely on this field despite
+	 * `decorativeLayerCount` saying nothing about either. This is the sampled `BaselineFeature`
+	 * realising doc 05 §8.3's "technically refined vs simple techniques" distinction — separate from
+	 * `decorativeLayerCount`/`decorativeComplexity`, which read `aesthetics.decorativeEmphasis`
+	 * (volume) rather than craft (execution quality).
+	 */
+	meanDecorativeGrade: number;
 
 	/** Whether any decorative layer carries a motif. */
 	motifPresent: boolean;
