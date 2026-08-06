@@ -653,7 +653,7 @@
 						"dependsOn": [
 							"2GN.77"
 						],
-						"notes": "⚠️ breaking if removed or stop feeding classification: referenced by `INTRODUCED_MATERIAL_TAGS` in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`, and doc 12 §2.22's interviewed gilding/inlay/overlay/studs/beading tag sets. **2GN.77 ruled world-relative (doc 11 §2.9), so this is no longer conditional:** `precious-metal`/`precious-stone` survive as material descriptors but lose any classification-input role, and no rule may read them to award a `RelativeTag`. Material-derived standing comes from the material's situation instead (availability × cultural affinity × provenance × stratification). Doc 12 §2.22's tag sets are re-keyed to the `AbsoluteTag`/`RelativeTag` vocabulary as part of this task.",
+						"notes": "⚠️ breaking if removed or stop feeding classification: referenced by `INTRODUCED_MATERIAL_TAGS` in `decoration.ts`, `mockCulturalProfile`'s `materialAffinities`, and doc 12 §2.22's interviewed gilding/inlay/overlay/studs/beading tag sets. **2GN.77 ruled world-relative (doc 11 §2.9), so this is no longer conditional:** `precious-metal`/`precious-stone` survive as material descriptors but lose any classification-input role, and no rule may read them to award a `RelativeTag`. Material-derived standing comes from the material's situation instead (availability × cultural affinity × provenance × stratification). Doc 12 §2.22's tag sets are re-keyed to the `AbsoluteTag`/`RelativeTag` vocabulary as part of this task.\n\n**Scope addition from 2GN.84 (doc 12 §2.34, 2026-08-06):** `culturalAffinityWeight` (`engine/generation/materials.ts`) takes the MAX across a material's tags when reading `CulturalProfile.materialAffinities`. Measured: the Khaltiris preset (`data/explorer-cultures.ts`) authors `metal: 1.7, precious-metal: 1.4` — gold/silver carry both tags, so max always picks `metal`'s 1.7 and the authored `precious-metal: 1.4` is silently dead code. The rule is one-directional by construction: a culture can never express 'we value gold less than plain bronze' via this map. Fixing it means choosing between max / most-specific-tag-wins / product-of-deviations-from-1, a semantics ruling that belongs with this task's existing `precious-*` scope rather than being decided by default elsewhere.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -704,7 +704,7 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20",
@@ -713,6 +713,7 @@
 							"2GN.84",
 							"2GN.85"
 						],
+						"notes": "**Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false` in `extractFeatures`.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1215,14 +1216,32 @@
 					{
 						"id": "2GN.84",
 						"description": "recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.80",
 							"2GN.77",
 							"2GN.95"
 						],
-						"notes": "Recalibration of already-built work, gated on both spikes. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only 0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's material-value question directly — may merge with it — and 2GN.80 touches it too via `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2 naming it as an elite/utilitarian driver. Now measurable per world: the six named regions (2GN.79) give six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated on roadmap 2GN.95 (`ClassificationContext` + baseline sampler), not merely on the 2GN.80/2GN.77 ruling itself.** The ruling (doc 11 §2.9) is fully decided, but recalibrating against a culture-relative basis that has no implementation would measure the wrong thing. Also correcting scope: earlier notes on this task described the pre-ruling scope (\"R12/R15 + eleven decoration-conditioned rules\"), which doc 12 §2.28 corrected — the award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that. ⚠️ **Same shape as 2GN.83 found itself in (doc 12 §2.32): before pickup, check whether relativisation has similarly removed this task's calibration target.** \"Recalibrate per the ruling\" presupposes something to recalibrate against, and 2GN.83 found that presupposition false for decoration — re-scope this task's notes if the same gap exists here, rather than discovering it mid-implementation.",
+						"notes": "Inverted 2026-08-06 (doc 12 §2.34): no calibration target existed (doc 05 §7 is qualitative only; §10.2 explicitly disclaims a quota reading), matching the trap 2GN.83 hit and flagged in this task's own notes. Delivered instead: `src/lib/data/materials.calibration.test.ts` (new) — a hierarchical per-region tag-share/intra-tag-split/provenance-mix/cross-region-spread guard derived from `MaterialDefinition.tags`, installing the missing target rather than recalibrating against an absent one, the same move 2GN.82/2GN.98 made for classification/decoration. `SCARCITY_WEIGHT`'s four values are UNCHANGED and now pinned as the measured baseline.\n\nTwo real defects found and fixed along the way: (1) `materialAccessGate` (`engine/generation/decoration.ts`) checked a technique's material *substrate* but not its *introduced* material — `wire-wrapping` (substrate: grippable form; introduces: metal) was never gated on metal availability, so a metal-free region (`forestInterior`) produced 26.3% wire-wrapping share (vs 5.8-6.1% elsewhere), more metal wirework than anywhere with metal. Fixed by extending the gate to also check `INTRODUCED_MATERIAL_TAGS` via `isAvailable` (availability only, not affinity). (2) `scarcityWeight`'s unmodelled-material lenience returned neutral `1`, ranking an unmodelled material above an explicitly `available` one (`0.6`) — same class of defect as doc 12 §2.25's silver/jade over-representation. Fixed to return the `available` rung instead.\n\nA full 16-entry catalogue audit (`data/materials.ts`) found and fixed one tag miss (`jade`: `['precious-stone']` → `['stone', 'precious-stone']`, matching gold/silver's dual-tag pattern) and one inert-material defect (`glass`: all three `decorability` flags were false; corrected to `engravable: true, paintable: true`, grounded in attested wheel-cut/diamond-point engraving and enamelled-glass practice; `glazeable` stays false as a ceramic-only process).\n\n`deno task check` 0 errors, `deno test` 527/527 passing. Full detail: doc 12 §2.34.\n\nExplicitly split out, not pursued here: `culturalAffinityWeight`'s max-across-tags semantics (Khaltiris authors `precious-metal: 1.4` on gold, silently dead since `metal: 1.7` wins the max — folded into 2GN.78's scope); material-dependent technique difficulty (new task 2GN.99); leatherworking/craft-domain taxonomy (new task 2GN.100); `assignDecorativeDetails` has no production caller (noted against 2GN.68).",
 						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.99",
+						"description": "recalibrate `computeLayerGrade` to read technique difficulty per-material, not technique alone",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.98"
+						],
+						"notes": "Successor to 2GN.98 (doc 12 §2.34, surfaced 2026-08-06 during 2GN.84's glass-decorability review). `computeLayerGrade` (`engine/generation/decoration.ts`) reads `TECHNIQUE_DIFFICULTY[technique]` alone, so engraving granite scores identically to engraving gold despite materially different real-world execution difficulty. Needs its own authored data (candidates: a full technique×material matrix, a per-material hardness modifier scaling the existing per-technique table, or a per-material-tag modifier) with the same item-by-item sign-off `TECHNIQUE_DIFFICULTY` got at 2GN.98. Not a design spike by default — but confirm the data shape with the user before authoring values, per that same precedent.",
+						"assignee": ""
+					},
+					{
+						"id": "2GN.100",
+						"description": "add a distinct `leatherWorking` craft domain, separating hide-work from weaving",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Surfaced 2026-08-06 during 2GN.84's material catalogue audit (doc 12 §2.34). `leather` (`data/materials.ts`) carries `craftDomain: 'textiles'`, identical to `linen`, conflating hide-working with weaving under one `PhaseCharacteristics.technology` axis. No `leatherWorking` domain exists in the `craftDomain` union or `PhaseCharacteristics['technology']`. Needs a `craftDomain` union addition, a new `PhaseCharacteristics.technology` field, and touches world generation/culture fixtures beyond material weighting — out of scope for a materials-weighting task, in scope for whichever task next revisits the craft-domain/technology axis list.",
+						"assignee": ""
 					},
 					{
 						"id": "2GN.85",

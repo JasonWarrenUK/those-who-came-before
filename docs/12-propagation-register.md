@@ -1311,7 +1311,7 @@ records what measurement found and why the task could not proceed as an implemen
 **Recalibration needs a target, and relativisation removed the old one without supplying a new
 one.** 2GN.83's line named four constants to move — `BASE_FILL_PROBABILITY`, `SLOT_DECAY`,
 `MAX_SLOTS_PER_CATEGORY`, `decorationIntensity`'s blend — "per the 2GN.80 ruling", but named nothing
-to move them *toward*. Before §2.9's ruling, these constants were pinned indirectly by
+to move them _toward_. Before §2.9's ruling, these constants were pinned indirectly by
 `EXPECTED_FIRE_RATES`: an absolute fire rate is a real, external measurement of generator behaviour.
 Under a culture-relative reading, `elite` means "above the p75 of what this culture makes", so a
 uniform change to decoration volume moves the sampled baseline and the measured artefacts together
@@ -1323,15 +1323,14 @@ craft/emphasis four-corner table, so that became the de facto target.
 **§8.3's table cannot serve as that target, measured directly.** Full working in doc 11 §1.5; the
 two findings summarised here.
 
-First, **the table's numbers have no producer.** §8.3 caps recursion depth
-(decoration-on-decoration via `DecorativeLayer.sublayers`), but `expandDecoration`
-(`src/lib/engine/generation/decoration.ts`) emits flat layers — every `sublayers` is `[]` — because
-nesting is roadmap 2GN.31, unbuilt. Read as the nearest measurable analogue, layers per component,
-sampling n=400–420 per cell across all six `MOCK_WORLD_REGIONS` (via `mockCulturalProfile` /
-`mockPhaseCharacteristics`) gives `0.41 / 1.64 / 1.72 / 3.14` at the table's four named corners
-(craft/emphasis at `0.15`/`0.85` each) against the stated `0–1 / 0–1 / ~1 / up to 3`: the extreme
-corners land, the two middle corners both sit around 1.7 where the table wants ≤1 and ~1
-respectively.
+First, **the table's numbers have no producer.** §8.3 caps recursion depth (decoration-on-decoration
+via `DecorativeLayer.sublayers`), but `expandDecoration` (`src/lib/engine/generation/decoration.ts`)
+emits flat layers — every `sublayers` is `[]` — because nesting is roadmap 2GN.31, unbuilt. Read as
+the nearest measurable analogue, layers per component, sampling n=400–420 per cell across all six
+`MOCK_WORLD_REGIONS` (via `mockCulturalProfile` / `mockPhaseCharacteristics`) gives
+`0.41 / 1.64 / 1.72 / 3.14` at the table's four named corners (craft/emphasis at `0.15`/`0.85` each)
+against the stated `0–1 / 0–1 / ~1 / up to 3`: the extreme corners land, the two middle corners both
+sit around 1.7 where the table wants ≤1 and ~1 respectively.
 
 Second, **the two middle corners are not jointly reachable by any function of
 `(craftSpecialisation, decorativeEmphasis)`.** A joint sweep over `CRAFT_WEIGHT` (the blend weight),
@@ -1341,9 +1340,9 @@ Narrowing to the blend weight alone confirms why: lowering `CRAFT_WEIGHT` from 0
 the high-craft/low-emphasis corner from 1.65 down to 0.97 (near the table's ≤1), but pushes the
 low-craft/high-emphasis corner from 1.65 up to 2.33 (away from the table's ~1) — the two corners
 trade against each other because both read the same scalar `decorationIntensity`. Broadening past
-linear blends did not help: every *symmetric* form tested (product, geometric mean) gives the two
+linear blends did not help: every _symmetric_ form tested (product, geometric mean) gives the two
 middle corners equal values by construction, since they sit at the same distance from the diagonal;
-every *asymmetric* emphasis-dominant form that separated them overshot the low-craft/high-emphasis
+every _asymmetric_ emphasis-dominant form that separated them overshot the low-craft/high-emphasis
 corner past 2.5 before the high-craft/low-emphasis corner reached the table's target. Best measured
 single-scalar form, `sqrt(craftSpecialisation × decorativeEmphasis)` at base weight 1.0, reaches
 error 1.30 against the current blend's 1.69 — a real but modest improvement, and it still collapses
@@ -1370,9 +1369,9 @@ the same ratio. Recorded rather than fixed: the correct correction is a function
 §1.5's four candidates is chosen, and picking a weight now would be answering that question by
 default rather than by argument.
 
-**`appliedElementPresent` saturation, recorded and set aside rather than pursued.** Measured
-across the sampled cells: 89.1% at the calibration-sweep fixture phase (craft 0.5, emphasis 0.5),
-rising to 95.5% at emphasis 1.0, 99.3% at the Khaltiris preset, 100% at craft = emphasis = 1.0.
+**`appliedElementPresent` saturation, recorded and set aside rather than pursued.** Measured across
+the sampled cells: 89.1% at the calibration-sweep fixture phase (craft 0.5, emphasis 0.5), rising to
+95.5% at emphasis 1.0, 99.3% at the Khaltiris preset, 100% at craft = emphasis = 1.0.
 `src/lib/data/classification.ts:403` already documents this as structural rather than a mistuned
 threshold — with 3 BNF categories × `MAX_SLOTS_PER_CATEGORY` 2 × N components, presence saturates
 for any fill probability above roughly 0.3 regardless of `decorationIntensity`'s exact value. The
@@ -1386,28 +1385,29 @@ default.
 refer to a function named `decorationSlotBudget`, governing "how many techniques are picked" as
 distinct from `AESTHETIC_EMPHASIS_GAIN` governing "which ones are favoured" — but no such function
 exists; the code has `decorationIntensity`, doing both jobs as one scalar. The volume/refinement
-distinction doc 11 §1.5's option 3 names appears to have been understood when the module was
-written and drifted out of the implementation. Not renamed here — it would be the one code change in
-an otherwise doc-only task, and which name is correct depends on the ruling.
+distinction doc 11 §1.5's option 3 names appears to have been understood when the module was written
+and drifted out of the implementation. Not renamed here — it would be the one code change in an
+otherwise doc-only task, and which name is correct depends on the ruling.
 
 **General lesson, recurring from §2.31.** §2.31 found that a ruling's selector and a task's
 measurement surface are two different counts, and conflating them sizes a task wrong. The failure
 here is adjacent: a task phrased as "recalibrate X per the ruling" presupposes a calibration target,
-and the ruling itself does not automatically supply one — relativisation *removes* the old one
+and the ruling itself does not automatically supply one — relativisation _removes_ the old one
 (absolute fire rate) without installing a replacement. **Roadmap 2GN.84 is phrased identically**
 ("recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings") and should
 be checked for the same gap before pickup, not discovered mid-implementation the way this one was.
 
 **Consequence: no `src/` file changed.** `EXPECTED_THRESHOLDS`, `EXPECTED_FIRE_RATES`,
 `EXPECTED_GATED_RATES` (`data/calibration.test.ts`), the `decorativeLayerCount` p75 pin
-(`engine/statistics.regression.test.ts`) and the saturation prose
-(`types/artefact.ts:436-447`) are all unchanged, because nothing they measure moved. `deno task
-check` and `deno test` are unaffected by this task by construction.
+(`engine/statistics.regression.test.ts`) and the saturation prose (`types/artefact.ts:436-447`) are
+all unchanged, because nothing they measure moved. `deno task
+check` and `deno test` are unaffected
+by this task by construction.
 
-| Doc | What changed                                                                                   | Completed  |
-| --- | ----------------------------------------------------------------------------------------------- | ---------- |
-| 12  | This entry — why 2GN.83 could not proceed, the four measured findings, the craft double-count   | 2026-08-06 |
-| 11  | New §1.5: decorative-volume open question, four candidate rulings, no recommendation between them | 2026-08-06 |
+| Doc | What changed                                                                                                                 | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — why 2GN.83 could not proceed, the four measured findings, the craft double-count                                | 2026-08-06 |
+| 11  | New §1.5: decorative-volume open question, four candidate rulings, no recommendation between them                            | 2026-08-06 |
 | —   | Roadmap: 2GN.83 done (doc-only); new 2GN.98 (rule §1.5, then recalibrate); 2GN.84 annotated with this entry's general lesson | 2026-08-06 |
 
 ---
@@ -1430,48 +1430,51 @@ selection toward `TECHNIQUE_CRAFT_AXIS === null` ("simple": `polish`, `patina`, 
 `scoring`, `painting` — §8.3's own named example) at low craft. Measured directly: real and
 directional, ~30% low-difficulty-technique share at low craft against ~15–19% at high craft, but
 capped. The other three factors already in `computeTechniqueWeight`'s weight product (cultural
-technique affinity, material access, gating technology maturity) dominate `weightedSelect`'s
-outcome and cannot be out-weighted by a craft-selection bias without defeating each of their own
-stated purposes. Rejected as too weak a realisation of "technically refined".
+technique affinity, material access, gating technology maturity) dominate `weightedSelect`'s outcome
+and cannot be out-weighted by a craft-selection bias without defeating each of their own stated
+purposes. Rejected as too weak a realisation of "technically refined".
 
 **Path 2, rejected: `grade = craftSpecialisation` alone, no per-technique term.** Cleanly orthogonal
 to volume — reads craft only, where volume reads emphasis only, sharing nothing between the two
 terms. Measured directly: **degenerate as a sampled feature.** Every layer on every artefact from
 one culture-phase received the identical value (the phase's craft level, a constant), so within a
 culture-phase cell `p50 = p75 = p90 = mean`, always. `ClassificationContext`'s baseline sampler
-(`sampleBaselines`) exists to answer "how does this value distribute across a culture's own
-output" — a percentile ladder over a constant answers no such question, and a rule reading it via
-`exceeds` would be comparing every artefact against a threshold with no real distribution behind
-it. Adding artificial per-layer jitter was considered and rejected too: it would fix the numbers
-but is fabricated noise with no design basis, the kind of thing that reads as a measurement when it
-is actually an authored decision dressed as one.
+(`sampleBaselines`) exists to answer "how does this value distribute across a culture's own output"
+— a percentile ladder over a constant answers no such question, and a rule reading it via `exceeds`
+would be comparing every artefact against a threshold with no real distribution behind it. Adding
+artificial per-layer jitter was considered and rejected too: it would fix the numbers but is
+fabricated noise with no design basis, the kind of thing that reads as a measurement when it is
+actually an authored decision dressed as one.
 
-**What was built.** `TECHNIQUE_DIFFICULTY` (`src/lib/data/decorations.ts`) rates each of the
-sixteen decorative techniques' real execution difficulty, `0`–`1`, authored and reviewed per-item
-against how each craft actually works in practice — training time, error tolerance, hand-skill
-demand — rather than derived from the catalogue's `substrate`/`carriesMotif`/`introducesMaterial`
-flags, which correlate with difficulty but are not difficulty itself (`polish` has no motif or
-introduced material yet a true mirror finish by hand takes real practice; `gilding` introduces a
-precious material but is procedural once mastered, not the hardest technique in the set). Values,
-ascending: `roughening` 0.10, `patina` 0.15, `polish`/`scoring`/`tassels` 0.20, `wrapping` 0.30,
+**What was built.** `TECHNIQUE_DIFFICULTY` (`src/lib/data/decorations.ts`) rates each of the sixteen
+decorative techniques' real execution difficulty, `0`–`1`, authored and reviewed per-item against
+how each craft actually works in practice — training time, error tolerance, hand-skill demand —
+rather than derived from the catalogue's `substrate`/`carriesMotif`/`introducesMaterial` flags,
+which correlate with difficulty but are not difficulty itself (`polish` has no motif or introduced
+material yet a true mirror finish by hand takes real practice; `gilding` introduces a precious
+material but is procedural once mastered, not the hardest technique in the set). Values, ascending:
+`roughening` 0.10, `patina` 0.15, `polish`/`scoring`/`tassels` 0.20, `wrapping` 0.30,
 `beading`/`studs` 0.35, `overlay` 0.40, `glaze` 0.45, `painting`/`wire-wrapping` 0.50, `gilding`
-0.55, `relief` 0.60, `engraving` 0.65, `inlay` 0.80. `computeLayerGrade(craftSpecialisation,
-technique)` combines craft and difficulty as `craft × (1 − 0.5×difficulty) +
-0.5×difficulty×craft²` — a hard technique's realised grade degrades faster than an easy one's as
-craft falls, so a low-craft culture attempting `inlay` produces markedly worse inlay than its craft
-level alone would suggest, where the same culture's `roughening` reads close to its craft level
-regardless. Measured within-cell spread (p90 − p50 of `meanDecorativeGrade`) across sampled cells:
-`0.006`–`0.025`, small but genuine and driven by which mix of techniques an artefact happened to
-roll — enough for a percentile ladder to mean something, unlike Path 2.
+0.55, `relief` 0.60, `engraving` 0.65, `inlay` 0.80.
+`computeLayerGrade(craftSpecialisation,
+technique)` combines craft and difficulty as
+`craft × (1 − 0.5×difficulty) +
+0.5×difficulty×craft²` — a hard technique's realised grade degrades
+faster than an easy one's as craft falls, so a low-craft culture attempting `inlay` produces
+markedly worse inlay than its craft level alone would suggest, where the same culture's `roughening`
+reads close to its craft level regardless. Measured within-cell spread (p90 − p50 of
+`meanDecorativeGrade`) across sampled cells: `0.006`–`0.025`, small but genuine and driven by which
+mix of techniques an artefact happened to roll — enough for a percentile ladder to mean something,
+unlike Path 2.
 
 **Doc 05 §8.3's table, measured against the shipped implementation.** Layers per component at the
 table's four named corners: `0.41–0.46 / 0.46–0.54 / 2.7–3.3 / 2.8–3.3` against the stated
 `0–1 / 0–1 / ~1 / up to 3`. All four corners now land within a defensible margin — a substantial
 improvement on the pre-2GN.98 blend's `0.42 / 1.65 / 1.65 / 3.16`, where the two middle corners were
 indistinguishable. `meanDecorativeGrade` separately confirms the craft axis moves in the stated
-direction: mean grade rises monotonically with `craftSpecialisation` at fixed emphasis and
-component count (pinned by `decoration.test.ts`'s new grade-direction test, the same isolation
-pattern the pre-existing intensity-distribution test applies to volume).
+direction: mean grade rises monotonically with `craftSpecialisation` at fixed emphasis and component
+count (pinned by `decoration.test.ts`'s new grade-direction test, the same isolation pattern the
+pre-existing intensity-distribution test applies to volume).
 
 **Consequence: `craftSpecialisation`'s "double-counting" (§2.32's own finding) is resolved by
 re-scoping, not by patching.** Under the old blend, craft drove decorative volume twice: directly
@@ -1480,50 +1483,50 @@ through the blend, and indirectly through `partCount` (`deriveComplexityBudget`,
 craft at all, craft has exactly two decorative-adjacent effects — `partCount` (structural) and
 `grade` (execution quality) — and two non-overlapping effects of one attribute is not
 double-counting. The original "3.2× gap at identical intensity" measurement described a shared
-scalar that no longer exists once volume and craft are decoupled; re-measuring that specific
-framing under the new code is not meaningful, since there is no longer a shared `intensity` value
-for the two cells to differ at.
+scalar that no longer exists once volume and craft are decoupled; re-measuring that specific framing
+under the new code is not meaningful, since there is no longer a shared `intensity` value for the
+two cells to differ at.
 
 **Consequence: `appliedElementPresent` saturation is confirmed structural, unaffected by this
 task.** Measured at the fixture phase (craft 0.5, emphasis 0.5) before and after: 89.1% (§2.32) vs
 86.7% (n=7200, this task) — well within measurement noise, not a directional move. Confirms §2.32's
 diagnosis stands: saturation comes from `MAX_SLOTS_PER_CATEGORY`'s per-category-per-component slot
 structure (doc 05 §8.2), not from how volume or refinement are weighted. `appliedElementCount`'s
-discriminating ladder moved slightly (p50 2, p75 3, p90 5, max 11 — was p50 2, p75 4, p90 5, max
-15) but the count still discriminates, which is the property that matters. Left out of scope here,
-as it was when first diagnosed (roadmap 2GN.79, doc 12 §2.25) and again when re-flagged (§2.32).
+discriminating ladder moved slightly (p50 2, p75 3, p90 5, max 11 — was p50 2, p75 4, p90 5, max 15)
+but the count still discriminates, which is the property that matters. Left out of scope here, as it
+was when first diagnosed (roadmap 2GN.79, doc 12 §2.25) and again when re-flagged (§2.32).
 
 **A new classification rule.** `meanDecorativeGrade` is the sampled feature giving doc 05 §8.3's
 "technically refined" its own signal, independent of `decorativeComplexity`'s volume — every
 existing decoration-family rule reads volume; none read execution quality. The new rule
 (`data/classification.ts`, appended after the technique-breadth rule to keep existing indices
 stable, matching §2.31's own precedent) reads `meanDecorativeGrade` at **p90, not p75**: measured
-directly, p75 fires at 26.6% — close enough to the naive "top quarter" expectation that this
-feature doesn't carry the coarse tie-mass §2.31 found on integer-valued features like
-`attachmentDiversity`, but still reading as "above average" rather than the "exceptional" the
-rule's own name and weight split (`artisanal` 0.4, `elite` 0.2, mirroring the technique-breadth
-rule's split) claim. p90 fires at 12.3%, comparable selectivity to the technique-breadth rule's own
-19.3% and consistent with how that rule and the exceptional-lavishness rule were both moved off p75
-for the same tail-claim reasoning (§2.31). Tags `artisanal` primarily rather than compounding the
-volume-driven `elite` weight the `decorativeComplexity` rules already carry — the same design
-choice §2.31's technique-breadth rule made, for the same reason.
+directly, p75 fires at 26.6% — close enough to the naive "top quarter" expectation that this feature
+doesn't carry the coarse tie-mass §2.31 found on integer-valued features like `attachmentDiversity`,
+but still reading as "above average" rather than the "exceptional" the rule's own name and weight
+split (`artisanal` 0.4, `elite` 0.2, mirroring the technique-breadth rule's split) claim. p90 fires
+at 12.3%, comparable selectivity to the technique-breadth rule's own 19.3% and consistent with how
+that rule and the exceptional-lavishness rule were both moved off p75 for the same tail-claim
+reasoning (§2.31). Tags `artisanal` primarily rather than compounding the volume-driven `elite`
+weight the `decorativeComplexity` rules already carry — the same design choice §2.31's
+technique-breadth rule made, for the same reason.
 
 **Guard re-measurement.** `decorationVolume`'s emphasis-only reading moved the entire
 decoration-family distribution — every rule from the structural-complexity rule onward that reads a
 decoration feature moved, while every rule reading only structural features (R1–R28, R37–R39) came
 back bit-identical, the same inertness checkpoint §2.31 used to prove its own migration's scope.
 `EXPECTED_THRESHOLDS`' six values moved substantially at the emphasis extremes — `layerP75`/
-`complexityP95` from `5/15` to `2/6.3` at emphasis 0.1, from `14/32` to `20.2/41.7` at emphasis
-1.0 — because removing craft's dilution of the emphasis signal steepened the emphasis-only curve
+`complexityP95` from `5/15` to `2/6.3` at emphasis 0.1, from `14/32` to `20.2/41.7` at emphasis 1.0
+— because removing craft's dilution of the emphasis signal steepened the emphasis-only curve
 materially; the emphasis-0.5 cell stayed near its old figure, unsurprising since that was the old
 blend's midpoint. The largest single `EXPECTED_FIRE_RATES` move: R32 (the universal any-decoration
 nudge) dropped from 98.0% to 89.2% — still comfortably clear of `SATURATION_CEILING` and still
 exempt from it by design (doc 12 §2.24), but the sharpest single consequence of emphasis-only volume
 producing materially more near-zero-decoration artefacts at low emphasis than the old blend did.
 `SPREAD_FLOOR` was checked directly against a concern raised while scoping this task — that
-emphasis-only volume might be a cleaner signal and narrow per-cell spread toward the guard's
-floor — and found unwarranted: measured minimum spread across the migrated nine is 12.0pp, six
-times the 2pp floor, no narrowing-collapse risk.
+emphasis-only volume might be a cleaner signal and narrow per-cell spread toward the guard's floor —
+and found unwarranted: measured minimum spread across the migrated nine is 12.0pp, six times the 2pp
+floor, no narrowing-collapse risk.
 
 **Test additions.** `decoration.test.ts` gains four tests: `computeLayerGrade` direction (a hard
 technique at fixed low craft yields a materially lower grade than an easy one), the gap narrowing at
@@ -1539,19 +1542,161 @@ moved from 43 to 44; the relative/absolute split moved from 34/43 to 35/44 (`art
 both `RelativeTag` members). Same guard-update pattern §2.31 established for a rule-count change:
 update the pinned numbers and the array together, deliberately, not by widening a tolerance.
 
-| Doc | What changed                                                                                        | Completed  |
-| --- | ---------------------------------------------------------------------------------------------------- | ---------- |
-| 12  | This entry — the ruling, the two rejected paths, the guard-by-guard re-measurement                   | 2026-08-06 |
-| 11  | §1.5 closed, resolved as new §2.10 (the ruling)                                                      | 2026-08-06 |
-| 05  | §8.3 gains an implementation note; §9.1's `ExtractedFeatures` block notes `meanDecorativeGrade`      | 2026-08-06 |
-| —   | `types/decoration.ts`: new `DecorativeLayer.grade` field                                             | 2026-08-06 |
-| —   | `data/decorations.ts`: new `TECHNIQUE_DIFFICULTY` table (authored, reviewed per-item)                | 2026-08-06 |
-| —   | `engine/generation/decoration.ts`: `decorationIntensity` → `decorationVolume` (emphasis-only); new `computeLayerGrade` | 2026-08-06 |
-| —   | `engine/generation/classification.ts`: new `meanDecorativeGrade` feature; `types/tags.ts`/`baselines.ts` gain the `BaselineFeature` | 2026-08-06 |
-| —   | `data/classification.ts`: new execution-quality rule (R44, p90)                                      | 2026-08-06 |
-| —   | `data/calibration.test.ts`: `EXPECTED_THRESHOLDS`/`EXPECTED_FIRE_RATES`/`EXPECTED_GATED_RATES` re-recorded; new R44 entry | 2026-08-06 |
+| Doc | What changed                                                                                                                                 | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — the ruling, the two rejected paths, the guard-by-guard re-measurement                                                           | 2026-08-06 |
+| 11  | §1.5 closed, resolved as new §2.10 (the ruling)                                                                                              | 2026-08-06 |
+| 05  | §8.3 gains an implementation note; §9.1's `ExtractedFeatures` block notes `meanDecorativeGrade`                                              | 2026-08-06 |
+| —   | `types/decoration.ts`: new `DecorativeLayer.grade` field                                                                                     | 2026-08-06 |
+| —   | `data/decorations.ts`: new `TECHNIQUE_DIFFICULTY` table (authored, reviewed per-item)                                                        | 2026-08-06 |
+| —   | `engine/generation/decoration.ts`: `decorationIntensity` → `decorationVolume` (emphasis-only); new `computeLayerGrade`                       | 2026-08-06 |
+| —   | `engine/generation/classification.ts`: new `meanDecorativeGrade` feature; `types/tags.ts`/`baselines.ts` gain the `BaselineFeature`          | 2026-08-06 |
+| —   | `data/classification.ts`: new execution-quality rule (R44, p90)                                                                              | 2026-08-06 |
+| —   | `data/calibration.test.ts`: `EXPECTED_THRESHOLDS`/`EXPECTED_FIRE_RATES`/`EXPECTED_GATED_RATES` re-recorded; new R44 entry                    | 2026-08-06 |
 | —   | `engine/statistics.regression.test.ts`: p75 pin re-measured (10 → 12) and re-framed against this task rather than 2GN.34's historical figure | 2026-08-06 |
-| —   | Roadmap: 2GN.98 done                                                                                  | 2026-08-06 |
+| —   | Roadmap: 2GN.98 done                                                                                                                         | 2026-08-06 |
+
+### 2.34 2GN.84 Inverts: No Calibration Target Existed, So One Was Built (2026-08-06)
+
+**Origin:** roadmap 2GN.84. **Source of truth:** this entry; no doc 11 question was raised or
+closed, since nothing here reopens a design decision — the 2GN.80/2GN.77 ruling itself (doc 11 §2.9)
+was already settled and is unchanged by this task.
+
+**The premise check §2.32 asked for came back positive, and worse than 2GN.83's.** 2GN.84's line —
+"recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77 rulings" — presupposes
+a calibration target the same way 2GN.83's did. Checked directly: doc 05 §7
+(`docs/05-generation-
+architecture.md:820-894`) is entirely qualitative, its strongest statement
+"trade materials appear at low weight — present but uncommon" satisfied by any positive weight below
+the local weight; doc 05 §10.2 explicitly disclaims a quota reading ("it's a weight, not a quota").
+Unlike 2GN.83, which at least had `EXPECTED_FIRE_RATES` to re-record, nothing in the test suite
+could tell a real recalibration from a typo — `materials.test.ts`'s three "distribution" tests are
+bare directional inequalities (`assert(bronzeShare > ironShare)`) that pass for any
+strictly-descending set of four numbers. And the ruling itself forecloses the obvious replacement
+target: doc 11 §2.9 bars any classification rule from reading `precious-*` to award status, so
+"recalibrate so precious materials read `elite`" was never available.
+
+**Unlike decoration, material availability already has a live downstream observer — which is what
+makes this task deliverable rather than doc-only.** `isAvailable` feeds `materialAccessGate`
+(`engine/generation/decoration.ts`), which sits inside the measured pipeline via `expandDecoration`.
+Measured across the six `MOCK_WORLD_REGIONS` (n=500 artefacts/region, before any fix in this task):
+material-substrate technique share ran 36.0–37.6% in five regions against 7.7% in `forestInterior`
+(no trade flows, so every metal unreachable), with gilding correctly suppressed 7.1% → 2.1%. Geology
+demonstrably reaches decoration output.
+
+**A real bug fell out of that same measurement.** `forestInterior`'s `wire-wrapping` share rose to
+26.3% (against 5.8–6.1% everywhere else) — a metal-free region producing the _most_ metal wirework
+of any region. `wire-wrapping` genuinely introduces metal (`INTRODUCED_MATERIAL_TAGS` in
+`decoration.ts` gives it `['metal', 'precious-metal']`), but its _substrate_ is
+`{ kind: 'form', requires: 'grippable' }` — describing the grippable thing being wrapped, not the
+wire — so `materialAccessGate`'s pre-existing check (`substrate.kind === 'material'`) never
+consulted the introduced-material requirement at all. The probability mass freed by correctly
+suppressing the eight genuinely material-gated techniques redistributed onto the five
+introduced-material techniques with non-material substrates (`wire-wrapping`, `inlay`, `overlay`,
+`studs`, `beading`), and wire-wrapping absorbed the largest share. Fixed by extending
+`materialAccessGate` to also check `INTRODUCED_MATERIAL_TAGS` via `isAvailable` (availability only,
+not affinity — a culture that can obtain metal can use metal wire whether or not it particularly
+favours metal; affinity still shapes which specific metal wins, downstream, in
+`assignDecorativeDetails`). Re-measured post-fix: `forestInterior` wire-wrapping fell to 6.8%, in
+line with every other region (5.1–6.0%); gilding's correct suppression (6.7% → 1.3% at the fixed
+constants) is unaffected. `assignDecorativeDetails` itself — the stage that would pick which metal —
+was considered as the fix site and rejected: it has no production caller (verified: only its own
+tests reach it), and wiring it in would wake `preciousMaterialsInDecoration`, whose rule doc 11 §2.9
+forbids from reading `precious-*` to award status. That wiring is 2GN.68's, and is blocked for
+exactly this reason.
+
+**A full 16-entry catalogue audit surfaced one tag miss and one inert-material defect, both
+corrected here.** `jade` carried only `['precious-stone']`, unlike gold/silver's
+`['metal', 'precious-metal']` — invisible to any plain `stone` affinity or
+`allowedMaterialTags: ['stone']` constraint, and inconsistent with the taxonomy the new calibration
+guard's tree structure rests on. Corrected to `['stone', 'precious-stone']`. Separately, `glass` was
+the only material with all three `decorability` flags false — selectable but never decorable.
+Corrected to `engravable: true, paintable: true` (grounded in attested practice: wheel-cut and
+diamond-point glass engraving from Roman cage cups onward; cold-painting and enamelling from Islamic
+enamelled glass through later Bohemian work), `glazeable` staying `false` since glaze is a ceramic
+process per its own JSDoc. Both fixes changed a pre-existing test's premise: `materials.test.ts`
+asserted `engravable` implies `workable`, true for every material until glass, and now corrected to
+a counter-example test matching the pattern already established for gold's independent
+hardness/workability axes.
+
+**A second, adjacent defect found and deliberately left unfixed here.** `scarcityWeight`
+(`engine/generation/materials.ts`) returned `1` (neutral) for a material with no geology entry —
+strictly above an explicitly `available` material (`0.6`) and 4× an explicitly `scarce` one, so a
+fixture gap silently promoted an unmodelled material above every honestly-modelled peer. The same
+class of defect §2.25 caught with silver/jade before the six exhaustive `MOCK_WORLD_REGIONS` existed
+to close it. Corrected to return the `available` rung instead: an unmodelled material is one nobody
+made a claim about, and the honest default is "unremarkable", not "the most plentiful thing here".
+`isAvailable`'s own unmodelled-lenience (`return true`) is untouched and correct — only the _weight_
+an unmodelled material received was wrong, not whether it should be excluded.
+
+**`SCARCITY_WEIGHT`'s four values are unchanged.** This is the inversion the roadmap line's title
+promised and this task does not deliver: there is still no numeric target to recalibrate the four
+multipliers against, only a now-installed guard that pins their _ratio_
+(`data/
+materials.calibration.test.ts`, new) so a future change is measurable. The values are pinned
+as the measured baseline, the same move §2.31 made for classification thresholds and §2.33 made for
+decoration's fill constants — create the target, don't recalibrate against an absent one.
+
+**The new guard's pin structure is a two-level tree, not a flat table**, derived from
+`MaterialDefinition.tags` at test time rather than hand-written: a per-region tag-level share (e.g.
+`metal`: 22%) plus, only for tags with two or more leaf materials (`metal`, `stone`, `wood`,
+`bone`), a conditional intra-tag split (of that metal: bronze/iron/gold/silver). This is what lets
+the guard distinguish "this culture makes less metal overall" from "this culture makes the same
+metal but none of it is tin" — both look identical to a flat per-material pin until the intra-tag
+level separates them. Six single-leaf tags (clay, glass, fiber, leather) emit no split, since it
+would always read 100%. A third pin — provenance mix (`local`/`trade` share via
+`deriveMaterialProvenance`) — is the one most directly sensitive to `SCARCITY_WEIGHT`'s `trade-only`
+rung specifically, since a tag can be satisfied by either a local or a traded member without the
+tag-level share moving at all. A fourth guard checks cross-region spread stays above a floor,
+catching the failure a flat directional test cannot: weighting collapsing toward uniform selection
+while every existing `a > b` assertion in `materials.test.ts` still passes. Deriving the tree from
+the catalogue rather than hand-writing it means a 17th material automatically gets a row, with a
+coverage test failing loudly if it doesn't.
+
+**Sequencing note, for honesty about what "inertness-checked" means here.** §2.31 and §2.33 both
+proved their guard's sweep sound by recording pins against unchanged code first, then re-recording
+after the fix. This task's pins were instead measured directly against the already-corrected
+pipeline (jade/glass fixed, gate hole closed) — the `forestInterior` wire-wrapping numbers above
+serve the equivalent role, recorded both before (26.3%) and after (6.8%) the gate fix specifically,
+but the calibration guard itself was authored once, post-fix, rather than twice. The full test suite
+(527 tests) passes at every stage checked; `calibration.test.ts`'s own fire-rate pins did not need
+re-recording — the changes here are small enough (five techniques' selection weight; which specific
+material wins, not layer counts or complexity) that they land within its existing `TOLERANCE_POINTS`
+(6pp).
+
+**Split to successor tasks**, all recorded rather than pursued here:
+
+- **`culturalAffinityWeight`'s max-across-tags semantics, folded into 2GN.78.** Measured: the
+  Khaltiris preset (`data/explorer-cultures.ts`) authors `metal: 1.7, precious-metal: 1.4` for
+  gold/silver, which carry both tags; `culturalAffinityWeight` takes the max across a material's
+  tags, so the authored `1.4` is silently dead code for that culture. The rule is one-directional by
+  construction — a culture can never express "we value gold less than plain bronze" via this map.
+  Fixing it means choosing between max / most-specific-wins / product-of-deviations, a semantics
+  ruling that overlaps 2GN.78's existing scope (`precious-*` semantics under the 2GN.77 ruling)
+  directly; deciding it here would be answering by default, the exact failure this entry's own
+  opening paragraph is checking for.
+- **New: material-dependent technique difficulty.** 2GN.98's `computeLayerGrade` reads technique
+  alone, so engraving granite scores identically to engraving gold. A real gap, surfaced while
+  reviewing the glass decorability fix, but out of this task's scope — it extends `decoration.ts`'s
+  grade formula, not material weighting, and needs its own authored data (a 16×16 matrix, a
+  per-material hardness modifier, or a per-tag one) with the same per-item review
+  `TECHNIQUE_DIFFICULTY` got at 2GN.98.
+- **New: leatherworking and other craft domains.** `leather` shares `craftDomain: 'textiles'` with
+  `linen`, conflating hide-working with weaving; there is no `leatherWorking` domain. Out of scope —
+  it is a `craftDomain` union change plus a new `PhaseCharacteristics.technology` field, touching
+  world generation beyond material weighting.
+- **Note against 2GN.68** — `assignDecorativeDetails` needs a production caller before 2GN.68 can do
+  anything; it currently has none.
+
+| Doc | What changed                                                                                                                                           | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| 12  | This entry — the premise check, the wire-wrapping bug, the catalogue audit, the guard design                                                           | 2026-08-06 |
+| —   | `data/materials.ts`: jade tags corrected to `['stone', 'precious-stone']`; glass decorability corrected to engravable/paintable                        | 2026-08-06 |
+| —   | `engine/generation/decoration.ts`: `materialAccessGate` extended to also check `INTRODUCED_MATERIAL_TAGS`                                              | 2026-08-06 |
+| —   | `engine/generation/materials.ts`: `scarcityWeight`'s unmodelled-material lenience corrected to the `available` rung; `SCARCITY_WEIGHT` JSDoc rewritten | 2026-08-06 |
+| —   | `data/materials.calibration.test.ts`: new — hierarchical tag-share, intra-tag-split, provenance-mix and cross-region-spread guards                     | 2026-08-06 |
+| —   | `data/materials.test.ts`, `engine/generation/materials.test.ts`: tests corrected for the defects fixed above                                           | 2026-08-06 |
+| —   | Roadmap: 2GN.84 done; successor tasks recorded against 2GN.78/2GN.68 and a new material-dependent-difficulty task                                      | 2026-08-06 |
 
 ---
 

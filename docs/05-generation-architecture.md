@@ -870,6 +870,25 @@ from, and callers are expected to pass a non-empty one (the default always is).
 Trade materials appear at low weight — present but uncommon. An artefact with a foreign material
 tells a story about contact, but the player has to figure out what kind.
 
+> **Implementation note (2026-08-06, roadmap 2GN.84, doc 12 §2.34):** this section states the
+> weighting priority directionally only, and doc §10.2 below explicitly disclaims a quota reading —
+> no numeric target for material distribution exists anywhere in this doc. Before this task,
+> nothing in the test suite could tell a real recalibration of `SCARCITY_WEIGHT`
+> (`src/lib/engine/generation/materials.ts`) from a typo: the existing distribution tests were bare
+> directional inequalities. `src/lib/data/materials.calibration.test.ts` installs the missing
+> target instead of recalibrating against an absent one — a hierarchical per-region tag-share and
+> intra-tag-split pin (mirroring `MaterialDefinition.tags`, e.g. `metal` → bronze/iron/gold/silver)
+> across the six `MOCK_WORLD_REGIONS`, plus a provenance-mix pin sensitive to the `trade-only` rung
+> specifically. `SCARCITY_WEIGHT`'s four values are unchanged; what the guard makes load-bearing is
+> the ratio between rungs, not any one absolute figure. The same measurement pass found and fixed a
+> gate defect in `expandDecoration`'s `materialAccessGate` (`src/lib/engine/generation/
+> decoration.ts`): it checked whether a technique's *substrate* required an unobtainable material,
+> but not whether a technique with a non-material substrate still *introduced* one it couldn't
+> obtain — `wire-wrapping` (substrate: a grippable form) introduces metal
+> (`INTRODUCED_MATERIAL_TAGS`) without ever being checked against metal availability, so a
+> metal-free culture produced more metal wirework than anywhere else. Now gated on availability for
+> both checks.
+
 ### 7.1 Material Provenance
 
 Each material assignment carries provenance metadata: where the raw material likely originated.

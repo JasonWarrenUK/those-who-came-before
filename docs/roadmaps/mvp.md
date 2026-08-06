@@ -897,22 +897,40 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       used elsewhere). `EXPECTED_THRESHOLDS`/`EXPECTED_FIRE_RATES`/`EXPECTED_GATED_RATES`
       re-measured and re-recorded (R1–R28/R37–R39 bit-identical; R32 dropped 98.0%→89.2%, still
       exempt from `SATURATION_CEILING` by design); `statistics.regression.test.ts`'s p75 pin moved
-      10→12, reframed against this task's own measurement. Rule count 43→44, relative/absolute
-      split 34/43→35/44. Four new `decoration.test.ts` tests; `deno task check` 0 errors, `deno
+      10→12, reframed against this task's own measurement. Rule count 43→44, relative/absolute split
+      34/43→35/44. Four new `decoration.test.ts` tests; `deno task check` 0 errors,
+      `deno
       test` 521/521 passing. Full detail: doc 12 §2.33
-- [ ] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
-      rulings _(depends on 2GN.80, 2GN.77, 2GN.95 — all done)_ — recalibration of already-built
-      work. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only
-      0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never
-      measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's
-      material-value question directly — may merge with it — and 2GN.80 touches it via
-      `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2
-      naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
-      six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated
-      on 2GN.95, not merely on the rulings** — same reasoning as 2GN.82. ⚠️ **Same shape 2GN.83
-      found itself in (doc 12 §2.32)**: check before pickup whether relativisation has similarly
-      removed this task's calibration target — "recalibrate per the ruling" presupposes something
-      to recalibrate against, which 2GN.83 found false for decoration
+- [x] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
+      rulings — inverted (2026-08-06, doc 12 §2.34): no calibration target existed (doc 05 §7 is
+      qualitative; §10.2 disclaims a quota reading), the trap this task's own notes flagged.
+      Delivered instead: `src/lib/data/materials.calibration.test.ts` (new) — a hierarchical
+      per-region tag-share/intra-tag-split/provenance-mix/spread guard derived from
+      `MaterialDefinition.tags`, installing the missing target rather than recalibrating against an
+      absent one. `SCARCITY_WEIGHT`'s four values are UNCHANGED, now pinned as the measured
+      baseline. Two real defects found and fixed: `materialAccessGate`
+      (`engine/generation/decoration.ts`) checked a technique's material substrate but not its
+      _introduced_ material — `wire-wrapping` (substrate: grippable form; introduces: metal) was
+      never gated on metal availability, so a metal-free region produced 26.3% wire-wrapping share
+      (vs 5.8–6.1% elsewhere); fixed by extending the gate to also check `INTRODUCED_MATERIAL_TAGS`.
+      `scarcityWeight`'s unmodelled-material lenience (neutral `1`, ranking above explicitly
+      `available`'s `0.6`) corrected to the `available` rung. A full 16-entry catalogue audit fixed
+      one tag miss (`jade` → `['stone', 'precious-stone']`) and one inert-material defect (`glass` →
+      `engravable`/`paintable` true). `deno task check` 0 errors, `deno test` 527/527 passing. Split
+      out: max-across-tags affinity semantics (folded into 2GN.78), material-dependent technique
+      difficulty (new 2GN.99), leatherworking craft domain (new 2GN.100), `assignDecorativeDetails`
+      has no production caller (noted against 2GN.68). Full detail: doc 12 §2.34
+- [ ] **2GN.99** — recalibrate `computeLayerGrade` to read technique difficulty per-material, not
+      technique alone _(depends on 2GN.98 — done)_ — successor to 2GN.98 (doc 12 §2.34, surfaced
+      2026-08-06). `computeLayerGrade` reads `TECHNIQUE_DIFFICULTY[technique]` alone, so engraving
+      granite scores identically to engraving gold. Needs its own authored data with the same
+      item-by-item sign-off `TECHNIQUE_DIFFICULTY` got at 2GN.98
+- [ ] **2GN.100** — add a distinct `leatherWorking` craft domain, separating hide-work from weaving
+      — surfaced 2026-08-06 during 2GN.84's catalogue audit (doc 12 §2.34). `leather` shares
+      `craftDomain: 'textiles'` with `linen`, conflating hide-working with weaving; no
+      `leatherWorking` domain exists. Needs a `craftDomain` union addition, a new
+      `PhaseCharacteristics.technology` field, and touches world generation beyond material
+      weighting
 - [x] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
       — landed doc-only (2026-08-04, doc 12 §2.29), the re-scope anticipated on pickup. No code
       changed: `deno task check` was already 0 errors/549 files before this task started, since the
@@ -1097,9 +1115,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from
       `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from
-      `DecorativeLayer.material`→precious-material lookup) _(blocked — depends on 2GN.33, 2GN.20,
-      2GN.77)_ — 2GN.77 edge added 2026-07-31: `preciousMaterialsInDecoration` is static
-      preciousness by construction, gated on the material value model the spike settles
+      `DecorativeLayer.material`→precious-material lookup) _(depends on 2GN.33, 2GN.20, 2GN.82,
+      2GN.83, 2GN.84, 2GN.85 — all done)_ — 2GN.77 edge added 2026-07-31:
+      `preciousMaterialsInDecoration` is static preciousness by construction, gated on the material
+      value model the spike settles. **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed
+      `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller
+      anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline
+      before `DecorativeLayer.material` is ever populated outside tests, which is the direct
+      upstream reason `preciousMaterialsInDecoration` is hardcoded `false`
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -2082,6 +2105,8 @@ graph LR
 	2GN.83["2GN.83: recalibrate `expandDecoration`'s fill c…"]
 	2GN.98["2GN.98: design spike — rule doc 11 §1.5's decor…"]
 	2GN.84["2GN.84: recalibrate `SCARCITY_WEIGHT` and mater…"]
+	2GN.99["2GN.99: recalibrate `computeLayerGrade` to read…"]
+	2GN.100["2GN.100: add a distinct `leatherWorking` craft…"]
 	2GN.85["2GN.85: propagate the 2GN.80 ruling into the ta…"]
 	2GN.27["2GN.27: `engine/generation/materials.ts` + `eng…"]
 	2GN.68["2GN.68: `engine/generation/classification.ts` —…"]
@@ -2484,9 +2509,11 @@ graph LR
 	2GN.83 --> 2GN.98
 	2GN.83 --> 2GN.27
 	2GN.83 --> 2GN.68
-	2GN.98 --> M2
+	2GN.98 --> 2GN.99
 	2GN.84 --> 2GN.27
 	2GN.84 --> 2GN.68
+	2GN.99 --> M2
+	2GN.100 --> M2
 	2GN.85 --> 2GN.27
 	2GN.85 --> 2GN.68
 	2GN.27 --> 2GN.38
@@ -2832,9 +2859,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.84,2GN.87,2GN.92,2GN.93,2GN.97 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.85,2GN.86,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.98 done
+	class 2GN.10,2GN.100,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.87,2GN.92,2GN.93,2GN.97,2GN.99 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.98 done
 ```
 
 ## Links
