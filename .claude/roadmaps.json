@@ -1323,6 +1323,16 @@
 						],
 						"notes": "Nothing currently does the material join at description time — `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant selection — resolve at pickup whether this is a distinct task or 2GN.38's description should instead be amended to state selection honours `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as separately-tracked selection logic.",
 						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.102",
+						"description": "add a formability axis to MaterialDefinition.physicalProperties distinguishing materials worked by subtraction (knapping) from those with a formable/plastic working state (cast, thrown, blown, modelled)",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.101"
+						],
+						"notes": "Surfaced 2026-08-07 during PR #53 review fixes (roadmap 2GN.101 follow-on). relief substrate test needed to distinguish fired-clay/glass (both fragile once finished, but modelled/cast before hardening) from obsidian/flint (worked only by conchoidal-fracture subtraction, never formable). No existing axis expresses this: fragility describes the finished object, not the working process, and gating relief on it wrongly excluded fired-clay and glass. grainFineness cannot substitute either — its top rung (\"amorphous or glassy\") describes obsidian and glass identically, so it cannot separate them. Same shape as the reactivity axis 2GN.101 itself added for patina: a technique (relief) had nothing legitimate to key on, so a new orthogonal axis is the honest fix rather than another proxy. Until this lands, relief gates on rigidity alone (src/lib/data/decorations.ts), which is documented there as a known limitation: obsidian and flint pass relief's substrate test when they should not, because there is currently no axis to exclude them correctly. Sixteen materials need individually-argued values against the new axis, following 2GN.101's own per-item authoring pattern.",
+						"assignee": "Jason Warren"
 					}
 				]
 			},

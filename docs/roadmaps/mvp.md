@@ -964,6 +964,18 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       pinned. Four substrate corrections fell out, including **`gilding`'s factually wrong
       metal-only gate** (real gilding is overwhelmingly on wood and gesso) — doc 05 §8.2 carried the
       same error in prose and is corrected
+- [ ] **2GN.102** — add a formability axis to `MaterialDefinition.physicalProperties`,
+      distinguishing materials worked by subtraction (knapping) from those with a formable/plastic
+      working state (cast, thrown, blown, modelled) — surfaced 2026-08-07 during PR #53 review fixes
+      as a 2GN.101 follow-on. The `relief` substrate test needed to distinguish fired-clay/glass
+      (fragile once finished, but modelled or cast before hardening) from obsidian/flint (worked
+      only by conchoidal-fracture subtraction, never formable), and no existing axis expresses this
+      — `fragility` describes the finished object, not the working process, and `grainFineness`
+      can't substitute either (its top rung, "amorphous or glassy", describes obsidian and glass
+      alike). Same shape as the `reactivity` axis 2GN.101 itself added for `patina`: a technique had
+      nothing legitimate to key on. Until this lands, `relief` gates on rigidity alone, documented
+      in `src/lib/data/decorations.ts` as a known limitation letting obsidian and flint pass
+      incorrectly
 - [x] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
       — landed doc-only (2026-08-04, doc 12 §2.29), the re-scope anticipated on pickup. No code
       changed: `deno task check` was already 0 errors/549 files before this task started, since the
