@@ -627,10 +627,12 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 * `RelativeTag` members. The absolute constant `>= 8` was chosen to "sit just inside" the
 	 * measured p90 (9) — a shim with no equivalent on a closed ladder. **p90, not p75**: the rule was
 	 * authored as a tail rule ("many distinct crafts", not "an above-average number"), and p90 fires
-	 * on 14.8% against the historically-measured 20.9%, staying a tail reading; p75 would fire on
-	 * 34.7%, a 13.8pp move that reads as "roughly average" rather than "unusual breadth". p90 also
-	 * directly addresses the 2GN.31 hazard above: a percentile basis moves with the generator instead
-	 * of silently saturating when nesting depth starts varying `techniqueComplexity`.
+	 * on 19.3% (re-measured against the live pipeline after the 2GN.98 volume/refinement split;
+	 * `EXPECTED_FIRE_RATES` in `calibration.test.ts` pins the same figure), staying a tail reading;
+	 * p75 would fire on 31.3%, a 12.0pp move that reads as "roughly average" rather than "unusual
+	 * breadth". p90 also directly addresses the 2GN.31 hazard above: a percentile basis moves with
+	 * the generator instead of silently saturating when nesting depth starts varying
+	 * `techniqueComplexity`.
 	 */
 	{
 		condition: (f, c) => c.exceeds('techniqueComplexity', 0.9, f.techniqueComplexity),

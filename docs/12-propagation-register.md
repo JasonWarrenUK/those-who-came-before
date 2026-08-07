@@ -1227,12 +1227,13 @@ exists to mark, since it combines with its sibling rule to reach `elite` 0.9. p9
 to 7.7% and preserving the tier's exclusivity, and was taken instead. Symmetrically, the
 technique-breadth rule's absolute constant (`>= 8`) was authored to "sit just inside" the measured
 p90 (9) — a shim with no equivalent on a closed ladder. p90 itself was taken (14.8% against a
-historically-measured 20.9%) rather than p75 (34.7%), because the rule's own JSDoc frames it as a
-tail claim ("many distinct crafts", not "an above-average number"), and p90 keeps it reading as a
-tail while p75 would read as "roughly average". p90 also directly closes a hazard the rule's JSDoc
-already named: `techniqueComplexity` is `maxDepth * distinctTechniques` with `maxDepth` currently
-pinned at 1, so once roadmap 2GN.31 lands variable nesting depth, an absolute constant would
-saturate with no change to this file — a percentile basis moves with the generator instead.
+historically-measured 20.9%, pre-2GN.98; re-measured post-split at 19.3%, §2.33 below) rather than
+p75 (34.7% pre-2GN.98, 31.3% re-measured) because the rule's own JSDoc frames it as a tail claim
+("many distinct crafts", not "an above-average number"), and p90 keeps it reading as a tail while
+p75 would read as "roughly average". p90 also directly closes a hazard the rule's JSDoc already
+named: `techniqueComplexity` is `maxDepth * distinctTechniques` with `maxDepth` currently pinned at
+1, so once roadmap 2GN.31 lands variable nesting depth, an absolute constant would saturate with no
+change to this file — a percentile basis moves with the generator instead.
 
 **Two rules' historically-measured percentile was of a sub-population the sampler does not provide,
 and both were re-derived against the whole population instead of building one.** The edged-decorated
