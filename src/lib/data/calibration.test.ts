@@ -143,7 +143,9 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	7.0, // R41 decorativeComplexity >= p95 (2GN.98 volume/refinement split: was 5.8)
 	27.9, // R42 decorativePerPart >= p75 (2GN.98 volume/refinement split: was 30.8)
 	19.3, // R43 techniqueComplexity >= p90 (2GN.98 volume/refinement split: was 14.8)
-	12.3, // R44 meanDecorativeGrade >= p90 → artisanal/elite (new, roadmap 2GN.98, doc 11 §1.5)
+	4.0, // R44 meanDecorativeGrade >= p90 → artisanal/elite (2026-08-07: was 12.3, sampleBaselines
+	// wasn't grading layers through the material-aware pass before sampling, so R44's threshold was
+	// set against the compressed technique-only grade distribution rather than the one it now reads)
 ];
 
 /**

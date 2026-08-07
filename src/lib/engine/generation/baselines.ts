@@ -4,9 +4,13 @@
  * The 2GN.80/2GN.77 ruling scores `RelativeTag` awards against baselines sampled empirically from
  * the producing culture-phase's own output, rather than a fixed constant. This module produces
  * those baselines by running the generation pipeline's stages 1–7
- * (`expandGrammar` → `normaliseArtefact` → `expandDecoration` → `extractFeatures`) and stopping
- * before classification (stage 8) — nothing upstream reads a tag, so there is no bootstrap
- * circularity.
+ * (`expandGrammar` → `normaliseArtefact` → `expandDecoration` → `assignMaterials` →
+ * `gradeDecorativeLayers` → `extractFeatures`) and stopping before classification (stage 8) —
+ * nothing upstream reads a tag, so there is no bootstrap circularity. Materials are assigned and
+ * layers re-graded before `extractFeatures` runs, not skipped: `expandDecoration`'s `grade` is only
+ * the provisional technique-only value (its own JSDoc), and `meanDecorativeGrade` (R44,
+ * `data/classification.ts`) must be sampled from the same material-aware grade real artefacts are
+ * classified against, or its baseline is measuring a different quantity than the value it gates.
  *
  * **Deliberately not cached.** Doc 11 §2.9 says baselines are "cached in world state", but
  * `WorldState` does not exist yet (lands at roadmap 3WS.9). `sampleBaselines` is a pure function of
@@ -32,7 +36,8 @@ import type { BaselineFeature, ClassificationContext, FeatureBaseline } from '..
 import { createPrng } from '../prng.ts';
 import { PERCENTILE_LADDER, percentileLadder } from '../statistics.ts';
 import { expandGrammar, normaliseArtefact } from './grammar.ts';
-import { expandDecoration } from './decoration.ts';
+import { expandDecoration, gradeDecorativeLayers } from './decoration.ts';
+import { assignMaterials } from './materials.ts';
 import { extractFeatures } from './classification.ts';
 
 /** n=400 per culture-phase — the measured knee (doc 11 §2.9, doc 12 §2.28). */
@@ -117,9 +122,10 @@ function readFeature(
  * (doc 11 §2.9, doc 12 §2.28).
  *
  * Runs pipeline stages 1–7 only, seeded `${seed}-${cultureId}-${phaseId}-${index}` (decoration
- * `${...}-decoration`), matching the convention `scripts/dev/shared.ts` and the existing samplers
- * (`data/calibration.test.ts`, `routes/dev/explorer/calibration/ruleCalibration.ts`) already use.
- * Deterministic: the same seed and target always produce the same context.
+ * `${...}-decoration`, material assignment `${...}-materials`), matching the convention
+ * `scripts/dev/shared.ts` and the existing samplers (`data/calibration.test.ts`,
+ * `routes/dev/explorer/calibration/ruleCalibration.ts`) already use. Deterministic: the same seed
+ * and target always produce the same context.
  *
  * No default rule/material/technique data: callers pass their catalogues explicitly, matching
  * `classifyArtefact`'s stated contract (`engine/generation/classification.ts`) — this module never
@@ -150,7 +156,7 @@ export function sampleBaselines(
 			expandGrammar(rules, target.profile, target.phase, createPrng(artefactSeed)),
 			`baseline-${artefactSeed}`,
 		);
-		const layers = expandDecoration(
+		const provisionalLayers = expandDecoration(
 			artefact,
 			target.profile,
 			target.phase,
@@ -160,6 +166,16 @@ export function sampleBaselines(
 			materials,
 			techniques,
 		);
+		const assignments = assignMaterials(
+			artefact,
+			target.profile,
+			target.phase,
+			target.geology,
+			target.trade,
+			createPrng(`${artefactSeed}-materials`),
+			materials,
+		);
+		const layers = gradeDecorativeLayers(provisionalLayers, assignments, target.phase, materials);
 		const features = extractFeatures(artefact, layers);
 
 		for (const feature of SAMPLED_FEATURES) {
