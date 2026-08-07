@@ -82,20 +82,26 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 	{
 		technique: 'relief',
 		category: 'surface-treatment',
-		// No dedicated "thickness" fact exists on `MaterialDefinition`; hardness stands in as the
-		// nearest proxy doc 05 §8.2 implies (a relief needs a substrate that holds a raised form
-		// without crumbling, which soft materials don't).
 		substrate: {
 			kind: 'material',
 			label: 'thick material',
-			// Roadmap 2GN.101: was `hardness !== 'soft'`, with a comment admitting hardness was
-			// "standing in as the nearest proxy" for properties that didn't exist. They do now, and
-			// "thick material" turns out to need both of them. A relief must hold a raised form, which
-			// rules out pliable ground (`rigidity`), and must survive the modelling without crumbling
-			// away, which rules out the most fracture-prone ground (`fragility`). Checking fragility
-			// alone would have admitted linen and leather.
-			test: (material) =>
-				material.physicalProperties.rigidity >= 3 && material.physicalProperties.fragility <= 5,
+			// Roadmap 2GN.101: was `hardness !== 'soft'`. A relief must hold a raised form, which
+			// rules out pliable ground — `rigidity` alone already excludes linen (1) and leather (2),
+			// so no further clause is needed for that.
+			//
+			// Fragility is deliberately NOT gated, even though it looks like the natural second check.
+			// What actually separates a relief-capable material from one that isn't is whether it
+			// passes through a formable state: fired clay is modelled wet then fired, and glass is
+			// cast, blown or pressed hot (cameo glass is cut from cased blanks) — the relief exists
+			// before either becomes brittle, so their high `fragility` describes the finished object,
+			// not the working process. Obsidian and flint, by contrast, are worked only by subtraction
+			// via conchoidal fracture and never pass through a formable state, which is why they
+			// genuinely cannot take modelled relief despite comparable `fragility` to fired clay.
+			// `grainFineness` can't stand in for this distinction either: its top rung is "amorphous or
+			// glassy", which describes obsidian and glass alike. No current axis expresses formability
+			// (roadmap 2GN.102, filed to add one), so this gate is rigidity-only for now — a known
+			// limitation that lets obsidian and flint pass incorrectly until that task lands.
+			test: (material) => material.physicalProperties.rigidity >= 3,
 		},
 		carriesMotif: true,
 		introducesMaterial: false,
@@ -197,8 +203,12 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 			// altarpieces, furniture) are the commonest historical case by a wide margin, with gilded
 			// leather bindings and gilded ceramic well attested. Metal-on-metal fire-gilding is one
 			// tradition among several, not the prerequisite. What gilding actually needs is a ground
-			// stable enough to hold leaf or foil, which excludes only genuinely pliable material.
-			test: (material) => material.physicalProperties.rigidity >= 2,
+			// stable enough to hold leaf or foil, which excludes only genuinely pliable material — the
+			// same `rigidity >= 3` threshold `overlay` and `studs` use, with the same named leather
+			// exception `studs` carries: gilded leather bindings are attested, and leather is the one
+			// pliable material that genuinely holds worked shape well enough for applied leaf.
+			test: (material) =>
+				material.physicalProperties.rigidity >= 3 || material.tags.includes('leather'),
 		},
 		carriesMotif: false,
 		introducesMaterial: true,
