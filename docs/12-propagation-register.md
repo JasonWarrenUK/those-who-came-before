@@ -1698,6 +1698,157 @@ material wins, not layer counts or complexity) that they land within its existin
 | —   | `data/materials.test.ts`, `engine/generation/materials.test.ts`: tests corrected for the defects fixed above                                           | 2026-08-06 |
 | —   | Roadmap: 2GN.84 done; successor tasks recorded against 2GN.78/2GN.68 and a new material-dependent-difficulty task                                      | 2026-08-06 |
 
+### 2.35 The Material Property Model Rebuilt; Grade Reads Material (2026-08-07)
+
+**Origin:** roadmap 2GN.99 and 2GN.100, which together forced a new prerequisite task, **2GN.101**.
+**Source of truth:** this entry.
+
+**2GN.99 could not be done against the property model it inherited.** Its brief — make
+`computeLayerGrade` read technique difficulty per-material rather than per-technique — assumed
+`MaterialDefinition.physicalProperties` could say something useful about how hard a material is to
+work. Reviewing it for that purpose found it could not, on two independent counts.
+
+`workable: boolean` was conflating three distinct facts: **brittleness** (obsidian, flint and glass
+shatter under a slip), **pliability** (linen and leather deform rather than cut), and **grain
+coarseness** (granite cannot hold a fine line however carefully it is worked). Those three have
+different consequences and different remedies, and a single boolean could express none of them
+separately. And `hardness: 'soft' | 'medium' | 'hard'` was not merely coarse — it was being actively
+_misused_: `relief`'s and `overlay`'s substrate tests both carried comments conceding that hardness
+was "standing in as the nearest proxy" for a fracture-resistance property the type did not have. The
+workaround was documented in place and had been for two tasks.
+
+**Six axes replace the pair, plus a keyed chemistry object.** `hardness` (1–10, pegged to the real
+Mohs scale so values stay independently checkable), `fragility`, `rigidity`, `grainFineness`,
+`porosity`, `combustibility` (all authored 1–7), and `reactivity: { oxidisation }`. All sixteen
+materials were scored against every axis, item-by-item, each value argued from real materials
+practice rather than derived from the others.
+
+**Axis independence was tested, not assumed.** Two pairs settle it. Obsidian and granite share
+hardness and rigidity, and granite is the _less_ fragile of the two — yet obsidian takes an edge
+finer than steel while granite's coarse crystalline grain caps precision regardless of care; only
+`grainFineness` explains that. Gold and oak sit close on hardness, fragility and rigidity, yet gold
+engraves far more precisely. Both pairs are pinned as tests.
+
+**Two axes were discovered mid-review rather than designed up front, each by a technique that had
+nothing to key on.** `patina` is an oxidation process and every axis to that point was mechanical or
+structural, which is why its substrate was `{kind: 'none'}` and the live generator was applying
+patina to stone and glass artefacts. `reactivity` was keyed by reaction type rather than made a bare
+scalar so future chemistry (acidity, photoreactivity) is additive. Separately, `painting` and
+`glaze` both turned out to want **absorbency**, which became `porosity`. A third, `combustibility`,
+followed from `glaze` being a _firing_ process: a material that would burn cannot be glazed at all.
+
+**`oxidisation` carries a `-1` not-applicable sentinel, and the distinction is load-bearing.** Glass
+and stone have no oxidation chemistry whatsoever; gold has it and is simply famously resistant. The
+first is `-1` and feeds a **substrate gate**; the second is `0` and feeds a difficulty weight.
+Gating rather than penalising keeps "impossible" and "merely hard" as different kinds of fact,
+matching the separation `materialAccessGate` and `computeLayerGrade` already maintain. Pinned by two
+tests.
+
+**Four substrate corrections fell out of the model, each a real behaviour change.** `patina` gains
+the oxidation gate described above. `glaze` gains a combustibility ceiling (not live-broken today,
+since only `fired-clay` passes `glazeable`, but the hole was real). `relief` and `overlay` retire
+the self-admitted hardness proxy for the properties they were reaching for — and `relief` needed
+_both_ `rigidity` and `fragility`, since checking fragility alone admitted linen and leather, which
+plainly cannot hold a raised form. **`gilding`'s gate was factually wrong**: it required
+`tags.includes('metal')`, but real gilding is overwhelmingly applied to non-metal grounds — gilded
+wood and gesso dominate the record, with gilded leather bindings and gilded ceramic well attested.
+It now gates on rigidity, excluding only linen. Doc 05 §8.2 carried the same error in prose ("you
+don't gild wood") and has been corrected.
+
+**`studs` changed verdict on gold, deliberately.** The old `hardness !== 'soft'` proxy rejected it;
+gold is structurally soft but perfectly rigid, and real goldwork takes rivets and applied studs. The
+corrected reading accepts it. Its named leather exception stays: leather is the one genuinely
+pliable material that does take studs, so it is a real exception rather than a gap.
+
+**2GN.99 ships as an unwired post-pass, and that is the honest scope.** `computeLayerGrade` is
+called inside `expandDecoration`'s slot loop, where no component has an assigned material —
+assignments live in a parallel `MaterialAssignment[]` from `assignMaterials`, which no production
+caller runs first. Threading them in would force all six call sites to reorder, and
+`assignMaterials` consumes PRNG draws, so it would perturb the decoration draw sequence and move
+every recorded fire rate for reasons unrelated to grade. `gradeDecorativeLayers` instead re-grades
+layers as a separate PRNG-free pass, mirroring `assignDecorativeDetails`' existing position.
+`expandDecoration` is untouched; the grade it emits is now documented as _provisional_. **Nothing in
+the sampled path changed, so no calibration pin moved** — the full suite passing unchanged is this
+task's inertness checkpoint, and a stronger one than 2GN.82/2GN.98's partial checks.
+
+**The sensitivity weights were scaled ×2.5 after measurement, and the measurement is why.** At the
+originally-authored `±0.15` band, engraving spanned only ~0.044 of realised grade across all sixteen
+materials, against ~0.3 between the easiest and hardest technique — material choice was a rounding
+error beside technique choice, with partially-cancelling weights (granite drawing `+0.10` for coarse
+grain but `−0.05` for low fragility) collapsing most of the signal. A modifier that weak would also
+have left `meanDecorativeGrade` too little within-cell spread to sample a percentile ladder from,
+which is precisely the degeneracy 2GN.98 rejected the craft-only grade for. Scaling preserved every
+relative judgement; only magnitude moved. Post-scaling spread runs 0.10 for `overlay`/`inlay` down
+to 0.02 for `scoring`, and `tassels` at exactly zero by design.
+
+**Scaling exposed a clamping artefact, fixed with a difficulty floor.** 22 of the 256 technique ×
+material pairs pushed difficulty below zero, and clamping those to `0` claimed the work was
+_perfectly_ easy — that a novice and a master produce identical results — which no real craft
+supports. It also tied seven techniques artificially at the same ceiling.
+`MINIMUM_DIFFICULTY = 0.05` keeps craft load-bearing everywhere; no technique now pins at the
+ceiling. Pinned by a test.
+
+**2GN.100 (`leatherWorking`) is confirmed live and free of calibration consequence.** `leather`
+moves off `textiles`, which it had been sharing with `linen`, conflating tanning with weaving. The
+four explorer presets get independently argued values (Tarpan 0.75, Khaltiris 0.60, Thalassar 0.45,
+Xoconahtl 0.30), each anchored to that culture's own geology and prose rather than cloned from its
+`textiles` — cloning would have made the axis a no-op alias and shipped nothing. Measured effect:
+Tarpan's pastoralist hide economy now weights leather at 6.4× its linen, while Xoconahtl's humid
+jungle inverts that in linen's favour; under the shared axis the two moved in lockstep. The test
+fixture takes `0.5`, which its own "every attribute neutral" contract demands and which is why **all
+six `materials.calibration.test.ts` leather pins hold unchanged** — the guard runs on
+`mockPhaseCharacteristics()` with no overrides, so `phaseTechnologyWeight('leather')` is identical.
+
+**`TECHNIQUE_CRAFT_AXIS` is deliberately unchanged, so no technique gates on `leatherWorking` on day
+one.** `studs` stays on `metallurgy` (the substrate is what you attach _to_; the stud is metal and
+the skill is fastening). `wrapping` is the genuinely mixed case — it introduces
+`['fiber', 'leather']` — but pointing it at either pure axis is wrong half the time, and re-pointing
+it would silently gut two existing tests that drive `technology.textiles` to 0 and 1. The correct
+fix is material-aware axis resolution, which shares 2GN.99's blocker. The new axis earns its keep
+through `phaseTechnologyWeight` instead, which is where the conflation actually bit.
+
+**Deferred, each recorded rather than quietly dropped:**
+
+1. **Booleans versus axes.** `decorability.engravable`/`paintable`/`glazeable` now duplicate what
+   the new axes could derive (engravable ≈ a `grainFineness`/`fragility` threshold; paintable ≈
+   `porosity`). Two sources of truth for related facts. Rewriting the eleven `substrate.test`
+   functions is its own redesign, and folding it in here would have expanded an already-large task a
+   third time.
+2. **Relational two-material difficulty.** Several techniques' real difficulty is a _relationship_
+   between the introduced material and the substrate — a heavy stone stud in soft wood is a genuine
+   structural risk — which a single-material model cannot express. This is why `wire-wrapping`,
+   `wrapping` and `beading` score near-inert: their difficulty is driven by the wire, cord or beads,
+   and the model reads the substrate.
+3. **`tassels` has no introduced material.** `introducesMaterial: false`, though a real tassel is
+   unambiguously cord. A catalogue gap distinct from (2): it needs a cord-class material added and
+   the flag flipped.
+4. **Real-unit scales.** `hardness` is pegged to Mohs; the other five are authored 1–7. Whether each
+   should become a real measured unit is worth revisiting — `combustibility` is the clearest case,
+   since raw ignition temperature exists and is checkable, and it is currently a documented
+   coarsened proxy (bone and antler pyrolyse rather than ignite, so their placement approximates a
+   different phenomenon).
+5. **Pipeline wiring.** `gradeDecorativeLayers` joins `assignDecorativeDetails` as a second unwired
+   pass. ⚠️ **Forward hazard:** the moment grading enters the sampled path, `meanDecorativeGrade`
+   becomes geology-sensitive, and `EXPECTED_THRESHOLDS`' pooling across the six regional worlds —
+   justified today because decoration reads emphasis rather than geology — becomes a claim nobody
+   has measured. It needs a per-region pin or an explicit ruling.
+6. **2GN.10 remains a blocker for the fuller version.** With `allowedMaterialTags` stubbed `[]`,
+   `assignMaterial` treats every material as a candidate for every component, so a wooden haft can
+   be assigned gold. Material-aware grade will be technically correct and archaeologically nonsense
+   until candidates are constrained.
+
+| Doc | What changed                                                                                                                       | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — the model, the axis-independence tests, the four substrate corrections, the scaling measurement, six deferred items   | 2026-08-07 |
+| 05  | §3.2's duplicated interface gains `leatherWorking`; §8.2's "you don't gild wood" corrected and an implementation note added        | 2026-08-07 |
+| —   | `types/artefact.ts`: `physicalProperties` rebuilt as six axes; new `reactivity` keyed object                                       | 2026-08-07 |
+| —   | `data/materials.ts`: all 16 materials scored across every axis; `leather` → `craftDomain: 'leatherWorking'`                        | 2026-08-07 |
+| —   | `data/decorations.ts`: new `TECHNIQUE_MATERIAL_SENSITIVITY`; `patina`/`glaze`/`gilding`/`relief`/`overlay`/`studs` substrate fixes | 2026-08-07 |
+| —   | `engine/generation/decoration.ts`: material-aware `computeLayerGrade`; new `gradeDecorativeLayers`; `MINIMUM_DIFFICULTY` floor     | 2026-08-07 |
+| —   | `types/world.ts`: `technology.leatherWorking`; four explorer presets and the test fixture scored                                   | 2026-08-07 |
+| —   | Tests: axis-range and independence guards, grade/floor/post-pass coverage, corrected substrate expectations                        | 2026-08-07 |
+| —   | Roadmap: 2GN.101 added and done; 2GN.99 and 2GN.100 done; six successors recorded                                                  | 2026-08-07 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

@@ -31,17 +31,17 @@ Every property produced by the pipeline exists at one of four visibility levels 
 2.5). These levels govern what the player can perceive, what agents can reason about, and what only
 the engine uses internally.
 
-| Pipeline Stage                                  | Visibility Level                                | Rationale                                                                                                 |
-| ----------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| World Seed                                      | Engine-internal                                 | Never exposed to any agent                                                                                |
-| Chronology & Culture                            | Occluded                                        | Ground truth the player must infer                                                                        |
-| Initial Corpus Generation                       | Engine-internal                                 | Seeds the professional world; not a property of any single artefact                                       |
-| Grammar Expansion                               | Observable                                      | Physical structure is directly perceptible                                                                |
-| Structural Normalisation + Plausibility         | Engine-internal                                 | Validation logic, not a world property                                                                    |
-| Material Assignment                             | Mixed                                           | Material identity is observable; geological provenance is inferable; cultural significance is occluded    |
-| Decorative Grammar                              | Observable (layers) / Inferable (motif meaning) | Decoration is visible; its significance requires interpretation                                           |
-| Unified Feature Extraction + Tag Classification | Mixed                                           | Physical features are observable; their classificatory weight and true tag scores are occluded            |
-| Description Generation                          | Observable but lens-shaped                      | What the player reads is filtered through registers and the interpretive lens                             |
+| Pipeline Stage                                  | Visibility Level                                | Rationale                                                                                              |
+| ----------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| World Seed                                      | Engine-internal                                 | Never exposed to any agent                                                                             |
+| Chronology & Culture                            | Occluded                                        | Ground truth the player must infer                                                                     |
+| Initial Corpus Generation                       | Engine-internal                                 | Seeds the professional world; not a property of any single artefact                                    |
+| Grammar Expansion                               | Observable                                      | Physical structure is directly perceptible                                                             |
+| Structural Normalisation + Plausibility         | Engine-internal                                 | Validation logic, not a world property                                                                 |
+| Material Assignment                             | Mixed                                           | Material identity is observable; geological provenance is inferable; cultural significance is occluded |
+| Decorative Grammar                              | Observable (layers) / Inferable (motif meaning) | Decoration is visible; its significance requires interpretation                                        |
+| Unified Feature Extraction + Tag Classification | Mixed                                           | Physical features are observable; their classificatory weight and true tag scores are occluded         |
+| Description Generation                          | Observable but lens-shaped                      | What the player reads is filtered through registers and the interpretive lens                          |
 
 The lens operates exclusively on observable and inferable properties. It cannot reveal occluded
 properties and it cannot hide observable ones — it can only reorder, reframe, and de-emphasise them.
@@ -119,7 +119,8 @@ interface PhaseCharacteristics {
 	technology: {
 		metallurgy: number; // 0–1
 		ceramics: number;
-		textiles: number;
+		textiles: number; // Spinning and weaving
+		leatherWorking: number; // Tanning and hide-work — split from textiles (roadmap 2GN.100)
 		stoneWorking: number;
 		glassWorking: number;
 		woodWorking: number;
@@ -872,20 +873,21 @@ tells a story about contact, but the player has to figure out what kind.
 
 > **Implementation note (2026-08-06, roadmap 2GN.84, doc 12 §2.34):** this section states the
 > weighting priority directionally only, and doc §10.2 below explicitly disclaims a quota reading —
-> no numeric target for material distribution exists anywhere in this doc. Before this task,
-> nothing in the test suite could tell a real recalibration of `SCARCITY_WEIGHT`
+> no numeric target for material distribution exists anywhere in this doc. Before this task, nothing
+> in the test suite could tell a real recalibration of `SCARCITY_WEIGHT`
 > (`src/lib/engine/generation/materials.ts`) from a typo: the existing distribution tests were bare
-> directional inequalities. `src/lib/data/materials.calibration.test.ts` installs the missing
-> target instead of recalibrating against an absent one — a hierarchical per-region tag-share and
+> directional inequalities. `src/lib/data/materials.calibration.test.ts` installs the missing target
+> instead of recalibrating against an absent one — a hierarchical per-region tag-share and
 > intra-tag-split pin (mirroring `MaterialDefinition.tags`, e.g. `metal` → bronze/iron/gold/silver)
 > across the six `MOCK_WORLD_REGIONS`, plus a provenance-mix pin sensitive to the `trade-only` rung
 > specifically. `SCARCITY_WEIGHT`'s four values are unchanged; what the guard makes load-bearing is
 > the ratio between rungs, not any one absolute figure. The same measurement pass found and fixed a
-> gate defect in `expandDecoration`'s `materialAccessGate` (`src/lib/engine/generation/
-> decoration.ts`): it checked whether a technique's *substrate* required an unobtainable material,
-> but not whether a technique with a non-material substrate still *introduced* one it couldn't
-> obtain — `wire-wrapping` (substrate: a grippable form) introduces metal
-> (`INTRODUCED_MATERIAL_TAGS`) without ever being checked against metal availability, so a
+> gate defect in `expandDecoration`'s `materialAccessGate`
+> (`src/lib/engine/generation/
+> decoration.ts`): it checked whether a technique's _substrate_
+> required an unobtainable material, but not whether a technique with a non-material substrate still
+> _introduced_ one it couldn't obtain — `wire-wrapping` (substrate: a grippable form) introduces
+> metal (`INTRODUCED_MATERIAL_TAGS`) without ever being checked against metal availability, so a
 > metal-free culture produced more metal wirework than anywhere else. Now gated on availability for
 > both checks.
 
@@ -947,14 +949,27 @@ can be `ritual` because of its structure, because of its decoration, or because 
 ```
 
 Material prerequisites are enforced: the grammar checks what material the target surface has before
-offering decorative options. You don't engrave fired clay the same way you engrave bronze. You don't
-gild wood.
+offering decorative options. You don't engrave fired clay the same way you engrave bronze.
 
 Engraving's `[requires: hard material]` prerequisite is resolved by workability, not raw structural
 hardness: a material qualifies if it can hold an incised line, which soft precious metals do via
 chasing and repoussé even though they aren't structurally hard.
-`MaterialDefinition.physicalProperties` keeps `hardness` and `workable` as independent axes for this
-reason — see `src/lib/data/materials.ts`.
+
+> **Implementation note (2026-08-07, roadmap 2GN.101/2GN.99, doc 12 §2.35):** the sentence "you
+> don't gild wood" previously closed the paragraph above and has been removed as factually wrong —
+> gilded wood and gesso are the commonest gilding in the historical record by a wide margin, with
+> gilded leather and gilded ceramic well attested; metal-on-metal fire-gilding is one tradition
+> among several. `gilding`'s substrate test carried the same error and now gates on rigidity
+> instead.
+>
+> `MaterialDefinition.physicalProperties` no longer holds the `hardness`/`workable` pair this
+> section described. `workable` was conflating three separate facts — brittleness, pliability and
+> grain coarseness — and `hardness` was being used as a stand-in for a fragility property that did
+> not exist. Six authored axes replace them (`hardness` on the real Mohs scale, `fragility`,
+> `rigidity`, `grainFineness`, `porosity`, `combustibility`) plus a keyed `reactivity` object, so
+> each substrate test names the fact it actually depends on. The same axes drive per-material
+> execution difficulty (`computeLayerGrade`), which is why engraving iron and engraving gold no
+> longer score identically.
 
 ### 8.3 Layered Decoration
 
@@ -985,21 +1000,21 @@ Recursion depth is capped by the culture's `craftSpecialisation` and
 > (`src/lib/engine/generation/decoration.ts`) emits flat layers (`sublayers: []` always); nesting is
 > roadmap 2GN.31. Measured directly against the real pipeline, the table's two middle corners proved
 > unsatisfiable by any single volume scalar over `(craftSpecialisation, decorativeEmphasis)` — they
-> differ by *kind* ("technically refined" vs "simple techniques"), not magnitude, which the table's
+> differ by _kind_ ("technically refined" vs "simple techniques"), not magnitude, which the table's
 > own wording states but a shared fill-probability term cannot express. The shipped implementation
 > splits the table's two axes into two independent mechanisms instead:
 >
-> - **How much decoration appears** (`decorationVolume`) reads `aesthetics.decorativeEmphasis`
->   alone — the "low emphasis"/"high emphasis" columns above, realised as layers per component
->   rather than nesting depth.
-> - **How well it is executed** (`DecorativeLayer.grade`, `0`–`1`) reads `society.craftSpecialisation`
->   scaled by each selected technique's own execution difficulty (`TECHNIQUE_DIFFICULTY`,
->   `src/lib/data/decorations.ts`) — the "technically refined" vs "simple techniques" rows above,
->   realised as a per-layer quality value rather than a technique-selection bias. `polish`,
->   `patina`, `roughening`, `scoring` and `tassels` are the lowest-difficulty techniques; `inlay`
->   and `gilding` the highest — the table's own named example, "simple techniques (painting,
->   scoring)", sits toward the low end of this scale, though `painting`'s motif-composition demand
->   places it materially above the very lowest tier.
+> - **How much decoration appears** (`decorationVolume`) reads `aesthetics.decorativeEmphasis` alone
+>   — the "low emphasis"/"high emphasis" columns above, realised as layers per component rather than
+>   nesting depth.
+> - **How well it is executed** (`DecorativeLayer.grade`, `0`–`1`) reads
+>   `society.craftSpecialisation` scaled by each selected technique's own execution difficulty
+>   (`TECHNIQUE_DIFFICULTY`, `src/lib/data/decorations.ts`) — the "technically refined" vs "simple
+>   techniques" rows above, realised as a per-layer quality value rather than a technique-selection
+>   bias. `polish`, `patina`, `roughening`, `scoring` and `tassels` are the lowest-difficulty
+>   techniques; `inlay` and `gilding` the highest — the table's own named example, "simple
+>   techniques (painting, scoring)", sits toward the low end of this scale, though `painting`'s
+>   motif-composition demand places it materially above the very lowest tier.
 >
 > `craftSpecialisation` retains one further, indirect effect on volume: it drives `partCount` via
 > `deriveComplexityBudget` (§5.5), so a high-craft culture's more-complex objects carry more
@@ -1210,9 +1225,9 @@ does.
 > confidences: compare by rank and margin, read absent tags as zero (`tags.get(tag) ?? 0`). The full
 > fold contract and its rationale live in the function's JSDoc and doc 12 §2.21.
 >
-> **Historical note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
-> vocabulary above previously split as `FunctionTag` (what an object was FOR) / `ContextTag` (how it
-> was USED). The ruling replaced it with the scoring-basis split shown, moving `ritual`, `votive` and
+> **Historical note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the vocabulary
+> above previously split as `FunctionTag` (what an object was FOR) / `ContextTag` (how it was USED).
+> The ruling replaced it with the scoring-basis split shown, moving `ritual`, `votive` and
 > `funerary` to the relative side. The FOR/USED distinction survives only in per-tag JSDoc
 > (`src/lib/types/tags.ts`), never in the type.
 >
@@ -1436,10 +1451,10 @@ player without the `technical` register never sees the technical framing, even i
 select it.
 
 > **Constraint (roadmap 2GN.38+):** a `RelativeTag` must never be described as an intrinsic property
-> of the object. `elite` means "unusually rich for this culture-phase" — a template that renders it as
-> "an object of obvious wealth" without qualifying against the culture's own norms misrepresents what
-> the score measured. `DescriptionVariant.emphasis` spans both bases; only its `RelativeTag` members
-> carry this constraint.
+> of the object. `elite` means "unusually rich for this culture-phase" — a template that renders it
+> as "an object of obvious wealth" without qualifying against the culture's own norms misrepresents
+> what the score measured. `DescriptionVariant.emphasis` spans both bases; only its `RelativeTag`
+> members carry this constraint.
 
 ### 13.2 Observation Assembly
 
