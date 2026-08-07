@@ -141,6 +141,10 @@ function maximalFeatures(): ExtractedFeatures {
 		functionalComplexity: 4,
 		decorativeComplexity: 30,
 		overallComplexity: 34,
+		// Above R44's `>= 0.9` percentile threshold (roadmap 2GN.98): left at the neutral 0, the
+		// migration coverage guard below would never see R44 as context-sensitive, since `exceeds`
+		// reports "no baseline" identically whether or not the permissive context carries the feature.
+		meanDecorativeGrade: 1,
 	});
 }
 
@@ -218,6 +222,7 @@ Deno.test('migration coverage: any context-sensitive rule awards a RelativeTag',
 					'partCount',
 					'attachmentDiversity',
 					'edgeCount',
+					'meanDecorativeGrade',
 				] as const
 			).map((feature) => [feature, Object.fromEntries(PERCENTILE_LADDER.map((p) => [p, 0]))]),
 		),
@@ -1039,6 +1044,52 @@ Deno.test('R39: the same artefact reads exceptionally lavish in one culture-phas
 
 	assert(R39.condition(artefact, austere), 'exceeds the austere culture-phase p95');
 	assertFalse(R39.condition(artefact, lavish), 'does not reach the lavish culture-phase p95');
+});
+
+// --- R44: execution quality (roadmap 2GN.98, doc 11 §1.5) ------------------------------------------
+
+const R44 = CLASSIFICATION_RULES[43];
+if (R44.tags.get('artisanal') !== 0.4 || R44.tags.get('elite') !== 0.2) {
+	throw new Error('CLASSIFICATION_RULES[43] must be the execution-quality rule');
+}
+
+/** A context carrying `meanDecorativeGrade` at a hand-set p90 threshold, mirroring `R38_R41_CONTEXT` above. */
+const R44_CONTEXT = relativeContext({ meanDecorativeGrade: { 0.9: 0.72 } });
+
+Deno.test('R44: meanDecorativeGrade at or above the culture-phase p90 fires', () => {
+	assert(R44.condition(features({ meanDecorativeGrade: 0.72 }), R44_CONTEXT));
+	assert(!R44.condition(features({ meanDecorativeGrade: 0.71 }), R44_CONTEXT));
+});
+
+Deno.test('R44: fires independent of decorative volume — sparse-but-skilled qualifies, lavish-but-crude does not', () => {
+	assert(
+		R44.condition(
+			features({ meanDecorativeGrade: 0.9, decorativeLayerCount: 1, decorativeComplexity: 2 }),
+			R44_CONTEXT,
+		),
+	);
+	assert(
+		!R44.condition(
+			features({ meanDecorativeGrade: 0.1, decorativeLayerCount: 20, decorativeComplexity: 40 }),
+			R44_CONTEXT,
+		),
+	);
+});
+
+Deno.test('R44: does not fire on neutral (zero-decoration) features', () => {
+	assert(!R44.condition(features(), R44_CONTEXT));
+});
+
+Deno.test('R44: returns false under an empty context, rather than falling back to an absolute reading', () => {
+	assertFalse(R44.condition(features({ meanDecorativeGrade: 0.99 }), ctx));
+});
+
+Deno.test('R44: the same artefact reads exceptional against an unskilled culture-phase and ordinary against a highly skilled one', () => {
+	const artefact = features({ meanDecorativeGrade: 0.5 });
+	const unskilled = relativeContext({ meanDecorativeGrade: { 0.9: 0.4 } });
+	const skilled = relativeContext({ meanDecorativeGrade: { 0.9: 0.6 } });
+	assert(R44.condition(artefact, unskilled));
+	assert(!R44.condition(artefact, skilled));
 });
 
 // --- Worked-example integration ---------------------------------------------------------------------

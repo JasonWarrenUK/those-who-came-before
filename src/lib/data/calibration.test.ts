@@ -201,9 +201,14 @@ const THRESHOLD_TOLERANCE = 3;
  */
 const SPREAD_FLOOR = 2;
 
-/** 0-based `CLASSIFICATION_RULES` indices of the nine rules migrated in roadmap 2GN.82. */
+/**
+ * 0-based `CLASSIFICATION_RULES` indices of the nine rules migrated in roadmap 2GN.82, plus R44
+ * (roadmap 2GN.98), which was authored directly against `ClassificationContext.exceeds` rather than
+ * migrated but is equally exposed to the failure this guard catches: a baseline sampler bug that
+ * makes a context-sensitive rule read identically across culture-phases.
+ */
 const MIGRATED_RULE_INDICES: Readonly<
-	Record<'R29' | 'R30' | 'R31' | 'R35' | 'R36' | 'R40' | 'R41' | 'R42' | 'R43', number>
+	Record<'R29' | 'R30' | 'R31' | 'R35' | 'R36' | 'R40' | 'R41' | 'R42' | 'R43' | 'R44', number>
 > = {
 	R29: 28,
 	R30: 29,
@@ -214,6 +219,7 @@ const MIGRATED_RULE_INDICES: Readonly<
 	R41: 40,
 	R42: 41,
 	R43: 42,
+	R44: 43,
 };
 
 /**
