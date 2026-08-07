@@ -128,7 +128,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 		tags: ['stone'],
 		craftDomain: 'stoneWorking',
 		physicalProperties: {
-			hardness: 6, // Mohs ≈6, a mixed feldspar/quartz rock rather than a single mineral.
+			hardness: 6, // Mohs 6-7, a mixed feldspar/quartz rock; pinned at the feldspar-dominated low end rather than quartz's 7, since feldspar is the majority mineral by volume.
 			// Notably *less* fragile than flint or obsidian: real masons rough-dress granite without
 			// it shattering. Its limit is precision, not survival — see `grainFineness`.
 			fragility: 3,

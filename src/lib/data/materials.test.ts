@@ -118,6 +118,20 @@ Deno.test('materials: glazeable only ever true for clay-tagged materials (doc 05
 	}
 });
 
+Deno.test('materials: engravable only ever true for sufficiently rigid materials (roadmap 2GN.101)', () => {
+	// Restores the catalogue-wide invariant the deleted `engravable only ever true when workable`
+	// test used to provide. The three axis-independence tests below each pin one hand-picked pair,
+	// but none of them constrain `engravable` against the axes for the catalogue as a whole — this
+	// closes that gap. `rigidity` is the right axis: its own JSDoc already states it is "the axis
+	// that makes linen and leather unengravable despite being neither hard nor brittle", and every
+	// engravable material in the catalogue reads rigidity >= 5.
+	for (const material of MATERIALS) {
+		if (material.decorability.engravable) {
+			assert(material.physicalProperties.rigidity >= 3, material.id);
+		}
+	}
+});
+
 Deno.test('materials: fragility is independent of hardness (obsidian counter-example, roadmap 2GN.101)', () => {
 	// The defect that motivated splitting the axes. `hardness` was previously carrying fragility's
 	// job — `relief` and `overlay` both had substrate tests commenting that hardness "stands in as

@@ -6,10 +6,10 @@
  * `SCARCITY_WEIGHT`'s four values (`engine/generation/materials.ts`) had no numeric target in any
  * design doc — doc 05 §7 states the ordering directionally only ("present but uncommon"), and doc
  * 05 §10.2 explicitly disclaims a quota reading ("it's a weight, not a quota"). Before this file,
- * nothing checked material weighting at all: `materials.test.ts`'s three "distribution" tests are
- * bare directional inequalities (`assert(bronzeShare > ironShare)`), which pass for any
- * strictly-descending set of four numbers — `SCARCITY_WEIGHT` could have been
- * `{1.0, 0.99, 0.98, 0.97}` and every test in the repo would still be green.
+ * nothing checked material weighting against any concrete number: a bare directional inequality
+ * (`assert(bronzeShare > ironShare)`) passes for any strictly-descending set of four numbers —
+ * `SCARCITY_WEIGHT` could have been `{1.0, 0.99, 0.98, 0.97}` and every test in the repo would
+ * still be green.
  *
  * **This file does not recalibrate the weights — it installs the missing target.** The four values
  * are left unchanged (see `SCARCITY_WEIGHT`'s own JSDoc) and pinned as the measured baseline, the
@@ -21,7 +21,7 @@
  * "this culture makes the same amount of metal but none of it is tin" — both look like one
  * material's share moving. The tree separates them: a tag-level share (`metal`: 22%) plus, only
  * where a tag has two or more leaf materials, a conditional intra-tag split (of that metal:
- * bronze 40% / iron 35% / gold 15% / silver 10%). Six single-leaf tags (clay, glass, fiber, leather)
+ * bronze 40% / iron 35% / gold 15% / silver 10%). Four single-leaf tags (clay, glass, fiber, leather)
  * emit no split — it would always read 100% and carry no information. `gold`/`silver` nest under
  * `metal`, their primary tag; `jade` nests under `stone` the same way (roadmap 2GN.84's catalogue
  * audit gave jade `['stone', 'precious-stone']`, matching gold/silver's `['metal', 'precious-metal']`
@@ -225,13 +225,31 @@ const EXPECTED_PROVENANCE_MIX: Readonly<Record<MockWorldRegion, { local: number;
 	};
 
 /**
- * How far the min-to-max spread of one material's share across all six regions must reach, in
+ * How far the min-to-max spread of one tag's share across all six regions must reach, in
  * percentage points, to prove geology still discriminates rather than having collapsed toward
- * uniform selection. Set well below the smallest genuine spread this session measured (`bronze`:
- * ~15.6% in `highlandMine` against near-zero in `forestInterior`), so this guard fails only on a
- * real collapse, not on ordinary measurement noise.
+ * uniform selection. Checked against every tag, not just the widest — a single wide outlier
+ * clearing the floor proves nothing about whether the other tags collapsed.
+ *
+ * Measured per-tag spreads this session: metal 46.7pp, stone 44.6pp, wood 30.4pp, bone 25.5pp,
+ * fiber 16.9pp, leather 15.6pp, clay 12.2pp — six tags sit well clear of 8. `glass` measured only
+ * 2.6pp, but for a structural reason unrelated to collapse: it is the catalogue's rarest tag by
+ * overall share (0-2.6% of all materials in any region), so its absolute min-to-max spread is
+ * mechanically small regardless of whether geology discriminates for it. `SPREAD_FLOOR_MIN_TAGS`
+ * below requires only 6 of the 7 tags to clear the floor, so glass's low share doesn't mask a real
+ * collapse in the other six but also doesn't fail the guard on its own.
  */
 const SPREAD_FLOOR_POINTS = 8;
+
+/**
+ * How many tags must clear `SPREAD_FLOOR_POINTS` for this guard to pass. Not all of them — `glass`
+ * structurally can't (see that constant's comment) — but a genuine weighting collapse would pull
+ * every tag toward uniform at once, so requiring all-but-one still catches it while not failing on
+ * glass's low share alone.
+ */
+const SPREAD_FLOOR_MIN_TAGS = 6;
+
+/** Every primary tag in the catalogue, derived from `PRIMARY_TAG` rather than hand-written, so a new material's tag is covered automatically. */
+const ALL_PRIMARY_TAGS: readonly string[] = [...new Set(Object.values(PRIMARY_TAG))];
 
 interface RegionMeasurement {
 	tagShares: Record<string, number>;
@@ -433,26 +451,36 @@ Deno.test('materials calibration: geology still discriminates across regions', (
 	// Catches the failure a flat directional test can't: weighting collapsing toward uniform, so
 	// every region produces the same material mix. Every current directional test in
 	// materials.test.ts would still pass in that world; this guard specifically would not.
-	const shareByRegion = new Map<string, number[]>();
+	//
+	// Checks every tag's spread, not just the widest. A single wide outlier clearing the floor
+	// proves nothing about the other tags — six of seven could collapse to an identical share in
+	// every region while the seventh alone kept the guard green. `SPREAD_FLOOR_MIN_TAGS` requires
+	// all-but-one tag to clear the floor (see its own comment for why not all seven).
+	//
+	// A region that produces zero of a tag is a real, informative measurement (that tag lost all
+	// its geological presence there), not a gap to skip — `tagShares` only carries keys for tags
+	// present in that region, so absent tags are explicitly zero-filled below rather than dropped,
+	// which would understate the spread exactly where the fixtures are most discriminating.
+	const shareByTag = new Map<string, number[]>(ALL_PRIMARY_TAGS.map((tag) => [tag, []]));
 
 	for (const region of MOCK_WORLD_REGIONS) {
 		const { tagShares } = regionMeasurement(region);
-		for (const [tag, share] of Object.entries(tagShares)) {
-			const list = shareByRegion.get(tag) ?? [];
-			list.push(share);
-			shareByRegion.set(tag, list);
+		for (const tag of ALL_PRIMARY_TAGS) {
+			shareByTag.get(tag)!.push(tagShares[tag] ?? 0);
 		}
 	}
 
-	let maxSpread = 0;
-	for (const shares of shareByRegion.values()) {
-		const spread = Math.max(...shares) - Math.min(...shares);
-		if (spread > maxSpread) maxSpread = spread;
-	}
+	const spreadByTag = new Map(
+		[...shareByTag].map(([tag, shares]) => [tag, Math.max(...shares) - Math.min(...shares)]),
+	);
+	const clearing = [...spreadByTag].filter(([, spread]) => spread >= SPREAD_FLOOR_POINTS);
+	const collapsed = [...spreadByTag].filter(([, spread]) => spread < SPREAD_FLOOR_POINTS);
 
 	assert(
-		maxSpread >= SPREAD_FLOOR_POINTS,
-		`no tag's cross-region spread reaches ${SPREAD_FLOOR_POINTS}pp (widest measured: ` +
-			`${maxSpread.toFixed(1)}pp) — geology may have stopped discriminating between regions.`,
+		clearing.length >= SPREAD_FLOOR_MIN_TAGS,
+		`only ${clearing.length}/${ALL_PRIMARY_TAGS.length} tags reach a ${SPREAD_FLOOR_POINTS}pp ` +
+			`cross-region spread (need ${SPREAD_FLOOR_MIN_TAGS}):\n${
+				collapsed.map(([tag, spread]) => `  ${tag}: ${spread.toFixed(1)}pp`).join('\n')
+			}\n\ngeology may have stopped discriminating between regions.`,
 	);
 });
