@@ -449,6 +449,10 @@ const AXIS_NORMALISATION: Readonly<Record<MaterialDifficultyAxis, { mid: number;
  * the result. No real craft behaves that way: roughening a forgiving material still rewards a
  * practised hand over an unpractised one. Small enough that the favourable material still reads as
  * markedly easier, non-zero so `craftSpecialisation` never stops mattering.
+ *
+ * The floor itself clamps more pairs than just those 22: 35 of the 256 land below `0.05` before
+ * clamping (13 more sit in `[0, 0.05)`), so this constant is doing real work beyond the negative
+ * cases its own justification names.
  */
 const MINIMUM_DIFFICULTY = 0.05;
 
@@ -576,7 +580,10 @@ export function expandDecoration(
 				layers.push({
 					targetComponentId: component.id,
 					technique: selected.technique,
-					grade: computeLayerGrade(phase.society.craftSpecialisation, selected.technique),
+					grade: computeLayerGrade(
+						resolvePhaseAttribute(phase, 'society.craftSpecialisation'),
+						selected.technique,
+					),
 					sublayers: [],
 				});
 			}
@@ -811,7 +818,7 @@ export function gradeDecorativeLayers(
 		if (material !== undefined) componentMaterial.set(assignment.componentId, material);
 	}
 
-	const craftSpecialisation = phase.society.craftSpecialisation;
+	const craftSpecialisation = resolvePhaseAttribute(phase, 'society.craftSpecialisation');
 
 	function regrade(layer: DecorativeLayer): DecorativeLayer {
 		const material = componentMaterial.get(layer.targetComponentId);
