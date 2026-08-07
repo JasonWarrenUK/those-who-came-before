@@ -138,7 +138,10 @@ export type ArtefactTag = AbsoluteTag | RelativeTag;
  * `openingType` is meaningless, and a key type that admitted them would let a rule ask a question
  * the sampler cannot answer. `decorativePerPart` is derived (`decorativeComplexity / partCount`,
  * guarded at `partCount` 0) — the sampler computes it once per artefact, matching how a migrated
- * rule computes it once when reading `ExtractedFeatures`.
+ * rule computes it once when reading `ExtractedFeatures`. `meanDecorativeGrade` (roadmap 2GN.98)
+ * carries genuine within-culture-phase spread — unlike a `craftSpecialisation`-only reading, which
+ * would be identical for every artefact from one phase — because it is driven by which mix of
+ * techniques an artefact happened to roll, each with its own execution difficulty.
  */
 export type BaselineFeature =
 	| 'decorativeLayerCount'
@@ -148,7 +151,8 @@ export type BaselineFeature =
 	| 'decorativePerPart'
 	| 'partCount'
 	| 'attachmentDiversity'
-	| 'edgeCount';
+	| 'edgeCount'
+	| 'meanDecorativeGrade';
 
 /**
  * One feature's empirical distribution across a culture-phase's own output (doc 11 §2.9).

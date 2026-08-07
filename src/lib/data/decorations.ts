@@ -37,7 +37,17 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 	{
 		technique: 'patina',
 		category: 'surface-treatment',
-		substrate: { kind: 'none' },
+		// Roadmap 2GN.101: was `{ kind: 'none' }`, so the generator applied patina to stone, glass and
+		// fibre artefacts — diegetically wrong, and invisible until `reactivity` existed to name the
+		// missing fact. Patina is an oxidation process; a material carrying `oxidisation: -1` has no
+		// such chemistry at all, which is a gate (the technique cannot happen) rather than a
+		// difficulty penalty (it happens badly). Gold stays eligible at `oxidisation: 0` — resistant,
+		// not inert.
+		substrate: {
+			kind: 'material',
+			label: 'oxidation-capable surface',
+			test: (material) => material.reactivity.oxidisation >= 0,
+		},
 		carriesMotif: false,
 		introducesMaterial: false,
 	},
@@ -72,13 +82,26 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 	{
 		technique: 'relief',
 		category: 'surface-treatment',
-		// No dedicated "thickness" fact exists on `MaterialDefinition`; hardness stands in as the
-		// nearest proxy doc 05 §8.2 implies (a relief needs a substrate that holds a raised form
-		// without crumbling, which soft materials don't).
 		substrate: {
 			kind: 'material',
 			label: 'thick material',
-			test: (material) => material.physicalProperties.hardness !== 'soft',
+			// Roadmap 2GN.101: was `hardness !== 'soft'`. A relief must hold a raised form, which
+			// rules out pliable ground — `rigidity` alone already excludes linen (1) and leather (2),
+			// so no further clause is needed for that.
+			//
+			// Fragility is deliberately NOT gated, even though it looks like the natural second check.
+			// What actually separates a relief-capable material from one that isn't is whether it
+			// passes through a formable state: fired clay is modelled wet then fired, and glass is
+			// cast, blown or pressed hot (cameo glass is cut from cased blanks) — the relief exists
+			// before either becomes brittle, so their high `fragility` describes the finished object,
+			// not the working process. Obsidian and flint, by contrast, are worked only by subtraction
+			// via conchoidal fracture and never pass through a formable state, which is why they
+			// genuinely cannot take modelled relief despite comparable `fragility` to fired clay.
+			// `grainFineness` can't stand in for this distinction either: its top rung is "amorphous or
+			// glassy", which describes obsidian and glass alike. No current axis expresses formability
+			// (roadmap 2GN.102, filed to add one), so this gate is rigidity-only for now — a known
+			// limitation that lets obsidian and flint pass incorrectly until that task lands.
+			test: (material) => material.physicalProperties.rigidity >= 3,
 		},
 		carriesMotif: true,
 		introducesMaterial: false,
@@ -99,8 +122,14 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		category: 'surface-treatment',
 		substrate: {
 			kind: 'material',
-			label: 'ceramic',
-			test: (material) => material.decorability.glazeable,
+			label: 'non-combustible ceramic',
+			// Roadmap 2GN.101 adds the combustibility ceiling alongside the existing `glazeable` flag.
+			// Glazing is a *firing* process, so a material that would burn in the kiln can never be
+			// glazed however ceramic-like it otherwise is. Not live-broken today — only `fired-clay`
+			// passes `glazeable` — but the hole was real, and stating it here means a future glazeable
+			// material inherits the constraint instead of rediscovering it.
+			test: (material) =>
+				material.decorability.glazeable && material.physicalProperties.combustibility <= 2,
 		},
 		// Takes a <colour>, not a <motif> (doc 05 §8.2).
 		carriesMotif: false,
@@ -124,11 +153,13 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 	{
 		technique: 'overlay',
 		category: 'applied-element',
-		// Same hardness proxy as `relief`: a rigid surface needs a substrate that isn't soft.
 		substrate: {
 			kind: 'material',
 			label: 'rigid surface',
-			test: (material) => material.physicalProperties.hardness !== 'soft',
+			// Roadmap 2GN.101: was the same `hardness !== 'soft'` proxy `relief` carried. Overlay needs
+			// a base that holds still under the covering sheet, which is literally what `rigidity`
+			// measures — a pliable substrate is the real obstacle, not a soft-but-rigid one.
+			test: (material) => material.physicalProperties.rigidity >= 3,
 		},
 		// Takes a <coverage>, not a <motif> (doc 05 §8.2).
 		carriesMotif: false,
@@ -140,8 +171,12 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		substrate: {
 			kind: 'material',
 			label: 'rigid or leather',
+			// Roadmap 2GN.101: the hardness half becomes the rigidity threshold `overlay` uses, which
+			// is what "rigid" meant all along. The named leather exception stays: leather is the one
+			// pliable material that genuinely takes studs and rivets (harness, armour, scabbards), so
+			// it is a real exception to the rigidity rule rather than a gap in it.
 			test: (material) =>
-				material.physicalProperties.hardness !== 'soft' || material.tags.includes('leather'),
+				material.physicalProperties.rigidity >= 3 || material.tags.includes('leather'),
 		},
 		// Takes a <pattern>, not a <motif> (doc 05 §8.2).
 		carriesMotif: false,
@@ -162,8 +197,18 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		category: 'applied-element',
 		substrate: {
 			kind: 'material',
-			label: 'metal surface',
-			test: (material) => material.tags.includes('metal'),
+			label: 'sufficiently rigid surface',
+			// Roadmap 2GN.101: was `tags.includes('metal')`, which is factually wrong. Real gilding is
+			// overwhelmingly applied to *non*-metal grounds — gilded wood and gesso (frames,
+			// altarpieces, furniture) are the commonest historical case by a wide margin, with gilded
+			// leather bindings and gilded ceramic well attested. Metal-on-metal fire-gilding is one
+			// tradition among several, not the prerequisite. What gilding actually needs is a ground
+			// stable enough to hold leaf or foil, which excludes only genuinely pliable material — the
+			// same `rigidity >= 3` threshold `overlay` and `studs` use, with the same named leather
+			// exception `studs` carries: gilded leather bindings are attested, and leather is the one
+			// pliable material that genuinely holds worked shape well enough for applied leaf.
+			test: (material) =>
+				material.physicalProperties.rigidity >= 3 || material.tags.includes('leather'),
 		},
 		carriesMotif: false,
 		introducesMaterial: true,
@@ -196,3 +241,147 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		introducesMaterial: true,
 	},
 ];
+
+/**
+ * How difficult each technique is to execute well, `0`–`1` (roadmap 2GN.98, doc 11 §1.5). Feeds
+ * `DecorativeLayer.grade` (`engine/generation/decoration.ts`'s `computeLayerGrade`) alongside the
+ * producing phase's `society.craftSpecialisation`, so the same craft level realises a materially
+ * lower grade on a hard technique than an easy one — doc 05 §8.3's "technically refined vs simple
+ * techniques" distinction, made concrete per technique rather than left as an unquantified claim.
+ *
+ * Grounded in how each craft actually works — training time, error tolerance, hand-skill demand —
+ * not merely in this file's `substrate`/`carriesMotif`/`introducesMaterial` flags, which correlate
+ * with difficulty but aren't difficulty itself (e.g. `polish` has no motif or introduced material
+ * yet a true mirror finish by hand takes real practice; `gilding` introduces a precious material
+ * but is procedural once mastered, not the hardest technique in the set). Authored and reviewed
+ * per-item, not derived. Values, ascending:
+ *
+ * - `0.10` `roughening` — deliberate texturing; minimal training, high error tolerance
+ * - `0.15` `patina` — mostly controlled chemistry (oxidants, heat, time), not manual dexterity
+ * - `0.20` `polish` — a true mirror finish by hand takes real practice despite being common
+ * - `0.20` `scoring` — controlled incising, no compositional judgement needed
+ * - `0.20` `tassels` — textile assembly, low compositional demand
+ * - `0.30` `wrapping` — needs a functional grip pattern under tension, not just appearance
+ * - `0.35` `beading` — patience and spacing judgement in attaching individual elements
+ * - `0.35` `studs` — mechanical fastening plus material matching on a harder substrate
+ * - `0.40` `overlay` — surface prep and adhesion; coverage tolerates minor imperfection
+ * - `0.45` `glaze` — real skill, but the kiln does much of the finishing work
+ * - `0.50` `painting` — representational/symbolic motif composition, trained in every real craft tradition
+ * - `0.50` `wire-wrapping` — continuous tension control; mistakes are hard to hide once bent
+ * - `0.55` `gilding` — precise but procedural once mastered — moderately technical, not the hardest
+ * - `0.60` `relief` — 3D modelling judgement, but allows correction/build-up unlike a cut line
+ * - `0.65` `engraving` — motif accuracy under depth control, almost no room to correct a mis-cut line
+ * - `0.80` `inlay` — precision-fitting a second material into a cut channel; ceiling
+ */
+export const TECHNIQUE_DIFFICULTY: Readonly<
+	Record<DecorativeTechniqueDefinition['technique'], number>
+> = {
+	'roughening': 0.10,
+	'patina': 0.15,
+	'polish': 0.20,
+	'scoring': 0.20,
+	'tassels': 0.20,
+	'wrapping': 0.30,
+	'beading': 0.35,
+	'studs': 0.35,
+	'overlay': 0.40,
+	'glaze': 0.45,
+	'painting': 0.50,
+	'wire-wrapping': 0.50,
+	'gilding': 0.55,
+	'relief': 0.60,
+	'engraving': 0.65,
+	'inlay': 0.80,
+};
+
+/**
+ * The `MaterialDefinition.physicalProperties` axes a technique's difficulty responds to, and the
+ * `reactivity` keys alongside them (roadmap 2GN.101). Keeping the union here rather than deriving it
+ * from `MaterialDefinition` is deliberate: `hardness` is on a 1–10 Mohs scale while the rest are
+ * 1–7, and `oxidisation` carries a `-1` not-applicable sentinel, so `computeLayerGrade` normalises
+ * each axis before weighting it and needs to know exactly which axes it is looking at.
+ */
+export type MaterialDifficultyAxis =
+	| 'hardness'
+	| 'fragility'
+	| 'rigidity'
+	| 'grainFineness'
+	| 'porosity'
+	| 'oxidisation';
+
+/**
+ * How much each material axis shifts a technique's difficulty away from its `TECHNIQUE_DIFFICULTY`
+ * baseline (roadmap 2GN.99). A **modifier on** that reviewed baseline, not a replacement for it:
+ * `computeLayerGrade` sums `weight × normalisedAxisValue` across the axes below, adds the total to
+ * the baseline, and clamps to `[0, 1]`.
+ *
+ * **Sign convention: positive makes the technique harder on a material scoring high on that axis;
+ * negative makes it easier.** An omitted axis means "this technique does not care" rather than zero
+ * by oversight.
+ *
+ * **Magnitudes were scaled up ×2.5 from the originally-authored `±0.15` band after measurement.** At
+ * the original scale, engraving spanned only ~0.044 of realised grade across all sixteen materials
+ * against ~0.3 between the easiest and hardest *technique* — material choice was a rounding error
+ * beside technique choice, and partially-cancelling weights (granite drawing `+0.10` for coarse
+ * grain but `−0.05` for low fragility) collapsed most of what signal there was. A modifier that weak
+ * would also have left `meanDecorativeGrade` with too little within-cell spread to sample a
+ * percentile ladder from, which is the degeneracy 2GN.98 rejected the craft-only grade for. The
+ * scaling preserves every relative judgement below exactly; only the overall magnitude moved, and
+ * `effectiveDifficulty`'s `[0, 1]` clamp still bounds the result.
+ *
+ * Authored and reviewed technique-by-technique against real craft practice, the same standard
+ * `TECHNIQUE_DIFFICULTY` was held to. The reasoning that shaped the table:
+ *
+ * - **Cutting and removal techniques** (`engraving`, `inlay`, and to a lesser degree `relief`,
+ *   `scoring`) pair a strong positive `fragility` with a strong negative `grainFineness`: the two
+ *   forces that actually govern precision cutting, pulling against each other. `engraving` and
+ *   `inlay` sit at the `±0.375` ceiling on both — they are the highest-stakes, most grain-dependent
+ *   operations in the set.
+ * - **Coating and application techniques** (`gilding`, `overlay`, `painting`) carry *negative*
+ *   `hardness`: softer ground genuinely takes leaf, foil and pigment more readily, which is why
+ *   gilded gesso and gilded wood dominate the historical record over gilded stone. They lean instead
+ *   on positive `rigidity` — an unstable ground is the real obstacle — and slight negative
+ *   `porosity`, since some absorbency helps a size or adhesive bond.
+ * - **`patina` is governed almost entirely by one axis.** Its `oxidisation: -0.375` ties the table's
+ *   ceiling (with `engraving` and `inlay`'s `fragility`/`grainFineness` weights) because the
+ *   technique is a chemical process, not a mechanical one; a highly reactive ground like iron makes
+ *   patina dramatically more tractable. Materials with no oxidation chemistry are excluded at the
+ *   substrate gate, so they never reach this weighting.
+ * - **The three form-substrate techniques** (`wire-wrapping`, `wrapping`, `beading`) are near-inert
+ *   here, carrying only a small positive `rigidity`. This is a **known limitation, not a judgement
+ *   that material does not matter**: their real difficulty is driven by the *introduced* material
+ *   (the wire, the cord, the beads), and this model reads the *substrate* material. Recorded for the
+ *   successor task that adds relational introduced-versus-substrate difficulty.
+ * - **`tassels` is absent entirely.** It introduces no material in the current catalogue
+ *   (`introducesMaterial: false`) and has no material substrate, so there is genuinely nothing to be
+ *   sensitive to. That is itself a data gap — a real tassel is unambiguously cord — recorded against
+ *   the same successor.
+ */
+export const TECHNIQUE_MATERIAL_SENSITIVITY: Readonly<
+	Record<
+		DecorativeTechniqueDefinition['technique'],
+		Readonly<Partial<Record<MaterialDifficultyAxis, number>>>
+	>
+> = {
+	// Surface treatments.
+	'polish': { hardness: 0.125, grainFineness: -0.25 },
+	'patina': { oxidisation: -0.375 },
+	'roughening': { hardness: -0.125, fragility: 0.125 },
+	'scoring': { hardness: 0.125, fragility: 0.25, grainFineness: -0.25 },
+	'engraving': { hardness: 0.25, fragility: 0.375, grainFineness: -0.375 },
+	'relief': { hardness: 0.125, fragility: 0.25, grainFineness: -0.25 },
+	'painting': { rigidity: 0.125, grainFineness: -0.125, porosity: -0.25 },
+	'glaze': { fragility: 0.125, porosity: -0.25 },
+
+	// Applied elements.
+	'inlay': { hardness: 0.25, fragility: 0.375, grainFineness: -0.375 },
+	'overlay': { hardness: -0.125, fragility: 0.125, rigidity: 0.25, porosity: -0.125 },
+	'studs': { hardness: 0.25, fragility: 0.25 },
+	'wire-wrapping': { rigidity: 0.125 },
+	'gilding': { hardness: -0.125, rigidity: 0.25, grainFineness: -0.125, porosity: -0.125 },
+
+	// Textile elements.
+	'wrapping': { rigidity: 0.125 },
+	'tassels': {},
+	'beading': { rigidity: 0.125 },
+};

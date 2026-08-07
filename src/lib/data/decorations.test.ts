@@ -81,6 +81,27 @@ Deno.test('decorations: engraving accepts workable-engravable materials, rejects
 	assert(!test(findMaterial('fired-clay')));
 });
 
+Deno.test('decorations: relief accepts rigid materials regardless of fragility (roadmap 2GN.101)', () => {
+	// Rigidity alone gates relief; fragility does not. Fired clay and glass are both fragile (they
+	// shatter outright once brittle) yet both pass through a formable state before that point —
+	// clay modelled wet then fired, glass cast or blown hot — so the relief exists before either
+	// becomes brittle. A prior version of this gate also checked `fragility <= 5`, which excluded
+	// both despite their real relief traditions (moulded pottery, cameo glass) being well attested.
+	//
+	// Obsidian and flint pass here too, which is a known limitation: they are worked only by
+	// subtraction (conchoidal fracture) and never pass through a formable state, so they should not
+	// really take modelled relief. No current material axis expresses formability (roadmap 2GN.102
+	// tracks adding one), so rigidity-only is the honest gate for now rather than a fragility proxy
+	// that gets fired-clay and glass wrong to get obsidian and flint right.
+	const test = getMaterialTest('relief');
+	assert(test(findMaterial('fired-clay')), 'fragile but formable before firing: moulded pottery');
+	assert(test(findMaterial('glass')), 'fragile but formable while molten: cameo glass');
+	assert(test(findMaterial('granite')), 'rigid stone, carved rather than modelled relief');
+	assert(test(findMaterial('bronze')), 'rigid metal, repoussé/relief casting');
+	assert(!test(findMaterial('linen')), 'pliable ground cannot hold a raised form');
+	assert(!test(findMaterial('leather')), 'pliable ground cannot hold a raised form');
+});
+
 Deno.test('decorations: glaze accepts only ceramic', () => {
 	const test = getMaterialTest('glaze');
 	assert(test(findMaterial('fired-clay')));
@@ -88,13 +109,26 @@ Deno.test('decorations: glaze accepts only ceramic', () => {
 	assert(!test(findMaterial('oak')));
 });
 
-Deno.test('decorations: gilding accepts only metal-tagged materials', () => {
+Deno.test('decorations: gilding accepts any sufficiently rigid ground, not metal only (roadmap 2GN.101)', () => {
+	// Corrected from `gilding accepts only metal-tagged materials`, which was factually wrong: real
+	// gilding is applied overwhelmingly to non-metal grounds — gilded wood and gesso are the
+	// commonest historical case, with gilded leather bindings and gilded ceramic well attested.
+	// Metal-on-metal fire-gilding is one tradition, not the prerequisite.
+	//
+	// The rigidity threshold is `>= 3`, matching `overlay`/`studs`, with the same named leather
+	// exception `studs` carries (gilded leather bindings are attested). A prior version of this gate
+	// used `>= 2`, which left the gate effectively a no-op (15 of 16 catalogue materials passed); the
+	// granite case below pins that the threshold is doing real work now.
 	const test = getMaterialTest('gilding');
-	assert(test(findMaterial('bronze')));
-	assert(test(findMaterial('gold')));
-	assert(test(findMaterial('silver')));
-	assert(!test(findMaterial('oak')));
-	assert(!test(findMaterial('fired-clay')));
+	assert(test(findMaterial('gold')), 'metal grounds stay eligible');
+	assert(test(findMaterial('oak')), 'gilded wood is the commonest real case');
+	assert(test(findMaterial('fired-clay')), 'gilded ceramic is attested');
+	assert(test(findMaterial('granite')), 'rigid stone stays eligible');
+	assert(
+		test(findMaterial('leather')),
+		'gilded leather bindings are attested: the named exception',
+	);
+	assert(!test(findMaterial('linen')), 'genuinely pliable ground is excluded');
 });
 
 Deno.test('decorations: painting accepts paintable materials, rejects the rest', () => {
@@ -104,11 +138,17 @@ Deno.test('decorations: painting accepts paintable materials, rejects the rest',
 	assert(!test(findMaterial('bronze')));
 });
 
-Deno.test('decorations: studs accepts rigid or leather, rejects soft non-leather', () => {
+Deno.test('decorations: studs accepts rigid or leather, rejects pliable non-leather (roadmap 2GN.101)', () => {
 	const test = getMaterialTest('studs');
-	assert(test(findMaterial('bronze'))); // rigid (not soft)
-	assert(test(findMaterial('leather'))); // soft, but leather-tagged
-	assert(!test(findMaterial('gold'))); // soft metal, not leather-tagged
+	assert(test(findMaterial('bronze')), 'rigid metal takes studs');
+	assert(test(findMaterial('leather')), 'pliable, but the named leather exception applies');
+	assert(!test(findMaterial('linen')), 'pliable and not leather-tagged');
+
+	// Gold changed verdict here, deliberately. The old test rejected it via the `hardness !== 'soft'`
+	// proxy — the same proxy misuse this task removed. Gold is structurally soft but perfectly rigid
+	// (it holds worked shape), and real goldwork does take rivets and applied studs, so accepting it
+	// is the corrected reading rather than a regression.
+	assert(test(findMaterial('gold')), 'soft but rigid: real goldwork takes rivets and studs');
 });
 
 Deno.test('decorations: wire-wrapping and wrapping are form-substrate, requiring grippable', () => {

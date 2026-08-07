@@ -24,6 +24,7 @@ const PHASE_PATHS = [
 	'technology.metallurgy',
 	'technology.ceramics',
 	'technology.textiles',
+	'technology.leatherWorking',
 	'technology.stoneWorking',
 	'technology.glassWorking',
 	'technology.woodWorking',

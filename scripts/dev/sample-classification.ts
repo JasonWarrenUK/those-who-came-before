@@ -15,6 +15,13 @@
  * keep canonical vocabulary order); the underlying map still iterates canonically — that order is
  * a serialisation contract, not a display obligation.
  *
+ * **Classifies against a real sampled baseline (roadmap 2GN.82).** Nine rules now read
+ * `ClassificationContext` (`data/classification.ts`); a real `sampleBaselines` context is built
+ * once from the chosen `--world` region at a flat 0.5 `decorativeEmphasis`, matching this script's
+ * existing `sampleWorld` fixture convention, and shared across every sampled artefact in the run —
+ * same reasoning as the Explorer's `tagInspector.ts` memo: the baseline is a property of the
+ * culture being sampled, not of any one artefact.
+ *
  * Run via `deno task sample:classification` — see `scripts/dev/shared.ts` for the fixture-world
  * caveat.
  */
@@ -26,6 +33,8 @@ import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../src/lib/engine/generation/classification.ts';
+import { sampleBaselines } from '../../src/lib/engine/generation/baselines.ts';
+import { CORE_GRAMMAR_RULES } from '../../src/lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES } from '../../src/lib/data/classification.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../src/lib/data/decorations.ts';
@@ -57,6 +66,23 @@ const options = parseSampleOptions(USAGE, { '--bare': 'boolean' });
 const bare = options.values.has('--bare');
 const world = sampleWorld(sampleWorldRegion(options, USAGE));
 
+// One real baseline for the whole run — see the module JSDoc for why this is shared rather than
+// sampled per artefact.
+const context = sampleBaselines(
+	'sample-classification-baseline',
+	{
+		cultureId: world.region,
+		phaseId: 'sample',
+		profile: world.culture,
+		phase: world.phase,
+		geology: world.geology,
+		trade: world.trade,
+	},
+	CORE_GRAMMAR_RULES,
+	MATERIALS,
+	DECORATIVE_TECHNIQUES,
+);
+
 /** One rule's additive contribution to one tag. */
 interface Contribution {
 	/** 1-based display label matching the data test blocks (`R1` = index 0). */
@@ -78,13 +104,13 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		DECORATIVE_TECHNIQUES,
 	);
 	const features = extractFeatures(artefact, layers);
-	const tags = classifyArtefact(features, CLASSIFICATION_RULES);
+	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 	// Re-run each condition to decompose the sums — exact under plain-sum accumulation.
 	const contributions = new Map<ArtefactTag, Contribution[]>();
 	const fired: string[] = [];
 	CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
-		if (!rule.condition(features)) return;
+		if (!rule.condition(features, context)) return;
 		const label = `R${ruleIndex + 1}`;
 		fired.push(label);
 		for (const [tag, weight] of rule.tags) {

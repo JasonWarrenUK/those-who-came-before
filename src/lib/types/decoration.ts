@@ -5,11 +5,14 @@
  * runs over the artefact: each structural surface becomes a potential canvas for surface
  * treatments, applied elements and textile elements (doc 05 §8.1–§8.2). Decorative layers can
  * themselves receive further decoration, so `DecorativeLayer` nests recursively (doc 05 §8.3) —
- * layering depth is capped by the culture's `craftSpecialisation` and `aesthetics.decorativeEmphasis`
- * (doc 05 §8.3), enforced by the decorative grammar's runtime expansion in
- * `engine/generation/decoration.ts` (roadmap 2GN.32), not by this module. Decoration feeds into
- * the same unified tag classification as structural features (doc 05 §8.1, §9) via
- * `ExtractedFeatures` in artefact.ts. This module is data shapes only, no behaviour.
+ * nesting depth is roadmap 2GN.31, unbuilt (every shipped layer's `sublayers` is `[]`). Doc 05
+ * §8.3's "how decorated is this" and "how refined is this" axes are instead realised flat, split
+ * across two independent mechanisms (roadmap 2GN.98, doc 11 §1.5): `decorationVolume` (how many
+ * layers appear, driven by `aesthetics.decorativeEmphasis` alone) and each layer's own `grade`
+ * (how well-executed it is, driven by `society.craftSpecialisation` and the technique's own
+ * difficulty) — both in `engine/generation/decoration.ts`. Decoration feeds into the same unified
+ * tag classification as structural features (doc 05 §8.1, §9) via `ExtractedFeatures` in
+ * artefact.ts. This module is data shapes only, no behaviour.
  *
  * Material prerequisites (the `[requires: ...]` annotations on the BNF grammar, doc 05 §8.2) are
  * typed below as `DecorativeSubstrate`/`DecorativeTechniqueDefinition` (roadmap 2GN.28), populated
@@ -77,6 +80,24 @@ export interface DecorativeLayer {
 
 	/** The material this layer introduces, when the technique adds one (e.g. `inlay`, `gilding`). */
 	material?: string;
+
+	/**
+	 * How well this specific layer was executed, `0`–`1` (roadmap 2GN.98, doc 11 §1.5). Not a
+	 * free-standing "how skilled is this culture" figure — it is the producing phase's
+	 * `craftSpecialisation` scaled by `technique`'s own execution difficulty
+	 * (`TECHNIQUE_DIFFICULTY`, `data/decorations.ts`), so the same craft level yields a materially
+	 * lower grade on a hard technique (gilding, inlay) than on an easy one (roughening, patina).
+	 * This is `expandDecoration`'s realisation of doc 05 §8.3's "technically refined vs simple
+	 * techniques" distinction — a per-layer quality dimension separate from `decorationVolume`
+	 * (how much decoration appears), which reads `aesthetics.decorativeEmphasis` alone. See
+	 * `computeLayerGrade` (`engine/generation/decoration.ts`).
+	 *
+	 * **The value `expandDecoration` sets is provisional** (roadmap 2GN.99): components carry no
+	 * assigned material at expansion time, so it reflects the technique alone. `gradeDecorativeLayers`
+	 * refines it against the material each component was actually assigned — engraving iron and
+	 * engraving gold are not equally difficult, and the refined value says so.
+	 */
+	grade: number;
 
 	/** Further decoration applied on top of this layer (doc 05 §8.3). Empty when undecorated. */
 	sublayers: DecorativeLayer[];

@@ -799,14 +799,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       p75 (10, roadmap 2GN.34) to catch a disagreement between the new helper and the old
       hand-transcription before anything depends on it. Prerequisite for 2GN.95
 - [x] **2GN.95** — `ClassificationContext` + baseline sampler (`engine/generation/baselines.ts`) —
-      widen `ClassificationRule.condition` to `(features, context)`; zero rule migrations
-      _(depends on 2GN.94 — done)_ — prerequisite for 2GN.82/83/84, surfaced 2026-08-05: the
-      2GN.80/2GN.77 ruling (doc 11 §2.9, doc 12 §2.28) is fully decided, but `ClassificationContext`
-      was referenced in five places and defined nowhere, and `ClassificationRule.condition` was
-      still single-argument. Widens the signature without migrating a single rule — TypeScript
-      accepts a narrower-arity function wherever the wider signature is expected, so all 43 rules
-      compile and fire identically; `EXPECTED_FIRE_RATES` in `calibration.test.ts` is bit-identical
-      before and after, the checkpoint proving the slice changed no observable behaviour. Ships
+      widen `ClassificationRule.condition` to `(features, context)`; zero rule migrations _(depends
+      on 2GN.94 — done)_ — prerequisite for 2GN.82/83/84, surfaced 2026-08-05: the 2GN.80/2GN.77
+      ruling (doc 11 §2.9, doc 12 §2.28) is fully decided, but `ClassificationContext` was
+      referenced in five places and defined nowhere, and `ClassificationRule.condition` was still
+      single-argument. Widens the signature without migrating a single rule — TypeScript accepts a
+      narrower-arity function wherever the wider signature is expected, so all 43 rules compile and
+      fire identically; `EXPECTED_FIRE_RATES` in `calibration.test.ts` is bit-identical before and
+      after, the checkpoint proving the slice changed no observable behaviour. Ships
       `sampleBaselines` (stages 1–7 only — `expandGrammar` → `normaliseArtefact` →
       `expandDecoration` → `extractFeatures`, no bootstrap circularity), `explorerCulturePhase`
       adapting `EXPLORER_CULTURES`, and `emptyClassificationContext` (used at every current call
@@ -817,39 +817,165 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       (decorativeEmphasis 0.4) vs Thalassar (0.75) must show a strictly higher decorativeComplexity
       p75 for the latter — the ruling's premise, checked empirically. Baseline caching, drift and
       `stratification` split out to 2GN.96 (M3), blocked on real `WorldState`
-- [ ] **2GN.82** — recalibrate the measured classification thresholds per the 2GN.80 ruling
-      _(depends on 2GN.80, 2GN.95 — both done)_ — recalibration of already-built work. Eleven
-      thresholds in `src/lib/data/classification.ts` are pinned to measured percentiles of absolute
-      distributions (§2.24's seven from 2GN.34, plus 2GN.79's R29/R31): if status tags become
-      culture-relative, every one needs re-deriving against the new basis, and `EXPECTED_FIRE_RATES`
-      in `src/lib/data/calibration.test.ts` re-recorded with it. **Gated on 2GN.95
-      (`ClassificationContext` + baseline sampler), not merely on the ruling itself** — recalibrating
-      against a culture-relative basis with no implementation would measure the wrong thing; 2GN.95
-      closed that gap 2026-08-05. **Scope corrected**: earlier notes here described the pre-ruling
-      scope ("R12/R15 + eleven decoration-conditioned rules"); doc 12 §2.28 corrected this — the
-      award-side cut selects **34 of the 43 shipped rules**, not roughly a third of that. Sits
-      upstream of anything whose correctness depends on what the tag scores mean
-- [ ] **2GN.83** — recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling _(depends
-      on 2GN.80, 2GN.95 — both done)_ — recalibration of already-built work. `BASE_FILL_PROBABILITY`
-      (0.9), `SLOT_DECAY` (0.5), `MAX_SLOTS_PER_CATEGORY` (2) and `decorationIntensity`'s
-      equal-weight craftSpecialisation/decorativeEmphasis blend are all MVP-provisional, and
-      together they are what makes `appliedElementPresent` saturate at ~85% (2GN.79's finding: each
-      BNF category draws its own per-component slots, so P(≥1 applied element) ≈
-      1-(1-0.45)^partCount). Under a culture-relative reading these set the per-culture baseline
-      every threshold measures against, so they stop being free parameters. ⚠️ changing them moves
-      every measured threshold in `data/classification.ts` — sequence with 2GN.82, and expect
-      `calibration.test.ts` to fail loudly, which is the guard working. **Gated on 2GN.95, not
-      merely on the ruling** — same reasoning as 2GN.82
-- [ ] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
-      rulings _(depends on 2GN.80, 2GN.77, 2GN.95 — all done)_ — recalibration of already-built
-      work. `SCARCITY_WEIGHT`'s multipliers (abundant 1.0 / available 0.6 / scarce 0.25 / trade-only
-      0.15) and `computeMaterialWeight`'s three-way product are MVP-provisional and were never
-      measured against a fully-modelled geology until 2GN.79 built one. Overlaps 2GN.77's
-      material-value question directly — may merge with it — and 2GN.80 touches it via
-      `PhaseCharacteristics.society.stratification`, which nothing reads today despite doc 05 §3.2
-      naming it an elite/utilitarian driver. Now measurable per world: the six named regions give
-      six different scarcity profiles to calibrate against rather than one lenient fixture. **Gated
-      on 2GN.95, not merely on the rulings** — same reasoning as 2GN.82
+- [x] **2GN.82** — recalibrate the measured classification thresholds per the 2GN.80 ruling
+      _(depended on 2GN.80, 2GN.95 — both done)_ — migrated nine of the eleven measured thresholds
+      the task's own line names, not all 34 rules the ruling's selector catches for a baseline (doc
+      12 §2.31 corrects that conflation: needing-a-baseline and
+      having-a-numeric-threshold-to-recalibrate are different counts). R29 (attachmentDiversity,
+      p90), R30 (decorativeLayerCount, p75), R31 (appliedElementCount, p75), R35/R36
+      (hasEdge/hasContainer && decorativeLayerCount, p75), R40/R41 (decorativeComplexity, p75/p95),
+      R42 (decorativePerPart, p75), R43 (techniqueComplexity, p90) all migrated to
+      `ClassificationContext.exceeds`. **A ladder rung is not free arithmetic**: measured against
+      the real pipeline, fire rate isn't `(1 - percentile) * 100` — coarse features carry tie-mass
+      at the interpolated threshold under `exceeds`'s `>=` convention (a third face of §2.28's
+      granularity defect), so R29's historical "p75" label would fire 43.4% (recreating the very
+      rate 2GN.79 retuned away from) and needed p90 (21.5%) instead. Two rules' historical
+      percentiles (~p93; a p90 value used as `>= 8`) had no ladder rung and were resolved by
+      argument from stated intent rather than nearest number; two (R35/R36) were measured at a
+      sub-population percentile `sampleBaselines` doesn't provide and moved to whole-population p75.
+      Re-recorded `EXPECTED_FIRE_RATES`; the 34 unmigrated rules' rates came back bit-identical.
+      Added three new calibration guards (per-cell threshold-value pins, a per-cell spread guard,
+      R35/R36 sub-population pins) since a migrated rule's rate now sits near its rung almost by
+      construction and would otherwise stop catching a whole-distribution generator shift. Wired
+      real per-culture-phase contexts into `calibration.test.ts` (18 cells, n=400, ~0.3s), the
+      Explorer's Tag Inspector (new `routes/dev/explorer/shared/baselineCache.ts`) and calibration
+      panel, and fixed a pre-existing break in `scripts/dev/sample-classification.ts` that
+      `deno task check`'s `svelte-check` never reaches. **The 25 categorical relative-award rules
+      are out of scope** — `BaselineFeature` is a closed union of 8 numeric keys by design, so
+      there's nothing to migrate them against yet. Split to 2GN.97. Full detail: doc 12 §2.31
+- [ ] **2GN.97** — design spike: what does the 2GN.80 ruling mean for the 25 categorical
+      relative-award rules 2GN.82 could not migrate _(depends on 2GN.82 — done)_ — split out of
+      2GN.82 2026-08-05 (doc 12 §2.31). A rule reading `wallThickness`, `baseType`, `openingType`,
+      `massBand`, `perforation`, `ringGap`, `sheetFlexibility`, `sizeBand`, `isWearable` or
+      `hasFasteningMechanism` has no `BaselineFeature` to call `exceeds` against — the union is a
+      closed set of 8 numeric features by design, not an oversight. What "relative" means for a
+      categorical band is genuinely undecided in doc 11 §2.9: a prevalence/frequency baseline, a
+      `stratification` gate (blocked on 2GN.96), or weight-scaling an unchanged absolute condition
+      are three different designs. A spike, not an implementation task — same shape as 2GN.80/2GN.77
+      before they were ruled. Best sequenced after 2GN.96, since `stratification` may be a stronger
+      gate for the elite-bearing categoricals (R12, R15) than a bare frequency baseline — but not a
+      hard dependency, since 2GN.96 is M3-blocked and this spike needs no code
+- [x] **2GN.83** — recalibrate `expandDecoration`'s fill constants per the 2GN.80 ruling — landed
+      doc-only (2026-08-06, doc 12 §2.32), the re-scope anticipated on pickup. No constant moved:
+      recalibration presupposes a calibration target, and relativisation removed the old one (an
+      absolute fire rate) without supplying a new one — a uniform volume change moves the sampled
+      baseline and the measured artefacts together and largely self-cancels. Doc 05 §8.3's
+      craft/emphasis four-corner table was the only stated target and was measured directly against
+      the real pipeline, found unsound for two reasons: its numbers cap recursion depth, which has
+      no producer until 2GN.31 (`expandDecoration` emits flat layers) — read as layers per
+      component, measured output is 0.41/1.64/1.72/3.14 against the table's 0–1/0–1/~1/up-to-3; and
+      the two middle corners are not jointly reachable by any function of
+      `(craftSpecialisation, decorativeEmphasis)` — a joint sweep over the blend weight and all
+      three fill constants floors residual error at ~0.83, because the high-craft corner is
+      dominated by `partCount` (set upstream by `deriveComplexityBudget` in `grammar.ts`, which
+      `expandDecoration` cannot cancel). §8.3's own wording confirms it: the middle corners differ
+      by kind ("technically refined" vs "simple techniques"), not magnitude. A real implementation
+      defect surfaced and is recorded, not fixed: `craftSpecialisation` enters decorative volume
+      twice (blend and `partCount`), a measured 3.2× gap at identical intensity. New open question
+      raised at doc 11 §1.5 with four candidate rulings and no recommendation. Split to **2GN.98**
+- [x] **2GN.98** — design spike: rule doc 11 §1.5's decorative-volume question, then recalibrate
+      `expandDecoration`'s fill constants against it — ruled 2026-08-06 (doc 11 §2.10, doc 12
+      §2.33). `decorationVolume` reads `aesthetics.decorativeEmphasis` alone; a new
+      `DecorativeLayer.grade` field reads `society.craftSpecialisation` scaled by a new authored
+      `TECHNIQUE_DIFFICULTY` rating (16 values, reviewed per-item). Two cheaper shapes tried and
+      rejected first: biasing technique selection toward low-difficulty techniques at low craft
+      (real and directional, ~30% vs ~15–19% share, but capped — the weight function's other three
+      factors dominate selection); `grade = craftSpecialisation` alone (orthogonal to volume but
+      degenerate as a sampled feature — identical value for every layer in a culture-phase cell, so
+      a percentile ladder over it never varies). The shipped formula
+      (`craft * (1 - 0.5*difficulty) + 0.5*difficulty*craft²`) produces genuine within-cell spread
+      instead. Doc 05 §8.3's four corners now land at 0.41–0.46/0.46–0.54/2.7–3.3/2.8–3.3
+      layers/component against the stated 0–1/0–1/~1/up-to-3 — a substantial improvement on the
+      pre-2GN.98 blend's 0.42/1.65/1.65/3.16, where the two middle corners were indistinguishable.
+      `BASE_FILL_PROBABILITY`/`SLOT_DECAY`/`MAX_SLOTS_PER_CATEGORY` left unchanged — the corners
+      land acceptably without retuning them. The recorded `craftSpecialisation` double-count is
+      resolved by re-scoping: craft now has exactly two decorative-adjacent effects (`partCount`,
+      unchanged; `grade`, new) rather than one effect counted twice. `appliedElementPresent`
+      saturation confirmed unaffected (86.7% vs the prior 89.1%, within noise) — structural, as
+      diagnosed at 2GN.79/2GN.83. New rule R44 reads `meanDecorativeGrade` at p90 (measured
+      26.6%/12.3% at p75/p90; p90 matches the rule's "exceptional" framing, same reasoning 2GN.82
+      used elsewhere). `EXPECTED_THRESHOLDS`/`EXPECTED_FIRE_RATES`/`EXPECTED_GATED_RATES`
+      re-measured and re-recorded (R1–R28/R37–R39 bit-identical; R32 dropped 98.0%→89.2%, still
+      exempt from `SATURATION_CEILING` by design); `statistics.regression.test.ts`'s p75 pin moved
+      10→12, reframed against this task's own measurement. Rule count 43→44, relative/absolute split
+      34/43→35/44. Four new `decoration.test.ts` tests; `deno task check` 0 errors,
+      `deno
+      test` 521/521 passing. Full detail: doc 12 §2.33
+- [x] **2GN.84** — recalibrate `SCARCITY_WEIGHT` and material weighting per the 2GN.80 / 2GN.77
+      rulings — inverted (2026-08-06, doc 12 §2.34): no calibration target existed (doc 05 §7 is
+      qualitative; §10.2 disclaims a quota reading), the trap this task's own notes flagged.
+      Delivered instead: `src/lib/data/materials.calibration.test.ts` (new) — a hierarchical
+      per-region tag-share/intra-tag-split/provenance-mix/spread guard derived from
+      `MaterialDefinition.tags`, installing the missing target rather than recalibrating against an
+      absent one. `SCARCITY_WEIGHT`'s four values are UNCHANGED, now pinned as the measured
+      baseline. Two real defects found and fixed: `materialAccessGate`
+      (`engine/generation/decoration.ts`) checked a technique's material substrate but not its
+      _introduced_ material — `wire-wrapping` (substrate: grippable form; introduces: metal) was
+      never gated on metal availability, so a metal-free region produced 26.3% wire-wrapping share
+      (vs 5.8–6.1% elsewhere); fixed by extending the gate to also check `INTRODUCED_MATERIAL_TAGS`.
+      `scarcityWeight`'s unmodelled-material lenience (neutral `1`, ranking above explicitly
+      `available`'s `0.6`) corrected to the `available` rung. A full 16-entry catalogue audit fixed
+      one tag miss (`jade` → `['stone', 'precious-stone']`) and one inert-material defect (`glass` →
+      `engravable`/`paintable` true). `deno task check` 0 errors, `deno test` 527/527 passing. Split
+      out: max-across-tags affinity semantics (folded into 2GN.78), material-dependent technique
+      difficulty (new 2GN.99), leatherworking craft domain (new 2GN.100), `assignDecorativeDetails`
+      has no production caller (noted against 2GN.68). Full detail: doc 12 §2.34
+- [x] **2GN.99** — recalibrate `computeLayerGrade` to read technique difficulty per-material, not
+      technique alone — shipped 2026-08-07 (doc 12 §2.35), after **2GN.101** rebuilt the property
+      model it needed. **Lands as an unwired post-pass, the honest scope**: materials aren't known
+      inside `expandDecoration`'s slot loop, and threading `assignMaterials` in would consume PRNG
+      draws and move every recorded fire rate for reasons unrelated to grade. New
+      `gradeDecorativeLayers` re-grades layers in a separate PRNG-free pass instead, mirroring
+      `assignDecorativeDetails`; `expandDecoration`'s grade is now documented as _provisional_.
+      Nothing in the sampled path changed, so **no calibration pin moved** — a stronger inertness
+      checkpoint than 2GN.82/2GN.98's. Formula modulates _difficulty_ rather than the grade, keeping
+      the [0,1] bound and the craft-degradation curve intact. New `TECHNIQUE_MATERIAL_SENSITIVITY`
+      authored technique-by-technique, then **scaled ×2.5 after measurement** (at the original band
+      engraving spanned only ~0.044 across all 16 materials against ~0.3 between techniques —
+      material was a rounding error, and too weak to keep `meanDecorativeGrade` a viable sampled
+      feature). Scaling exposed a clamping artefact — 22 of 256 pairs claimed work was _perfectly_
+      easy — fixed by `MINIMUM_DIFFICULTY = 0.05`. Known limitation recorded: the three
+      form-substrate techniques score near-inert because their difficulty comes from the
+      _introduced_ material, which this model can't reach. `deno test` 540/540
+- [x] **2GN.100** — add a distinct `leatherWorking` craft domain, separating hide-work from weaving
+      — shipped 2026-08-07 (doc 12 §2.35). `leather` moves off `textiles`, which it shared with
+      `linen`, conflating tanning with weaving. Four explorer presets get independently argued
+      values rather than clones (Tarpan 0.75 — "the herd supplies bone, antler and hide", leather
+      `abundant` against linen `scarce`; Khaltiris 0.60 — militarised, needs hide at scale;
+      Thalassar 0.45 — flax-abundant, hide workaday; Xoconahtl 0.30 — humid jungle hostile to
+      tanning). Measured: Tarpan now weights leather 6.4× its linen, Xoconahtl inverts that; under
+      the shared axis they moved in lockstep. **Free of calibration consequence by construction** —
+      the fixture takes 0.5 per its own neutral contract, and the guard runs with no overrides, so
+      all six leather pins hold. `TECHNIQUE_CRAFT_AXIS` deliberately unchanged: `wrapping`
+      introduces both fibre and leather, so pointing it at either pure axis is wrong half the time,
+      and the correct fix shares 2GN.99's blocker
+- [x] **2GN.101** — rebuild `MaterialDefinition.physicalProperties` as orthogonal authored axes —
+      forced out of 2GN.99 on 2026-08-07 (doc 12 §2.35): that task assumed the property model could
+      express material difficulty, and it couldn't. `workable: boolean` conflated brittleness,
+      pliability and grain coarseness; `hardness` was actively misused as a fragility proxy, with
+      `relief` and `overlay` both carrying comments conceding it. Six authored axes replace the pair
+      (`hardness` pegged to the real Mohs scale, `fragility`, `rigidity`, `grainFineness`,
+      `porosity`, `combustibility`) plus a keyed `reactivity` object; all 16 materials scored
+      item-by-item. Two axes were discovered mid-review by techniques with nothing to key on
+      (`patina` is chemical — hence its substrate was `{kind:'none'}` and the generator was
+      patinating stone and glass; `painting`/`glaze` wanted absorbency). `oxidisation`'s `-1`
+      sentinel feeds a substrate **gate**, not a difficulty penalty, keeping "impossible" and
+      "merely hard" distinct. Axis independence tested via obsidian-vs-granite and gold-vs-oak, both
+      pinned. Four substrate corrections fell out, including **`gilding`'s factually wrong
+      metal-only gate** (real gilding is overwhelmingly on wood and gesso) — doc 05 §8.2 carried the
+      same error in prose and is corrected
+- [ ] **2GN.102** — add a formability axis to `MaterialDefinition.physicalProperties`,
+      distinguishing materials worked by subtraction (knapping) from those with a formable/plastic
+      working state (cast, thrown, blown, modelled) — surfaced 2026-08-07 during PR #53 review fixes
+      as a 2GN.101 follow-on. The `relief` substrate test needed to distinguish fired-clay/glass
+      (fragile once finished, but modelled or cast before hardening) from obsidian/flint (worked
+      only by conchoidal-fracture subtraction, never formable), and no existing axis expresses this
+      — `fragility` describes the finished object, not the working process, and `grainFineness`
+      can't substitute either (its top rung, "amorphous or glassy", describes obsidian and glass
+      alike). Same shape as the `reactivity` axis 2GN.101 itself added for `patina`: a technique had
+      nothing legitimate to key on. Until this lands, `relief` gates on rigidity alone, documented
+      in `src/lib/data/decorations.ts` as a known limitation letting obsidian and flint pass
+      incorrectly
 - [x] **2GN.85** — propagate the 2GN.80 ruling into the tag vocabulary's documented status semantics
       — landed doc-only (2026-08-04, doc 12 §2.29), the re-scope anticipated on pickup. No code
       changed: `deno task check` was already 0 errors/549 files before this task started, since the
@@ -912,15 +1038,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       every value reads as either shallow or false for some values; (2) **cross-property/material
       gating** — a geometric reading can depend on the component's material, not just its own
       parameter ('taper suits a forceful strike' is false if the material is brittle). Originally
-      scoped as technical-only (craft process is materially determined at the root: grinding
-      bronze, knapping obsidian, paring oak and throwing clay are different processes), interpretive
+      scoped as technical-only (craft process is materially determined at the root: grinding bronze,
+      knapping obsidian, paring oak and throwing clay are different processes), interpretive
       authoring showed the same gate is needed there too — a functional reading is a claim about
-      geometry *given* material, not geometry alone — so both registers share this one field rather
+      geometry _given_ material, not geometry alone — so both registers share this one field rather
       than duplicating the concept. `VariantCondition`'s material fields are optional and any-of
       within, AND across fields (`{craftDomain: ['stoneWorking'], materialId: ['obsidian']}`
       requires both). No predicate functions (unlike `DECORATIVE_TECHNIQUES.substrate.test` in
       `data/decorations.ts`) — description data may cross the save boundary, so the condition must
-      stay serialisable. Component *shape* deliberately has no field: the `property` id already
+      stay serialisable. Component _shape_ deliberately has no field: the `property` id already
       carries it (`elongated.edge` only fires on an elongated component). Sibling-parameter
       conditions (e.g. edge=double AND crossSection=diamond on the same component) are deliberately
       out of scope — cheap to add later as a non-breaking extension, and premature inclusion risks
@@ -929,22 +1055,21 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       own test suites _(depended on 2GN.35 — done; unblocked)_
 - [ ] **2GN.92** — doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape
       change and the selection-order contract (condition filters the candidate set, then emphasis
-      selects within it) _(depends on 2GN.91 — done)_ — docs task pairing 2GN.91's type change.
-      Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a
-      condition field; update the quoted interface and prose to match. Doc 12 gets a numbered
-      propagation entry (next after §2.30) recording the change and its origin, matching the
-      convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split
+      selects within it) _(depends on 2GN.91 — done)_ — docs task pairing 2GN.91's type change. Doc
+      05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a condition
+      field; update the quoted interface and prose to match. Doc 12 gets a numbered propagation
+      entry (next after §2.30) recording the change and its origin, matching the convention
+      §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split
 - [ ] **2GN.93** — `engine/generation/description.ts` — variant selection honours `condition`:
       filter candidates by the component's assigned material (via the
-      `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based
-      selection _(depends on 2GN.91 — done)_ — nothing currently does the material join at
-      description time; `NormalisedComponent` carries only `allowedMaterialTags` (a constraint),
-      the actual assignment lives on `ClassifiedArtefact.materials` as a side-table
-      (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns
-      `generateDescription`'s variant selection — resolve at pickup whether this is a distinct
-      task or 2GN.38's description should instead be amended to state selection honours
-      `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as
-      separately-tracked selection logic
+      `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection
+      _(depends on 2GN.91 — done)_ — nothing currently does the material join at description time;
+      `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment
+      lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by
+      `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant
+      selection — resolve at pickup whether this is a distinct task or 2GN.38's description should
+      instead be amended to state selection honours `condition`. Flagged unresolved at authoring
+      time (2026-08-05); do not let both exist as separately-tracked selection logic
 - [x] **2GN.88** — calibration constants audited and justified; `SATURATION_CEILING` moved to the
       data layer — completing the 2GN.79 oversight audit: the retunes and fixtures had per-decision
       sign-off, but nine supporting constants were chosen without it. `TOLERANCE_POINTS` 10 → 6,
@@ -1035,9 +1160,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from
       `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from
-      `DecorativeLayer.material`→precious-material lookup) _(blocked — depends on 2GN.33, 2GN.20,
-      2GN.77)_ — 2GN.77 edge added 2026-07-31: `preciousMaterialsInDecoration` is static
-      preciousness by construction, gated on the material value model the spike settles
+      `DecorativeLayer.material`→precious-material lookup) _(depends on 2GN.33, 2GN.20, 2GN.82,
+      2GN.83, 2GN.84, 2GN.85 — all done)_ — 2GN.77 edge added 2026-07-31:
+      `preciousMaterialsInDecoration` is static preciousness by construction, gated on the material
+      value model the spike settles. **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed
+      `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller
+      anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline
+      before `DecorativeLayer.material` is ever populated outside tests, which is the direct
+      upstream reason `preciousMaterialsInDecoration` is hardcoded `false`
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -1454,15 +1584,17 @@ integration with real culture data
 - [ ] **2GN.96** — baselines cached on real `WorldState`; drift-vs-preceding-phase;
       `PhaseCharacteristics.society.stratification` as a live classification input _(blocked —
       depends on 2GN.95, 3WS.4, 3WS.9, 3WS.21)_ — split out of 2GN.95's scope 2026-08-05: doc 11
-      §2.9 says baselines are "cached in world state", but `WorldState` does not exist (`types/
-      save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase timeline; every
-      fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc 11 §2.9's own
-      named prerequisite for that measurement to mean anything rather than measure noise across
-      incoherent phases. `stratification` is ruled a live input gating how much `elite` can exist at
-      all, independent of any one distribution — deliberately absent from `ClassificationContext`
-      until this task, since declaring it unread would be a lie the type tells. Moved from M2 to M3
-      2026-08-05: its dependencies are all M3 tasks, and M3's own entry point (3WS.1) gates on the
-      whole of M2 completing — an M2 task cannot depend on M3 work without a cycle
+      §2.9 says baselines are "cached in world state", but `WorldState` does not exist
+      (`types/
+      save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase
+      timeline; every fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc
+      11 §2.9's own named prerequisite for that measurement to mean anything rather than measure
+      noise across incoherent phases. `stratification` is ruled a live input gating how much `elite`
+      can exist at all, independent of any one distribution — deliberately absent from
+      `ClassificationContext` until this task, since declaring it unread would be a lie the type
+      tells. Moved from M2 to M3 2026-08-05: its dependencies are all M3 tasks, and M3's own entry
+      point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work
+      without a cycle
 
 ---
 
@@ -2014,8 +2146,13 @@ graph LR
 	2GN.94["2GN.94: `src/lib/engine/statistics.ts` — determ…"]
 	2GN.95["2GN.95: `ClassificationContext` + baseline samp…"]
 	2GN.82["2GN.82: recalibrate the measured classification…"]
+	2GN.97["2GN.97: design spike — what does the 2GN.80 rul…"]
 	2GN.83["2GN.83: recalibrate `expandDecoration`'s fill c…"]
+	2GN.98["2GN.98: design spike — rule doc 11 §1.5's decor…"]
 	2GN.84["2GN.84: recalibrate `SCARCITY_WEIGHT` and mater…"]
+	2GN.99["2GN.99: recalibrate `computeLayerGrade` to read…"]
+	2GN.100["2GN.100: add a distinct `leatherWorking` craft…"]
+	2GN.101["2GN.101: rebuild `MaterialDefinition.physicalPr…"]
 	2GN.85["2GN.85: propagate the 2GN.80 ruling into the ta…"]
 	2GN.27["2GN.27: `engine/generation/materials.ts` + `eng…"]
 	2GN.68["2GN.68: `engine/generation/classification.ts` —…"]
@@ -2411,12 +2548,20 @@ graph LR
 	2GN.95 --> 2GN.83
 	2GN.95 --> 2GN.84
 	2GN.95 --> 2GN.96
+	2GN.82 --> 2GN.97
 	2GN.82 --> 2GN.27
 	2GN.82 --> 2GN.68
+	2GN.97 --> M2
+	2GN.83 --> 2GN.98
 	2GN.83 --> 2GN.27
 	2GN.83 --> 2GN.68
+	2GN.98 --> 2GN.99
+	2GN.84 --> 2GN.101
 	2GN.84 --> 2GN.27
 	2GN.84 --> 2GN.68
+	2GN.99 --> M2
+	2GN.100 --> M2
+	2GN.101 --> M2
 	2GN.85 --> 2GN.27
 	2GN.85 --> 2GN.68
 	2GN.27 --> 2GN.38
@@ -2762,9 +2907,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.82,2GN.83,2GN.84,2GN.87,2GN.92,2GN.93 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.85,2GN.86,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95 done
+	class 2GN.10,2GN.13,2GN.14,2GN.16,2GN.21,2GN.30,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.74,2GN.76,2GN.78,2GN.87,2GN.92,2GN.93,2GN.97 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.11,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.75,2GN.77,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.98,2GN.99 done
 ```
 
 ## Links

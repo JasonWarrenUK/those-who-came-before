@@ -13,9 +13,15 @@ import type {
 } from '../../types/artefact.ts';
 import type { AttachmentType } from '../../types/grammar.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
-import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
+import type {
+	ArtefactTag,
+	BaselineFeature,
+	ClassificationContext,
+	ClassificationRule,
+} from '../../types/tags.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { CLASSIFICATION_RULES } from '../../data/classification.ts';
+import { PERCENTILE_LADDER } from '../statistics.ts';
 
 /** Builds a component of a given primitive with string properties, distinguishable by id. */
 function component(
@@ -52,13 +58,14 @@ function attachment(from: string, to: string, type: AttachmentType) {
 	return { fromComponentId: from, toComponentId: to, type };
 }
 
-/** A decorative layer with optional sublayers and motif. */
+/** A decorative layer with optional sublayers, motif and grade (defaults to a neutral mid-value). */
 function layer(
 	technique: DecorativeLayer['technique'],
 	sublayers: DecorativeLayer[] = [],
 	motifRef?: string,
+	grade = 0.5,
 ): DecorativeLayer {
-	return { targetComponentId: 'c0', technique, motifRef, sublayers };
+	return { targetComponentId: 'c0', technique, motifRef, grade, sublayers };
 }
 
 // --- Purity -----------------------------------------------------------------------------------------
@@ -642,6 +649,42 @@ function rule(
  */
 const ctx = emptyClassificationContext();
 
+/**
+ * A hand-built `ClassificationContext` with a single `decorativeLayerCount` p75 threshold of 6,
+ * for the worked-example integration test below (roadmap 2GN.82). That test exercises the real
+ * shipped `CLASSIFICATION_RULES`, one of which (the edged-decorated archetype rule) now reads this
+ * feature against a culture-phase baseline rather than a fixed `>= 6` — matching the shipped rung
+ * keeps this test's fire/no-fire expectation exactly what it was before the migration.
+ */
+function decoratedEdgeContext(): ClassificationContext {
+	const thresholds = new Map<BaselineFeature, Map<number, number>>([
+		['decorativeLayerCount', new Map([[0.75, 6]])],
+	]);
+	return {
+		cultureId: 'test',
+		phaseId: 'test',
+		baselines: new Map(
+			[...thresholds].map(([feature, byPercentile]) => [
+				feature,
+				{ thresholds: byPercentile, sampleSize: 400 },
+			]),
+		),
+		exceeds(feature, percentile, value) {
+			if (!PERCENTILE_LADDER.includes(percentile as (typeof PERCENTILE_LADDER)[number])) {
+				throw new Error(
+					`ClassificationContext.exceeds: percentile ${percentile} is not a PERCENTILE_LADDER ` +
+						`rung (${PERCENTILE_LADDER.join(', ')})`,
+				);
+			}
+			const threshold = thresholds.get(feature)?.get(percentile);
+			return threshold !== undefined && value >= threshold;
+		},
+		hasBaseline(feature) {
+			return thresholds.has(feature);
+		},
+	};
+}
+
 Deno.test('classifyArtefact: rules firing on the same tag sum their weights', () => {
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.5], ['tool', 0.25]]),
@@ -738,7 +781,7 @@ Deno.test('integration: the real rules score the engraved long blade on weapon, 
 		decorativeLayerCount: 6,
 	});
 
-	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES, ctx);
+	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES, decoratedEdgeContext());
 
 	for (const tag of ['weapon', 'ritual', 'ceremonial', 'elite'] as const) {
 		assert((scored.get(tag) ?? 0) > 0, `${tag} should accumulate positive evidence`);
