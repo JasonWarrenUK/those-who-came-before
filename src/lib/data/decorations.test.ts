@@ -88,13 +88,17 @@ Deno.test('decorations: glaze accepts only ceramic', () => {
 	assert(!test(findMaterial('oak')));
 });
 
-Deno.test('decorations: gilding accepts only metal-tagged materials', () => {
+Deno.test('decorations: gilding accepts any sufficiently rigid ground, not metal only (roadmap 2GN.101)', () => {
+	// Corrected from `gilding accepts only metal-tagged materials`, which was factually wrong: real
+	// gilding is applied overwhelmingly to non-metal grounds — gilded wood and gesso are the
+	// commonest historical case, with gilded leather bindings and gilded ceramic well attested.
+	// Metal-on-metal fire-gilding is one tradition, not the prerequisite.
 	const test = getMaterialTest('gilding');
-	assert(test(findMaterial('bronze')));
-	assert(test(findMaterial('gold')));
-	assert(test(findMaterial('silver')));
-	assert(!test(findMaterial('oak')));
-	assert(!test(findMaterial('fired-clay')));
+	assert(test(findMaterial('gold')), 'metal grounds stay eligible');
+	assert(test(findMaterial('oak')), 'gilded wood is the commonest real case');
+	assert(test(findMaterial('fired-clay')), 'gilded ceramic is attested');
+	assert(test(findMaterial('leather')), 'gilded leather bindings are attested');
+	assert(!test(findMaterial('linen')), 'only genuinely pliable ground is excluded');
 });
 
 Deno.test('decorations: painting accepts paintable materials, rejects the rest', () => {
@@ -104,11 +108,17 @@ Deno.test('decorations: painting accepts paintable materials, rejects the rest',
 	assert(!test(findMaterial('bronze')));
 });
 
-Deno.test('decorations: studs accepts rigid or leather, rejects soft non-leather', () => {
+Deno.test('decorations: studs accepts rigid or leather, rejects pliable non-leather (roadmap 2GN.101)', () => {
 	const test = getMaterialTest('studs');
-	assert(test(findMaterial('bronze'))); // rigid (not soft)
-	assert(test(findMaterial('leather'))); // soft, but leather-tagged
-	assert(!test(findMaterial('gold'))); // soft metal, not leather-tagged
+	assert(test(findMaterial('bronze')), 'rigid metal takes studs');
+	assert(test(findMaterial('leather')), 'pliable, but the named leather exception applies');
+	assert(!test(findMaterial('linen')), 'pliable and not leather-tagged');
+
+	// Gold changed verdict here, deliberately. The old test rejected it via the `hardness !== 'soft'`
+	// proxy — the same proxy misuse this task removed. Gold is structurally soft but perfectly rigid
+	// (it holds worked shape), and real goldwork does take rivets and applied studs, so accepting it
+	// is the corrected reading rather than a regression.
+	assert(test(findMaterial('gold')), 'soft but rigid: real goldwork takes rivets and studs');
 });
 
 Deno.test('decorations: wire-wrapping and wrapping are form-substrate, requiring grippable', () => {

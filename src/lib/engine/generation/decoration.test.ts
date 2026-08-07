@@ -5,6 +5,7 @@ import {
 	computeLayerGrade,
 	computeTechniqueWeight,
 	expandDecoration,
+	gradeDecorativeLayers,
 	type SharedMotifSource,
 } from './decoration.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
@@ -1217,4 +1218,192 @@ Deno.test('assignDecorativeDetails: resolves expandDecoration output end-to-end'
 		assertEquals('motifRef' in layer, definition.carriesMotif);
 		assertEquals('material' in layer, definition.introducesMaterial);
 	}
+});
+
+// --- material-aware grade (roadmap 2GN.99) ----------------------------------------------------
+
+/** Looks up a shipped material by id; throws if the catalogue ever drops it. */
+function material(id: string) {
+	const found = MATERIALS.find((m) => m.id === id);
+	if (!found) throw new Error(`test fixture expects a shipped material '${id}'`);
+	return found;
+}
+
+Deno.test('computeLayerGrade: omitting the material reproduces the technique-only grade exactly', () => {
+	// The regression pin protecting `expandDecoration`'s output. Its call site passes no material, so
+	// if the optional parameter ever changed the no-material path, every layer the sampled pipeline
+	// emits would move and every calibration fire rate with it.
+	for (const name of DECORATIVE_TECHNIQUES.map((t) => t.technique)) {
+		for (const craft of [0, 0.3, 0.7, 1]) {
+			assertEquals(
+				computeLayerGrade(craft, name, undefined),
+				computeLayerGrade(craft, name),
+				`${name} at craft ${craft} must be unchanged when no material is supplied`,
+			);
+		}
+	}
+});
+
+Deno.test('computeLayerGrade: engraving is harder on a coarse-grained material than a fine-grained one', () => {
+	// The claim the whole task exists to make good on: engraving granite and engraving gold were
+	// previously identical. Granite is coarse-grained (3) against gold's near-amorphous 7, and
+	// engraving carries the table's largest negative `grainFineness` weight, so gold must grade
+	// higher at the same craft level.
+	const craft = 0.6;
+	const onGold = computeLayerGrade(craft, 'engraving', material('gold'));
+	const onGranite = computeLayerGrade(craft, 'engraving', material('granite'));
+
+	assert(
+		onGold > onGranite,
+		`expected engraving on gold (${onGold}) to grade above engraving on granite (${onGranite})`,
+	);
+});
+
+Deno.test('computeLayerGrade: a fragile material lowers the grade for a cutting technique', () => {
+	// `fragility` carries engraving's largest positive weight. Glass sits at the ceiling (7) and jade
+	// near the floor (2), and both are fine-grained, so fragility is the axis actually separating
+	// them here.
+	const craft = 0.6;
+	const onJade = computeLayerGrade(craft, 'engraving', material('jade'));
+	const onGlass = computeLayerGrade(craft, 'engraving', material('glass'));
+
+	assert(
+		onJade > onGlass,
+		`expected engraving on jade (${onJade}) to grade above engraving on glass (${onGlass})`,
+	);
+});
+
+Deno.test('computeLayerGrade: a technique with no sensitivity entries ignores the material entirely', () => {
+	// `tassels` has an empty sensitivity record — it introduces no material and has no material
+	// substrate, so there is genuinely nothing to respond to. Pinning this keeps a later editor from
+	// "filling in" weights without the craft argument to justify them.
+	const craft = 0.5;
+	const baseline = computeLayerGrade(craft, 'tassels');
+
+	for (const id of ['gold', 'granite', 'glass', 'linen']) {
+		assertEquals(computeLayerGrade(craft, 'tassels', material(id)), baseline, id);
+	}
+});
+
+Deno.test('computeLayerGrade: stays within [0, 1] for every technique, material and craft extreme', () => {
+	for (const name of DECORATIVE_TECHNIQUES.map((t) => t.technique)) {
+		for (const candidate of MATERIALS) {
+			for (const craft of [0, 0.5, 1]) {
+				const grade = computeLayerGrade(craft, name, candidate);
+				assert(
+					grade >= 0 && grade <= 1,
+					`computeLayerGrade(${craft}, '${name}', '${candidate.id}') = ${grade}, outside [0, 1]`,
+				);
+			}
+		}
+	}
+});
+
+Deno.test('gradeDecorativeLayers: re-grades against the assigned material and leaves everything else intact', () => {
+	const phase = mockPhaseCharacteristics({ society: { craftSpecialisation: 0.6 } });
+	const layers: DecorativeLayer[] = [
+		{ targetComponentId: 'c0', technique: 'engraving', grade: 0.5, sublayers: [] },
+	];
+
+	const [regraded] = gradeDecorativeLayers(
+		layers,
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		phase,
+	);
+
+	assertEquals(regraded!.grade, computeLayerGrade(0.6, 'engraving', material('granite')));
+	assertEquals(regraded!.targetComponentId, 'c0');
+	assertEquals(regraded!.technique, 'engraving');
+});
+
+Deno.test('gradeDecorativeLayers: an unmatched component keeps its provisional grade', () => {
+	// Honest degradation, matching `assignDecorativeDetails`' contract for an empty motif pool: a
+	// layer with no assignment is left as-is rather than dropped or zeroed.
+	const layers: DecorativeLayer[] = [
+		{ targetComponentId: 'c9', technique: 'engraving', grade: 0.42, sublayers: [] },
+	];
+
+	const [regraded] = gradeDecorativeLayers(
+		layers,
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		mockPhaseCharacteristics(),
+	);
+
+	assertEquals(regraded!.grade, 0.42);
+});
+
+Deno.test('gradeDecorativeLayers: an assignment naming an unknown material keeps the provisional grade', () => {
+	const layers: DecorativeLayer[] = [
+		{ targetComponentId: 'c0', technique: 'engraving', grade: 0.33, sublayers: [] },
+	];
+
+	const [regraded] = gradeDecorativeLayers(
+		layers,
+		[{ componentId: 'c0', materialId: 'unobtainium', provenance: { source: 'unknown' } }],
+		mockPhaseCharacteristics(),
+	);
+
+	assertEquals(regraded!.grade, 0.33);
+});
+
+Deno.test('gradeDecorativeLayers: recurses into sublayers (2GN.31/32 readiness)', () => {
+	const phase = mockPhaseCharacteristics({ society: { craftSpecialisation: 0.6 } });
+	const layers: DecorativeLayer[] = [
+		{
+			targetComponentId: 'c0',
+			technique: 'polish',
+			grade: 0.5,
+			sublayers: [
+				{ targetComponentId: 'c0', technique: 'engraving', grade: 0.5, sublayers: [] },
+			],
+		},
+	];
+
+	const [regraded] = gradeDecorativeLayers(
+		layers,
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		phase,
+	);
+
+	assertEquals(
+		regraded!.sublayers[0]!.grade,
+		computeLayerGrade(0.6, 'engraving', material('granite')),
+	);
+});
+
+Deno.test('gradeDecorativeLayers: purity — inputs unmutated, outputs are new objects', () => {
+	const layers: DecorativeLayer[] = [
+		{ targetComponentId: 'c0', technique: 'engraving', grade: 0.5, sublayers: [] },
+	];
+	const snapshot = structuredClone(layers);
+
+	const regraded = gradeDecorativeLayers(
+		layers,
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		mockPhaseCharacteristics(),
+	);
+
+	assertEquals(layers, snapshot, 'input layers must not be mutated');
+	assertNotEquals(regraded[0], layers[0], 'output must be a new object');
+});
+
+Deno.test('computeLayerGrade: a favourable material never makes craft irrelevant (difficulty floor)', () => {
+	// 22 of the 256 technique × material pairs push difficulty below zero before clamping. Flooring
+	// them at zero would claim the work is *perfectly* easy — that a novice and a master produce
+	// identical results — which no real craft supports. `MINIMUM_DIFFICULTY` keeps craft load-bearing
+	// everywhere, so grade must still separate a low-craft culture from a high-craft one even on the
+	// most forgiving technique/material pairing available.
+	const easiest = MATERIALS.map((candidate) => ({
+		candidate,
+		grade: computeLayerGrade(1, 'roughening', candidate),
+	})).sort((a, b) => b.grade - a.grade)[0]!;
+
+	const lowCraft = computeLayerGrade(0.2, 'roughening', easiest.candidate);
+	const highCraft = computeLayerGrade(0.9, 'roughening', easiest.candidate);
+
+	assert(
+		highCraft > lowCraft,
+		`craft must still matter on the most forgiving pairing (${easiest.candidate.id}): ` +
+			`got ${highCraft} at craft 0.9 against ${lowCraft} at craft 0.2`,
+	);
 });

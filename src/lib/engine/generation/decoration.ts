@@ -33,6 +33,10 @@
  *   as a separate pass rather than folded into expansion, so the eventual pipeline can order it
  *   after 2GN.30's substrate stripping (no draws wasted on layers that get stripped) and so
  *   `expandDecoration`'s draw-sequence contract stays untouched.
+ * - material-aware execution quality — owned by `gradeDecorativeLayers` (2GN.99, below), for the
+ *   same reason. The `grade` `expandDecoration` emits is *provisional*: components have no assigned
+ *   material at expansion time, so it reflects the technique alone. That pass refines it once
+ *   materials are known.
  *
  * **Culture/motif independence** (explicit product requirement): a culture's decorative-technique
  * preference and its motif vocabulary are separate signals. Two cultures can share every phase
@@ -66,7 +70,11 @@ import type {
 	DecorativeTechnique,
 	DecorativeTechniqueDefinition,
 } from '../../types/decoration.ts';
-import type { MaterialDefinition, NormalisedArtefact } from '../../types/artefact.ts';
+import type {
+	MaterialAssignment,
+	MaterialDefinition,
+	NormalisedArtefact,
+} from '../../types/artefact.ts';
 import type {
 	CulturalProfile,
 	GeologicalContext,
@@ -75,7 +83,12 @@ import type {
 	PhaseCharacteristics,
 } from '../../types/world.ts';
 import type { MaterialTag } from '../../types/tags.ts';
-import { DECORATIVE_TECHNIQUES, TECHNIQUE_DIFFICULTY } from '../../data/decorations.ts';
+import {
+	DECORATIVE_TECHNIQUES,
+	type MaterialDifficultyAxis,
+	TECHNIQUE_DIFFICULTY,
+	TECHNIQUE_MATERIAL_SENSITIVITY,
+} from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { computeMaterialWeight, isAvailable } from './materials.ts';
 import { resolvePhaseAttribute } from './phase.ts';
@@ -86,8 +99,14 @@ import { weightedSelect } from '../prng.ts';
  * 05 §8.3 names `technology.textiles` as "directly relevant to textile-element techniques"; the
  * remaining couplings are not tabled by the doc). MVP-provisional — authored fresh, retunable.
  * `null` means no single craft gates the technique (universally-achievable surface treatments, or
- * `painting`, whose pigment-application skill doesn't map cleanly onto one of the seven axes),
- * contributing a neutral technology factor rather than a suppressed one.
+ * `painting`, whose pigment-application skill doesn't map cleanly onto any one axis), contributing a
+ * neutral technology factor rather than a suppressed one.
+ *
+ * No technique gates on `leatherWorking` (roadmap 2GN.100) — deliberately, not by oversight.
+ * `wrapping` is the one plausible candidate, but it introduces `['fiber', 'leather']`, so pointing
+ * it at either pure axis is wrong half the time; the correct fix is material-aware axis resolution,
+ * which shares 2GN.99's blocker and is recorded with it. The new axis earns its keep through
+ * `phaseTechnologyWeight` (`materials.ts`) instead, which is where the conflation actually bit.
  *
  * Engraving/relief/inlay/overlay/studs/wire-wrapping/gilding all read against `metallurgy` as the
  * provisional default for "fine hard-surface/applied-metal working" — a material-aware refinement
@@ -396,10 +415,78 @@ function decorationVolume(phase: PhaseCharacteristics): number {
 export function computeLayerGrade(
 	craftSpecialisation: number,
 	technique: DecorativeTechnique,
+	material?: MaterialDefinition,
 ): number {
-	const difficulty = TECHNIQUE_DIFFICULTY[technique];
+	const difficulty = effectiveDifficulty(technique, material);
 	return craftSpecialisation * (1 - 0.5 * difficulty) +
 		0.5 * difficulty * craftSpecialisation ** 2;
+}
+
+/**
+ * The midpoint and half-range of each material axis, used to normalise a raw score to roughly
+ * `[-1, +1]` before weighting (roadmap 2GN.99). `hardness` spans 1–10 (Mohs-pegged) while the rest
+ * span 1–7, so they cannot share one normalisation — hence the per-axis table rather than a single
+ * divisor.
+ *
+ * `oxidisation` is normalised across `0`–`7` only. Its `-1` sentinel never reaches here: a material
+ * with no oxidation chemistry fails `patina`'s substrate gate outright, which is the whole reason
+ * the sentinel is a gate rather than an extreme difficulty value.
+ */
+const AXIS_NORMALISATION: Readonly<Record<MaterialDifficultyAxis, { mid: number; half: number }>> =
+	{
+		hardness: { mid: 5.5, half: 4.5 },
+		fragility: { mid: 4, half: 3 },
+		rigidity: { mid: 4, half: 3 },
+		grainFineness: { mid: 4, half: 3 },
+		porosity: { mid: 4, half: 3 },
+		oxidisation: { mid: 3.5, half: 3.5 },
+	};
+
+/**
+ * The floor `effectiveDifficulty` clamps to, rather than `0` (roadmap 2GN.99). A favourable material
+ * can push a low-baseline technique's difficulty negative — 22 of the 256 technique × material pairs
+ * do — and clamping those to zero would claim the work is *perfectly* easy, with craft irrelevant to
+ * the result. No real craft behaves that way: roughening a forgiving material still rewards a
+ * practised hand over an unpractised one. Small enough that the favourable material still reads as
+ * markedly easier, non-zero so `craftSpecialisation` never stops mattering.
+ */
+const MINIMUM_DIFFICULTY = 0.05;
+
+/** Reads one material axis, bridging the two homes those axes live in (`physicalProperties`, `reactivity`). */
+function axisValue(material: MaterialDefinition, axis: MaterialDifficultyAxis): number {
+	return axis === 'oxidisation'
+		? material.reactivity.oxidisation
+		: material.physicalProperties[axis];
+}
+
+/**
+ * A technique's difficulty against a specific material (roadmap 2GN.99): its authored
+ * `TECHNIQUE_DIFFICULTY` baseline shifted by `TECHNIQUE_MATERIAL_SENSITIVITY`, clamped to `[0, 1]`.
+ *
+ * Modulating *difficulty* rather than the resulting grade is deliberate. It keeps the `[0, 1]` bound
+ * without clamping the output, it preserves the "harder techniques degrade faster as craft falls"
+ * curve `computeLayerGrade` documents, and it makes the physical claim correctly: a difficult
+ * material makes a technique behave *like a harder technique*. Scaling the grade instead would mean
+ * a flawless craftsman could never execute flawlessly on hard material, which the field's
+ * "how well was this executed" semantics do not support.
+ *
+ * With no material supplied, returns the bare baseline — the value `expandDecoration` uses, since
+ * materials are not known at expansion time.
+ */
+function effectiveDifficulty(
+	technique: DecorativeTechnique,
+	material: MaterialDefinition | undefined,
+): number {
+	const baseline = TECHNIQUE_DIFFICULTY[technique];
+	if (material === undefined) return baseline;
+
+	let shift = 0;
+	for (const [axis, weight] of Object.entries(TECHNIQUE_MATERIAL_SENSITIVITY[technique])) {
+		const { mid, half } = AXIS_NORMALISATION[axis as MaterialDifficultyAxis];
+		shift += weight * ((axisValue(material, axis as MaterialDifficultyAxis) - mid) / half);
+	}
+
+	return Math.min(1, Math.max(MINIMUM_DIFFICULTY, baseline + shift));
 }
 
 const DECORATIVE_CATEGORIES = ['surface-treatment', 'applied-element', 'textile-element'] as const;
@@ -678,4 +765,65 @@ export function assignDecorativeDetails(
 	}
 
 	return layers.map(resolveLayer);
+}
+
+/**
+ * Re-grades every layer against the material its target component was actually assigned (roadmap
+ * 2GN.99) — a separate pass over `expandDecoration`'s output, mirroring `assignDecorativeDetails`'
+ * position rather than folding into expansion.
+ *
+ * **Why a post-pass and not a parameter on `expandDecoration`.** Materials are not known when layers
+ * are created: `expandDecoration` iterates `NormalisedComponent`s, which carry
+ * `allowedMaterialTags` (the candidate set, and stubbed empty until roadmap 2GN.10) but no assigned
+ * material. The assignment lives in a parallel `MaterialAssignment[]` from `assignMaterials`, and
+ * threading that in would force every caller to run material assignment first — which consumes PRNG
+ * draws, so it would perturb the decoration draw sequence and move every recorded fire rate for
+ * reasons having nothing to do with grade. Splitting the pass keeps `expandDecoration`'s
+ * "grade costs no extra draw" contract exactly true, and leaves the Stage 6 → Stage 7 ordering
+ * decision to whoever builds the real pipeline.
+ *
+ * The grade `expandDecoration` emits is therefore *provisional* — the technique-only value a layer
+ * carries before materials are known. This function replaces it with the material-aware one.
+ *
+ * **PRNG-free**, so it can be applied at any point without disturbing determinism. Pure: returns new
+ * layer objects and never mutates its inputs, matching `assignDecorativeDetails`.
+ *
+ * A layer whose `targetComponentId` has no assignment, or whose assigned `materialId` is not in
+ * `materials`, keeps its existing provisional grade rather than being dropped or zeroed — the same
+ * honest-degradation contract `assignDecorativeDetails` applies to an empty motif pool.
+ *
+ * @param layers - Layers from `expandDecoration` (or a later pass over them).
+ * @param assignments - Per-component material assignments from `assignMaterials`.
+ * @param phase - The producing phase, supplying `society.craftSpecialisation`.
+ * @param materials - Catalogue to resolve `materialId` against. Defaults to the shipped `MATERIALS`.
+ * @returns New layers, identical but for `grade`, recursing through `sublayers`.
+ */
+export function gradeDecorativeLayers(
+	layers: readonly DecorativeLayer[],
+	assignments: readonly MaterialAssignment[],
+	phase: PhaseCharacteristics,
+	materials: readonly MaterialDefinition[] = MATERIALS,
+): DecorativeLayer[] {
+	const byId = new Map(materials.map((material) => [material.id, material]));
+	const componentMaterial = new Map<string, MaterialDefinition>();
+	for (const assignment of assignments) {
+		const material = byId.get(assignment.materialId);
+		if (material !== undefined) componentMaterial.set(assignment.componentId, material);
+	}
+
+	const craftSpecialisation = phase.society.craftSpecialisation;
+
+	function regrade(layer: DecorativeLayer): DecorativeLayer {
+		const material = componentMaterial.get(layer.targetComponentId);
+
+		return {
+			...layer,
+			grade: material === undefined
+				? layer.grade
+				: computeLayerGrade(craftSpecialisation, layer.technique, material),
+			sublayers: layer.sublayers.map(regrade),
+		};
+	}
+
+	return layers.map(regrade);
 }

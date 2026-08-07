@@ -91,6 +91,11 @@ export interface DecorativeLayer {
 	 * techniques" distinction — a per-layer quality dimension separate from `decorationVolume`
 	 * (how much decoration appears), which reads `aesthetics.decorativeEmphasis` alone. See
 	 * `computeLayerGrade` (`engine/generation/decoration.ts`).
+	 *
+	 * **The value `expandDecoration` sets is provisional** (roadmap 2GN.99): components carry no
+	 * assigned material at expansion time, so it reflects the technique alone. `gradeDecorativeLayers`
+	 * refines it against the material each component was actually assigned — engraving iron and
+	 * engraving gold are not equally difficult, and the refined value says so.
 	 */
 	grade: number;
 
