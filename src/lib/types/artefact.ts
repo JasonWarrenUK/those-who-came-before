@@ -138,7 +138,7 @@ export interface NormalisedComponent {
  * would create a second source of truth doc 05 never asks for. The one genuinely static
  * per-material fact doc 05 §7/§3.2 implies but doesn't yet type is which
  * `PhaseCharacteristics.technology` axis governs working this material (`craftDomain`) and its
- * baseline workability for decoration prerequisites (`physicalProperties`, `decorability`), both
+ * physical behaviour under decoration (`physicalProperties`, `reactivity`, `decorability`), all
  * added below. `assignMaterial`/`computeMaterialWeight`/`isAvailable` (2GN.23–25) and decoration
  * prerequisite-checking (2GN.28) remain engine logic and are not implemented here.
  */
@@ -160,26 +160,121 @@ export interface MaterialDefinition {
 	craftDomain: CraftDomain;
 
 	/**
-	 * Baseline physical properties consulted by the (future, 2GN.28) decorative grammar when
-	 * checking doc 05 §8.2 material prerequisites not already expressible via `tags` alone.
+	 * Baseline physical properties, read by decorative substrate tests (`data/decorations.ts`) and
+	 * by per-material execution difficulty (`computeLayerGrade`, roadmap 2GN.99).
 	 *
-	 * `hardness` and `workable` are deliberately independent axes: `hardness` is structural
-	 * resistance to denting/scratching, `workable` is whether the material can take an incised
-	 * line at all. They diverge for soft precious metals, which is why they aren't collapsed
-	 * into one property — see `workable`.
+	 * **Six orthogonal authored axes (roadmap 2GN.101), replacing the original
+	 * `hardness: 'soft' | 'medium' | 'hard'` plus `workable: boolean` pair.** That pair proved unfit
+	 * on two counts. `hardness` was too coarse and was being actively *misused* as a fragility
+	 * proxy — `relief`'s and `overlay`'s substrate tests both carried comments admitting "hardness
+	 * stands in as the nearest proxy" for a property that did not exist. And `workable` conflated
+	 * three distinct facts: brittleness (obsidian, flint and glass shatter), pliability (linen and
+	 * leather deform rather than cut), and grain coarseness (granite cannot hold a fine line however
+	 * carefully it is worked). Each is now its own axis, so a substrate test or difficulty weight can
+	 * name the fact it actually depends on.
+	 *
+	 * Every axis is an authored judgement anchored to real materials practice, reviewed per-item —
+	 * the same standard `TECHNIQUE_DIFFICULTY` (`data/decorations.ts`) was held to. `hardness` is
+	 * additionally pegged to the real Mohs scale so its values stay independently checkable;
+	 * `combustibility` is a deliberately coarsened proxy (see its own note).
 	 */
 	physicalProperties: {
-		/** Structural resistance to denting/scratching. Not itself an engraving prerequisite — see `workable`. */
-		hardness: 'soft' | 'medium' | 'hard';
+		/**
+		 * Resistance to denting and scratching, `1`–`10`, **on the real Mohs scale** so values are
+		 * independently checkable rather than free-floating: 1 talc, 2 gypsum, 3 calcite (and
+		 * gold/silver), 4 fluorite (bronze), 5 apatite (iron), 6 feldspar, 7 quartz (flint), 8 topaz,
+		 * 9 corundum, 10 diamond.
+		 *
+		 * Says nothing about fracture risk — that is `fragility`. Obsidian is the standing
+		 * counter-example: Mohs 5, softer than flint, yet far more prone to shattering.
+		 */
+		hardness: number;
 
 		/**
-		 * Whether the material can hold an incised line, satisfying engraving's
-		 * `[requires: hard material]` prerequisite (doc 05 §8.2) despite the prerequisite's name.
-		 * Independent of `hardness`: gold is `hardness: 'soft'` but `workable: true` (chasing,
-		 * repoussé and engraving all work gold fine), while brittle stone like flint stays
-		 * `workable: false` regardless of hardness.
+		 * Likelihood of catastrophic, unrecoverable fracture under a single mis-strike, `1`–`7`.
+		 * The axis `hardness` was previously standing in for.
+		 *
+		 * `1` deforms and never fractures · `2` hairline crack under severe misuse · `3` cracks under
+		 * a clearly bad strike · `4` cracks under a moderate slip · `5` chips readily but is forgiving
+		 * of controlled work · `6` fractures on most mis-strikes · `7` shatters on nearly any slip.
 		 */
-		workable: boolean;
+		fragility: number;
+
+		/**
+		 * Whether the material holds a fixed worked shape or drapes and deforms under handling,
+		 * `1`–`7`. This is the axis that makes linen and leather unengravable despite being neither
+		 * hard nor brittle — they are simply pliable.
+		 *
+		 * `1` fully pliable, drapes freely · `2` flexible, holds a loose shape briefly · `3`
+		 * semi-flexible, needs support · `4` firm but bends under working pressure · `5` holds shape
+		 * under normal handling · `6` rigid, deliberate force to flex · `7` fully rigid.
+		 */
+		rigidity: number;
+
+		/**
+		 * Grain and microstructural continuity — how finely the internal structure permits a
+		 * controlled line, `1`–`7`. **This is what replaces `workable`'s real job**, named for what it
+		 * measures rather than the vague legacy term.
+		 *
+		 * Genuinely independent of the other axes, tested against two pairs during authoring:
+		 * obsidian and granite share hardness and rigidity and granite is the *less* fragile of the
+		 * two, yet obsidian takes a far finer edge; gold and oak sit close on hardness, fragility and
+		 * rigidity, yet gold engraves far more precisely. In both cases grain structure is the only
+		 * thing that explains the difference.
+		 *
+		 * `1` no coherent grain, tears unpredictably · `2` coarse fibrous, the line wanders · `3`
+		 * coarse crystalline, caps achievable fineness · `4` moderate grain, needs care to stay true ·
+		 * `5` fine consistent grain · `6` very fine, near-effortless precision · `7` amorphous or
+		 * glassy, a trained hand achieves razor precision.
+		 */
+		grainFineness: number;
+
+		/**
+		 * Absorbency — how much a surface takes a coating in versus resisting it, `1`–`7`. Governs
+		 * `painting` (a porous surface holds pigment more forgivingly) and `glaze` (a porous ceramic
+		 * body is *why* glaze bonds at all). Universal scale with no not-applicable sentinel: every
+		 * solid has a meaningful porosity.
+		 *
+		 * `1` sealed and non-absorbent · `7` highly absorbent.
+		 */
+		porosity: number;
+
+		/**
+		 * Resistance to sustained combustion at firing temperatures, `1`–`7`, with `7` the *most*
+		 * combustible. Gates `glaze`, which cannot fire a material that would burn.
+		 *
+		 * **A deliberately coarsened proxy for real ignition-temperature data**, not the data itself:
+		 * linen ignites near 210 °C, leather chars near 200 °C but sustains ignition nearer 270 °C,
+		 * seasoned hardwood near 300 °C. Kept on the shared `1`–`7` scale rather than raw °C so it
+		 * composes with the other axes in one weighted sum without a per-axis normalisation step.
+		 * Bone and antler's `2` is an approximation of a different phenomenon: they pyrolyse
+		 * progressively from around 300–400 °C without a clean ignition point, so they are placed low
+		 * but non-zero rather than given a fabricated ignition temperature.
+		 */
+		combustibility: number;
+	};
+
+	/**
+	 * Chemical behaviour, keyed by reaction type so future reactions (acidity, photoreactivity) are
+	 * additive rather than a reshape of this field (roadmap 2GN.101).
+	 *
+	 * Introduced because `patina` had no material signal to key on at all: it is an oxidation
+	 * process, and every other axis here is mechanical or structural. Before this, `patina`'s
+	 * substrate was `{kind: 'none'}` and the live generator applied patina to stone and glass.
+	 */
+	reactivity: {
+		/**
+		 * Readiness to oxidise, `-1` or `0`–`7`.
+		 *
+		 * **`-1` means not applicable** — the material class has no oxidation chemistry at all (glass,
+		 * stone, fired ceramic, fibre). `0`–`7` means applicable and measured, `0` being negligible.
+		 * The distinction is load-bearing and deliberate: `-1` feeds a **substrate gate**, not a
+		 * difficulty penalty, keeping "impossible" and "merely hard" as different kinds of fact — the
+		 * same separation `materialAccessGate` and `computeLayerGrade` already maintain. Gold is `0`
+		 * rather than `-1` because gold genuinely has oxidation chemistry; it is simply famously
+		 * resistant.
+		 */
+		oxidisation: number;
 	};
 
 	/**
