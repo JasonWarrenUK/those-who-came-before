@@ -59,8 +59,19 @@ export interface PhaseCharacteristics {
 		/** Ceramic technology sophistication. */
 		ceramics: number;
 
-		/** Textile technology sophistication. */
+		/** Textile technology sophistication — spinning, weaving and fibre preparation. */
 		textiles: number;
+
+		/**
+		 * Hide-working sophistication — tanning, curing, cutting and stamping (roadmap 2GN.100).
+		 *
+		 * Split from `textiles`, which had been carrying both. Weaving flax and tanning hide are
+		 * different crafts with different prerequisites: a mobile pastoralist culture tans
+		 * continuously because the herd yields hides as a by-product of subsistence, while flax is a
+		 * settled-agriculture crop. Collapsing them meant a culture could not be excellent at one and
+		 * indifferent to the other, which is the common real case rather than the exotic one.
+		 */
+		leatherWorking: number;
 
 		/** Stone-working technology sophistication. */
 		stoneWorking: number;
