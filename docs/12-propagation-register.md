@@ -1832,7 +1832,9 @@ through `phaseTechnologyWeight` instead, which is where the conflation actually 
    pass. ⚠️ **Forward hazard:** the moment grading enters the sampled path, `meanDecorativeGrade`
    becomes geology-sensitive, and `EXPECTED_THRESHOLDS`' pooling across the six regional worlds —
    justified today because decoration reads emphasis rather than geology — becomes a claim nobody
-   has measured. It needs a per-region pin or an explicit ruling.
+   has measured. It needs a per-region pin or an explicit ruling. **Discharged 2026-08-07, §2.36:**
+   grading entered the sampled path (a separate fix, `sampleBaselines`), and the per-region pin this
+   item asked for is now in place (`EXPECTED_MEAN_GRADE_BY_REGION`, `data/calibration.test.ts`).
 6. **2GN.10 remains a blocker for the fuller version.** With `allowedMaterialTags` stubbed `[]`,
    `assignMaterial` treats every material as a candidate for every component, so a wooden haft can
    be assigned gold. Material-aware grade will be technically correct and archaeologically nonsense
@@ -1849,6 +1851,73 @@ through `phaseTechnologyWeight` instead, which is where the conflation actually 
 | —   | `types/world.ts`: `technology.leatherWorking`; four explorer presets and the test fixture scored                                   | 2026-08-07 |
 | —   | Tests: axis-range and independence guards, grade/floor/post-pass coverage, corrected substrate expectations                        | 2026-08-07 |
 | —   | Roadmap: 2GN.101 added and done; 2GN.99 and 2GN.100 done; six successors recorded                                                  | 2026-08-07 |
+
+---
+
+### 2.36 Calibration Samplers Reconciled with Material-Aware Grading; §2.35's Forward Hazard Discharged (2026-08-07)
+
+**Origin:** Roadmap 2GN.103, surfaced during PR #53 review.
+
+**Source of truth:** this entry.
+
+**A fix to `sampleBaselines` moved half of a comparison and left the other half stale.** A prior fix
+(`engine/generation/baselines.ts`) found that `sampleBaselines` fed `expandDecoration`'s output
+straight to `extractFeatures`, skipping `assignMaterials` and `gradeDecorativeLayers` — so R44's
+`meanDecorativeGrade` baseline was sampled from `expandDecoration`'s _provisional_ technique-only
+grade rather than the material-aware one real artefacts are classified against. The fix threaded
+both stages in and re-pinned R44's `EXPECTED_FIRE_RATES` entry from 12.3% to 4.0%.
+
+That left the comparison worse than before, not fixed. Two other places call `extractFeatures` on
+generated layers — `calibration.test.ts`'s `measureFireRates` (the function that sets
+`EXPECTED_FIRE_RATES`, including the R44 entry the baseline fix itself just moved) and the
+Explorer's `ruleCalibration.ts`'s `calibrateRules` — and both still fed `expandDecoration`'s
+ungraded output straight to `extractFeatures`. So the 4.0% pin was measuring a material-aware
+baseline against ungraded artefacts: the exact mismatch the baseline fix was meant to close, now on
+the other side of the comparison, with the new number carrying no more meaning than the one it
+replaced.
+
+**Both sites now mirror `sampleBaselines`' ordering.** `assignMaterials` runs with its own
+`${seed}-materials` PRNG stream (a fresh `createPrng` call, never the decoration one), then
+`gradeDecorativeLayers` re-grades the layers, before `extractFeatures` runs. Because
+`gradeDecorativeLayers` is PRNG-free and `assignMaterials` draws from an independent stream, this
+cannot perturb the decoration draw sequence or any non-grade feature — the same guarantee that let
+the baseline fix land without moving anything but R44. This also resolves 2GN.99's original
+objection to wiring grading into the sampled path, which was against threading material assignment
+_into_ `expandDecoration` (perturbing its own draws); running it as a separately-seeded sibling pass
+sidesteps that.
+
+**Verified, not assumed: measured every rule before and after.** R1–R39 and R42 came back
+bit-identical. R44 moved from 4.0% to 10.4%, landing at its p90 rung as expected once both sides of
+the comparison read the same scale. R40, R41 and R43 (`decorativeComplexity`/`techniqueComplexity`,
+both structural features that never read `grade`) showed a small 0.2pp drift each — traced to two
+substrate-gate fixes (relief/gilding, PR #53's own review fixes) that landed between R44's last full
+recording and this task and were never re-measured against the full array. Within
+`TOLERANCE_POINTS`, so the suite passes; left unpinned at its current figure and flagged here rather
+than silently re-recorded, since re-pinning a value this task didn't cause would misattribute the
+move.
+
+**§2.35's forward hazard is discharged, measured rather than assumed away.** That entry warned that
+the moment grading entered the sampled path, `meanDecorativeGrade` would become geology-sensitive,
+and `EXPECTED_THRESHOLDS`' pooling across the six regional worlds — justified because
+`decorativeLayerCount`/`decorativeComplexity` read `decorativeEmphasis`, not geology — would become
+an unmeasured claim for this feature too. Measuring directly confirmed the hazard was real: R44's
+fire rate spans 8.0% (`riverValley`) to 13.7% (`forestInterior`), a genuine 5.7pp range around the
+pooled 10.4% figure, not sampling noise. `EXPECTED_MEAN_GRADE_BY_REGION` pins each region's rate
+individually rather than folding `meanDecorativeGrade` into `EXPECTED_THRESHOLDS`' pooled structure,
+with a dedicated test (`calibration.test.ts`) asserting each region against its own recorded figure.
+What specifically drives any one region's rate (its material catalogue,
+`assignMaterialWithProvenance`'s scarcity weighting, `TECHNIQUE_MATERIAL_SENSITIVITY`'s per-axis
+pulls) is not traced here — the pin asserts the spread is real and repeatable, which is what the
+hazard asked for.
+
+`deno task check` 552 files, 0 errors. `deno task test` 548/548 passing.
+
+| Doc | What changed                                                                                                                                              | Completed  |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry; §2.35's forward-hazard item marked discharged                                                                                                 | 2026-08-07 |
+| —   | `data/calibration.test.ts`: `measureFireRates` grades through the material pass; R44 re-pinned 4.0→10.4; new `EXPECTED_MEAN_GRADE_BY_REGION` pin and test | 2026-08-07 |
+| —   | `routes/dev/explorer/calibration/ruleCalibration.ts`: `calibrateRules` grades through the material pass, matching the test harness                        | 2026-08-07 |
+| —   | Roadmap: 2GN.103 added and done                                                                                                                           | 2026-08-07 |
 
 ---
 

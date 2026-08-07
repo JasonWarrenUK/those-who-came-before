@@ -9,9 +9,13 @@
  * rules were under test and only in isolation.
  *
  * This drives the full Milestone 2 chain — `expandGrammar` → `normaliseArtefact` →
- * `expandDecoration` → `extractFeatures` — across all six named regional worlds
- * (`tests/fixtures/world.ts`) at three `decorativeEmphasis` settings, and asserts each rule's fire
- * rate stays within `TOLERANCE_POINTS` of the rate recorded when it was last calibrated.
+ * `expandDecoration` → `assignMaterials` → `gradeDecorativeLayers` → `extractFeatures` — across all
+ * six named regional worlds (`tests/fixtures/world.ts`) at three `decorativeEmphasis` settings, and
+ * asserts each rule's fire rate stays within `TOLERANCE_POINTS` of the rate recorded when it was
+ * last calibrated. Materials are assigned and layers re-graded before `extractFeatures` runs, not
+ * skipped, matching `sampleBaselines` (`engine/generation/baselines.ts`) — measuring `meanDecorativeGrade`
+ * (R44) against ungraded layers while its baseline is sampled from graded ones compares two different
+ * quantities (roadmap 2GN.103, doc 12 §2.36).
  *
  * **When this fails, it is usually right and you should not just widen the band.** A generator
  * change that moves fire rates has changed what the tag scores mean, because `classifyArtefact`
@@ -29,7 +33,8 @@
 import { assert } from '@std/assert';
 import { createPrng } from '../engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.ts';
-import { expandDecoration } from '../engine/generation/decoration.ts';
+import { expandDecoration, gradeDecorativeLayers } from '../engine/generation/decoration.ts';
+import { assignMaterials } from '../engine/generation/materials.ts';
 import { extractFeatures } from '../engine/generation/classification.ts';
 import { sampleBaselines } from '../engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
@@ -143,9 +148,10 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	7.0, // R41 decorativeComplexity >= p95 (2GN.98 volume/refinement split: was 5.8)
 	27.9, // R42 decorativePerPart >= p75 (2GN.98 volume/refinement split: was 30.8)
 	19.3, // R43 techniqueComplexity >= p90 (2GN.98 volume/refinement split: was 14.8)
-	4.0, // R44 meanDecorativeGrade >= p90 → artisanal/elite (2026-08-07: was 12.3, sampleBaselines
-	// wasn't grading layers through the material-aware pass before sampling, so R44's threshold was
-	// set against the compressed technique-only grade distribution rather than the one it now reads)
+	10.4, // R44 meanDecorativeGrade >= p90 → artisanal/elite (2026-08-07: was 4.0, measureFireRates and
+	// calibrateRules weren't grading the measured artefacts through the material-aware pass either,
+	// so the 4.0 pin compared a graded baseline against ungraded artefacts: both now graded, landing
+	// at the p90 rung as expected (roadmap 2GN.103, doc 12 §2.36))
 ];
 
 /**
@@ -186,6 +192,31 @@ const EXPECTED_THRESHOLDS: Readonly<Record<number, { layerP75: number; complexit
 	0.1: { layerP75: 2, complexityP95: 6.3 },
 	0.5: { layerP75: 8.7, complexityP95: 22.8 },
 	1.0: { layerP75: 20.2, complexityP95: 41.7 },
+};
+
+/**
+ * R44's per-region fire rate, pinned separately from `EXPECTED_THRESHOLDS` above (roadmap 2GN.103,
+ * doc 12 §2.36). `meanDecorativeGrade` reads assigned materials (`gradeDecorativeLayers`), and
+ * material assignment is geology-driven (`assignMaterials` reads `GeologicalContext`/`MaterialFlow`),
+ * so unlike `decorativeLayerCount`/`decorativeComplexity` above, this feature is NOT region-invariant
+ * — pooling it across the six regional worlds the way `EXPECTED_THRESHOLDS` does would average away
+ * the exact variation worth catching. Doc 12 §2.35 flagged this as a forward hazard against 2GN.99
+ * ("the moment grading enters the sampled path, `meanDecorativeGrade` becomes geology-sensitive...
+ * it needs a per-region pin or an explicit ruling") when `gradeDecorativeLayers` shipped as an
+ * unwired post-pass with nothing in the sampled path reading it yet. 2GN.103 wired it in and measured
+ * the spread directly: 8.0% (riverValley) to 13.7% (forestInterior), a real 5.7pp range around the
+ * pooled 10.4% `EXPECTED_FIRE_RATES` figure, not sampling noise. What specifically drives each
+ * region's own figure (its material catalogue via `GeologicalContext`, `assignMaterialWithProvenance`'s
+ * scarcity weighting, `TECHNIQUE_MATERIAL_SENSITIVITY`'s per-axis pulls) is not traced here — this
+ * pin only asserts the spread is real and repeatable, matching what the hazard asked for.
+ */
+const EXPECTED_MEAN_GRADE_BY_REGION: Readonly<Record<string, number>> = {
+	riverValley: 8.0,
+	highlandMine: 10.3,
+	coastalPort: 11.7,
+	forestInterior: 13.7,
+	desertMargin: 9.3,
+	steppeMargin: 9.7,
 };
 
 /** How far a sampled threshold value may drift from its recorded figure before this fails. */
@@ -281,6 +312,7 @@ function measureFireRates(): {
 	gatedRates: { R35: number; R36: number };
 	cellRates: Map<number, number[]>;
 	thresholdsByEmphasis: Map<number, { layerP75: number[]; complexityP95: number[] }>;
+	meanGradeRateByRegion: Map<string, number>;
 } {
 	const culture = mockCulturalProfile();
 	const fires = new Array(CLASSIFICATION_RULES.length).fill(0);
@@ -299,6 +331,10 @@ function measureFireRates(): {
 	const thresholdsByEmphasis = new Map<number, { layerP75: number[]; complexityP95: number[] }>(
 		EMPHASES.map((emphasis) => [emphasis, { layerP75: [], complexityP95: [] }]),
 	);
+	// R44's fire rate aggregated per region across all three emphases — geology-sensitive, unlike the
+	// two features above, so pinned separately against `EXPECTED_MEAN_GRADE_BY_REGION`.
+	const meanGradeFiresByRegion = new Map<string, number>(MOCK_WORLD_REGIONS.map((r) => [r, 0]));
+	const meanGradeTotalByRegion = new Map<string, number>(MOCK_WORLD_REGIONS.map((r) => [r, 0]));
 
 	for (const region of MOCK_WORLD_REGIONS) {
 		const world = mockRegionalWorld(region);
@@ -324,7 +360,7 @@ function measureFireRates(): {
 					expandGrammar(CORE_GRAMMAR_RULES, culture, phase, createPrng(seed)),
 					`calibration-${seed}`,
 				);
-				const layers = expandDecoration(
+				const provisionalLayers = expandDecoration(
 					artefact,
 					culture,
 					phase,
@@ -334,6 +370,16 @@ function measureFireRates(): {
 					MATERIALS,
 					DECORATIVE_TECHNIQUES,
 				);
+				const assignments = assignMaterials(
+					artefact,
+					culture,
+					phase,
+					world.geology,
+					world.trade,
+					createPrng(`${seed}-materials`),
+					MATERIALS,
+				);
+				const layers = gradeDecorativeLayers(provisionalLayers, assignments, phase, MATERIALS);
 				const extracted = extractFeatures(artefact, layers);
 
 				if (extracted.hasEdge) {
@@ -356,6 +402,12 @@ function measureFireRates(): {
 						if (cellCount !== undefined) cellFireCounts.set(ruleIndex, cellCount + 1);
 					}
 				});
+				meanGradeTotalByRegion.set(region, meanGradeTotalByRegion.get(region)! + 1);
+				if (
+					CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R44].condition(extracted, context)
+				) {
+					meanGradeFiresByRegion.set(region, meanGradeFiresByRegion.get(region)! + 1);
+				}
 				sampleSize++;
 			}
 
@@ -364,6 +416,13 @@ function measureFireRates(): {
 			}
 		}
 	}
+
+	const meanGradeRateByRegion = new Map<string, number>(
+		MOCK_WORLD_REGIONS.map((region) => [
+			region,
+			(meanGradeFiresByRegion.get(region)! / meanGradeTotalByRegion.get(region)!) * 100,
+		]),
+	);
 
 	return {
 		rates: fires.map((count) => (count / sampleSize) * 100),
@@ -374,6 +433,7 @@ function measureFireRates(): {
 		},
 		cellRates: cellFires,
 		thresholdsByEmphasis,
+		meanGradeRateByRegion,
 	};
 }
 
@@ -475,6 +535,32 @@ Deno.test('calibration: sampled thresholds track the recorded distribution (road
 			`Once a migrated rule's fire rate sits close to its percentile rung by construction, the ` +
 			`threshold VALUE is what still reflects a real shift in the generator's output distribution ` +
 			`— re-measure and decide deliberately, per the fire-rate guard's own convention.`,
+	);
+});
+
+Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2GN.103)", () => {
+	const { meanGradeRateByRegion } = fireRates();
+	const drifted: string[] = [];
+
+	for (const [region, expected] of Object.entries(EXPECTED_MEAN_GRADE_BY_REGION)) {
+		const actual = meanGradeRateByRegion.get(region);
+		if (actual === undefined) continue;
+		if (Math.abs(actual - expected) > TOLERANCE_POINTS) {
+			drifted.push(
+				`  ${region}: ${actual.toFixed(1)}% now, ${expected.toFixed(1)}% recorded`,
+			);
+		}
+	}
+
+	assert(
+		drifted.length === 0,
+		`R44 region-level fire rate(s) drifted more than ${TOLERANCE_POINTS}pp:\n${
+			drifted.join('\n')
+		}\n\n` +
+			`meanDecorativeGrade reads assigned materials, which are geology-driven — pooling this ` +
+			`feature the way EXPECTED_THRESHOLDS pools decorativeLayerCount/decorativeComplexity would ` +
+			`hide exactly the region-to-region variation this pin exists to catch (doc 12 §2.35's ` +
+			`forward hazard, discharged at §2.36).`,
 	);
 });
 

@@ -16,9 +16,12 @@
  * against behaviour.
  *
  * Sampling drives the real Milestone 2 chain (`expandGrammar` → `normaliseArtefact` →
- * `expandDecoration` → `extractFeatures` → `classifyArtefact`) against the Explorer culture presets,
- * which model all 16 materials explicitly — so unlike the test fixtures before 2GN.79, nothing here
- * reaches `isAvailable`'s unmodelled-material lenience.
+ * `expandDecoration` → `assignMaterials` → `gradeDecorativeLayers` → `extractFeatures` →
+ * `classifyArtefact`) against the Explorer culture presets, which model all 16 materials explicitly
+ * — so unlike the test fixtures before 2GN.79, nothing here reaches `isAvailable`'s
+ * unmodelled-material lenience. Materials are assigned and layers re-graded before `extractFeatures`
+ * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R44)
+ * is measured on the same scale its baseline is sampled from (roadmap 2GN.103, doc 12 §2.36).
  *
  * Pure, no DOM/Svelte, unit-testable directly per the `tagInspector.ts`/`structureTree.ts`
  * precedent.
@@ -26,7 +29,11 @@
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
-import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../../../lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -183,7 +190,7 @@ export function calibrateRules(
 			expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, createPrng(artefactSeed)),
 			`calibration-${artefactSeed}`,
 		);
-		const layers = expandDecoration(
+		const provisionalLayers = expandDecoration(
 			artefact,
 			culture.profile,
 			culture.phase,
@@ -193,6 +200,16 @@ export function calibrateRules(
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
 		);
+		const assignments = assignMaterials(
+			artefact,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+			createPrng(`${artefactSeed}-materials`),
+			MATERIALS,
+		);
+		const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
 		const features = extractFeatures(artefact, layers);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
