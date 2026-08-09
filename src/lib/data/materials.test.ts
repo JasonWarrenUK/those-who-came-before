@@ -127,7 +127,7 @@ Deno.test('materials: engravable only ever true for sufficiently rigid materials
 	// engravable material in the catalogue reads rigidity >= 5.
 	for (const material of MATERIALS) {
 		if (material.decorability.engravable) {
-			assert(material.physicalProperties.rigidity >= 3, material.id);
+			assert(material.physicalProperties.rigidity >= 5, material.id);
 		}
 	}
 });

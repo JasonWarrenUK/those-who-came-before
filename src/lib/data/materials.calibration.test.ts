@@ -231,12 +231,12 @@ const EXPECTED_PROVENANCE_MIX: Readonly<Record<MockWorldRegion, { local: number;
  * clearing the floor proves nothing about whether the other tags collapsed.
  *
  * Measured per-tag spreads this session: metal 46.7pp, stone 44.6pp, wood 30.4pp, bone 25.5pp,
- * fiber 16.9pp, leather 15.6pp, clay 12.2pp — six tags sit well clear of 8. `glass` measured only
- * 2.6pp, but for a structural reason unrelated to collapse: it is the catalogue's rarest tag by
- * overall share (0-2.6% of all materials in any region), so its absolute min-to-max spread is
- * mechanically small regardless of whether geology discriminates for it. `SPREAD_FLOOR_MIN_TAGS`
- * below requires only 6 of the 7 tags to clear the floor, so glass's low share doesn't mask a real
- * collapse in the other six but also doesn't fail the guard on its own.
+ * fiber 16.9pp, leather 15.6pp, clay 12.2pp — seven of the catalogue's eight primary tags sit well
+ * clear of 8. `glass` measured only 2.6pp, but for a structural reason unrelated to collapse: it is
+ * the catalogue's rarest tag by overall share (0-2.6% of all materials in any region), so its
+ * absolute min-to-max spread is mechanically small regardless of whether geology discriminates for
+ * it. `SPREAD_FLOOR_MIN_TAGS` below requires only 7 of the 8 tags to clear the floor, so glass's low
+ * share doesn't mask a real collapse in the other seven but also doesn't fail the guard on its own.
  */
 const SPREAD_FLOOR_POINTS = 8;
 
@@ -246,7 +246,7 @@ const SPREAD_FLOOR_POINTS = 8;
  * every tag toward uniform at once, so requiring all-but-one still catches it while not failing on
  * glass's low share alone.
  */
-const SPREAD_FLOOR_MIN_TAGS = 6;
+const SPREAD_FLOOR_MIN_TAGS = 7;
 
 /** Every primary tag in the catalogue, derived from `PRIMARY_TAG` rather than hand-written, so a new material's tag is covered automatically. */
 const ALL_PRIMARY_TAGS: readonly string[] = [...new Set(Object.values(PRIMARY_TAG))];
@@ -346,8 +346,9 @@ Deno.test('materials calibration: every shipped material has a path to a pinned 
 	assert(
 		uncovered.length === 0,
 		`material(s) with no PRIMARY_TAG entry: ${uncovered.map((m) => m.id).join(', ')}. ` +
-			`A new catalogue material needs a primary-tag entry here (and a NESTED_TAG entry if it ` +
-			`carries a precious tier) before the calibration pins can account for it.`,
+			`A new catalogue material needs a PRIMARY_TAG entry here, plus a row in ` +
+			`EXPECTED_TAG_SHARES (and EXPECTED_INTRA_TAG_SHARES if its tag is in ` +
+			`MULTI_LEAF_PRIMARY_TAGS), before the calibration pins can account for it.`,
 	);
 });
 

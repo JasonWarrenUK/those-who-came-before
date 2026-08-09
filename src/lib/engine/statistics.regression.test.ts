@@ -17,7 +17,7 @@
  * value, not general correctness (that's `statistics.test.ts`'s job).
  */
 
-import { assert } from '@std/assert';
+import { assertEquals } from '@std/assert';
 import { createPrng } from './prng.ts';
 import { expandGrammar, normaliseArtefact } from './generation/grammar.ts';
 import { expandDecoration } from './generation/decoration.ts';
@@ -66,12 +66,14 @@ Deno.test('percentileOf: agrees with the measured decorativeLayerCount p75 (2GN.
 	const p75 = percentileOf(layerCounts, 0.75);
 
 	// Exact match expected: this anchor's own 1800-artefact sample against the current generator
-	// measured p75 = 12 (roadmap 2GN.98); a small band still guards against PRNG/environment drift
-	// rather than requiring bit-identical floating-point reproduction.
-	assert(
-		Math.abs(p75 - 12) <= 1,
-		`percentileOf disagrees with this anchor's own measured decorativeLayerCount p75: got ${p75}, ` +
-			`expected ~12. Determine whether the helper or the generator moved before ` +
-			`calibration.test.ts's guards are trusted.`,
+	// measured p75 = 12 (roadmap 2GN.98). Every input is seeded and `decorativeLayerCount` is an
+	// integer, so the pipeline is fully deterministic — a mismatch here is a real change in the
+	// helper or the generator, not PRNG/environment drift, which a tolerance band would mask.
+	assertEquals(
+		p75,
+		12,
+		`percentileOf disagrees with this anchor's own measured decorativeLayerCount p75. ` +
+			`Determine whether the helper or the generator moved before calibration.test.ts's guards ` +
+			`are trusted.`,
 	);
 });
