@@ -16,8 +16,13 @@ import type {
 	NormalisedComponent,
 	ObjectDimensions,
 } from '../../src/lib/types/artefact.ts';
-import type { ArtefactTag } from '../../src/lib/types/tags.ts';
+import type {
+	ArtefactTag,
+	BaselineFeature,
+	ClassificationContext,
+} from '../../src/lib/types/tags.ts';
 import type { Provenance } from '../../src/lib/types/world.ts';
+import { PERCENTILE_LADDER } from '../../src/lib/engine/statistics.ts';
 
 function mockDimensions(): ObjectDimensions {
 	return {
@@ -148,6 +153,61 @@ export function neutralExtractedFeatures(
  * and Explorer call sites need the same no-baseline context this suite does.
  */
 export { emptyClassificationContext } from '../../src/lib/engine/generation/baselines.ts';
+
+/**
+ * A `ClassificationContext` with hand-set thresholds, for tests that need a *known* baseline rather
+ * than one drawn from a real sample. `overrides` supplies only the rungs a given test cares about;
+ * every other rung on every other feature is left unset, so `exceeds` reports "no baseline" (`false`)
+ * for anything not named here — the same selective "no evidence" contract `emptyClassificationContext`
+ * documents universally.
+ *
+ * Consolidates two near-identical hand-rolled builders (`src/lib/data/classification.test.ts`'s
+ * `relativeContext`, `src/lib/engine/generation/classification.test.ts`'s `decoratedEdgeContext`)
+ * that each reimplemented the same percentile-ladder guard, threshold lookup and `hasBaseline` —
+ * keeping the "off-ladder percentile throws" and "no baseline reads false" contracts in one place
+ * rather than two copies that could drift apart.
+ */
+export function relativeClassificationContext(
+	overrides: Partial<Record<BaselineFeature, Record<number, number>>>,
+): ClassificationContext {
+	const baselines = new Map<
+		BaselineFeature,
+		{ thresholds: Map<number, number>; sampleSize: number }
+	>(
+		Object.entries(overrides).map(([feature, thresholds]) => [
+			feature as BaselineFeature,
+			{
+				thresholds: new Map(
+					Object.entries(thresholds ?? {}).map((
+						[percentile, value],
+					) => [Number(percentile), value]),
+				),
+				sampleSize: 400,
+			},
+		]),
+	);
+
+	return {
+		cultureId: 'test',
+		phaseId: 'test',
+		baselines,
+		exceeds(feature, percentile, value) {
+			if (!PERCENTILE_LADDER.includes(percentile as (typeof PERCENTILE_LADDER)[number])) {
+				throw new Error(
+					`ClassificationContext.exceeds: percentile ${percentile} is not a PERCENTILE_LADDER ` +
+						`rung (${PERCENTILE_LADDER.join(', ')})`,
+				);
+			}
+			const baseline = baselines.get(feature);
+			if (!baseline) return false;
+			const threshold = baseline.thresholds.get(percentile);
+			return threshold !== undefined && value >= threshold;
+		},
+		hasBaseline(feature) {
+			return baselines.has(feature);
+		},
+	};
+}
 
 function mockProvenance(): Provenance {
 	return {

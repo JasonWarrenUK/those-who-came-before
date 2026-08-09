@@ -46,8 +46,13 @@ export const BASELINE_SAMPLE_SIZE = 400;
 /**
  * The features baselines are sampled for. Every `BaselineFeature` member — a rule migrated in
  * roadmap 2GN.82 can call `ClassificationContext.exceeds` on any of them.
+ *
+ * Exported so consumers needing "every sampled feature" (`classification.test.ts`'s `permissive`
+ * migration-guard fixture) derive the list rather than hand-maintaining a duplicate — a real drift
+ * this file already caused once, when `meanDecorativeGrade` had to be added to that fixture by hand
+ * alongside this array.
  */
-const SAMPLED_FEATURES: readonly BaselineFeature[] = [
+export const SAMPLED_FEATURES: readonly BaselineFeature[] = [
 	'decorativeLayerCount',
 	'decorativeComplexity',
 	'techniqueComplexity',

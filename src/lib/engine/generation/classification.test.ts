@@ -5,6 +5,7 @@ import {
 	emptyClassificationContext,
 	mockNormalisedArtefact,
 	neutralExtractedFeatures as features,
+	relativeClassificationContext,
 } from '../../../../tests/fixtures/artefact.ts';
 import type {
 	ExtractedFeatures,
@@ -13,15 +14,9 @@ import type {
 } from '../../types/artefact.ts';
 import type { AttachmentType } from '../../types/grammar.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
-import type {
-	ArtefactTag,
-	BaselineFeature,
-	ClassificationContext,
-	ClassificationRule,
-} from '../../types/tags.ts';
+import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { CLASSIFICATION_RULES } from '../../data/classification.ts';
-import { PERCENTILE_LADDER } from '../statistics.ts';
 
 /** Builds a component of a given primitive with string properties, distinguishable by id. */
 function component(
@@ -650,39 +645,16 @@ function rule(
 const ctx = emptyClassificationContext();
 
 /**
- * A hand-built `ClassificationContext` with a single `decorativeLayerCount` p75 threshold of 6,
- * for the worked-example integration test below (roadmap 2GN.82). That test exercises the real
- * shipped `CLASSIFICATION_RULES`, one of which (the edged-decorated archetype rule) now reads this
- * feature against a culture-phase baseline rather than a fixed `>= 6` — matching the shipped rung
- * keeps this test's fire/no-fire expectation exactly what it was before the migration.
+ * A `ClassificationContext` with a single `decorativeLayerCount` p75 threshold of 6, built via
+ * `relativeClassificationContext` (`tests/fixtures/artefact.ts`, shared with
+ * `data/classification.test.ts`'s `relativeContext`) for the worked-example integration test below
+ * (roadmap 2GN.82). That test exercises the real shipped `CLASSIFICATION_RULES`, one of which (the
+ * edged-decorated archetype rule) now reads this feature against a culture-phase baseline rather
+ * than a fixed `>= 6` — matching the shipped rung keeps this test's fire/no-fire expectation exactly
+ * what it was before the migration.
  */
-function decoratedEdgeContext(): ClassificationContext {
-	const thresholds = new Map<BaselineFeature, Map<number, number>>([
-		['decorativeLayerCount', new Map([[0.75, 6]])],
-	]);
-	return {
-		cultureId: 'test',
-		phaseId: 'test',
-		baselines: new Map(
-			[...thresholds].map(([feature, byPercentile]) => [
-				feature,
-				{ thresholds: byPercentile, sampleSize: 400 },
-			]),
-		),
-		exceeds(feature, percentile, value) {
-			if (!PERCENTILE_LADDER.includes(percentile as (typeof PERCENTILE_LADDER)[number])) {
-				throw new Error(
-					`ClassificationContext.exceeds: percentile ${percentile} is not a PERCENTILE_LADDER ` +
-						`rung (${PERCENTILE_LADDER.join(', ')})`,
-				);
-			}
-			const threshold = thresholds.get(feature)?.get(percentile);
-			return threshold !== undefined && value >= threshold;
-		},
-		hasBaseline(feature) {
-			return thresholds.has(feature);
-		},
-	};
+function decoratedEdgeContext() {
+	return relativeClassificationContext({ decorativeLayerCount: { 0.75: 6 } });
 }
 
 Deno.test('classifyArtefact: rules firing on the same tag sum their weights', () => {
