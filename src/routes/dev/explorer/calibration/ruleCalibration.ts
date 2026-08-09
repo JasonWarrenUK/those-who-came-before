@@ -16,9 +16,12 @@
  * against behaviour.
  *
  * Sampling drives the real Milestone 2 chain (`expandGrammar` → `normaliseArtefact` →
- * `expandDecoration` → `extractFeatures` → `classifyArtefact`) against the Explorer culture presets,
- * which model all 16 materials explicitly — so unlike the test fixtures before 2GN.79, nothing here
- * reaches `isAvailable`'s unmodelled-material lenience.
+ * `expandDecoration` → `assignMaterials` → `gradeDecorativeLayers` → `extractFeatures` →
+ * `classifyArtefact`) against the Explorer culture presets, which model all 16 materials explicitly
+ * — so unlike the test fixtures before 2GN.79, nothing here reaches `isAvailable`'s
+ * unmodelled-material lenience. Materials are assigned and layers re-graded before `extractFeatures`
+ * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R44)
+ * is measured on the same scale its baseline is sampled from (roadmap 2GN.103, doc 12 §2.36).
  *
  * Pure, no DOM/Svelte, unit-testable directly per the `tagInspector.ts`/`structureTree.ts`
  * precedent.
@@ -26,18 +29,23 @@
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
-import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../../../lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
-import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
+import { sampleBaselines } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
 import type { ArtefactTag } from '../../../../lib/types/tags.ts';
+import { explorerCulturePhase } from '../../../../lib/data/explorer-cultures.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Either half of the tag vocabulary. */
@@ -164,9 +172,17 @@ export function calibrateRules(
 	const scoreTotals = new Map<Tag, number>();
 	// Per tag, how much total weight each rule contributed — for `topContributor`.
 	const perTagRuleWeight = new Map<Tag, Map<number, number>>();
-	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one); an
-	// empty context keeps this loop cheap until one does (`baselines.ts`'s JSDoc).
-	const context = emptyClassificationContext();
+	// Nine rules now read a ClassificationContext (roadmap 2GN.82). Sampled directly rather than via
+	// the Tag Inspector's `shared/baselineCache.ts` memo: this function already amortises its own
+	// cost over `count` artefacts, and a shared mutable cache would make its report depend on call
+	// order — breaking the "same seed and count always give the same report" contract below.
+	const context = sampleBaselines(
+		seed,
+		explorerCulturePhase(culture),
+		CORE_GRAMMAR_RULES,
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+	);
 
 	for (let index = 0; index < count; index++) {
 		const artefactSeed = `${seed}-${index}`;
@@ -174,7 +190,7 @@ export function calibrateRules(
 			expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, createPrng(artefactSeed)),
 			`calibration-${artefactSeed}`,
 		);
-		const layers = expandDecoration(
+		const provisionalLayers = expandDecoration(
 			artefact,
 			culture.profile,
 			culture.phase,
@@ -184,6 +200,16 @@ export function calibrateRules(
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
 		);
+		const assignments = assignMaterials(
+			artefact,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+			createPrng(`${artefactSeed}-materials`),
+			MATERIALS,
+		);
+		const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
 		const features = extractFeatures(artefact, layers);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 

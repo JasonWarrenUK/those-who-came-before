@@ -18,12 +18,16 @@
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
-import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../../../lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
 } from '../../../../lib/engine/generation/classification.ts';
-import { emptyClassificationContext } from '../../../../lib/engine/generation/baselines.ts';
+import { baselineFor } from '../shared/baselineCache.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
@@ -103,9 +107,10 @@ export interface TagInspection {
 	absoluteTags: ScoredTag[];
 
 	/**
-	 * Relative-basis tags that scored, strongest first. Every score here is provisional: the
-	 * thresholds behind them were measured under the absolute reading the 2GN.80 ruling replaces
-	 * (doc 11 §2.9), and will move once culture-phase baselines land (roadmap 2GN.82–85).
+	 * Relative-basis tags that scored, strongest first. Nine of the rules awarding these tags are
+	 * scored against the culture's own sampled baseline (roadmap 2GN.82, doc 11 §2.9); the remaining
+	 * relative-award rules still carry an absolute threshold pending roadmap 2GN.97's categorical
+	 * baseline design.
 	 */
 	relativeTags: ScoredTag[];
 
@@ -157,6 +162,7 @@ const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup]
 	['decorativeLayerCount', 'decorative'],
 	['appliedElementPresent', 'decorative'],
 	['appliedElementCount', 'decorative'],
+	['meanDecorativeGrade', 'decorative'],
 	['motifPresent', 'decorative'],
 	['motifCulturalOrigins', 'decorative'],
 	['techniqueComplexity', 'decorative'],
@@ -260,7 +266,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	const expanded = expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, prng);
 	const artefact = normaliseArtefact(expanded, `tags-${seed}`);
 
-	const layers = expandDecoration(
+	const provisionalLayers = expandDecoration(
 		artefact,
 		culture.profile,
 		culture.phase,
@@ -270,11 +276,28 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
 	);
+	// Materials assigned and layers re-graded before `extractFeatures`, matching `sampleBaselines`
+	// (`engine/generation/baselines.ts`) and `ruleCalibration.ts`'s `calibrateRules` — otherwise
+	// `meanDecorativeGrade` (R44) here is the provisional technique-only grade compared against a
+	// baseline sampled from material-aware grades, the same scale mismatch fixed in those two
+	// callers (roadmap 2GN.103, doc 12 §2.36). Also makes the grades shown in this panel's own
+	// `TagInspection.layers` honest, since they render directly.
+	const assignments = assignMaterials(
+		artefact,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+		createPrng(`${seed}-materials`),
+		MATERIALS,
+	);
+	const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
 
 	const features = extractFeatures(artefact, layers);
-	// No shipped rule reads a ClassificationContext yet (roadmap 2GN.82 migrates the first one);
-	// an empty context keeps this call cheap until one does (`baselines.ts`'s JSDoc).
-	const context = emptyClassificationContext();
+	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per
+	// culture (`shared/baselineCache.ts`) rather than sampled fresh per artefact — the baseline is a
+	// property of the culture being inspected, not of any one artefact's own seed.
+	const context = baselineFor(culture);
 	const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 	// Re-run each condition to attribute the sums. Exact under plain-sum accumulation.

@@ -5,6 +5,7 @@ import {
 	emptyClassificationContext,
 	mockNormalisedArtefact,
 	neutralExtractedFeatures as features,
+	relativeClassificationContext,
 } from '../../../../tests/fixtures/artefact.ts';
 import type {
 	ExtractedFeatures,
@@ -52,13 +53,14 @@ function attachment(from: string, to: string, type: AttachmentType) {
 	return { fromComponentId: from, toComponentId: to, type };
 }
 
-/** A decorative layer with optional sublayers and motif. */
+/** A decorative layer with optional sublayers, motif and grade (defaults to a neutral mid-value). */
 function layer(
 	technique: DecorativeLayer['technique'],
 	sublayers: DecorativeLayer[] = [],
 	motifRef?: string,
+	grade = 0.5,
 ): DecorativeLayer {
-	return { targetComponentId: 'c0', technique, motifRef, sublayers };
+	return { targetComponentId: 'c0', technique, motifRef, grade, sublayers };
 }
 
 // --- Purity -----------------------------------------------------------------------------------------
@@ -642,6 +644,19 @@ function rule(
  */
 const ctx = emptyClassificationContext();
 
+/**
+ * A `ClassificationContext` with a single `decorativeLayerCount` p75 threshold of 6, built via
+ * `relativeClassificationContext` (`tests/fixtures/artefact.ts`, shared with
+ * `data/classification.test.ts`'s `relativeContext`) for the worked-example integration test below
+ * (roadmap 2GN.82). That test exercises the real shipped `CLASSIFICATION_RULES`, one of which (the
+ * edged-decorated archetype rule) now reads this feature against a culture-phase baseline rather
+ * than a fixed `>= 6` — matching the shipped rung keeps this test's fire/no-fire expectation exactly
+ * what it was before the migration.
+ */
+function decoratedEdgeContext() {
+	return relativeClassificationContext({ decorativeLayerCount: { 0.75: 6 } });
+}
+
 Deno.test('classifyArtefact: rules firing on the same tag sum their weights', () => {
 	const scored = classifyArtefact(features({ hasEdge: true }), [
 		rule((f) => f.hasEdge, [['weapon', 0.5], ['tool', 0.25]]),
@@ -738,7 +753,7 @@ Deno.test('integration: the real rules score the engraved long blade on weapon, 
 		decorativeLayerCount: 6,
 	});
 
-	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES, ctx);
+	const scored = classifyArtefact(engravedBlade, CLASSIFICATION_RULES, decoratedEdgeContext());
 
 	for (const tag of ['weapon', 'ritual', 'ceremonial', 'elite'] as const) {
 		assert((scored.get(tag) ?? 0) > 0, `${tag} should accumulate positive evidence`);

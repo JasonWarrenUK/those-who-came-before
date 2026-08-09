@@ -144,6 +144,12 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				metallurgy: 0.6,
 				ceramics: 0.4,
 				textiles: 0.5,
+				// Highest in the set (roadmap 2GN.100). This culture's own description is
+				// "bone-and-leather with the occasional bronze fitting", its geology puts leather
+				// `abundant` against linen `scarce`, and mobile pastoralists tan continuously because
+				// the herd yields hide as a by-product of subsistence. Flax is a settled-agriculture
+				// crop, so `textiles` does not rise with it.
+				leatherWorking: 0.75,
 				stoneWorking: 0.4,
 				glassWorking: 0.2,
 				woodWorking: 0.4,
@@ -219,6 +225,10 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				metallurgy: 0.55,
 				ceramics: 0.85,
 				textiles: 0.5,
+				// Slightly below its `textiles`, which the abundant flax earns. A maritime palace
+				// culture's prestige crafts are painted pottery and gilded glass; hide is workaday
+				// here (bindings, straps, sandals), and its geology has leather only `available`.
+				leatherWorking: 0.45,
 				stoneWorking: 0.45,
 				glassWorking: 0.6,
 				woodWorking: 0.4,
@@ -302,6 +312,10 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				metallurgy: 0.3,
 				ceramics: 0.6,
 				textiles: 0.4,
+				// Lowest in the set, and the only preset whose geology puts leather (`scarce`) below
+				// linen (`available`). A humid climate is actively hostile both to hide preservation
+				// and to tanning at scale; this culture's monumental work is in stone.
+				leatherWorking: 0.30,
 				stoneWorking: 0.75,
 				glassWorking: 0.1,
 				woodWorking: 0.5,
@@ -377,6 +391,11 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				metallurgy: 0.9,
 				ceramics: 0.5,
 				textiles: 0.45,
+				// Above its `textiles`: an imperial military culture needs tanned hide at scale for
+				// armour backing, scabbards, harness and shield facing, and its `craftSpecialisation`
+				// of 0.85 implies dedicated tanners rather than household-level work. Geology has
+				// leather `available` against linen `scarce`.
+				leatherWorking: 0.60,
 				stoneWorking: 0.6,
 				glassWorking: 0.3,
 				woodWorking: 0.4,

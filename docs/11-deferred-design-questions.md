@@ -21,8 +21,13 @@ Questions).
 
 ### ~~1.4 Publication Counts as Role Qualification~~ → Deferred to post-MVP (see doc 13, Section 3)
 
-_No open questions remain for the current development round. All architectural blockers have been
-resolved._
+### ~~1.5 Decorative Volume: What Does It Key On?~~ → Resolved (see 2.10)
+
+_No open questions remain in this numbered list for the current development round — every
+architectural blocker above has been resolved or explicitly deferred. This does not cover 2GN.97
+(§2.31), the still-open M2 design spike into the twenty-five categorical relative-award rules 2GN.82
+could not migrate; that spike was raised as a locked-in decision's follow-up rather than as one of
+the numbered questions above, but it remains genuinely unresolved._
 
 ---
 
@@ -420,6 +425,22 @@ reordering churns every serialised map.
 
 **Every threshold in `data/classification.ts` is provisional pending recalibration** (roadmap
 2GN.82–85), since the numbers were all measured under the absolute reading this decision replaces.
+Recalibration (2026-08-05, doc 12 §2.31) found this is nine thresholds, not all thirty-four
+relative-award rules — the other twenty-five read categorical bands with no numeric threshold to
+relativise, and are split to roadmap 2GN.97.
+
+**Amendment (2026-08-05, doc 12 §2.31): a closed percentile ladder means some historically-measured
+percentiles have no rung, and the nearest number is not automatically the right one.** This section
+above states `ClassificationContext.exceeds(feature, percentile, value)` takes a `percentile`, but
+does not say it must be a `PERCENTILE_LADDER` rung (`engine/statistics.ts`) —
+`[0.25, 0.5, 0.75, 0.9,
+0.95]`, closed so two rules asking "p75" ask the same question.
+Recalibration found the exceptional- lavishness rule's absolute constant sat at ~p93, which is not a
+rung: ~p93 was never a chosen percentile, only a description of where the constant happened to land.
+Migrating it required choosing p90 or p95 by argument (the rule's own intent — an
+unmistakably-exceptional tier, not merely an above-average one) rather than by nearest-number
+arithmetic; doc 12 §2.31 has the full reasoning. The same closed-ladder problem, and the same
+resolution, recurred for one other rule.
 
 **Dependency:** the drift measure requires that phase attributes evolve continuously between
 adjacent phases. Nothing currently enforces this — `CulturePhase.characteristics` is a free
@@ -432,9 +453,73 @@ measures noise. Raised as roadmap task 3WS.21.
 **Affects:** doc 05 (§3.2 stratification becomes live; §9.2's `FunctionTag`/`ContextTag` code block
 is superseded by `AbsoluteTag`/`RelativeTag`), doc 08 (world state carries cached baselines;
 `ClassificationContext` type), doc 12 (§2.20's pure-function contract amended; §2.22's tag sets
-re-keyed to the new vocabulary). Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 recalibration gated
-on this; 2GN.85 inherits the vocabulary split rather than having to rule on it; 3WS.21 raised for
-phase continuity.
+re-keyed to the new vocabulary; §2.31 recalibration findings). Roadmap: 2GN.80 and 2GN.77 resolved;
+2GN.82 done (nine thresholds recalibrated); 2GN.83 done (raised §1.5, since resolved as §2.10);
+2GN.85 inherits the vocabulary split rather than having to rule on it; 2GN.97 raised for the
+twenty-five categorical relative-award rules 2GN.82 could not migrate; 3WS.21 raised for phase
+continuity.
+
+### 2.10 Decorative Volume Split from Execution Quality (roadmap 2GN.98)
+
+**Decision:** Doc 05 §8.3's craft/emphasis-driven decorative-layering table is realised as two
+independent mechanisms rather than one shared volume scalar: `decorationVolume` (how much decoration
+appears) reads `aesthetics.decorativeEmphasis` alone; `DecorativeLayer.grade` (how well each layer
+is executed) reads `society.craftSpecialisation` scaled by the selected technique's own execution
+difficulty.
+
+**The problem.** §2.9's relativisation removed `expandDecoration`'s fill constants' old anchor — an
+absolute fire rate — without supplying a new one, so recalibrating them (roadmap 2GN.83) needed a
+calibration target. Doc 05 §8.3's four-corner table was the only stated one, and it proved
+unsatisfiable by a single volume scalar over `(craftSpecialisation, decorativeEmphasis)`: measured
+directly, the table's two middle corners ("high craft, low emphasis: 0–1 layers but technically
+refined" vs "low craft, high emphasis: 1 layer, simple techniques") differ by **kind**, not
+magnitude, which no shared fill-probability term can express — pulling one corner toward its target
+necessarily pushes the other away, and every symmetric or asymmetric formula tried collapsed the two
+together or overshot. Full measurement trail: doc 12 §2.32 (the original negative result) and §2.33
+(this decision's own measurement).
+
+**Two cheaper shapes were tried and rejected before this one.** First, biasing
+`computeTechniqueWeight`'s technique selection toward low-difficulty techniques at low craft:
+measured real and directional (~30% low-difficulty share at low craft vs ~15–19% at high craft) but
+capped, since the other three factors already in that function's weight product dominate selection
+and can't be out-weighted without defeating their own purpose. Second, a `grade` field set to
+`craftSpecialisation` alone: cleanly orthogonal to volume, but degenerate as a sampled feature —
+every layer on every artefact from one culture-phase received the identical value, so a percentile
+ladder over it never varies within a cell.
+
+**What was built instead.** `grade` is driven by which technique was selected and how hard it is to
+execute well, via a new authored per-technique difficulty rating (`TECHNIQUE_DIFFICULTY`,
+`src/lib/data/decorations.ts`, sixteen values reviewed per-item against how each craft actually
+works — training time, error tolerance, hand-skill demand — not derived from the catalogue's other
+flags) combined with `craftSpecialisation`:
+`grade = craft × (1 − 0.5×difficulty) +
+0.5×difficulty×craft²`, so a hard technique's realised grade
+degrades faster than an easy one's as craft falls. This produces genuine within-culture-phase
+variance (driven by which mix of techniques an artefact happened to roll), making
+`meanDecorativeGrade` (`ExtractedFeatures`) a legitimate sampled `BaselineFeature` a classification
+rule can read.
+
+**Consequence: `craftSpecialisation`'s "double-counting" of decorative volume, which 2GN.83 flagged
+as a concrete defect, is resolved by re-scoping rather than patching.** Under the old blend, craft
+drove volume twice — once directly, once via `partCount`. Once volume reads emphasis only, craft has
+exactly two decorative-adjacent effects: `partCount` (structural, via `deriveComplexityBudget`,
+unaffected by this decision) and `grade` (execution quality, new). Two non-overlapping effects of
+one attribute is not double-counting; the original framing measured a shared scalar that no longer
+exists once volume stops reading craft at all.
+
+**Consequence: `appliedElementPresent`'s saturation is confirmed structural, not a side effect of
+this split.** Measured before and after: 89–100% under the old blend, 86–100% under the
+emphasis-only reading — materially unchanged, confirming the saturation comes from
+`MAX_SLOTS_PER_CATEGORY`'s per-category-per-component slot structure (§8.2), not from how volume or
+refinement are weighted. Left out of scope here, as it was when first diagnosed (roadmap 2GN.79, doc
+12 §2.25).
+
+**Affects:** doc 05 (§8.3 gains an implementation note; §9.1's `ExtractedFeatures` block gains
+`meanDecorativeGrade`), doc 12 (§2.32 records why 2GN.83 could not proceed as an implementation;
+§2.33 records this decision's full measurement). Roadmap: 2GN.98 done (recalibrated
+`BASE_FILL_PROBABILITY`/`SLOT_DECAY`/`MAX_SLOTS_PER_CATEGORY` unchanged against the new volume term;
+added the `meanDecorativeGrade` classification rule; re-recorded every calibration guard the split
+moved).
 
 ---
 

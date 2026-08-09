@@ -54,8 +54,16 @@ const LOCALLY_OBTAINABLE_LEVELS = new Set(['abundant', 'available', 'scarce']);
  * MVP-provisional scarcity→weight multipliers (roadmap 2GN.25), applied by `computeMaterialWeight`
  * once a material has already passed `isAvailable`. Deliberately graded rather than binary so a
  * `scarce` material still appears, just rarely, and a `trade-only` material appears at the doc 05
- * §7 "low weight... present but uncommon" level. Retunable once generation is observable in the
- * Explorer (the 2GN.8 dimension-tuning precedent) — no exact ratio is specified by doc 05.
+ * §7 "low weight... present but uncommon" level.
+ *
+ * **Values are unchanged and pinned by `data/materials.calibration.test.ts` (roadmap 2GN.84), not
+ * retuned.** No doc supplies a numeric target: doc 05 §7 states the ordering directionally only
+ * ("present but uncommon"), and doc 05 §10.2 explicitly disclaims a quota reading ("it's a weight,
+ * not a quota"). What the pin makes load-bearing is the *ratio between rungs* — that `scarce` reads
+ * meaningfully rarer than `available`, and `trade-only` rarer still — not any one absolute value.
+ * Before 2GN.84, nothing in the test suite could tell a real recalibration from a typo; the three
+ * "distribution" tests in `materials.test.ts` are directional inequalities that pass for any
+ * strictly-descending set of four numbers.
  */
 const SCARCITY_WEIGHT: Record<string, number> = {
 	'abundant': 1.0,
@@ -169,13 +177,26 @@ function phaseTechnologyWeight(material: MaterialDefinition, phase: PhaseCharact
 /**
  * The scarcity multiplier for a material, derived from its best availability level across the
  * regions `geology` reports (doc 05 §7: "trade materials appear at low weight — present but
- * uncommon"). A material with no geology entry is treated as neutral (`1`), matching `isAvailable`'s
- * MVP lenience for mock world fixtures that don't model every material.
+ * uncommon").
+ *
+ * A material with no geology entry reads at the `'available'` rung, not neutral `1` (roadmap
+ * 2GN.84 — corrected from the original reading, which this function's history still shows in git
+ * blame). Neutral `1` sat *above* `available`'s `0.6` and four times `scarce`'s `0.25`, so an
+ * unmodelled material silently out-ranked every explicitly-modelled peer — the same class of defect
+ * doc 12 §2.25 caught with silver/jade before the six exhaustive `MOCK_WORLD_REGIONS` fixtures
+ * existed to close it. An unmodelled material is one nobody made a claim about; the honest default
+ * for an unclaimed material is "unremarkable", not "the most plentiful thing here".
+ *
+ * Deliberately distinct from `isAvailable`'s own MVP lenience (`return true` for an unmodelled
+ * material) — that lenience is correct and untouched: "unmodelled means not excluded" is a fair
+ * reading for a fixture that doesn't list every material. It was only the *weight* an unmodelled
+ * material received that was wrong, not whether it should be excluded at all. Keep the two
+ * distinct: this function answers "how much", `isAvailable` answers "at all".
  */
 function scarcityWeight(material: MaterialDefinition, geology: GeologicalContext): number {
 	const level = bestRegionalLevel(material.id, geology)?.level;
-	if (level === undefined) return 1;
-	return SCARCITY_WEIGHT[level] ?? 1;
+	if (level === undefined) return SCARCITY_WEIGHT['available'];
+	return SCARCITY_WEIGHT[level] ?? SCARCITY_WEIGHT['available'];
 }
 
 /**

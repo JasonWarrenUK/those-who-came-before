@@ -51,6 +51,7 @@ export function mockPhaseCharacteristics(
 			metallurgy: 0.5,
 			ceramics: 0.5,
 			textiles: 0.5,
+			leatherWorking: 0.5,
 			stoneWorking: 0.5,
 			glassWorking: 0.5,
 			woodWorking: 0.5,
