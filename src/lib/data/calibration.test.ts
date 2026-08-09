@@ -203,24 +203,44 @@ const EXPECTED_THRESHOLDS: Readonly<Record<number, { layerP75: number; complexit
  * the exact variation worth catching. Doc 12 §2.35 flagged this as a forward hazard against 2GN.99
  * ("the moment grading enters the sampled path, `meanDecorativeGrade` becomes geology-sensitive...
  * it needs a per-region pin or an explicit ruling") when `gradeDecorativeLayers` shipped as an
- * unwired post-pass with nothing in the sampled path reading it yet. 2GN.103 wired it in and measured
- * the spread directly: 8.0% (riverValley) to 13.7% (forestInterior), a real 5.7pp range around the
- * pooled 10.4% `EXPECTED_FIRE_RATES` figure, not sampling noise. What specifically drives each
- * region's own figure (its material catalogue via `GeologicalContext`, `assignMaterialWithProvenance`'s
- * scarcity weighting, `TECHNIQUE_MATERIAL_SENSITIVITY`'s per-axis pulls) is not traced here — this
- * pin only asserts the spread is real and repeatable, matching what the hazard asked for.
+ * unwired post-pass with nothing in the sampled path reading it yet. 2GN.103 wired it in and
+ * originally measured 8.0% (riverValley) to 13.7% (forestInterior), a 5.7pp spread.
+ *
+ * **Re-measured for the `oxidisation: -1` sentinel fix (PR #53 review round).** `effectiveDifficulty`
+ * previously let the sentinel normalise out of its documented `[-1, +1]` band, landing every
+ * oxidisation-inert material's `patina` grade below gold's — inverting "no oxidation chemistry"
+ * against "resistant but reactive". Guarding it out raises patina's grade on the eight affected
+ * materials toward the technique's bare baseline, which lifts every region's `meanDecorativeGrade`
+ * rate and narrows the spread between them (patina became less of a regional differentiator, since
+ * it now grades closer to uniform regardless of which inert material a region favours): riverValley
+ * 8.0 → 10.3, highlandMine 10.3 → 10.0, coastalPort 11.7 → 9.7, forestInterior 13.7 → 13.7,
+ * desertMargin 9.3 → 11.0, steppeMargin 9.7 → 10.7. Spread narrows from 5.7pp to 4.0pp.
  */
 const EXPECTED_MEAN_GRADE_BY_REGION: Readonly<Record<string, number>> = {
-	riverValley: 8.0,
-	highlandMine: 10.3,
-	coastalPort: 11.7,
+	riverValley: 10.3,
+	highlandMine: 10.0,
+	coastalPort: 9.7,
 	forestInterior: 13.7,
-	desertMargin: 9.3,
-	steppeMargin: 9.7,
+	desertMargin: 11.0,
+	steppeMargin: 10.7,
 };
 
 /** How far a sampled threshold value may drift from its recorded figure before this fails. */
 const THRESHOLD_TOLERANCE = 3;
+
+/**
+ * How far R44's own recorded regional spread (`max - min` across `EXPECTED_MEAN_GRADE_BY_REGION`)
+ * must reach before the per-region test below trusts it as real geology-driven variation rather than
+ * a coincidence of the per-region tolerance. Needed because `TOLERANCE_POINTS` (6pp) is *wider* than
+ * the recorded spread: every region could collapse to one pooled value and the per-region `Math.abs`
+ * check alone would still pass, since each region's drift from a uniform figure would sit under 6pp.
+ *
+ * Set just below the recorded 4.0pp spread (re-measured against the `oxidisation: -1` sentinel fix
+ * — see `EXPECTED_MEAN_GRADE_BY_REGION`'s own JSDoc; the fix narrowed the spread from 5.7pp), so this
+ * fails only if the region-to-region variation itself genuinely narrows further, not on ordinary
+ * re-measurement noise.
+ */
+const MEAN_GRADE_SPREAD_FLOOR = 3;
 
 /**
  * How far a migrated rule's per-cell fire rate may spread (max − min across the 18 cells) before
@@ -561,6 +581,21 @@ Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2
 			`feature the way EXPECTED_THRESHOLDS pools decorativeLayerCount/decorativeComplexity would ` +
 			`hide exactly the region-to-region variation this pin exists to catch (doc 12 §2.35's ` +
 			`forward hazard, discharged at §2.36).`,
+	);
+
+	// The per-region check above alone would pass on a total regional collapse: TOLERANCE_POINTS
+	// (6pp) is wider than the recorded 5.7pp spread, so every region could read the same pooled
+	// figure and each one's "drift" from it would still clear the tolerance individually. This
+	// spread floor is what actually asserts the geology-driven variation the pin exists to catch.
+	const rates = [...meanGradeRateByRegion.values()];
+	const spread = Math.max(...rates) - Math.min(...rates);
+	assert(
+		spread >= MEAN_GRADE_SPREAD_FLOOR,
+		`R44's regional spread has narrowed to ${
+			spread.toFixed(1)
+		}pp (floor ${MEAN_GRADE_SPREAD_FLOOR}pp) ` +
+			`— every region could be collapsing toward the pooled rate, which the per-region tolerance ` +
+			`check above cannot catch on its own.`,
 	);
 });
 
