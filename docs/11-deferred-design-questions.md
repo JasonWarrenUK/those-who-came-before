@@ -23,8 +23,11 @@ Questions).
 
 ### ~~1.5 Decorative Volume: What Does It Key On?~~ → Resolved (see 2.10)
 
-_No open questions remain for the current development round. All architectural blockers have been
-resolved._
+_No open questions remain in this numbered list for the current development round — every
+architectural blocker above has been resolved or explicitly deferred. This does not cover 2GN.97
+(§2.31), the still-open M2 design spike into the twenty-five categorical relative-award rules 2GN.82
+could not migrate; that spike was raised as a locked-in decision's follow-up rather than as one of
+the numbered questions above, but it remains genuinely unresolved._
 
 ---
 

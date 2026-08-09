@@ -983,6 +983,7 @@ interface DecorativeLayer {
 	technique: DecorativeTechnique;
 	motifRef?: string; // From culture's motifVocabulary
 	material?: string; // If the technique introduces new material
+	grade: number; // 0–1 execution quality (roadmap 2GN.98/99) — see the implementation note below
 	sublayers: DecorativeLayer[]; // Decoration on decoration
 }
 ```

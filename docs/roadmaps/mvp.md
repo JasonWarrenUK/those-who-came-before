@@ -922,21 +922,29 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       has no production caller (noted against 2GN.68). Full detail: doc 12 §2.34
 - [x] **2GN.99** — recalibrate `computeLayerGrade` to read technique difficulty per-material, not
       technique alone — shipped 2026-08-07 (doc 12 §2.35), after **2GN.101** rebuilt the property
-      model it needed. **Lands as an unwired post-pass, the honest scope**: materials aren't known
-      inside `expandDecoration`'s slot loop, and threading `assignMaterials` in would consume PRNG
-      draws and move every recorded fire rate for reasons unrelated to grade. New
-      `gradeDecorativeLayers` re-grades layers in a separate PRNG-free pass instead, mirroring
-      `assignDecorativeDetails`; `expandDecoration`'s grade is now documented as _provisional_.
-      Nothing in the sampled path changed, so **no calibration pin moved** — a stronger inertness
-      checkpoint than 2GN.82/2GN.98's. Formula modulates _difficulty_ rather than the grade, keeping
-      the [0,1] bound and the craft-degradation curve intact. New `TECHNIQUE_MATERIAL_SENSITIVITY`
-      authored technique-by-technique, then **scaled ×2.5 after measurement** (at the original band
-      engraving spanned only ~0.044 across all 16 materials against ~0.3 between techniques —
-      material was a rounding error, and too weak to keep `meanDecorativeGrade` a viable sampled
-      feature). Scaling exposed a clamping artefact — 22 of 256 pairs claimed work was _perfectly_
-      easy — fixed by `MINIMUM_DIFFICULTY = 0.05`. Known limitation recorded: the three
-      form-substrate techniques score near-inert because their difficulty comes from the
-      _introduced_ material, which this model can't reach. `deno test` 540/540
+      model it needed (now an explicit `dependsOn` edge, not just prose). **Lands as an unwired
+      post-pass, the honest scope**: materials aren't known inside `expandDecoration`'s slot loop,
+      and threading `assignMaterials` in would consume PRNG draws and move every recorded fire rate
+      for reasons unrelated to grade. New `gradeDecorativeLayers` re-grades layers in a separate
+      PRNG-free pass instead, mirroring `assignDecorativeDetails`; `expandDecoration`'s grade is now
+      documented as _provisional_. Nothing in the sampled path changed at ship time, so **no
+      calibration pin moved then** — a stronger inertness checkpoint than 2GN.82/2GN.98's. That held
+      only until a later PR #53 review round found the remaining ungraded samplers
+      (`calibration.test.ts`'s `measureFireRates`, the Explorer's `ruleCalibration.ts`,
+      `tagInspector.ts`, `sample-classification.ts`) and wired them through the material-aware pass,
+      moving R44's pooled fire rate 4.0% → 10.4% (roadmap 2GN.103), and found and fixed a follow-on
+      defect where the `oxidisation: -1` sentinel reached the difficulty weighting unguarded (see
+      doc 12 §2.35's updated notes; the wider class of defect that investigation surfaced is
+      recorded against **2GN.30**, deliberately unfixed here). Formula modulates _difficulty_ rather
+      than the grade, keeping the [0,1] bound and the craft-degradation curve intact. New
+      `TECHNIQUE_MATERIAL_SENSITIVITY` authored technique-by-technique, then **scaled ×2.5 after
+      measurement** (at the original band engraving spanned only ~0.044 across all 16 materials
+      against ~0.3 between techniques — material was a rounding error, and too weak to keep
+      `meanDecorativeGrade` a viable sampled feature). Scaling exposed a clamping artefact — 22 of
+      256 pairs claimed work was _perfectly_ easy — fixed by `MINIMUM_DIFFICULTY = 0.05`. Known
+      limitation recorded: the three form-substrate techniques score near-inert because their
+      difficulty comes from the _introduced_ material, which this model can't reach. `deno test`
+      550/550
 - [x] **2GN.100** — add a distinct `leatherWorking` craft domain, separating hide-work from weaving
       — shipped 2026-08-07 (doc 12 §2.35). `leather` moves off `textiles`, which it shared with
       `linen`, conflating tanning with weaving. Four explorer presets get independently argued
@@ -2559,6 +2567,7 @@ graph LR
 	2GN.84 --> 2GN.101
 	2GN.84 --> 2GN.27
 	2GN.84 --> 2GN.68
+	2GN.101 --> 2GN.99
 	2GN.99 --> M2
 	2GN.100 --> M2
 	2GN.101 --> M2

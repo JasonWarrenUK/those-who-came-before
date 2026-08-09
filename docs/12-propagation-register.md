@@ -1254,11 +1254,11 @@ everything edged this culture ever produced — that no character in the fiction
 sub-population measurement was an artefact of how roadmap 2GN.34 happened to measure (a filtered
 sample was already in hand for another purpose), not a considered design requirement.
 
-**The fire-rate regression guard needed two additions to keep catching what it caught before.** Once
-a migrated rule's rate sits near its percentile rung by construction, `EXPECTED_FIRE_RATES` alone
-stops being an independent measurement: a whole-distribution generator shift — the same shape of
-defect roadmap 2GN.86 found in the mass proxy — would move the sampled baseline and the measured
-artefacts together and could pass with no recorded drift at all. Two additions restore that
+**The fire-rate regression guard needed three additions to keep catching what it caught before.**
+Once a migrated rule's rate sits near its percentile rung by construction, `EXPECTED_FIRE_RATES`
+alone stops being an independent measurement: a whole-distribution generator shift — the same shape
+of defect roadmap 2GN.86 found in the mass proxy — would move the sampled baseline and the measured
+artefacts together and could pass with no recorded drift at all. Three additions restore that
 sensitivity in `calibration.test.ts`. First, the per-cell sampled _threshold values_ themselves are
 now pinned (`decorativeLayerCount` p75, `decorativeComplexity` p95, across the three emphasis
 settings) — a threshold value has no such self-stabilising property and moves whenever the
@@ -1769,8 +1769,20 @@ caller runs first. Threading them in would force all six call sites to reorder, 
 every recorded fire rate for reasons unrelated to grade. `gradeDecorativeLayers` instead re-grades
 layers as a separate PRNG-free pass, mirroring `assignDecorativeDetails`' existing position.
 `expandDecoration` is untouched; the grade it emits is now documented as _provisional_. **Nothing in
-the sampled path changed, so no calibration pin moved** — the full suite passing unchanged is this
-task's inertness checkpoint, and a stronger one than 2GN.82/2GN.98's partial checks.
+the sampled path changed at ship time, so no calibration pin moved then** — the full suite passing
+unchanged was this task's inertness checkpoint, and a stronger one than 2GN.82/2GN.98's partial
+checks.
+
+That held only until a later PR #53 review round found two samplers still measuring
+`expandDecoration`'s provisional grade against `sampleBaselines`' material-aware baseline:
+`calibration.test.ts`'s `measureFireRates` and the Explorer's `ruleCalibration.ts`. Wiring both
+through `assignMaterials` → `gradeDecorativeLayers` moved R44's pooled fire rate 4.0% → 10.4%
+(roadmap 2GN.103). A further round found the Tag Inspector and `sample-classification.ts` had the
+identical gap and fixed them the same way, and found and fixed a follow-on defect in the grading
+formula itself: the `oxidisation: -1` not-applicable sentinel reached `effectiveDifficulty`'s
+weighting unguarded, inverting the gate/difficulty distinction it exists to express (see 2GN.99's
+own roadmap notes, and 2GN.30's for the general class of defect that investigation surfaced but
+deliberately left unfixed here).
 
 **The sensitivity weights were scaled ×2.5 after measurement, and the measurement is why.** At the
 originally-authored `±0.15` band, engraving spanned only ~0.044 of realised grade across all sixteen
