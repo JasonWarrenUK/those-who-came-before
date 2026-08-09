@@ -240,16 +240,19 @@ export interface MaterialDefinition {
 		porosity: number;
 
 		/**
-		 * Resistance to sustained combustion at firing temperatures, `1`–`7`, with `7` the *most*
-		 * combustible. Gates `glaze`, which cannot fire a material that would burn.
+		 * Readiness to sustain combustion at firing temperatures, `1`–`7`, with `1` the *least* and
+		 * `7` the *most* combustible. Gates `glaze` (`combustibility <= 2`), which cannot fire a
+		 * material that would burn.
 		 *
 		 * **A deliberately coarsened proxy for real ignition-temperature data**, not the data itself:
 		 * linen ignites near 210 °C, leather chars near 200 °C but sustains ignition nearer 270 °C,
-		 * seasoned hardwood near 300 °C. Kept on the shared `1`–`7` scale rather than raw °C so it
-		 * composes with the other axes in one weighted sum without a per-axis normalisation step.
-		 * Bone and antler's `2` is an approximation of a different phenomenon: they pyrolyse
-		 * progressively from around 300–400 °C without a clean ignition point, so they are placed low
-		 * but non-zero rather than given a fabricated ignition temperature.
+		 * seasoned hardwood near 300 °C. Kept on the shared `1`–`7` scale rather than raw °C for
+		 * authoring consistency with the other physical axes. Not one of `MaterialDifficultyAxis`
+		 * (`data/decorations.ts`) and so never enters `computeLayerGrade`'s weighted sum — it is a
+		 * pure substrate gate, not a difficulty input. Bone and antler's `2` is an approximation of a
+		 * different phenomenon: they pyrolyse progressively from around 300–400 °C without a clean
+		 * ignition point, so they are placed low but non-zero rather than given a fabricated ignition
+		 * temperature.
 		 */
 		combustibility: number;
 	};

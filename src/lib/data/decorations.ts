@@ -312,8 +312,8 @@ export type MaterialDifficultyAxis =
 /**
  * How much each material axis shifts a technique's difficulty away from its `TECHNIQUE_DIFFICULTY`
  * baseline (roadmap 2GN.99). A **modifier on** that reviewed baseline, not a replacement for it:
- * `computeLayerGrade` sums `weight × normalisedAxisValue` across the axes below, adds the total to
- * the baseline, and clamps to `[0, 1]`.
+ * `effectiveDifficulty` sums `weight × normalisedAxisValue` across the axes below, adds the total to
+ * the baseline, and clamps to `[MINIMUM_DIFFICULTY, 1]`.
  *
  * **Sign convention: positive makes the technique harder on a material scoring high on that axis;
  * negative makes it easier.** An omitted axis means "this technique does not care" rather than zero
@@ -327,7 +327,7 @@ export type MaterialDifficultyAxis =
  * would also have left `meanDecorativeGrade` with too little within-cell spread to sample a
  * percentile ladder from, which is the degeneracy 2GN.98 rejected the craft-only grade for. The
  * scaling preserves every relative judgement below exactly; only the overall magnitude moved, and
- * `effectiveDifficulty`'s `[0, 1]` clamp still bounds the result.
+ * `effectiveDifficulty`'s `[MINIMUM_DIFFICULTY, 1]` clamp still bounds the result.
  *
  * Authored and reviewed technique-by-technique against real craft practice, the same standard
  * `TECHNIQUE_DIFFICULTY` was held to. The reasoning that shaped the table:
@@ -337,16 +337,23 @@ export type MaterialDifficultyAxis =
  *   forces that actually govern precision cutting, pulling against each other. `engraving` and
  *   `inlay` sit at the `±0.375` ceiling on both — they are the highest-stakes, most grain-dependent
  *   operations in the set.
- * - **Coating and application techniques** (`gilding`, `overlay`, `painting`) carry *negative*
- *   `hardness`: softer ground genuinely takes leaf, foil and pigment more readily, which is why
- *   gilded gesso and gilded wood dominate the historical record over gilded stone. They lean instead
- *   on positive `rigidity` — an unstable ground is the real obstacle — and slight negative
- *   `porosity`, since some absorbency helps a size or adhesive bond.
+ * - **Coating and application techniques** (`gilding`, `overlay`) carry *negative* `hardness`:
+ *   softer ground genuinely takes leaf and foil more readily, which is why gilded gesso and gilded
+ *   wood dominate the historical record over gilded stone. They lean instead on positive `rigidity`
+ *   — an unstable ground is the real obstacle — and slight negative `porosity`, since some absorbency
+ *   helps a size or adhesive bond. `painting` follows the same `rigidity`/`porosity` shape but carries
+ *   no `hardness` weight at all — pigment take is grain- and absorbency-driven, not hardness-driven —
+ *   and its `porosity: -0.25` is double `gilding`/`overlay`'s, since a painted surface's absorbency
+ *   matters more directly to it than a gilded one's.
  * - **`patina` is governed almost entirely by one axis.** Its `oxidisation: -0.375` ties the table's
  *   ceiling (with `engraving` and `inlay`'s `fragility`/`grainFineness` weights) because the
  *   technique is a chemical process, not a mechanical one; a highly reactive ground like iron makes
- *   patina dramatically more tractable. Materials with no oxidation chemistry are excluded at the
- *   substrate gate, so they never reach this weighting.
+ *   patina dramatically more tractable. Materials with no oxidation chemistry (`oxidisation: -1`) are
+ *   excluded from this weighting explicitly in `effectiveDifficulty` — a not-applicable sentinel is
+ *   not a low score, and normalising it would land outside this table's `[-1, +1]` domain. The
+ *   substrate gate (below) suppresses *selection* of `patina` for such a material at culture level,
+ *   but does not by itself stop this weighting from being evaluated once a material is assigned; the
+ *   explicit skip is what actually keeps the sentinel out.
  * - **The three form-substrate techniques** (`wire-wrapping`, `wrapping`, `beading`) are near-inert
  *   here, carrying only a small positive `rigidity`. This is a **known limitation, not a judgement
  *   that material does not matter**: their real difficulty is driven by the *introduced* material
