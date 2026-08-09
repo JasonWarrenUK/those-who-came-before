@@ -598,7 +598,7 @@
 					{
 						"id": "2GN.104",
 						"description": "`engine/generation/decoration.ts` — resolve `kind: 'form'` decorative substrates (wire-wrapping/wrapping/beading's `grippable`/`attachment-point`) against a `NormalisedComponent`'s geometry, and feed the result into `enforceSubstrates` (2GN.30)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.30",
 							"2GN.10"
