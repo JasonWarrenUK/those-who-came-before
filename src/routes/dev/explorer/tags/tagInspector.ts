@@ -18,7 +18,11 @@
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
-import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../../../lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -262,7 +266,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	const expanded = expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, prng);
 	const artefact = normaliseArtefact(expanded, `tags-${seed}`);
 
-	const layers = expandDecoration(
+	const provisionalLayers = expandDecoration(
 		artefact,
 		culture.profile,
 		culture.phase,
@@ -272,6 +276,22 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
 	);
+	// Materials assigned and layers re-graded before `extractFeatures`, matching `sampleBaselines`
+	// (`engine/generation/baselines.ts`) and `ruleCalibration.ts`'s `calibrateRules` — otherwise
+	// `meanDecorativeGrade` (R44) here is the provisional technique-only grade compared against a
+	// baseline sampled from material-aware grades, the same scale mismatch fixed in those two
+	// callers (roadmap 2GN.103, doc 12 §2.36). Also makes the grades shown in this panel's own
+	// `TagInspection.layers` honest, since they render directly.
+	const assignments = assignMaterials(
+		artefact,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+		createPrng(`${seed}-materials`),
+		MATERIALS,
+	);
+	const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
 
 	const features = extractFeatures(artefact, layers);
 	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per

@@ -1,7 +1,8 @@
 /**
  * Samples rule-based tag classification (roadmap 2GN.20): runs the full Milestone 2 chain —
- * expand → normalise → decorate → `extractFeatures` → `classifyArtefact` — and renders the scored
- * tag map as a grouped bar chart with per-rule contributions. The terminal preview of the
+ * expand → normalise → decorate → assign materials → grade → `extractFeatures` → `classifyArtefact`
+ * — and renders the scored tag map as a grouped bar chart with per-rule contributions. The terminal
+ * preview of the
  * Explorer's tag inspector (roadmap 2GN.59), and the fastest way to eyeball the plain-sum
  * accumulation contract (doc 12 §2.21) against real grammar rolls.
  *
@@ -20,7 +21,11 @@
  * once from the chosen `--world` region at a flat 0.5 `decorativeEmphasis`, matching this script's
  * existing `sampleWorld` fixture convention, and shared across every sampled artefact in the run —
  * same reasoning as the Explorer's `tagInspector.ts` memo: the baseline is a property of the
- * culture being sampled, not of any one artefact.
+ * culture being sampled, not of any one artefact. Each sampled artefact's own layers are assigned
+ * materials and re-graded before `extractFeatures`, matching `sampleBaselines` itself and
+ * `ruleCalibration.ts`'s `calibrateRules` — without that pass, `meanDecorativeGrade` (R44) here
+ * would be the provisional technique-only grade, measured on a different scale than the baseline it
+ * is being compared against (roadmap 2GN.103, doc 12 §2.36).
  *
  * Run via `deno task sample:classification` — see `scripts/dev/shared.ts` for the fixture-world
  * caveat.
@@ -28,7 +33,11 @@
 
 import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
-import { expandDecoration } from '../../src/lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../src/lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../src/lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -93,7 +102,7 @@ interface Contribution {
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);
 	const artefact = generateArtefact(seed, world);
-	const layers = bare ? [] : expandDecoration(
+	const provisionalLayers = bare ? [] : expandDecoration(
 		artefact,
 		world.culture,
 		world.phase,
@@ -102,6 +111,22 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		createPrng(`${seed}-decoration`),
 		MATERIALS,
 		DECORATIVE_TECHNIQUES,
+	);
+	// Materials assigned and layers re-graded before `extractFeatures` — see the module JSDoc for
+	// why this matters for `meanDecorativeGrade` specifically.
+	const layers = bare ? [] : gradeDecorativeLayers(
+		provisionalLayers,
+		assignMaterials(
+			artefact,
+			world.culture,
+			world.phase,
+			world.geology,
+			world.trade,
+			createPrng(`${seed}-materials`),
+			MATERIALS,
+		),
+		world.phase,
+		MATERIALS,
 	);
 	const features = extractFeatures(artefact, layers);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);
