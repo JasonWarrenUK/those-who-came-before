@@ -1,5 +1,5 @@
 /// <reference lib="deno.ns" />
-import { assert, assertEquals, assertNotEquals } from '@std/assert';
+import { assert, assertEquals, assertNotEquals, assertNotStrictEquals } from '@std/assert';
 import {
 	assignDecorativeDetails,
 	computeLayerGrade,
@@ -1384,7 +1384,10 @@ Deno.test('gradeDecorativeLayers: purity — inputs unmutated, outputs are new o
 	);
 
 	assertEquals(layers, snapshot, 'input layers must not be mutated');
-	assertNotEquals(regraded[0], layers[0], 'output must be a new object');
+	// `assertNotEquals` is structural inequality, not identity — it would pass here even if
+	// `gradeDecorativeLayers` mutated and returned the same object, as long as the grade value
+	// changed. `assertNotStrictEquals` is the actual identity check "a new object" claims.
+	assertNotStrictEquals(regraded[0], layers[0], 'output must be a new object');
 });
 
 Deno.test('computeLayerGrade: a favourable material never makes craft irrelevant (difficulty floor)', () => {
@@ -1393,6 +1396,12 @@ Deno.test('computeLayerGrade: a favourable material never makes craft irrelevant
 	// identical results — which no real craft supports. `MINIMUM_DIFFICULTY` keeps craft load-bearing
 	// everywhere, so grade must still separate a low-craft culture from a high-craft one even on the
 	// most forgiving technique/material pairing available.
+	//
+	// Asserting only `highCraft > lowCraft` doesn't pin the floor: `computeLayerGrade` is strictly
+	// increasing in craft at every difficulty, including a difficulty of exactly zero, so that
+	// ordering would still hold with `MINIMUM_DIFFICULTY` deleted entirely. Asserting the floor
+	// itself — that even the most forgiving pairing still grades below the linear `craftSpecialisation`
+	// value — is what actually fails if the constant goes away.
 	const easiest = MATERIALS.map((candidate) => ({
 		candidate,
 		grade: computeLayerGrade(1, 'roughening', candidate),
@@ -1406,4 +1415,57 @@ Deno.test('computeLayerGrade: a favourable material never makes craft irrelevant
 		`craft must still matter on the most forgiving pairing (${easiest.candidate.id}): ` +
 			`got ${highCraft} at craft 0.9 against ${lowCraft} at craft 0.2`,
 	);
+
+	const mid = 0.5;
+	assert(
+		computeLayerGrade(mid, 'roughening', easiest.candidate) < mid,
+		`MINIMUM_DIFFICULTY floor: even the most forgiving pairing (${easiest.candidate.id}) should ` +
+			`grade below the linear craftSpecialisation value at craft ${mid} — a value at or above ` +
+			`${mid} would mean the floor stopped doing any work.`,
+	);
+});
+
+Deno.test("computeLayerGrade: patina on an oxidisation-inert material equals patina's bare baseline (roadmap 2GN.99 sentinel fix)", () => {
+	// The `oxidisation: -1` sentinel (not-applicable) previously reached `effectiveDifficulty`'s
+	// weighting unguarded, normalising to ≈-1.29 and landing every inert material's patina grade
+	// *below gold's* (the material this catalogue authors as "resistant, not inert", oxidisation 0)
+	// — inverting the gate/difficulty distinction the sentinel exists to express. Guarded now: an
+	// inert substrate falls back to the bare technique baseline, matching the no-material case.
+	const craft = 0.8;
+	const bareBaseline = computeLayerGrade(craft, 'patina', undefined);
+
+	const inertMaterials = MATERIALS.filter((m) => m.reactivity.oxidisation < 0);
+	assert(
+		inertMaterials.length > 0,
+		'fixture assumption: at least one catalogue material is oxidisation-inert',
+	);
+
+	for (const inert of inertMaterials) {
+		assertEquals(
+			computeLayerGrade(craft, 'patina', inert),
+			bareBaseline,
+			`${inert.id} (oxidisation -1) should grade identically to no material at all on patina`,
+		);
+	}
+});
+
+Deno.test('computeLayerGrade: no material grades below gold on patina (oxidisation floor invariant)', () => {
+	// Gold is authored `oxidisation: 0` — genuinely reactive chemistry, just famously resistant —
+	// making it the hardest *applicable* case on this axis. Nothing should patina harder than that,
+	// including materials with no oxidation chemistry at all: a material with none of the relevant
+	// chemistry is a different kind of fact (gated, not merely difficult), not a harder case of the
+	// same fact. This is the catalogue-wide check that would have caught the sentinel defect
+	// directly, rather than pinning one hand-picked pair.
+	const craft = 0.8;
+	const gold = MATERIALS.find((m) => m.id === 'gold')!;
+	const goldGrade = computeLayerGrade(craft, 'patina', gold);
+
+	for (const candidate of MATERIALS) {
+		if (candidate.id === 'gold') continue;
+		assert(
+			computeLayerGrade(craft, 'patina', candidate) >= goldGrade,
+			`${candidate.id} grades below gold on patina — gold (oxidisation 0) should be the hardest ` +
+				`applicable case`,
+		);
+	}
 });

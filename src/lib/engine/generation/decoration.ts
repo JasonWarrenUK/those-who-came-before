@@ -391,11 +391,11 @@ function decorationVolume(phase: PhaseCharacteristics): number {
  * tolerance, hand-skill demand), not derived from the catalogue's `substrate`/`carriesMotif`/
  * `introducesMaterial` flags. A hard technique's realised grade degrades faster than an easy one's
  * as craft falls — `craft * (1 - 0.5*difficulty) + 0.5*difficulty*craft²` interpolates between a
- * near-linear response for the easiest techniques (`difficulty` near 0, grade ≈ craft) and a
- * markedly super-linear one for the hardest (`difficulty` near 1, grade ≈ craft²) — a low-craft
- * culture attempting `inlay` (difficulty 0.80) produces markedly worse inlay than its craft level
- * alone would suggest, where the same culture's `roughening` (difficulty 0.10) reads close to its
- * craft level regardless.
+ * linear response for the easiest techniques (`difficulty` near 0, grade = craft) and a super-linear
+ * one for the hardest (`difficulty` near 1, grade = the midpoint of `craft` and `craft²`) — a
+ * low-craft culture attempting `inlay` (difficulty 0.80) produces markedly worse inlay than its
+ * craft level alone would suggest, where the same culture's `roughening` (difficulty 0.10) reads
+ * close to its craft level regardless.
  *
  * An earlier shape considered and rejected: biasing `computeTechniqueWeight`'s selection toward
  * low-difficulty techniques at low craft. Measured real and directional (~30% low-difficulty share
@@ -428,9 +428,11 @@ export function computeLayerGrade(
  * span 1–7, so they cannot share one normalisation — hence the per-axis table rather than a single
  * divisor.
  *
- * `oxidisation` is normalised across `0`–`7` only. Its `-1` sentinel never reaches here: a material
- * with no oxidation chemistry fails `patina`'s substrate gate outright, which is the whole reason
- * the sentinel is a gate rather than an extreme difficulty value.
+ * `oxidisation` is normalised across `0`–`7` only. Its `-1` sentinel is guarded out before reaching
+ * this table (`effectiveDifficulty` skips the axis entirely for a `-1` material) rather than relying
+ * on the substrate gate to keep it away: `materialAccessGate` only suppresses `patina`'s *selection*
+ * weight at culture level, and per-component substrate stripping (roadmap 2GN.30) is not yet built,
+ * so a `patina` layer can still land on an inert-oxidisation component once a material is assigned.
  */
 const AXIS_NORMALISATION: Readonly<Record<MaterialDifficultyAxis, { mid: number; half: number }>> =
 	{
@@ -465,9 +467,10 @@ function axisValue(material: MaterialDefinition, axis: MaterialDifficultyAxis): 
 
 /**
  * A technique's difficulty against a specific material (roadmap 2GN.99): its authored
- * `TECHNIQUE_DIFFICULTY` baseline shifted by `TECHNIQUE_MATERIAL_SENSITIVITY`, clamped to `[0, 1]`.
+ * `TECHNIQUE_DIFFICULTY` baseline shifted by `TECHNIQUE_MATERIAL_SENSITIVITY`, clamped to
+ * `[MINIMUM_DIFFICULTY, 1]`.
  *
- * Modulating *difficulty* rather than the resulting grade is deliberate. It keeps the `[0, 1]` bound
+ * Modulating *difficulty* rather than the resulting grade is deliberate. It keeps the result bounded
  * without clamping the output, it preserves the "harder techniques degrade faster as craft falls"
  * curve `computeLayerGrade` documents, and it makes the physical claim correctly: a difficult
  * material makes a technique behave *like a harder technique*. Scaling the grade instead would mean
@@ -486,8 +489,15 @@ function effectiveDifficulty(
 
 	let shift = 0;
 	for (const [axis, weight] of Object.entries(TECHNIQUE_MATERIAL_SENSITIVITY[technique])) {
+		const raw = axisValue(material, axis as MaterialDifficultyAxis);
+		// `-1` is oxidisation's not-applicable sentinel, not a low score: normalising it lands at
+		// -1.29, outside this table's documented [-1, +1] band, and would let "no oxidation
+		// chemistry at all" read as harder than any material that actually has the chemistry.
+		// Per-component substrate stripping (roadmap 2GN.30) is the real fix — until it lands, an
+		// inert substrate falls back to the technique's bare baseline for this axis instead.
+		if (axis === 'oxidisation' && raw < 0) continue;
 		const { mid, half } = AXIS_NORMALISATION[axis as MaterialDifficultyAxis];
-		shift += weight * ((axisValue(material, axis as MaterialDifficultyAxis) - mid) / half);
+		shift += weight * ((raw - mid) / half);
 	}
 
 	return Math.min(1, Math.max(MINIMUM_DIFFICULTY, baseline + shift));
