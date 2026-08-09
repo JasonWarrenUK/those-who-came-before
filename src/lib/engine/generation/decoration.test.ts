@@ -4,6 +4,7 @@ import {
 	assignDecorativeDetails,
 	computeLayerGrade,
 	computeTechniqueWeight,
+	enforceSubstrates,
 	expandDecoration,
 	gradeDecorativeLayers,
 	type SharedMotifSource,
@@ -1467,5 +1468,166 @@ Deno.test('computeLayerGrade: no material grades below gold on patina (oxidisati
 			`${candidate.id} grades below gold on patina — gold (oxidisation 0) should be the hardest ` +
 				`applicable case`,
 		);
+	}
+});
+
+// --- enforceSubstrates (roadmap 2GN.30) -------------------------------------------------------
+
+/** A bare layer with no sublayers, for enforceSubstrates fixtures. */
+function layer(
+	technique: DecorativeTechnique,
+	targetComponentId = 'c0',
+	sublayers: DecorativeLayer[] = [],
+): DecorativeLayer {
+	return { targetComponentId, technique, grade: 0.5, sublayers };
+}
+
+/** A material assignment, for enforceSubstrates fixtures. */
+function assignment(componentId: string, materialId: string) {
+	return { componentId, materialId, provenance: { source: 'local' as const } };
+}
+
+Deno.test('enforceSubstrates: strips a gate-failing pairing (glaze on linen, the inverting case)', () => {
+	// The sharpest case from the roadmap evidence: linen graded EASIER than fired-clay on glaze
+	// despite combusting in the kiln. This is the assertion that pins that defect shut.
+	const [result] = enforceSubstrates(
+		[layer('glaze')],
+		[assignment('c0', 'linen')],
+	);
+
+	assertEquals(result, undefined);
+});
+
+Deno.test('enforceSubstrates: keeps a passing pairing (glaze on fired-clay, the only glazeable material)', () => {
+	const [result] = enforceSubstrates(
+		[layer('glaze')],
+		[assignment('c0', 'fired-clay')],
+	);
+
+	assertEquals(result?.technique, 'glaze');
+});
+
+Deno.test('enforceSubstrates: keeps every kind-none technique regardless of material', () => {
+	const noneTechniques: DecorativeTechnique[] = ['polish', 'roughening', 'scoring', 'tassels'];
+
+	for (const name of noneTechniques) {
+		for (const materialId of ['linen', 'granite', 'gold']) {
+			const [result] = enforceSubstrates(
+				[layer(name)],
+				[assignment('c0', materialId)],
+			);
+			assertEquals(result?.technique, name, `${name} on ${materialId} should never be stripped`);
+		}
+	}
+});
+
+Deno.test("enforceSubstrates: keeps kind-form techniques unstripped (geometry resolution deferred, not this task's scope)", () => {
+	// wire-wrapping/wrapping/beading need the target component's geometry ('grippable' /
+	// 'attachment-point'), which nothing in the pipeline supplies yet — allowedMaterialTags is
+	// stubbed empty until roadmap 2GN.10. Stripping on a check that cannot run would silently
+	// delete these three techniques from every artefact on no evidence.
+	const formTechniques: DecorativeTechnique[] = ['wire-wrapping', 'wrapping', 'beading'];
+
+	for (const name of formTechniques) {
+		// linen fails almost every material-kind substrate in this catalogue — if form substrates
+		// were (incorrectly) evaluated as material substrates, this is the material likeliest to
+		// expose it.
+		const [result] = enforceSubstrates(
+			[layer(name)],
+			[assignment('c0', 'linen')],
+		);
+		assertEquals(result?.technique, name, `${name} must pass through unevaluated`);
+	}
+});
+
+Deno.test('enforceSubstrates: an unmatched component keeps its layer', () => {
+	// Honest degradation, matching gradeDecorativeLayers' contract: no assignment is no evidence to
+	// strip on, not a failure. Uses glaze on a component with no assignment at all — the gate-
+	// failingest technique in the catalogue must still survive with nothing to check against.
+	const [result] = enforceSubstrates(
+		[layer('glaze', 'c9')],
+		[assignment('c0', 'linen')],
+	);
+
+	assertEquals(result?.technique, 'glaze');
+});
+
+Deno.test('enforceSubstrates: an assignment naming an unknown material keeps the layer', () => {
+	const [result] = enforceSubstrates(
+		[layer('glaze')],
+		[assignment('c0', 'unobtainium')],
+	);
+
+	assertEquals(result?.technique, 'glaze');
+});
+
+Deno.test('enforceSubstrates: a stripped layer removes its sublayers with it', () => {
+	const layers = [
+		layer('glaze', 'c0', [layer('polish', 'c0')]),
+	];
+
+	const result = enforceSubstrates(layers, [assignment('c0', 'linen')]);
+
+	assertEquals(result, []);
+});
+
+Deno.test('enforceSubstrates: a surviving layer keeps its recursively-valid sublayers', () => {
+	const layers = [
+		layer('engraving', 'c0', [layer('inlay', 'c0')]),
+	];
+
+	const [result] = enforceSubstrates(layers, [assignment('c0', 'gold')]);
+
+	assertEquals(result?.technique, 'engraving');
+	assertEquals(result?.sublayers[0]?.technique, 'inlay');
+});
+
+Deno.test('enforceSubstrates: a sublayer failing its own substrate is stripped without removing its valid parent', () => {
+	// gold fails engraving's shipped `inlay` substrate the same way it fails everything requiring
+	// non-engravable ground — pick a sublayer technique that specifically fails on the assigned
+	// material while the parent technique (kind: none) cannot fail.
+	const layers = [
+		layer('polish', 'c0', [layer('glaze', 'c0')]),
+	];
+
+	const [result] = enforceSubstrates(layers, [assignment('c0', 'linen')]);
+
+	assertEquals(result?.technique, 'polish');
+	assertEquals(result?.sublayers, []);
+});
+
+Deno.test('enforceSubstrates: purity — inputs unmutated, outputs are new objects', () => {
+	const layers = [layer('glaze', 'c0', [layer('polish', 'c0')])];
+	const snapshot = structuredClone(layers);
+
+	const result = enforceSubstrates(layers, [assignment('c0', 'fired-clay')]);
+
+	assertEquals(layers, snapshot, 'input layers must not be mutated');
+	assertNotStrictEquals(result[0], layers[0], 'output must be a new object');
+});
+
+Deno.test('enforceSubstrates: exhaustive sweep — every surviving material-substrate layer satisfies its own substrate.test', () => {
+	// The assertion that pins the 49-pairing defect shut across the whole catalogue, not just the
+	// hand-picked glaze/linen case: for all 16 techniques x 16 materials, a layer survives if and
+	// only if the technique's own shipped substrate.test says it should.
+	const materialGated = DECORATIVE_TECHNIQUES.filter((t) => t.substrate.kind === 'material');
+
+	for (const definition of materialGated) {
+		for (const candidate of MATERIALS) {
+			const [result] = enforceSubstrates(
+				[layer(definition.technique)],
+				[assignment('c0', candidate.id)],
+			);
+			const shouldSurvive = definition.substrate.kind === 'material' &&
+				definition.substrate.test(candidate);
+
+			assertEquals(
+				result !== undefined,
+				shouldSurvive,
+				`${definition.technique} on ${candidate.id}: expected survive=${shouldSurvive}, got ${
+					result !== undefined
+				}`,
+			);
+		}
 	}
 });
