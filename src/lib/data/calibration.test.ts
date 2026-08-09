@@ -584,7 +584,7 @@ Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2
 	);
 
 	// The per-region check above alone would pass on a total regional collapse: TOLERANCE_POINTS
-	// (6pp) is wider than the recorded 5.7pp spread, so every region could read the same pooled
+	// (6pp) is wider than the recorded 4.0pp spread, so every region could read the same pooled
 	// figure and each one's "drift" from it would still clear the tolerance individually. This
 	// spread floor is what actually asserts the geology-driven variation the pin exists to catch.
 	const rates = [...meanGradeRateByRegion.values()];
