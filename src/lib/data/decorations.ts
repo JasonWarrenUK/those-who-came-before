@@ -13,9 +13,10 @@
  * This module is static data only, no behaviour. Out of scope, and owned downstream:
  * - iterating an artefact's surfaces and selecting techniques weighted by culture/phase
  *   (`engine/generation/decoration.ts`, roadmap 2GN.29)
- * - actually enforcing a prerequisite against a target component during grammar expansion —
- *   running `substrate.test`, or resolving a `form` substrate against the component's geometry
- *   (roadmap 2GN.30)
+ * - actually enforcing a `'material'` prerequisite against a target component's assigned material —
+ *   `enforceSubstrates` (`engine/generation/decoration.ts`, roadmap 2GN.30)
+ * - resolving a `form` substrate against the component's geometry — unbuilt (roadmap 2GN.104);
+ *   `enforceSubstrates` passes these through unevaluated for now
  * - layering/recursion depth caps and motif assignment from a culture's `motifVocabulary`
  *   (roadmap 2GN.31–33)
  *
@@ -186,7 +187,8 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		technique: 'wire-wrapping',
 		category: 'applied-element',
 		// "Grippable form" is a geometric property of the target component, not its material — no
-		// material fact answers it, so this is a `form` substrate resolved downstream (2GN.30).
+		// material fact answers it, so this is a `form` substrate. `enforceSubstrates` (2GN.30)
+		// passes it through unevaluated; resolving it against component geometry is roadmap 2GN.104.
 		substrate: { kind: 'form', requires: 'grippable' },
 		// Takes a <pattern>, not a <motif> (doc 05 §8.2).
 		carriesMotif: false,
@@ -235,7 +237,8 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		technique: 'beading',
 		category: 'textile-element',
 		// "Attachment point" is a structural property of the component (somewhere to attach beads
-		// to), not a material fact — a `form` substrate resolved downstream (2GN.30).
+		// to), not a material fact — a `form` substrate. `enforceSubstrates` (2GN.30) passes it
+		// through unevaluated; resolving it against component geometry is roadmap 2GN.104.
 		substrate: { kind: 'form', requires: 'attachment-point' },
 		carriesMotif: false,
 		introducesMaterial: true,

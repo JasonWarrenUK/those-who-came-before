@@ -16,11 +16,16 @@
  * **Scope boundary** — `expandDecoration` (2GN.29) selects techniques; it does not resolve them
  * into a fully valid decorative scheme. Deliberately out of scope there, owned downstream:
  * - substrate *enforcement* — running a technique's `substrate.test` against the specific
- *   component's assigned material, or resolving a `form` substrate against the component's
- *   geometry (roadmap 2GN.30). Every layer this module emits is a *candidate*; some may target a
- *   component whose eventual material or geometry doesn't actually satisfy the technique's
- *   prerequisite, and 2GN.30 is the pass that strips those. This module's own material-access gate
- *   (below) operates at the culture level, not per-component, and is a different check.
+ *   component's assigned material (roadmap 2GN.30, `enforceSubstrates` below). Every layer this
+ *   module emits is a *candidate*; some may target a component whose eventual material doesn't
+ *   actually satisfy the technique's prerequisite, and `enforceSubstrates` is the pass that strips
+ *   those. This module's own material-access gate (below) operates at the culture level, not
+ *   per-component, and is a different check. `enforceSubstrates` deliberately does not resolve
+ *   `form` substrates (`wire-wrapping`/`wrapping`/`beading`'s "grippable"/"attachment point") —
+ *   nothing in the pipeline yet answers a geometry question about a `NormalisedComponent`
+ *   (`allowedMaterialTags` is stubbed empty until roadmap 2GN.10), so stripping on a check that
+ *   cannot actually run would delete those three techniques from every artefact on no evidence.
+ *   Those layers pass through unstripped until a follow-on task resolves component geometry.
  * - sublayers / decoration-on-decoration (roadmap 2GN.31) — every emitted `DecorativeLayer` has
  *   `sublayers: []`.
  * - recursion depth cap (roadmap 2GN.32) — the per-category slot budget below produces a single
@@ -429,10 +434,14 @@ export function computeLayerGrade(
  * divisor.
  *
  * `oxidisation` is normalised across `0`–`7` only. Its `-1` sentinel is guarded out before reaching
- * this table (`effectiveDifficulty` skips the axis entirely for a `-1` material) rather than relying
- * on the substrate gate to keep it away: `materialAccessGate` only suppresses `patina`'s *selection*
- * weight at culture level, and per-component substrate stripping (roadmap 2GN.30) is not yet built,
- * so a `patina` layer can still land on an inert-oxidisation component once a material is assigned.
+ * this table (`effectiveDifficulty` skips the axis entirely for a `-1` material) independently of
+ * `enforceSubstrates` (roadmap 2GN.30): that pass strips a `patina` layer from the *pipeline* once a
+ * component's assigned material fails `patina`'s substrate test, but `computeLayerGrade` is called
+ * directly by several sampling paths that never route through stripping (`baselines.ts`,
+ * `calibration.test.ts`, the Explorer's `ruleCalibration.ts`/`tagInspector.ts`), and is exercised
+ * directly in tests against every material including inert ones. The guard here is `effectiveDifficulty`
+ * correctly handling `-1` as a legal value in its own input domain (pinned by
+ * `materials.test.ts`'s `oxidisation is -1 or 0-7` invariant), not a stand-in that stripping retires.
  */
 const AXIS_NORMALISATION: Readonly<Record<MaterialDifficultyAxis, { mid: number; half: number }>> =
 	{
@@ -493,8 +502,11 @@ function effectiveDifficulty(
 		// `-1` is oxidisation's not-applicable sentinel, not a low score: normalising it lands at
 		// -1.29, outside this table's documented [-1, +1] band, and would let "no oxidation
 		// chemistry at all" read as harder than any material that actually has the chemistry.
-		// Per-component substrate stripping (roadmap 2GN.30) is the real fix — until it lands, an
-		// inert substrate falls back to the technique's bare baseline for this axis instead.
+		// This is independent of `enforceSubstrates` (roadmap 2GN.30) — that pass strips a `patina`
+		// layer from the pipeline once its material fails the substrate test, but this function is
+		// called directly (by sampling paths and tests) against materials that never pass through
+		// stripping, so it must handle `-1` correctly on its own. An inert substrate falls back to
+		// the technique's bare baseline for this axis.
 		if (axis === 'oxidisation' && raw < 0) continue;
 		const { mid, half } = AXIS_NORMALISATION[axis as MaterialDifficultyAxis];
 		shift += weight * ((raw - mid) / half);
@@ -843,4 +855,92 @@ export function gradeDecorativeLayers(
 	}
 
 	return layers.map(regrade);
+}
+
+/**
+ * Strips layers whose target component's assigned material fails the technique's own `substrate`
+ * prerequisite (roadmap 2GN.30) — the pass the module JSDoc's scope boundary reserves, mirroring
+ * `gradeDecorativeLayers`' shape and position rather than folding enforcement into expansion or
+ * grading.
+ *
+ * **Why a separate pass, and why gate the layer rather than the grade.** Two alternatives were
+ * measured and rejected during the PR #53 review that surfaced this gap. Making `computeLayerGrade`
+ * substrate-aware directly would be a real behavioural change across every technique, moving many
+ * pinned calibration figures for a reason (impossibility) unrelated to what that function measures
+ * (execution quality). Authoring more `-1` not-applicable sentinels onto axes like `combustibility`
+ * or `rigidity` (mirroring `oxidisation`'s) was rejected because those are honest continuous scales
+ * with real meaning elsewhere — `rigidity: 1` is why linen drapes, not a coded absence. The ruling:
+ * gate the grade by removing the layer, don't distort the axis. Measured exhaustively across all
+ * 16 techniques × 16 materials before this landed: 49 gate-failing pairings across the nine
+ * material-gated techniques were still gradeable, six of which *inverted* — a gate-failing material
+ * graded easier than every legitimate substrate (sharpest: `glaze` on `linen`, which would combust
+ * in the kiln, graded easier than `fired-clay`, the only material `glaze`'s own substrate accepts).
+ *
+ * **Only `kind: 'material'` substrates are enforced.** `kind: 'none'` techniques have nothing to
+ * check and always survive. `kind: 'form'` techniques (`wire-wrapping`, `wrapping`, `beading` —
+ * "grippable"/"attachment point") are deliberately left unstripped: resolving them needs the target
+ * component's geometry, and nothing in the pipeline supplies that yet (`NormalisedComponent.
+ * allowedMaterialTags` is stubbed empty until roadmap 2GN.10). Stripping on a check that cannot
+ * actually run would silently delete three of sixteen techniques from every artefact on no
+ * evidence, so those layers pass through unevaluated until a follow-on task resolves component
+ * geometry.
+ *
+ * **A layer with no resolvable assignment survives**, mirroring `gradeDecorativeLayers`' honest
+ * degradation (above): no assigned material is no evidence to strip on, not a failure.
+ *
+ * **Sublayers are recursed first, and a stripped layer takes its sublayers with it** — decoration
+ * applied on top of a substrate-invalid layer cannot outlive the layer it decorates.
+ *
+ * **PRNG-free** and pure, matching `gradeDecorativeLayers`: returns new layers, never mutates its
+ * inputs, and can be applied at any point in a pipeline without disturbing determinism.
+ *
+ * **Not wired into any production caller by this task.** `baselines.ts`, `calibration.test.ts`, the
+ * Explorer's `ruleCalibration.ts`/`tagInspector.ts` keep their existing
+ * `expandDecoration → assignMaterials → gradeDecorativeLayers` chain unchanged — inserting a strip
+ * there changes layer counts and would move pinned calibration figures, which is a separate,
+ * measured decision rather than a side effect of this function existing.
+ *
+ * @param layers - Layers from `expandDecoration` (or a later pass over them).
+ * @param assignments - Per-component material assignments from `assignMaterials`.
+ * @param materials - Catalogue to resolve `materialId` against. Defaults to the shipped `MATERIALS`.
+ * @param techniques - The technique catalogue supplying each technique's `substrate`. Defaults to
+ *   the shipped `DECORATIVE_TECHNIQUES`.
+ * @returns A new layer list with substrate-invalid layers (and their sublayers) removed.
+ */
+export function enforceSubstrates(
+	layers: readonly DecorativeLayer[],
+	assignments: readonly MaterialAssignment[],
+	materials: readonly MaterialDefinition[] = MATERIALS,
+	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
+): DecorativeLayer[] {
+	const definitions = new Map<DecorativeTechnique, DecorativeTechniqueDefinition>(
+		techniques.map((definition) => [definition.technique, definition]),
+	);
+	const byId = new Map(materials.map((material) => [material.id, material]));
+	const componentMaterial = new Map<string, MaterialDefinition>();
+	for (const assignment of assignments) {
+		const material = byId.get(assignment.materialId);
+		if (material !== undefined) componentMaterial.set(assignment.componentId, material);
+	}
+
+	function satisfiesSubstrate(layer: DecorativeLayer): boolean {
+		const definition = definitions.get(layer.technique);
+		if (definition === undefined || definition.substrate.kind !== 'material') return true;
+
+		const material = componentMaterial.get(layer.targetComponentId);
+		if (material === undefined) return true; // No evidence to strip on — honest degradation.
+
+		return definition.substrate.test(material);
+	}
+
+	function enforce(layer: DecorativeLayer): DecorativeLayer | undefined {
+		if (!satisfiesSubstrate(layer)) return undefined;
+
+		return {
+			...layer,
+			sublayers: layer.sublayers.map(enforce).filter((sublayer) => sublayer !== undefined),
+		};
+	}
+
+	return layers.map(enforce).filter((layer) => layer !== undefined);
 }

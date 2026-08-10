@@ -16,9 +16,10 @@
  *
  * Material prerequisites (the `[requires: ...]` annotations on the BNF grammar, doc 05 §8.2) are
  * typed below as `DecorativeSubstrate`/`DecorativeTechniqueDefinition` (roadmap 2GN.28), populated
- * as data in `data/decorations.ts`. Enforcing them during grammar expansion — actually rejecting
- * or accepting a technique for a given target component — is the decorative grammar's job
- * (`engine/generation/decoration.ts`, roadmap 2GN.30), not this module.
+ * as data in `data/decorations.ts`. Enforcing them against a target component's assigned material —
+ * `enforceSubstrates` (`engine/generation/decoration.ts`, roadmap 2GN.30) — is not this module's
+ * job. `enforceSubstrates` enforces `kind: 'material'` substrates only; resolving a `kind: 'form'`
+ * substrate against a component's geometry is a separate follow-on (roadmap 2GN.104).
  */
 
 import type { MaterialDefinition } from './artefact.ts';
@@ -107,10 +108,12 @@ export interface DecorativeLayer {
  * A technique's doc 05 §8.2 `[requires: ...]` prerequisite, split by what it's checkable against.
  * Most prerequisites resolve against the target component's assigned material alone (`'material'`
  * — e.g. engraving's "hard material"), reusing the pre-resolved `decorability`/`physicalProperties`
- * facts on `MaterialDefinition` rather than re-deriving them. A few prerequisites are about the
- * component's geometry, not its material (`'form'` — e.g. wire-wrapping's "grippable form"): no
+ * facts on `MaterialDefinition` rather than re-deriving them; `enforceSubstrates`
+ * (`engine/generation/decoration.ts`, roadmap 2GN.30) enforces these. A few prerequisites are about
+ * the component's geometry, not its material (`'form'` — e.g. wire-wrapping's "grippable form"): no
  * amount of material data answers whether a shape is grippable, so these are only labelled here;
- * resolving them against a `NormalisedComponent` is the decorative grammar's job (roadmap 2GN.30).
+ * resolving them against a `NormalisedComponent` is unbuilt (roadmap 2GN.104) — `enforceSubstrates`
+ * passes `'form'`-gated layers through unevaluated until that lands.
  */
 export type DecorativeSubstrate =
 	| { kind: 'none' }
@@ -123,7 +126,7 @@ export type DecorativeSubstrate =
 	}
 	| {
 		kind: 'form';
-		/** The geometric property required, resolved against the component by 2GN.30, not here. */
+		/** The geometric property required; resolving it against the component is roadmap 2GN.104. */
 		requires: 'grippable' | 'attachment-point';
 	};
 
