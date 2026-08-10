@@ -49,7 +49,7 @@ Artefacts are generated consistently with a hidden world simulation rather than 
 ### Tasks
 
 - [ ] Define Subjective World State schema (hypotheses, confidence, notes).
-- [ ] Add artifact inspection UI that captures player hypotheses/notes.
+- [ ] Add artefact inspection UI that captures player hypotheses/notes.
 - [ ] Store and surface subjective interpretations linked to artefacts.
 
 ### Outcome
@@ -104,7 +104,7 @@ Long-form play is supported; state persists across sessions.
 
 - [ ] Build desk layout shell (workspace panels).
 - [ ] Move generator into a desk “tool” panel.
-- [ ] Add artifact dossiers (per-artefact workspace view).
+- [ ] Add artefact dossiers (per-artefact workspace view).
 
 ### Outcome
 

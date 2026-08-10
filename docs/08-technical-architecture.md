@@ -40,7 +40,8 @@ Deno replaces Node entirely. This means:
 		"dev": "deno run -A npm:vite dev",
 		"build": "deno run -A npm:vite build",
 		"preview": "deno run -A npm:vite preview",
-		"check": "deno run -A npm:svelte-kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json"
+		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json",
+		"test": "deno test --allow-env"
 	},
 	"compilerOptions": {
 		"strict": true,
@@ -171,7 +172,11 @@ those-who-came-before/
 │       │   ├── tags.ts                 # AbsoluteTag, RelativeTag, ArtefactTag, MaterialTag
 │       │   ├── decoration.ts           # Surface treatments, applied elements, layering
 │       │   ├── visibility.ts           # PropertyVisibility enum, visibility annotations
-│       │   └── excavation.ts           # Site composition, ambiguity distribution
+│       │   ├── corpus.ts               # ProfessionalCorpus, ConsensusStatement, Debate
+│       │   ├── description.ts          # DescriptionTemplate, DescriptionVariant, VariantCondition
+│       │   ├── plausibility.ts         # PlausibilityRule union
+│       │   ├── save.ts                 # SaveFile, SerialisedWorldState, CURRENT_SAVE_VERSION
+│       │   └── term.ts                 # TermState, AcademicYear, WEEKS_PER_TERM
 │       │
 │       ├── stores/                     # Svelte 5 reactive state
 │       │   ├── gameState.svelte.ts     # Orchestrator (no domain data)

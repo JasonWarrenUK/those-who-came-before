@@ -24,24 +24,20 @@ publication requires public retraction with career consequences.
 
 ## 2. The Four Knowledge Layers
 
-> **Implementation note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28):** the
-> `FunctionTag`/`ContextTag` pair used throughout this document is **superseded** by `AbsoluteTag` /
-> `RelativeTag`, with `ArtefactTag` as the union. Every `(FunctionTag | ContextTag)[]` below reads
-> `ArtefactTag[]` in the shipped types; the sole `FunctionTag` field (§3.3's `functionalEmphasis`
-> entry) reads `ArtefactTag`. Nothing in this document's logic depends on the distinction — it uses
-> the pair only to mean "any classification tag" — so the substitution is mechanical. The new split
-> is by scoring basis (fixed threshold versus culture-phase baseline), which matters to contradiction
-> detection in one way worth noting: a relative tag's meaning is indexed to the producing
-> culture-phase, so two agents can disagree about a `RelativeTag` without either misreading the
-> artefact, if they hold different beliefs about which culture-phase produced it.
+> **Historical note (2026-08-04, roadmap 2GN.80/2GN.77, doc 11 §2.9, doc 12 §2.28/§2.29/§2.37):**
+> this document previously typed tags as `FunctionTag`/`ContextTag`; every occurrence below now
+> reads `ArtefactTag` directly, the mechanical substitution the ruling licensed. Worth keeping the
+> one observation the ruling adds beyond vocabulary: a relative tag's meaning is indexed to the
+> producing culture-phase, so two agents can disagree about a `RelativeTag` without either
+> misreading the artefact, if they hold different beliefs about which culture-phase produced it.
 
-Throughout this document, `FunctionTag` and `ContextTag` refer to the tag classification system
-defined in doc 05, section 9.2 — now shipped as `AbsoluteTag` and `RelativeTag`, unioned as
-`ArtefactTag` (see the note above). Function tags described what an object is _for_ (weapon, tool,
-container, ritual, etc.). Context tags described how it was _used_ (personal, communal, elite,
-ceremonial, etc.). Tags are not mutually exclusive — an artefact can carry multiple tags
-simultaneously, and resolving which tags apply is a core part of the player's analytical work.
-`MaterialTag` is similarly defined in doc 05, section 9.2.
+Throughout this document, `ArtefactTag` (doc 05, section 9.2) is the tag classification system —
+`AbsoluteTag` values scored against fixed thresholds (what an object is _for_: weapon, tool,
+container, ritual, etc.) and `RelativeTag` values scored against culture-phase baselines (how it
+stands relative to its own culture's norms: personal, communal, elite, ceremonial, etc.), unioned as
+`ArtefactTag`. Tags are not mutually exclusive — an artefact can carry multiple tags simultaneously,
+and resolving which tags apply is a core part of the player's analytical work. `MaterialTag` is
+similarly defined in doc 05, section 9.2, and is a distinct, unrelated vocabulary (doc 12 §2.37).
 
 ### 2.1 Observations
 
@@ -63,7 +59,7 @@ interface Observation {
 	};
 	content: string; // Player's note
 	propertyRefs: string[]; // Which artefact properties this references
-	tags: (FunctionTag | ContextTag)[]; // Player-assigned tags (see doc 05, section 9.2)
+	tags: ArtefactTag[]; // Player-assigned tags (see doc 05, section 9.2)
 	confidence: Confidence;
 	epistemicMode: 'observational' | 'interpretive'; // Recording what they see, or what they think it means?
 	observationRegister?: ObservationRegister; // Framing lens used (doc 05, section 12.1)
@@ -110,7 +106,7 @@ interface Inference {
 	id: string;
 	conclusion: string; // What the player concludes
 	evidenceChain: EvidenceLink[]; // Ordered chain of reasoning
-	tags: (FunctionTag | ContextTag)[];
+	tags: ArtefactTag[];
 	scope: InferenceScope;
 	confidence: Confidence;
 	createdAtTerm: number;
@@ -149,7 +145,7 @@ interface Hypothesis {
 	statement: string;
 	supportingInferences: string[]; // Inference IDs
 	contradictingInferences: string[]; // Inferences that weaken this
-	tags: (FunctionTag | ContextTag)[];
+	tags: ArtefactTag[];
 	scope: InferenceScope;
 	confidence: Confidence;
 	lensStrength: number; // Computed: how much this warps perception
@@ -219,7 +215,7 @@ interface ArtefactStudy {
 	artefactId: string;
 	observations: string[]; // Observation IDs
 	interpretiveSummary: string; // Player-authored
-	assignedTags: (FunctionTag | ContextTag)[];
+	assignedTags: ArtefactTag[];
 	assignedCulture?: string; // Player's cultural attribution
 	assignedPeriod?: string; // Player's temporal attribution
 	relatedStudies: string[]; // Cross-references to other artefact studies
@@ -262,7 +258,7 @@ interface CulturalProfile {
 		sourceInferences: string[];
 	}>;
 	functionalEmphasis: Array<{
-		tag: FunctionTag;
+		tag: ArtefactTag;
 		description: string;
 		confidence: Confidence;
 		sourceInferences: string[];
@@ -658,8 +654,8 @@ working documents at MVP.
 > applies to NPC scholars identically: an NPC's belief about a `RelativeTag` is only as good as its
 > belief about the producing culture-phase. §2 above (lines 27–36) already makes the
 > contradiction-detection consequence — two agents can disagree about a relative tag without either
-> misreading the artefact, if they hold different provenance beliefs. Nothing further to add for NPCs
-> specifically; the mechanism is identical to the player's.
+> misreading the artefact, if they hold different provenance beliefs. Nothing further to add for
+> NPCs specifically; the mechanism is identical to the player's.
 >
 > **Superseded (doc 12 §2.23, 2026-07-27):** the `InterpretiveModel` interface below predates doc 08
 > §3.2's agent-generic claim-map shape (`agentId`, `culturalClaims`, `artefactClaims`,
