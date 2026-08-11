@@ -216,6 +216,19 @@ export interface ClassificationContext {
  * The material vocabulary components and materials are tagged with (doc 05 §9.2). Used both for
  * `MaterialDefinition.tags` (what a material is) and `NormalisedComponent.allowedMaterialTags`
  * (what a component can physically be made from) — see doc 05 §6.1.
+ *
+ * **`precious-stone`/`precious-metal` are descriptors, not classification inputs** (doc 11 §2.9,
+ * roadmap 2GN.77/2GN.78). They remain facts about a material's physical character, read by
+ * generation-time material selection — `computeMaterialWeight`'s cultural-affinity term
+ * (`engine/generation/materials.ts`) and `INTRODUCED_MATERIAL_TAGS`' availability gate
+ * (`engine/generation/decoration.ts`) both key off them. No `ClassificationRule.condition` may read
+ * either directly to award an `ArtefactTag`: material-derived standing comes from the material's
+ * situation in the world instead (availability × cultural affinity × provenance × stratification).
+ *
+ * ⚠️ `MaterialTag` and `ArtefactTag` are unrelated vocabularies that happen to share the word "tag".
+ * Doc 12 §2.28 once booked a re-key of doc 12 §2.22's `MaterialTag` sets against this ruling on that
+ * basis — there was nothing to re-key, since those sets were never in the retired
+ * `FunctionTag`/`ContextTag` vocabulary `ArtefactTag` replaced. Don't repeat the conflation.
  */
 export type MaterialTag =
 	| 'bone'

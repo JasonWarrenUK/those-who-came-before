@@ -1178,6 +1178,16 @@ type MaterialTag =
 	| 'leather'
 	| 'precious-stone'
 	| 'precious-metal';
+
+// `condition` takes a `ClassificationContext` alongside `features` (roadmap 2GN.95, doc 12 §2.28,
+// §2.30) — the culture-phase baselines a `RelativeTag` award needs. A rule reading only physical
+// features may still write `(f) => ...`: TypeScript accepts the narrower arity against this wider
+// signature, so all shipped rules compiled and fired unchanged the moment the type widened (doc 12
+// §2.30). Nothing below has migrated to read `context` yet — see `data/classification.ts`.
+interface ClassificationRule {
+	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
+	tags: Map<ArtefactTag, number>;
+}
 ```
 
 Classification rules contribute weights from both structural and decorative features:

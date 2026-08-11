@@ -24,7 +24,18 @@ marked complete with the date they were resolved.
 
 ## 1. Pending Propagation
 
-_No pending items. All propagation from the current design round has been completed._
+Two items remain open from §2.28's tag-relativity ruling (2026-08-04), both blocked on unbuilt
+Milestone 3 world-state work rather than awaiting a propagation pass:
+
+- **Doc 05 §3.2:** `PhaseCharacteristics.society.stratification` becomes a live classification
+  input. Blocked on **2GN.96** (itself blocked on 2GN.95 — done — plus 3WS.4, 3WS.9, 3WS.21). See
+  §2.28's table and §2.31's confirmation that no rule reads it yet.
+- **Doc 08:** world state carries cached per-culture-phase baselines. Blocked on **3WS.9** (itself
+  blocked on 3WS.4, 3WS.5, 3WS.7). `ClassificationContext` itself shipped at §2.30 — this row is
+  narrowly about caching sampled baselines on a real `WorldState`, which doesn't exist yet.
+
+Neither is actionable until its blocking task clears; listed here rather than in §2 because closing
+them isn't a documentation task, it's downstream of code that hasn't landed.
 
 ---
 
@@ -1027,16 +1038,17 @@ explicit one.
 absolute reading this decision replaces, so 2GN.82–85's recalibration is gated on this ruling rather
 than merely sequenced after it.
 
-| Doc | What changed                                                                                                          | Completed  |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 11  | New §2.9 Status-Tag Relativity — the locked decision, the vocabulary reorganisation, and the rejected alternatives    | 2026-08-04 |
-| 12  | This entry — measurement findings, the boundary rationale, the undercount correction, and the two constraints raised  | 2026-08-04 |
-| —   | `types/tags.ts`: `FunctionTag`/`ContextTag` replaced by `AbsoluteTag`/`RelativeTag`/`ArtefactTag` ⚠️ breaking         | 2026-08-04 |
-| —   | `data/classification.ts`: ruling recorded at the rule set; 34/43 and 9/43 counts pinned by test                       | 2026-08-04 |
-| 05  | Pending: §3.2 `stratification` becomes a live classification input; §9.2's tag code block supersedes to the new split | —          |
-| 08  | Pending: `ClassificationContext` type; world state carries cached per-culture-phase baselines                         | —          |
-| 12  | Pending: §2.22's tag sets re-keyed to the new vocabulary (lands with 2GN.78)                                          | —          |
-| —   | Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 gated on this ruling; new 3WS.21 for phase-attribute continuity        | 2026-08-04 |
+| Doc | What changed                                                                                                                                                           | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 11  | New §2.9 Status-Tag Relativity — the locked decision, the vocabulary reorganisation, and the rejected alternatives                                                     | 2026-08-04 |
+| 12  | This entry — measurement findings, the boundary rationale, the undercount correction, and the two constraints raised                                                   | 2026-08-04 |
+| —   | `types/tags.ts`: `FunctionTag`/`ContextTag` replaced by `AbsoluteTag`/`RelativeTag`/`ArtefactTag` ⚠️ breaking                                                          | 2026-08-04 |
+| —   | `data/classification.ts`: ruling recorded at the rule set; 34/43 and 9/43 counts pinned by test                                                                        | 2026-08-04 |
+| 05  | §9.2's tag code block supersedes to the new split — closed by §2.29                                                                                                    | 2026-08-04 |
+| 05  | Pending: §3.2 `stratification` becomes a live classification input — see §1, blocked on 2GN.96                                                                         | —          |
+| 08  | `ClassificationContext` type — closed by §2.30 (types-only; see that entry's own pending row for world-state caching)                                                  | 2026-08-05 |
+| 12  | §2.22's tag sets re-keyed to the new vocabulary — **no action needed** (§2.37): those are `MaterialTag` values, never in the retired vocabulary `ArtefactTag` replaced | 2026-08-10 |
+| —   | Roadmap: 2GN.80 and 2GN.77 resolved; 2GN.82–85 gated on this ruling; new 3WS.21 for phase-attribute continuity                                                         | 2026-08-04 |
 
 ---
 
@@ -1128,7 +1140,8 @@ deliberately a structural bag rather than `CulturePhase` (`types/world.ts`), whi
 the three `expandDecoration` needs, so nothing in the sampler's signature has to change when 3WS.9
 lands a real `WorldState` culture source.
 
-**No shipped rule reads a context yet, so every current call site passes an empty one.**
+**No shipped rule reads a context yet, so every current call site passes an empty one — true only
+as of this entry; §2.31 migrates nine rules to `ClassificationContext.exceeds` the same day.**
 `emptyClassificationContext` (`baselines.ts`, re-exported from `tests/fixtures/artefact.ts` for test
 convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather
 than a freshly-sampled real context: `inspectTags` runs interactively per artefact, and
@@ -1161,7 +1174,7 @@ memoise under; a module-level cache now would be an untestable global with no ow
 | —   | `types/tags.ts`: `BaselineFeature`, `FeatureBaseline`, `ClassificationContext`; `ClassificationRule.condition` widened                          | 2026-08-05 |
 | —   | `engine/statistics.ts`, `engine/generation/baselines.ts`: new, ship 2GN.94/95                                                                   | 2026-08-05 |
 | —   | Roadmap: 2GN.94/95 done, 2GN.96 new and blocked (3WS.4/3WS.9/3WS.21); 2GN.82–84 repointed to depend on 2GN.95; stale 34/43 scope note corrected | 2026-08-05 |
-| 08  | Still pending: `ClassificationContext` now exists in `types/`, but world-state caching remains genuinely blocked on 3WS.9                       | —          |
+| 08  | Still pending: `ClassificationContext` now exists in `types/`, but world-state caching remains genuinely blocked on 3WS.9 — see §1              | —          |
 
 ---
 
@@ -1557,6 +1570,8 @@ update the pinned numbers and the array together, deliberately, not by widening 
 | —   | `engine/statistics.regression.test.ts`: p75 pin re-measured (10 → 12) and re-framed against this task rather than 2GN.34's historical figure | 2026-08-06 |
 | —   | Roadmap: 2GN.98 done                                                                                                                         | 2026-08-06 |
 
+---
+
 ### 2.34 2GN.84 Inverts: No Calibration Target Existed, So One Was Built (2026-08-06)
 
 **Origin:** roadmap 2GN.84. **Source of truth:** this entry; no doc 11 question was raised or
@@ -1698,6 +1713,8 @@ material wins, not layer counts or complexity) that they land within its existin
 | —   | `data/materials.calibration.test.ts`: new — hierarchical tag-share, intra-tag-split, provenance-mix and cross-region-spread guards                     | 2026-08-06 |
 | —   | `data/materials.test.ts`, `engine/generation/materials.test.ts`: tests corrected for the defects fixed above                                           | 2026-08-06 |
 | —   | Roadmap: 2GN.84 done; successor tasks recorded against 2GN.78/2GN.68 and a new material-dependent-difficulty task                                      | 2026-08-06 |
+
+---
 
 ### 2.35 The Material Property Model Rebuilt; Grade Reads Material (2026-08-07)
 
@@ -1930,6 +1947,55 @@ hazard asked for.
 | —   | `data/calibration.test.ts`: `measureFireRates` grades through the material pass; R44 re-pinned 4.0→10.4; new `EXPECTED_MEAN_GRADE_BY_REGION` pin and test | 2026-08-07 |
 | —   | `routes/dev/explorer/calibration/ruleCalibration.ts`: `calibrateRules` grades through the material pass, matching the test harness                        | 2026-08-07 |
 | —   | Roadmap: 2GN.103 added and done                                                                                                                           | 2026-08-07 |
+
+---
+
+### 2.37 2GN.78 Lands Doc-Only: Code Already Complied, One Instruction Was a Phantom (2026-08-10)
+
+**Origin:** Roadmap 2GN.78, gated on 2GN.77.
+
+**Source of truth:** doc 11 §2.9 lines 402-406 hold the ruling this task propagates; this entry
+records what checking the code against it found.
+
+**No code changed the classification boundary.** 2GN.78's brief asked whether `MaterialTag`'s
+`precious-metal`/`precious-stone` members still fed classification after the 2GN.77/2GN.80 ruling.
+Checking every consumer found none do: `INTRODUCED_MATERIAL_TAGS`
+(`engine/generation/decoration.ts`) and `materialAffinities` (via `computeMaterialWeight`,
+`engine/generation/materials.ts`, and `grammar.ts`'s weighting) both read the tags for
+generation-time material selection — gating and cultural-affinity weighting — never to award an
+`ArtefactTag`. The one classification rule touching precious materials (`data/classification.ts`'s
+dormant `preciousMaterialsInDecoration` rule) already reads a derived boolean, not `MaterialTag`
+directly. All compliant before this task started. The actual deliverable was propagating doc 11
+§2.9's constraint to the type it governs: `MaterialTag`'s JSDoc now states it in place, with a note
+on the naming hazard below so it isn't rediscovered as a bug.
+
+**§2.28's line 1038 was a phantom instruction, not a missed one.** It asked to re-key "doc 12
+§2.22's tag sets" to the `AbsoluteTag`/`RelativeTag` vocabulary. §2.22's tag sets (lines 484-493:
+`gilding` → precious-metal, `inlay` → everything except fiber/leather/clay, etc.) are `MaterialTag`
+values feeding `INTRODUCED_MATERIAL_TAGS` — which materials a decorative technique may introduce —
+never the retired `FunctionTag`/`ContextTag` pair `ArtefactTag` replaced. Whoever wrote line 1038
+was sweeping post-ruling for anything still expressed in the old vocabulary, saw "tag sets" inside a
+section titled partly "Introduced-Material Resolution", and booked it against the wrong noun.
+`MaterialTag` and `ArtefactTag` are unrelated vocabularies that both happen to be called "tags" —
+worth naming plainly since it is exactly the kind of mistake this register exists to catch, not
+commit. No re-key was performed because there was nothing to re-key; §2.28's row is closed on that
+basis rather than by producing the work it asked for.
+
+**Branch used to reconcile drift the investigation surfaced along the way.** With 2GN.78 itself
+docs-only, the same branch closed out §2.28/§2.30's other stale rows (§1 above, and the
+split/annotated rows in §2.28's own table), corrected README and doc 08/05/06 drift that carried no
+owning task, and left everything with an owning task (2GN.92, `/roadmap-maintain`'s vocabulary
+sweep, 2GN.96, 3WS.9) alone.
+
+| Doc | What changed                                                                                                                                                                                               | Completed  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry; §1 rewritten from a false "no pending items" claim to the two genuinely-open items; §2.28's line 1036 split, 1037 and 1038 closed/annotated; missing `---` separators added before §2.34/§2.35 | 2026-08-10 |
+| —   | `types/tags.ts`: `MaterialTag` JSDoc records the descriptor-not-classification-input constraint and the naming hazard                                                                                      | 2026-08-10 |
+| —   | `README.md`: refreshed against current `src/`, `deno.json` and `.claude/roadmaps.json` state (see that file's own history for detail)                                                                      | 2026-08-10 |
+| 08  | `types/` tree: phantom `excavation.ts` entry removed, five shipped modules added; §1.3's `npm:svelte-kit sync` corrected                                                                                   | 2026-08-10 |
+| 05  | §9.2: `ClassificationRule` interface declared (was used, never defined); `ClassificationContext` noted                                                                                                     | 2026-08-10 |
+| 06  | §2.28's disclosed `FunctionTag`/`ContextTag` substitution executed; banner demoted to a historical marker                                                                                                  | 2026-08-10 |
+| —   | Roadmap: 2GN.78 done, doc-only                                                                                                                                                                             | 2026-08-10 |
 
 ---
 

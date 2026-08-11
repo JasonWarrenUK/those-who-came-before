@@ -24,23 +24,27 @@ unreliable narrator.
 
 ## Project Status
 
-The design is roughly 95% specified across fourteen documents (docs 00 to 13). The implementation
-was reset for launch and is being rebuilt milestone by milestone against the
-[MVP roadmap](docs/roadmaps/mvp.md). Milestone 1 (Foundation) is complete: Deno runtime, the full
-type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline) is
-underway: the component grammar system, plausibility checking, material assignment, and decorative
-motif and introduced-material resolution are all in place; unified feature extraction/classification
-integration and description generation are still to come. Exact task-by-task status lives in
-[`docs/roadmaps/mvp.md`](docs/roadmaps/mvp.md), not this summary.
+The design is specified across fourteen documents (docs 00 to 13); doc 11 and doc 12 both record
+their open questions resolved as of the current design round. The implementation was reset for
+launch and is being rebuilt milestone by milestone against the [MVP roadmap](docs/roadmaps/mvp.md).
+**89 of 318 roadmap tasks are done (28%).** Milestone 1 (Foundation) is complete: Deno runtime, the
+full type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline)
+is 49/101 done: the component grammar system, plausibility checking, material assignment, decorative
+motif and introduced-material resolution, feature extraction, tag classification, and description
+generation are all in place; materials-classification integration and a handful of calibration
+follow-ons remain. Exact task-by-task status lives in
+[`.claude/roadmaps.json`](.claude/roadmaps.json) (canonical) and its projection,
+[`docs/roadmaps/mvp.md`](docs/roadmaps/mvp.md) — not this summary.
 
 What the repository currently contains:
 
-- A bare SvelteKit skeleton: one route, three static components (Header, Footer and Timeline) and
-  DaisyUI theming
-- The complete MVP type system in `src/lib/types/`: seventeen modules, roughly 150 interfaces and
+- A SvelteKit skeleton: one player-facing route, three static components (Header, Footer and
+  Timeline), DaisyUI theming, and the nine-panel Project Explorer described below
+- The complete MVP type system in `src/lib/types/`: eighteen modules, roughly 160 interfaces and
   aliases covering artefacts, world generation, interpretation, lens, documents, career,
-  contradictions and saves
-- A seeded PRNG (xoshiro128**) in `src/lib/engine/` with determinism and distribution tests
+  contradictions, corpus, descriptions, plausibility and saves
+- A seeded PRNG (xoshiro128**) and percentile statistics (`engine/statistics.ts`) in
+  `src/lib/engine/`, with determinism, distribution and regression tests
 - A component grammar system in `src/lib/data/grammars/` and `src/lib/engine/generation/grammar.ts`:
   eight geometric primitives, MVP grammar rules, culture/phase-biased weighted selection,
   complexity-tier budgets, accumulation constraint checking and tree-to-`NormalisedArtefact`
@@ -48,13 +52,23 @@ What the repository currently contains:
 - Plausibility checking in `src/lib/engine/generation/plausibility.ts` (`checkPlausibility`,
   material-physics and ergonomic rule predicates)
 - Material assignment in `src/lib/engine/generation/materials.ts` (culture affinity × phase
-  technology × geological scarcity weighting, trade-aware availability)
+  technology × geological scarcity weighting, trade-aware availability) and a material property
+  model (formability, hardness, working-state axes) it grades decoration against
 - Decorative motif and introduced-material resolution in `src/lib/engine/generation/decoration.ts`
   (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag
-  sets)
-- The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with a PRNG
-  determinism panel and a type index that parses the type modules live, renders module dependency
-  and per-type reference graphs, and cross-links every type
+  sets, material-aware execution grading)
+- Unified feature extraction and rule-based tag classification in
+  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (44 rules;
+  culture-phase baseline sampling via `engine/generation/baselines.ts` for tags scored relative to a
+  culture's own norms, doc 11 §2.9)
+- Description generation in `src/lib/engine/generation/prose.ts`, drawing on the observational
+  register templates in `src/lib/data/descriptions/observational/`
+- The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with nine panels
+  — an overview, PRNG output, a live type index with dependency and reference graphs, structure
+  viewer, plausibility panel, material viewer, decoration inspector, tag inspector and rule
+  calibration
+- A CLI sampler suite (`deno task sample*`, see [`scripts/dev/README.md`](scripts/dev/README.md))
+  for eyeballing pipeline output stage by stage ahead of its Explorer panel landing
 - The full design specification in `docs/`
 
 ## Quick Start
@@ -70,6 +84,14 @@ deno task check      # Type checking
 deno task test       # Run tests
 deno fmt             # Format
 deno lint            # Lint
+
+# Milestone 2 pipeline samplers (gum menu, or run one directly; --json for raw output)
+deno task sample                  # menu over the samplers below
+deno task sample:artefact         # anatomy tree + plausibility verdict
+deno task sample:materials        # anatomy tree with each part's material pick
+deno task sample:decoration       # anatomy tree with decorative layers nested per part
+deno task sample:features         # annotated classifier reading, per-value provenance
+deno task sample:classification   # scored tag map with per-rule contributions
 ```
 
 ## Tech Stack
@@ -83,7 +105,7 @@ deno lint            # Lint
 
 ## Documentation
 
-- [Project Knowledge Overview](docs/00-project-overview.md): index of the thirteen design documents
+- [Project Knowledge Overview](docs/00-project-overview.md): index of design documents 01 to 13
 - [MVP Roadmap](docs/roadmaps/mvp.md): milestone-by-milestone execution plan
 - [Agent Guide](.claude/CLAUDE.md): development guidance for AI coding assistants
 

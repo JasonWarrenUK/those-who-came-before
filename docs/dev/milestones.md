@@ -1,5 +1,10 @@
 # Milestone Board / Roadmap
 
+> [!WARNING]
+> **Superseded.** This is the pre-reset 7-milestone plan referenced by doc 01's historical audit. The
+> canonical roadmap is `.claude/roadmaps.json`, projected into
+> [`docs/roadmaps/mvp.md`](../roadmaps/mvp.md) — see the CLAUDE.md roadmap section.
+
 ## Milestone 1: Artefact Generation v2 (Blueprints & Anatomy)
 
 > [!TIP]
@@ -49,7 +54,7 @@ Artefacts are generated consistently with a hidden world simulation rather than 
 ### Tasks
 
 - [ ] Define Subjective World State schema (hypotheses, confidence, notes).
-- [ ] Add artifact inspection UI that captures player hypotheses/notes.
+- [ ] Add artefact inspection UI that captures player hypotheses/notes.
 - [ ] Store and surface subjective interpretations linked to artefacts.
 
 ### Outcome
@@ -104,7 +109,7 @@ Long-form play is supported; state persists across sessions.
 
 - [ ] Build desk layout shell (workspace panels).
 - [ ] Move generator into a desk “tool” panel.
-- [ ] Add artifact dossiers (per-artefact workspace view).
+- [ ] Add artefact dossiers (per-artefact workspace view).
 
 ### Outcome
 
