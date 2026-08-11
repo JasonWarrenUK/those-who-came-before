@@ -201,17 +201,58 @@ const INTRODUCED_MATERIAL_TAGS: Record<DecorativeTechnique, readonly MaterialTag
 	'relief': null,
 	'painting': null,
 	'glaze': null,
-	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
-	'overlay': ['metal', 'precious-metal', 'leather'],
-	'studs': ['metal', 'precious-metal', 'bone'],
-	'wire-wrapping': ['metal', 'precious-metal'],
-	'gilding': ['precious-metal'],
+	// The `precious-metal`/`precious-stone` entries these five pools used to carry were pure
+	// redundancy: each already listed the corresponding class tag beside it, so the candidate pool
+	// was identical with or without them (measured across the shipped catalogue, roadmap 2GN.78).
+	// Removing them changed no pool.
+	'inlay': ['metal', 'stone', 'glass', 'bone', 'wood'],
+	'overlay': ['metal', 'leather'],
+	'studs': ['metal', 'bone'],
+	'wire-wrapping': ['metal'],
+	// `gilding` is the exception, and the reason 2GN.78 could retire the precious tags at all: it is
+	// the one technique whose pool the class tags cannot express. See `GILDING_MATERIAL` below.
+	'gilding': null,
 	'wrapping': ['fiber', 'leather'],
 	'tassels': null,
-	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
+	'beading': ['glass', 'stone', 'bone', 'metal'],
 };
 
-/** A culture's affinity for one of a material's tags, read as neutral (`1`) when absent — the same reduction `materials.ts`'s `culturalAffinityWeight` performs, inlined here since that helper isn't exported. */
+/**
+ * The materials gilding can be worked from, as a physical test rather than a catalogue tag (roadmap
+ * 2GN.78, doc 12 §2.40).
+ *
+ * Gilding applies a very thin layer of a metal that can be beaten to leaf and will not tarnish once
+ * applied. Those are physical facts, and the catalogue already carries them:
+ * `physicalProperties.formability` for whether it can be worked that thin, and
+ * `reactivity.oxidisation` for whether the finish survives. This predicate admits **gold and silver
+ * and nothing else** across the shipped catalogue — exactly the pool the retired
+ * `['precious-metal']` tag list produced — because gold reads `oxidisation: 0` and silver `3`
+ * against bronze's `6` and iron's `7`.
+ *
+ * Stated physically rather than by tag so the gate reproduces itself under a changed catalogue: a
+ * newly-authored non-tarnishing workable metal becomes giltable automatically, and a culture that
+ * happens to be swimming in gold does not thereby make gold un-giltable. The retired tag encoded
+ * "people value this", which is neither of those things and is what doc 11 §2.9 ruled against.
+ */
+function isGildingMaterial(material: MaterialDefinition): boolean {
+	return material.craftDomain === 'metallurgy' &&
+		material.physicalProperties.formability >= 5 &&
+		material.reactivity.oxidisation <= 3;
+}
+
+/**
+ * A culture's affinity for a material, read as neutral (`1`) when unauthored — the same reduction
+ * `materials.ts`'s `culturalAffinityWeight` performs, inlined here since that helper isn't exported.
+ *
+ * The max across tags is vestigial since roadmap 2GN.78 retired the precious tags: every shipped
+ * material now carries exactly one `MaterialTag`, so there is only ever one affinity to read and the
+ * reduction cannot discard anything. It is kept rather than simplified to a single lookup because
+ * `MaterialDefinition.tags` is still a list, and a future multi-tag material should degrade to a
+ * defined reading rather than an arbitrary one. **The choice of `max` is not load-bearing today and
+ * was never ruled** — 2GN.84 measured it silently discarding authored `precious-*` affinities, which
+ * is part of why those tags were retired. If a genuine multi-tag material is ever authored, the
+ * reduction needs a ruling before it carries weight again.
+ */
 function bestMaterialAffinity(material: MaterialDefinition, culture: CulturalProfile): number {
 	let best = -Infinity;
 	for (const tag of material.tags) {
@@ -222,22 +263,23 @@ function bestMaterialAffinity(material: MaterialDefinition, culture: CulturalPro
 }
 
 /**
- * Whether at least one material in `materials` can plausibly supply `tags` — obtainable
- * (`isAvailable`) and carrying one of the given tags. Availability only, not affinity: unlike
- * `materialAccessGate`'s substrate check below, a culture reaching for wire to bind a grip, or foil
- * to overlay a hilt, doesn't need to *favour* metal generally to use it decoratively — it only needs
- * to be able to get some. Affinity still shapes which specific material wins, downstream, via
- * `computeMaterialWeight` in `assignDecorativeDetails`.
+ * Whether at least one material a technique can be worked from is obtainable (`isAvailable`).
+ *
+ * Takes the already-resolved candidate pool (`introducedMaterialPool`) rather than a tag list, so
+ * the tag-constrained techniques and physically-constrained `gilding` (roadmap 2GN.78) are gated by
+ * one definition instead of two that could drift.
+ *
+ * Availability only, not affinity: unlike `materialAccessGate`'s substrate check below, a culture
+ * reaching for wire to bind a grip, or foil to overlay a hilt, doesn't need to *favour* metal
+ * generally to use it decoratively — it only needs to be able to get some. Affinity still shapes
+ * which specific material wins, downstream, via `computeMaterialWeight` in `assignDecorativeDetails`.
  */
 function hasIntroducedMaterialAccess(
-	tags: readonly MaterialTag[],
+	pool: readonly MaterialDefinition[],
 	geology: GeologicalContext,
 	trade: readonly MaterialFlow[],
-	materials: readonly MaterialDefinition[],
 ): boolean {
-	return materials.some((material) =>
-		isAvailable(material, geology, trade) && material.tags.some((tag) => tags.includes(tag))
-	);
+	return pool.some((material) => isAvailable(material, geology, trade));
 }
 
 /**
@@ -290,15 +332,14 @@ function materialAccessGate(
 		if (!hasSubstrateAccess) gate *= MATERIAL_ABSENT_GATE;
 	}
 
-	const introducedTags = INTRODUCED_MATERIAL_TAGS[technique.technique];
-	if (technique.introducesMaterial && introducedTags !== null) {
-		const hasIntroducedAccess = hasIntroducedMaterialAccess(
-			introducedTags,
-			geology,
-			trade,
-			materials,
-		);
-		if (!hasIntroducedAccess) gate *= MATERIAL_ABSENT_GATE;
+	// `introducedMaterialPool` returns the full catalogue for an unconstrained technique, so an
+	// unconstrained pool can never fail this gate — the `!== null` guard the tag-list version needed
+	// is folded into the pool resolution. That also keeps `gilding` gated (roadmap 2GN.78): its
+	// `INTRODUCED_MATERIAL_TAGS` entry is `null` because its constraint is physical rather than
+	// tag-based, and reading the entry directly here would have read that `null` as "unconstrained".
+	if (technique.introducesMaterial) {
+		const pool = introducedMaterialPool(technique.technique, materials);
+		if (!hasIntroducedMaterialAccess(pool, geology, trade)) gate *= MATERIAL_ABSENT_GATE;
 	}
 
 	return gate;
@@ -684,14 +725,32 @@ function introducedMaterialCandidates(
 	trade: readonly MaterialFlow[],
 	materials: readonly MaterialDefinition[],
 ): readonly MaterialDefinition[] {
-	const tags = INTRODUCED_MATERIAL_TAGS[technique];
-	const tagged = tags === null
-		? materials // Injected catalogue disagrees with the shipped flags — no tag constraint.
-		: materials.filter((material) => material.tags.some((tag) => tags.includes(tag)));
+	const tagged = introducedMaterialPool(technique, materials);
 
 	const available = tagged.filter((material) => isAvailable(material, geology, trade));
 
 	return available.length > 0 ? available : tagged;
+}
+
+/**
+ * The materials a technique's introduced-material argument may draw from, before availability.
+ *
+ * Most techniques constrain by `MaterialTag`; `gilding` constrains physically instead
+ * (`isGildingMaterial`, roadmap 2GN.78) since no class tag names "workable and non-tarnishing". A
+ * `null` tag entry on a technique the catalogue flags as material-introducing means "no constraint",
+ * mirroring `assignMaterial`'s empty-`allowedMaterialTags` lenience — but `gilding`'s `null` is not
+ * that case, so it is dispatched before the tag read rather than falling through to it.
+ */
+function introducedMaterialPool(
+	technique: DecorativeTechnique,
+	materials: readonly MaterialDefinition[],
+): readonly MaterialDefinition[] {
+	if (technique === 'gilding') return materials.filter(isGildingMaterial);
+
+	const tags = INTRODUCED_MATERIAL_TAGS[technique];
+	if (tags === null) return materials; // Injected catalogue disagrees with the shipped flags.
+
+	return materials.filter((material) => material.tags.some((tag) => tags.includes(tag)));
 }
 
 /**

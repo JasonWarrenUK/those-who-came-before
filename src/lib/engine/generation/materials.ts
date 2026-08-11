@@ -161,11 +161,22 @@ export function isAvailable(
 }
 
 /**
- * Combines a material's cultural-affinity weight across every tag it carries (doc 05 §3.3,
- * `CulturalProfile.materialAffinities`). Takes the **max** across tags, not a sum or average — a
- * material like gold (`metal` + `precious-metal`) should read by its strongest applicable cultural
- * leaning, not have that leaning diluted by an unrelated second tag. A tag absent from the map
- * contributes a neutral `1`.
+ * A material's cultural-affinity weight (doc 05 §3.3, `CulturalProfile.materialAffinities`). A tag
+ * absent from the map contributes a neutral `1`.
+ *
+ * **The max across tags is vestigial** since roadmap 2GN.78 (doc 12 §2.40): every shipped material
+ * now carries exactly one `MaterialTag`, so there is only ever one affinity to read. It previously
+ * justified itself on gold (`metal` + `precious-metal`) reading by its strongest leaning rather than
+ * being diluted — but 2GN.84 measured the opposite effect, the max *discarding* authored
+ * `precious-*` values whenever the class tag scored higher (3 of the 5 authored across the Explorer
+ * presets were dead this way). That one-directional behaviour — a second tag could only ever raise a
+ * material, never lower it — was itself evidence the precious tags were encoding a judgement rather
+ * than a class, and contributed to retiring them.
+ *
+ * Kept rather than simplified to a single lookup because `MaterialDefinition.tags` is still a list.
+ * **If a genuine multi-tag material is ever authored, this reduction needs a ruling** (max /
+ * most-specific-wins / product-of-deviations) before it carries weight again; it has never had one.
+ * `decoration.ts`'s `bestMaterialAffinity` inlines the same reduction and must move with it.
  */
 function culturalAffinityWeight(material: MaterialDefinition, culture: CulturalProfile): number {
 	let best = -Infinity;
