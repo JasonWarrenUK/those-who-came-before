@@ -30,8 +30,11 @@ const VALID_CRAFT_DOMAINS = new Set([
 ]);
 
 /**
- * The six `physicalProperties` axes and their permitted ranges (roadmap 2GN.101). `hardness` runs
- * 1–10 because it is pegged to the real Mohs scale; the other five are authored 1–7 judgements.
+ * The seven `physicalProperties` axes and their permitted ranges. `hardness` runs 1–10, pegged to
+ * the real Mohs scale (roadmap 2GN.101). Five are authored 1–7 judgements (2GN.101).
+ * `formability` (roadmap 2GN.102) is authored 1–6, not 1–7: six rungs are what the material science
+ * supports once casting and hot-forging are correctly grouped as one working regime — see its
+ * JSDoc (`types/artefact.ts`) for the full reasoning.
  */
 const AXIS_RANGES: Readonly<Record<string, { min: number; max: number }>> = {
 	hardness: { min: 1, max: 10 },
@@ -40,6 +43,7 @@ const AXIS_RANGES: Readonly<Record<string, { min: number; max: number }>> = {
 	grainFineness: { min: 1, max: 7 },
 	porosity: { min: 1, max: 7 },
 	combustibility: { min: 1, max: 7 },
+	formability: { min: 1, max: 6 },
 };
 
 Deno.test('materials: every MaterialTag has at least one material', () => {
@@ -165,6 +169,45 @@ Deno.test('materials: grainFineness is independent of fragility (granite counter
 	assert(
 		granite.physicalProperties.grainFineness < obsidian.physicalProperties.grainFineness,
 		'granite must still read coarser-grained than obsidian despite being less fragile',
+	);
+});
+
+Deno.test('materials: formability is independent of rigidity and grainFineness (obsidian-vs-granite counter-example, roadmap 2GN.102)', () => {
+	// The pair this axis exists to split. Obsidian and granite share `rigidity` (both structurally
+	// firm), and obsidian is *more* fragile yet *finer*-grained than granite — so neither axis
+	// predicts which one can take a modelled relief. Only the deformation regime does: granite yields
+	// to controlled incremental removal (abrasion, pecking), while obsidian fails by conchoidal
+	// fracture that cannot be steered into a raised form.
+	const obsidian = MATERIALS.find((material) => material.id === 'obsidian');
+	const granite = MATERIALS.find((material) => material.id === 'granite');
+	assert(obsidian && granite, 'obsidian and granite entries must exist');
+
+	assertEquals(obsidian.physicalProperties.rigidity, granite.physicalProperties.rigidity);
+	assert(
+		obsidian.physicalProperties.grainFineness > granite.physicalProperties.grainFineness,
+		'obsidian must read finer-grained than granite',
+	);
+	assert(
+		obsidian.physicalProperties.formability < granite.physicalProperties.formability,
+		'obsidian must still read less formable than granite despite finer grain and equal rigidity',
+	);
+});
+
+Deno.test('materials: formability is independent of fragility and rigidity (fired-clay-vs-obsidian counter-example, roadmap 2GN.102)', () => {
+	// The exact pair that motivated the task. Fired clay and obsidian share `fragility` (6) and
+	// `rigidity` (7) exactly, yet sit at opposite ends of the formability axis: fired clay is modelled
+	// wet, a true plastic state, before firing makes it brittle, while obsidian never passes through
+	// any formable state at all. `fragility`/`rigidity` describe the finished object in both cases,
+	// not the working process formability reads.
+	const firedClay = MATERIALS.find((material) => material.id === 'fired-clay');
+	const obsidian = MATERIALS.find((material) => material.id === 'obsidian');
+	assert(firedClay && obsidian, 'fired-clay and obsidian entries must exist');
+
+	assertEquals(firedClay.physicalProperties.fragility, obsidian.physicalProperties.fragility);
+	assertEquals(firedClay.physicalProperties.rigidity, obsidian.physicalProperties.rigidity);
+	assert(
+		firedClay.physicalProperties.formability > obsidian.physicalProperties.formability,
+		'fired-clay must read far more formable than obsidian despite identical fragility and rigidity',
 	);
 });
 
