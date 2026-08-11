@@ -447,9 +447,15 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	// `ExtractedFeatures` fields from the `DecorativeLayer` data 2GN.33 already produces) -----------
 
 	/**
-	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.68, consuming
-	 * `DecorativeLayer.material` data that 2GN.33 produces). Authored now so the design is
-	 * captured in one place; fires on no artefact until that task lands.
+	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.68). Authored now so
+	 * the design is captured in one place; fires on no artefact until that task lands.
+	 *
+	 * The inference — decoration incorporating materials the culture prizes reads elite/ceremonial —
+	 * is sound and survives roadmap 2GN.78's retirement of the `precious-*` `MaterialTag`s. What that
+	 * ruling changed is where "precious" comes from: the material's situation in *this* culture
+	 * (availability × cultural affinity × provenance, doc 11 §2.9), never a catalogue tag. See the
+	 * field's JSDoc in `types/artefact.ts` for the producer contract 2GN.68 must satisfy — populating
+	 * it from a static lookup would reintroduce exactly the Earth-judgement reading 2GN.77 removed.
 	 */
 	{
 		condition: (f) => f.preciousMaterialsInDecoration,

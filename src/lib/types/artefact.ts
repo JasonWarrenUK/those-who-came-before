@@ -649,12 +649,24 @@ export interface ExtractedFeatures {
 	techniqueComplexity: number;
 
 	/**
-	 * Whether precious materials appear in the decoration. Currently always `false`: decorative
-	 * layer material assignment (roadmap 2GN.33) is unbuilt, so no `DecorativeLayer` carries a
-	 * `material` yet. The classification rules that read this field are authored and dormant,
-	 * ready to fire once 2GN.68 wires the layer-material→precious-material lookup this field
-	 * needs (see `classification.ts`); 2GN.33 only produces the underlying `DecorativeLayer.material`
-	 * data, it does not itself populate this field.
+	 * Whether the decoration incorporates a material **this culture** would read as precious.
+	 * Currently always `false` — 2GN.68 is the task that populates it, and has not landed.
+	 *
+	 * ⚠️ **Do not populate this from a catalogue tag.** Roadmap 2GN.78 retired
+	 * `MaterialTag`'s `precious-metal`/`precious-stone` members precisely because a static "this
+	 * material is precious" fact stamps one culture's judgement onto every culture (doc 11 §2.9, doc
+	 * 12 §2.40); a culture with abundant gold does not read gold as precious. The earlier spec for
+	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
+	 * forbids, and there is no longer a tag to look up.
+	 *
+	 * Populate it from the material's *situation* instead — availability × cultural affinity ×
+	 * provenance, per doc 11 §2.9. `explainMaterialWeight` (`engine/generation/materials.ts`, roadmap
+	 * 2GN.74) already returns those inputs for a given material and culture: `level` (how scarce it is
+	 * here), `culturalAffinity` (whether this culture prizes it) and `tradeRescued` (whether it only
+	 * arrives by trade). The threshold over those inputs is 2GN.68's to rule and has not been set.
+	 *
+	 * The classification rule reading this field is authored and dormant, allowlisted in
+	 * `calibration.test.ts`'s `DORMANT_RULE_INDICES` until that producer exists.
 	 */
 	preciousMaterialsInDecoration: boolean;
 
