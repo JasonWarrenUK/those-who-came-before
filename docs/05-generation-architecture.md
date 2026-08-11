@@ -971,6 +971,17 @@ chasing and repoussé even though they aren't structurally hard.
 > execution difficulty (`computeLayerGrade`), which is why engraving iron and engraving gold no
 > longer score identically.
 
+> **Implementation note (2026-08-11, roadmap 2GN.102, doc 12 §2.38):** `physicalProperties` now
+> carries a seventh axis, `formability`, so the list above is six of seven, not all of them.
+> Relief's `[requires: thick material]` prerequisite above is resolved by `formability >= 3`, not by
+> thickness or by the `rigidity` proxy this section previously implied: a relief needs a material
+> that can be given a raised form at all, which `rigidity` alone could not distinguish from mere
+> structural firmness (it wrongly admitted obsidian and flint, worked only by conchoidal fracture,
+> and wrongly excluded leather, which holds a raised form via tooling or wet moulding).
+> `formability` is read at the material's _working_ state rather than its finished state — the one
+> axis on that convention; the other six describe the finished object, an inconsistency 2GN.102
+> named rather than resolved (doc 12 §2.38).
+
 ### 8.3 Layered Decoration
 
 Decorative elements can themselves receive further decoration. A bronze panel gets engraved; the

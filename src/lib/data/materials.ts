@@ -16,6 +16,12 @@
  * cover the wood category.
  *
  * Every `MaterialTag` (`tags.ts`) has at least one entry below.
+ *
+ * `physicalProperties.formability` (roadmap 2GN.102) is read at the material's *working* state, the
+ * one axis on that convention — see its JSDoc (`types/artefact.ts`) for why, and why its six
+ * siblings are inconsistent with it. `fired-clay`'s comment below is the one place that
+ * inconsistency was previously named at all, as a one-off aside; reconciling all six axes into a
+ * genuine per-state model is filed downstream of 2GN.102, not attempted here.
  */
 
 import type { MaterialDefinition } from '../types/artefact.ts';
@@ -33,6 +39,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 5, // Fine enough for the engraved and cast detail the record attests.
 			porosity: 1,
 			combustibility: 1,
+			formability: 5, // Melts and casts to a mould within period reach; also cold-works.
 		},
 		// Verdigris is the textbook bronze patina — the most reactive metal here after iron.
 		reactivity: { oxidisation: 6 },
@@ -50,6 +57,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 4, // Coarser under hand tools than bronze or the precious metals.
 			porosity: 2, // Rust opens minor surface porosity that the other metals lack.
 			combustibility: 1,
+			// No melt in period reach, but forged hot — a genuine plastic working regime, not a lesser
+			// route than casting (roadmap 2GN.102: rung 5 deliberately groups melt and hot-forge alike).
+			formability: 5,
 		},
 		reactivity: { oxidisation: 7 }, // Rusts readily — the most reactive material in the set.
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -66,6 +76,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 7, // Near-amorphous working grain — why chasing and repoussé reach such fine detail.
 			porosity: 1,
 			combustibility: 1,
+			// Melts and casts; also the most cold-workable metal in the catalogue (leaf, chasing,
+			// repoussé) — either route is a genuine plastic working regime.
+			formability: 5,
 		},
 		// `0`, not `-1`: gold has oxidation chemistry, it is simply famously resistant to it.
 		reactivity: { oxidisation: 0 },
@@ -83,6 +96,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 6,
 			porosity: 1,
 			combustibility: 1,
+			formability: 5, // Melts and casts, same tier as gold and bronze.
 		},
 		reactivity: { oxidisation: 3 }, // Tarnishes visibly and classically, unlike gold.
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -102,6 +116,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 7, // A true volcanic glass — no crystal structure to deflect a cut, hence knapped edges sharper than steel.
 			porosity: 1,
 			combustibility: 1,
+			// Worked only by conchoidal fracture: removal cannot be steered into a raised form, however
+			// fine the resulting edge (roadmap 2GN.102 — the pair this axis exists to split from granite).
+			formability: 1,
 		},
 		reactivity: { oxidisation: -1 }, // Mineral: no oxidation chemistry to speak of.
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -118,6 +135,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 6, // Very fine cryptocrystalline structure, just behind obsidian's true glass.
 			porosity: 1,
 			combustibility: 1,
+			formability: 1, // Same regime as obsidian: knapping is controlled fracture, not controlled removal.
 		},
 		reactivity: { oxidisation: -1 },
 		decorability: { engravable: false, paintable: false, glazeable: false },
@@ -139,6 +157,11 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 3,
 			porosity: 2,
 			combustibility: 1,
+			// No plastic regime, but abraded and pecked in controlled increments, unlike obsidian and
+			// flint's uncontrollable conchoidal fracture — the split this axis exists to make (roadmap
+			// 2GN.102). Carved granite relief is a real tradition despite sharing `craftDomain` with the
+			// materials this axis must exclude.
+			formability: 4,
 		},
 		reactivity: { oxidisation: -1 },
 		decorability: { engravable: false, paintable: false, glazeable: false },
@@ -161,6 +184,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 6,
 			porosity: 1,
 			combustibility: 1,
+			formability: 4, // Same regime as granite: carved by controlled abrasive removal.
 		},
 		reactivity: { oxidisation: -1 },
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -177,6 +201,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 4, // Open, visible grain: carving must follow it, capping fine detail.
 			porosity: 4, // Absorbent — takes stain and paint readily.
 			combustibility: 5, // Seasoned hardwood ignites around 300 °C.
+			formability: 4, // No plastic regime; carved and worked by controlled removal along the grain.
 		},
 		// Wood darkens through UV and lignin breakdown rather than oxidation, so this is low but
 		// non-zero rather than not-applicable.
@@ -197,6 +222,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 4,
 			porosity: 4,
 			combustibility: 5,
+			formability: 4, // Same regime as oak.
 		},
 		reactivity: { oxidisation: 1 },
 		decorability: { engravable: true, paintable: true, glazeable: false },
@@ -215,6 +241,9 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			// Chars and pyrolyses from roughly 300–400 °C without a clean ignition point, so it sits
 			// low but non-zero — an approximation, see the axis JSDoc.
 			combustibility: 2,
+			// Controlled removal, but splinters readily under working — the same fragility that caps
+			// how much raised form it reliably holds, one rung below antler's better resilience.
+			formability: 3,
 		},
 		// "Bone patina" is a real archaeological term of art: the residual organic collagen and
 		// handling oils do age oxidatively, unlike wood's UV-driven darkening.
@@ -235,6 +264,10 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 5,
 			porosity: 3, // Denser than bone, so slightly less absorbent.
 			combustibility: 2,
+			// A rung above bone: the same working impact-resilience that made antler the preferred
+			// choice for pressure-flaking tools also means controlled removal holds a raised form more
+			// reliably, without bone's greater splinter risk.
+			formability: 4,
 		},
 		reactivity: { oxidisation: 2 },
 		decorability: { engravable: true, paintable: false, glazeable: false },
@@ -253,6 +286,10 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			// exists as a technique at all.
 			porosity: 6,
 			combustibility: 1, // Already fired: inert to further heat in this range.
+			// Modelled wet, a true plastic state, before firing — this axis reads that working moment,
+			// not the fired result `fragility`/`rigidity`/`grainFineness` above describe (roadmap
+			// 2GN.102; see the axis JSDoc for why the other six axes read the finished object instead).
+			formability: 6,
 		},
 		reactivity: { oxidisation: -1 },
 		// Workable pre-firing (incising is how clay decoration usually happens), but modelled here
@@ -273,6 +310,10 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 7, // Amorphous: a controlled cut can be extremely precise, right up until it isn't.
 			porosity: 1, // Vitrified and sealed.
 			combustibility: 1,
+			// Cast, blown or pressed hot — a true viscous working state; this axis reads hot glass, not
+			// the cold, shattering-prone object `fragility`/`grainFineness` above describe (roadmap
+			// 2GN.102's motivating case).
+			formability: 6,
 		},
 		reactivity: { oxidisation: -1 },
 		// `engravable`/`paintable` (roadmap 2GN.84): wheel-cut and diamond-point engraving on glass is
@@ -293,6 +334,10 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 1, // A fibre weave, not a cuttable microstructure.
 			porosity: 6,
 			combustibility: 7, // Fibre ignites near 210 °C — the lowest ignition point in the catalogue.
+			// Shares rung 1 with obsidian for a different reason: a woven fibre has no shaping regime
+			// at all, rather than obsidian's unsteerable one. `formability: 1` is what excludes linen
+			// from `relief` (roadmap 2GN.102).
+			formability: 1,
 		},
 		reactivity: { oxidisation: -1 },
 		decorability: { engravable: false, paintable: true, glazeable: false },
@@ -313,6 +358,12 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			grainFineness: 2,
 			porosity: 5,
 			combustibility: 4, // Chars near 200 °C but sustains ignition nearer 270 °C — denser than loose fibre.
+			// Wet-moulded (cuir bouilli) or stamped/tooled cured: real but limited raised-form capacity,
+			// distinct from a true plastic state — the material this axis exists to correctly admit to
+			// `relief`, where `rigidity` previously excluded it on no material-science basis (roadmap
+			// 2GN.102; `studs`/`gilding`/`overlay` already carry a named leather exception for the same
+			// reason).
+			formability: 3,
 		},
 		reactivity: { oxidisation: -1 },
 		decorability: { engravable: false, paintable: true, glazeable: false },

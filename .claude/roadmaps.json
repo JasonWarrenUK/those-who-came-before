@@ -1342,7 +1342,7 @@
 					{
 						"id": "2GN.102",
 						"description": "add a formability axis to MaterialDefinition.physicalProperties distinguishing materials worked by subtraction (knapping) from those with a formable/plastic working state (cast, thrown, blown, modelled)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.101"
 						],
@@ -1357,6 +1357,36 @@
 							"2GN.99"
 						],
 						"notes": "Surfaced 2026-08-07: a fix to sampleBaselines (src/lib/engine/generation/baselines.ts) threaded assignMaterials and gradeDecorativeLayers in before extractFeatures, so R44's meanDecorativeGrade baseline is sampled from the material-aware grade rather than expandDecoration's provisional technique-only value. That fix re-pinned R44's EXPECTED_FIRE_RATES entry from 12.3% to 4.0%, but touched only the baseline side — the two other places that call extractFeatures against generated layers (calibration.test.ts's measureFireRates, which sets EXPECTED_FIRE_RATES including the R44 figure this same fix moved, and ruleCalibration.ts's calibrateRules, the Explorer panel) still fed expandDecoration's ungraded layers straight in. Both were comparing a material-aware baseline against ungraded measured artefacts, so the 4.0% pin was itself measured on the wrong side of the asymmetry it was supposed to fix.\n\nWired both sites to match sampleBaselines' ordering (assignMaterials with its own `${seed}-materials` PRNG stream, then gradeDecorativeLayers, before extractFeatures). Since gradeDecorativeLayers is PRNG-free and assignMaterials draws from an independently-seeded stream, this cannot perturb any non-grade feature — verified directly: R1–R39, R42 came back bit-identical, R44 moved from 4.0% to 10.4% (landing at its p90 rung, as expected once both sides read the same scale). R40/R41/R43 showed a small pre-existing 0.2pp drift, traced to two unrelated substrate-gate fixes (78d7793) that landed between R44's last full recording (8a80823) and this task and were never re-measured against the full EXPECTED_FIRE_RATES array — within TOLERANCE_POINTS, left unpinned, and out of this task's scope.\n\nDischarged doc 12 §2.35's forward hazard against 2GN.99 (\"the moment grading enters the sampled path, meanDecorativeGrade becomes geology-sensitive, and EXPECTED_THRESHOLDS' pooling... becomes a claim nobody has measured\"): measured R44's fire rate per region directly rather than assuming the pooled figure was safe — a real 8.0%–13.7% spread across the six regional worlds, not sampling noise. Added EXPECTED_MEAN_GRADE_BY_REGION, a per-region pin (not pooled, unlike EXPECTED_THRESHOLDS' decorativeLayerCount/decorativeComplexity, which are region-invariant by construction) and a dedicated test asserting each region's rate individually. `deno task check` 552 files, 0 errors; `deno task test` 548/548 passing. Full detail: doc 12 §2.36.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.105",
+						"description": "`engine/generation/materials.ts` + `types/artefact.ts` + `data/materials.ts` — let a material carry per-state property values (at minimum worked vs finished) rather than one silently-finished-state set, and re-audit the six pre-2GN.102 `physicalProperties` axes (`hardness`, `fragility`, `rigidity`, `grainFineness`, `porosity`, `combustibility`) against the working-state convention 2GN.102 established for `formability` but did not apply to them",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.102"
+						],
+						"notes": "Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.106",
+						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — add `formability` to `MaterialDifficultyAxis`, an `AXIS_NORMALISATION` entry, and per-technique `TECHNIQUE_MATERIAL_SENSITIVITY` weights, with re-measured grade distributions and 2GN.103's regional pins re-verified",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.102"
+						],
+						"notes": "Filed 2026-08-11 alongside 2GN.102 (doc 12 §2.38). Must first revisit the rung-5 casting/forging conflation recorded in that entry: `formability`'s rung 5 deliberately groups cast metals (bronze/gold/silver) with hot-forged iron as one plastic-working-regime rung — a simplification that is inert while `relief`'s gate is a `>= 3` threshold (rungs 3–6 pass identically) but becomes load-bearing the moment this task reads the rungs as a difficulty gradient rather than a threshold. Note the `1`–`6` range differs from the other five difficulty axes' `1`–`7`, so `AXIS_NORMALISATION`'s `mid`/`half` need their own values, not a copy of a sibling's.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.107",
+						"description": "`data/decorations.ts` — sweep every `kind: 'material'` substrate test for exclusions that are artefacts of a proxy axis rather than attested practice, the way `relief`'s leather exclusion was",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.102"
+						],
+						"notes": "Filed 2026-08-11 during 2GN.102 (doc 12 §2.38). `relief` excluded leather solely as collateral from `rigidity >= 3`, a test aimed at linen, with no material-science basis — corrected in 2GN.102 once `formability` gave the gate something honest to key on. `overlay` uses the identical `rigidity >= 3` test `relief` used to carry; if `formability` is the correct gate for one, `overlay` is the first candidate for the same scrutiny. `studs`/`gilding` already carry a named leather exception and are not suspect on the same grounds.",
 						"assignee": "Jason Warren"
 					}
 				]

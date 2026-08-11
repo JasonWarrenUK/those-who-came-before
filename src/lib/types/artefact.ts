@@ -163,20 +163,34 @@ export interface MaterialDefinition {
 	 * Baseline physical properties, read by decorative substrate tests (`data/decorations.ts`) and
 	 * by per-material execution difficulty (`computeLayerGrade`, roadmap 2GN.99).
 	 *
-	 * **Six orthogonal authored axes (roadmap 2GN.101), replacing the original
-	 * `hardness: 'soft' | 'medium' | 'hard'` plus `workable: boolean` pair.** That pair proved unfit
-	 * on two counts. `hardness` was too coarse and was being actively *misused* as a fragility
-	 * proxy — `relief`'s and `overlay`'s substrate tests both carried comments admitting "hardness
-	 * stands in as the nearest proxy" for a property that did not exist. And `workable` conflated
-	 * three distinct facts: brittleness (obsidian, flint and glass shatter), pliability (linen and
-	 * leather deform rather than cut), and grain coarseness (granite cannot hold a fine line however
-	 * carefully it is worked). Each is now its own axis, so a substrate test or difficulty weight can
-	 * name the fact it actually depends on.
+	 * **Seven orthogonal authored axes.** The first six (roadmap 2GN.101) replaced the original
+	 * `hardness: 'soft' | 'medium' | 'hard'` plus `workable: boolean` pair, which proved unfit on two
+	 * counts. `hardness` was too coarse and was being actively *misused* as a fragility proxy —
+	 * `relief`'s and `overlay`'s substrate tests both carried comments admitting "hardness stands in
+	 * as the nearest proxy" for a property that did not exist. And `workable` conflated three
+	 * distinct facts: brittleness (obsidian, flint and glass shatter), pliability (linen and leather
+	 * deform rather than cut), and grain coarseness (granite cannot hold a fine line however
+	 * carefully it is worked). Each became its own axis, so a substrate test or difficulty weight
+	 * could name the fact it actually depends on. `formability` (roadmap 2GN.102) is the seventh,
+	 * added for the same reason `reactivity` was added by 2GN.101: `relief` had nothing legitimate
+	 * to key on.
 	 *
 	 * Every axis is an authored judgement anchored to real materials practice, reviewed per-item —
 	 * the same standard `TECHNIQUE_DIFFICULTY` (`data/decorations.ts`) was held to. `hardness` is
 	 * additionally pegged to the real Mohs scale so its values stay independently checkable;
 	 * `combustibility` is a deliberately coarsened proxy (see its own note).
+	 *
+	 * **Working state versus finished state (surfaced by 2GN.102, not resolved by it).** `formability`
+	 * only means anything relative to the state a material is in while being worked — hot glass is
+	 * viscous and freely formable, cold glass is the most fracture-prone material in the catalogue.
+	 * Authoring it forced the discovery that the other six axes were never asked this question and
+	 * were authored, without comment, against the *finished* object: `fragility`/`grainFineness` on
+	 * cold glass rather than hot, `hardness`/`rigidity` on cold-worked iron rather than the material
+	 * as forged, `fragility` on fired clay rather than the wet clay it is modelled from. Only
+	 * `fired-clay`'s data-file comment ever named the choice, as a one-off aside rather than a stated
+	 * convention. `formability` breaks from that precedent deliberately — see its own doc — and the
+	 * inconsistency in its six siblings is recorded, not fixed, here: reconciling them into a
+	 * genuine per-state property model is filed downstream of 2GN.102 (doc 12 §2.38).
 	 */
 	physicalProperties: {
 		/**
@@ -255,6 +269,71 @@ export interface MaterialDefinition {
 		 * temperature.
 		 */
 		combustibility: number;
+
+		/**
+		 * How controllably a material can be given a raised form, `1`–`6`, **read at the point in its
+		 * working sequence where a craftsperson would shape it — the only axis on this convention.**
+		 * Its six siblings above are all silently authored against the *finished* object (roadmap
+		 * 2GN.102, discovered while adding this axis: see the `physicalProperties` preamble). Gates
+		 * `relief` (`formability >= 3`), which needs a material that can be given a raised form at all,
+		 * a fact no other axis states: `fragility` describes the wrong moment (fired clay and glass are
+		 * fragile only once finished, not while modelled or blown), and `grainFineness`'s top rung
+		 * ("amorphous or glassy") describes obsidian and glass alike despite one being formable and the
+		 * other not. `craftDomain` cannot substitute either — granite and obsidian share
+		 * `stoneWorking` and are exactly the pair this axis must split.
+		 *
+		 * `6` true plastic/viscous state, shaped freely before hardening (fired clay wet, glass hot) ·
+		 * `5` genuine plastic working regime, by melt or by hot forging (cast/cold-worked bronze, gold,
+		 * silver; forged iron) · `4` no plastic regime, but yields to controlled incremental removal —
+		 * carving, abrasion, pecking (granite, jade, oak, ash, antler) · `3` controlled removal or
+		 * moulding, but splintering or limited plasticity caps the raised form achievable (bone,
+		 * leather) · `2` semi-controllable removal, fracture-prone (no MVP material scores here) · `1`
+		 * removal cannot be steered, or there is no shaping regime at all (obsidian and flint fail by
+		 * conchoidal fracture; linen fails for the unrelated reason that a woven fibre has no shaping
+		 * regime to speak of — the catalogue comment for each names which applies).
+		 *
+		 * **Rung `5` deliberately conflates casting and forging**, an accepted-for-now simplification
+		 * recorded in doc 12 §2.38, not an oversight. Casting and forging are different *routes* to a
+		 * formed object, not different amounts of formability: hot iron under a hammer is genuinely
+		 * plastic — drawn out, upset, punched — and answers "can this be given a raised form" as well
+		 * as cast bronze does. Ranking iron below the cast metals would encode *difficulty*, which this
+		 * axis is not for (see below). The conflation is inert while `relief`'s gate is a `>= 3`
+		 * threshold, since rungs 3–6 all pass identically; it stops being inert the moment a consumer
+		 * reads these rungs as a difficulty gradient rather than a threshold, which is why any task
+		 * doing that must revisit rung 5 first (doc 12 §2.38).
+		 *
+		 * **Independence, tested against two pairs during authoring**: obsidian and granite share
+		 * `rigidity` (7), and obsidian is *more* fragile yet *finer*-grained than granite — neither
+		 * `fragility` nor `grainFineness` predicts the formability split, only the deformation regime
+		 * does. Fired clay and obsidian share `fragility` (6) and `rigidity` (7) exactly, yet sit at
+		 * opposite ends of this axis — the pair that motivated the task.
+		 *
+		 * **Scale is `1`–`6`, not the `1`–`7` its siblings use**, because six rungs are what the
+		 * physics supports once casting and forging are correctly grouped at rung 5; padding to seven
+		 * would invent a distinction the material science does not make (doc 12 §2.38). Measured
+		 * against the MVP catalogue, this uses 5 of its 6 rungs (rung 2 empty), in line with the
+		 * existing axes' 5–7 of 7. The five-material cluster at rung 4 is not evidence the scale is too
+		 * coarse: those materials genuinely share one working regime, and splitting them would mean
+		 * re-expressing `hardness` (how much force controlled removal demands) or `grainFineness`
+		 * (whether grain constrains direction) as formability rungs instead, breaking the axis
+		 * independence 2GN.101 exists to protect.
+		 *
+		 * **No `-1` not-applicable sentinel**, unlike `oxidisation`. That sentinel is warranted only
+		 * where the underlying fact is categorically absent — glass has no oxidation chemistry to
+		 * measure at all, which is why gold (chemistry present, merely resistant) is `0` rather than
+		 * `-1`. Every material has a real formability answer, including linen's genuine `1`; a sentinel
+		 * here would misuse the mechanism to encode a *taxonomy* (linen's "no regime" versus obsidian's
+		 * "unsteerable regime") inside a *magnitude* field, the same category error rung 5's
+		 * casting/forging conflation would have made had it gone uncorrected. `decoration.ts`'s
+		 * standing ruling against new sentinels on continuous axes like `rigidity`/`combustibility`
+		 * applies here for the same reason `porosity` carries none.
+		 *
+		 * **Pure substrate gate, never a difficulty input** — not one of `MaterialDifficultyAxis`
+		 * (`data/decorations.ts`) and so never enters `computeLayerGrade`'s weighted sum, matching
+		 * `combustibility`'s precedent. Adding it as a difficulty input is filed as a follow-on task,
+		 * gated on resolving the rung-5 conflation first.
+		 */
+		formability: number;
 	};
 
 	/**
