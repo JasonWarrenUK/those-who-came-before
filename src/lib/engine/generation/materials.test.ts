@@ -6,6 +6,7 @@ import {
 	assignMaterialWithProvenance,
 	computeMaterialWeight,
 	deriveMaterialProvenance,
+	explainMaterialWeight,
 	isAvailable,
 } from './materials.ts';
 import { MATERIALS } from '../../data/materials.ts';
@@ -200,6 +201,94 @@ Deno.test('computeMaterialWeight: scarcity rungs form a strict descending order'
 	assert(abundant > available, `expected abundant (${abundant}) > available (${available})`);
 	assert(available > scarce, `expected available (${available}) > scarce (${scarce})`);
 	assert(scarce > tradeOnly, `expected scarce (${scarce}) > trade-only (${tradeOnly})`);
+});
+
+// --- explainMaterialWeight ---------------------------------------------------------------------------
+
+Deno.test('explainMaterialWeight: factors multiply back to computeMaterialWeight exactly', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map([['metal', 1.5]]) });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 0.7 } });
+
+	// Covers all four mockGeologicalContext cases: bronze abundant, iron scarce, gold trade-only
+	// (with a reaching flow), flint absent.
+	for (const id of ['bronze', 'iron', 'gold', 'flint']) {
+		const geology = mockGeologicalContext();
+		const trade = [mockMaterialFlow({ materialTag: 'metal' })];
+		const expected = computeMaterialWeight(material(id), culture, phase, geology);
+		const explanation = explainMaterialWeight(material(id), culture, phase, geology, trade);
+
+		assertEquals(explanation.weight, expected, `${id}: weight should equal computeMaterialWeight`);
+		assertEquals(
+			explanation.culturalAffinity * explanation.phaseTechnology * explanation.scarcity,
+			explanation.weight,
+			`${id}: factors should multiply back to weight exactly`,
+		);
+	}
+});
+
+Deno.test('explainMaterialWeight: reports region-agnostic availability and level', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+	const geology = mockGeologicalContext();
+
+	const bronze = explainMaterialWeight(material('bronze'), culture, phase, geology, []);
+	assertEquals(bronze.level, 'abundant');
+	assertEquals(bronze.available, true);
+	assertEquals(bronze.tradeRescued, false);
+
+	const flint = explainMaterialWeight(material('flint'), culture, phase, geology, []);
+	assertEquals(flint.level, 'absent');
+	assertEquals(flint.available, false);
+	assertEquals(flint.tradeRescued, false);
+});
+
+Deno.test('explainMaterialWeight: tradeRescued is true only when a flow reaches a trade-only material', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+	const geology = mockGeologicalContext(); // gold is trade-only
+
+	const unreached = explainMaterialWeight(material('gold'), culture, phase, geology, []);
+	assertEquals(unreached.level, 'trade-only');
+	assertEquals(unreached.available, false);
+	assertEquals(unreached.tradeRescued, false);
+
+	const reached = explainMaterialWeight(
+		material('gold'),
+		culture,
+		phase,
+		geology,
+		[mockMaterialFlow({ materialTag: 'metal' })],
+	);
+	assertEquals(reached.level, 'trade-only');
+	assertEquals(reached.available, true);
+	assertEquals(reached.tradeRescued, true);
+});
+
+Deno.test('explainMaterialWeight: an unmodelled material reads level undefined but scarcity at the available rung', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+
+	const explanation = explainMaterialWeight(material('jade'), culture, phase, geology, []);
+
+	assertEquals(explanation.level, undefined);
+	assertEquals(explanation.region, undefined);
+	assertEquals(explanation.available, true); // isAvailable's MVP lenience
+	// scarcity reads the 'available' rung's weight — matching scarcityWeight's own deliberate
+	// asymmetry with isAvailable (materials.ts: "this function answers 'how much', isAvailable
+	// answers 'at all'") — not the neutral 1 that would out-rank every modelled peer.
+	const modelledAvailable = explainMaterialWeight(
+		material('bronze'),
+		culture,
+		mockPhaseCharacteristics({ technology: { metallurgy: 1 } }),
+		mockGeologicalContext({
+			materialAvailability: new Map([
+				['bronze', { materialId: 'bronze', regions: new Map([['test-region', 'available']]) }],
+			]),
+		}),
+		[],
+	);
+	assertEquals(explanation.scarcity, modelledAvailable.scarcity);
 });
 
 // --- assignMaterial ---------------------------------------------------------------------------------
