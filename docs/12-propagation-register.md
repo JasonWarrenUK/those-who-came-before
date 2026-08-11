@@ -2109,5 +2109,66 @@ buried one layer deeper.
 
 ---
 
+### 2.39 R4 Deleted as Unsatisfiable; an Ignored Zero Made to Fail (2026-08-11)
+
+**Origin:** Roadmap spike 2GN.87 **Source of truth:**
+`docs/spikes/2GN.87-r4-unsatisfiable-condition.md` holds the ruling and the measurements; this entry
+records what propagated
+
+**R4's condition could not be satisfied, and the proof is arithmetic rather than statistical.**
+`primaryAxisLength` bands `dimensions.primaryExtent`, which `deriveDimensions` computes as a
+`Math.max` over every component's major axis — drawn from the _same_ `SHORT_MEDIUM_LONG_CM` table
+(short 4cm, medium 14cm, long 40cm) that `bladeLengthBand` reads, against a 9cm `short` cut. A
+non-short blade therefore always lifts the whole artefact's axis above `short`, so R4's
+`primaryAxisLength === 'short' && bladeLengthBand !== 'short'` required a blade longer than the
+object containing it. Measured over 8000 artefacts across four Explorer cultures: only 6 of 12
+`(axis, blade)` pairs occur, in a strict triangle where blade never exceeds axis; `axis === 'short'`
+carried `blade === 'short'` in all 84 cases. The 2GN.86 audit's "50 of 7200, all short-banded" was
+the shadow of this identity, not a sampling artefact.
+
+**The rule was a truth-table patch that acquired an archaeological justification afterwards.** Doc
+12's PR #37 review record (2026-07-22) shows the order: someone enumerated
+`hasEdge × primaryAxisLength × bladeLengthBand`, found cells no rule matched, authored a rule to
+cover them, and added a sweep asserting full coverage. The sweep builds `ExtractedFeatures` by hand
+and never runs the generator, so it cannot tell a reachable cell from an impossible one. R4's
+scraper/chisel JSDoc reads as intent but was written to explain a cell. **General lesson: a typed
+feature vocabulary is not a reachability claim — when two fields derive from the same underlying
+quantity, their types still present them as independent, and a rule can be authored against a
+combination the derivation forbids.** This is the second defect from `deriveDimensions`' `Math.max`
+after §2.26's mass proxy, and the third in the family with §2.25's saturating boolean.
+
+**Whether the game should generate the form is left open, deliberately.** A short-bodied edged tool
+that is not a formed blade (scraper, chisel, adze) is a real and common archaeological form, and its
+absence is a real content gap. But R4 never encoded a decision to model it, and its condition is
+phrased in truth-table rather than morphological terms, so keeping it would inherit a decision
+nobody made. Filed as a generation task with a replacement rule contingent on it, rather than
+resolved by reflex here.
+
+**The test gap was smaller than first claimed, and the claim was withdrawn.** This spike initially
+framed the hand-built-features blind spot as more valuable than R4 itself. Measurement did not
+support it: `EXPECTED_FIRE_RATES` already pins every rule's real-pipeline rate, only R4/R33/R34 read
+0.0%, and R33/R34 are deliberately dormant pending 2GN.68. R27 moved 0.0 → 4.3 when 2GN.86 made it
+reachable, so the harness catches both directions. R4 was the only dead rule in 44.
+
+**What actually failed was that a recorded zero passed.** R4 sat at `0.0` with a comment explaining
+the zero, and the suite compared `0.0` against `0.0` and said fine — the measurement was taken,
+written down and never acted on. A `0.0` rate now fails unless the rule is declared in
+`DORMANT_RULE_INDICES` with the roadmap task that will feed it, and a second guard fails when a
+declared-dormant rule starts firing so its real rate gets recorded. This reuses the existing n=1800
+sweep rather than adding a reachability harness: a `0.0` entry and "never fires" are the same fact,
+and deriving it twice would give two sources of truth to drift apart.
+
+| Doc | What changed                                                                                                                                            | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry                                                                                                                                              | 2026-08-11 |
+| —   | `docs/spikes/2GN.87-r4-unsatisfiable-condition.md`: new — the ruling, the arithmetic proof, the measured joint distribution, the rejected alternatives  | 2026-08-11 |
+| —   | `data/classification.ts`: R4 deleted; edge-family banner records why the combination is unreachable                                                     | 2026-08-11 |
+| —   | `data/classification.test.ts`: R4's block removed, R5–R44 renumbered R4–R43, cartesian sweep narrowed to `REACHABLE_AXIS_BLADE_PAIRS`, counts 44→43     | 2026-08-11 |
+| —   | `data/calibration.test.ts`: `DORMANT_RULE_INDICES` + two guards added; `EXPECTED_FIRE_RATES`, `MIGRATED_RULE_INDICES`, `UNIVERSAL_BY_DESIGN` renumbered | 2026-08-11 |
+| —   | `routes/dev/explorer/calibration/ruleCalibration.test.ts`: two label-based lookups renumbered                                                           | 2026-08-11 |
+| —   | Roadmap: 2GN.87 done; two successors filed (generation gap, contingent replacement rule)                                                                | 2026-08-11 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

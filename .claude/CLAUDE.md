@@ -435,4 +435,6 @@ tasks (pipeline at 2GN.x, stores at 3WS.x).
 - Doc 10: Document tradition system
 - Doc 11: Deferred design questions (locked decisions)
 - Doc 12: Propagation register (cross-doc consistency log)
+- `docs/spikes/`: design-spike write-ups, one per task — the reasoning and measurements behind a
+  ruling. Doc 11 holds the locked decision, doc 12 records the propagation
 - Doc 13: Post-MVP deferrals
