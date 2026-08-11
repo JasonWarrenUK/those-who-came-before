@@ -1140,8 +1140,8 @@ deliberately a structural bag rather than `CulturePhase` (`types/world.ts`), whi
 the three `expandDecoration` needs, so nothing in the sampler's signature has to change when 3WS.9
 lands a real `WorldState` culture source.
 
-**No shipped rule reads a context yet, so every current call site passes an empty one — true only
-as of this entry; §2.31 migrates nine rules to `ClassificationContext.exceeds` the same day.**
+**No shipped rule reads a context yet, so every current call site passes an empty one — true only as
+of this entry; §2.31 migrates nine rules to `ClassificationContext.exceeds` the same day.**
 `emptyClassificationContext` (`baselines.ts`, re-exported from `tests/fixtures/artefact.ts` for test
 convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather
 than a freshly-sampled real context: `inspectTags` runs interactively per artefact, and
@@ -1996,6 +1996,116 @@ sweep, 2GN.96, 3WS.9) alone.
 | 05  | §9.2: `ClassificationRule` interface declared (was used, never defined); `ClassificationContext` noted                                                                                                     | 2026-08-10 |
 | 06  | §2.28's disclosed `FunctionTag`/`ContextTag` substitution executed; banner demoted to a historical marker                                                                                                  | 2026-08-10 |
 | —   | Roadmap: 2GN.78 done, doc-only                                                                                                                                                                             | 2026-08-10 |
+
+---
+
+### 2.38 Formability Axis Added; Working-State Inconsistency Named, Not Fixed (2026-08-11)
+
+**Origin:** Roadmap 2GN.102, filed during 2026-08-07 PR #53 review as a 2GN.101 follow-on:
+`relief`'s substrate gate could not distinguish obsidian/flint (worked only by conchoidal fracture,
+never formable) from fired-clay/glass (fragile once finished, but modelled or blown before that
+point), so it gated on `rigidity` alone and let obsidian and flint pass incorrectly — a known
+limitation documented in `data/decorations.ts` and `data/decorations.test.ts` pointing straight at
+this task.
+
+**Source of truth:** this entry, for the axis and its scale; `types/artefact.ts`'s
+`physicalProperties.formability` JSDoc for the authored rung table and full reasoning.
+
+**Correction to §2.35's record.** That entry states `relief` was corrected to check "_both_
+`rigidity` and `fragility`". The shipped gate is rigidity-only — a later PR #53 review round removed
+the fragility clause as getting fired-clay and glass wrong to get obsidian and flint right, which is
+exactly what filed 2GN.102. §2.35 was never amended for the removal; this entry is that correction
+on the record.
+
+**A seventh axis, `formability` (`1`–`6`), gates `relief`.** It measures how controllably a material
+can be given a raised form, read at the point in its working sequence where a craftsperson would
+shape it: `6` true plastic/viscous state (fired clay wet, glass hot) · `5` genuine plastic working
+regime by melt or hot forging (bronze, gold, silver, iron) · `4` no plastic regime but controlled
+incremental removal — carving, abrasion, pecking (granite, jade, oak, ash, antler) · `3` controlled
+removal or moulding, capped by splintering or limited plasticity (bone, leather) · `2` unoccupied in
+the MVP catalogue · `1` removal cannot be steered, or no shaping regime exists at all (obsidian,
+flint, linen). `relief.substrate.test` is now `formability >= 3`, a single clause with no `rigidity`
+fallback. Independence tested against two pairs: obsidian and granite share `rigidity` and obsidian
+is more fragile yet finer-grained, so neither predicts the formability split; fired clay and
+obsidian share `fragility` and `rigidity` exactly, yet sit at opposite ends of this axis — the pair
+that motivated the task.
+
+**Leather's exclusion had no material-science basis and is corrected, not preserved.** The prior
+`rigidity >= 3` gate excluded leather as collateral aimed at linen. Tooled/stamped cured leather and
+wet-moulded _cuir bouilli_ both hold a raised form; `studs`, `gilding` and `overlay` already carry a
+named leather exception for the identical underlying fact. `relief` was the one outlier asserting
+`'pliable ground cannot hold a raised form'` of the same material `gilding`'s test asserts the
+opposite about. `formability` admits leather (rung `3`) without a named-exception clause — it
+excludes `linen` (rung `1`, no shaping regime) on its own terms, so the gate is one honest fact
+rather than a rule plus a carve-out.
+
+**The axis only means anything relative to a working state, and that forced a finding beyond its own
+scope: the six axes 2GN.101 authored are silently finished-state measurements, and nothing said so
+before this entry.** Cold glass (`fragility: 7`) is the most fracture-prone material in the
+catalogue; hot glass, which `formability` reads, is viscous and freely formable — same material,
+opposite regime. Iron's `hardness`/`rigidity` describe cold-worked iron, not the material as forged
+hot, which is the state that actually matters for `formability`. Fired clay's `fragility: 6` reads
+the fired result; the working state is wet clay. Only `fired-clay`'s data-file comment ever named
+this choice, as a one-off aside on a single material rather than a stated convention. **2GN.102 does
+not reconcile the six — that is a states-of-matter model for sixteen materials and its own piece of
+work — it adopts the working-state reading explicitly for the new axis, states the inconsistency
+where it was previously silent (`types/artefact.ts`'s `physicalProperties` preamble and
+`data/materials.ts`'s header), and files the reconciliation downstream** rather than leaving it
+buried one layer deeper.
+
+**Two scale decisions, both measured rather than authored by feel:**
+
+- **`formability` runs `1`–`6`, not its siblings' `1`–`7`.** An earlier draft split rung 5 into cast
+  metals (`6`) and hot-forged iron (`5`), reasoning that period furnaces could not liquefy iron.
+  That measured the wrong fact: casting and forging are different _routes_ to a formed object, not
+  different amounts of formability, and ranking iron below the cast metals encoded _difficulty_,
+  which this axis is explicitly not for. The rungs were collapsed to one plastic-working-regime rung
+  covering both, dropping the scale to six honest rungs rather than padding to seven to match its
+  siblings. Measured against the 16-material catalogue: 5 of 6 rungs used, rung 2 empty, largest
+  cluster 5 materials at rung 4 — inside the band the existing axes already occupy (`rigidity` uses
+  5 of 7 with three empty rungs). The rung-4 cluster (granite, jade, oak, ash, antler) is not a
+  range shortage: those materials genuinely share one working regime, and splitting them would mean
+  re-expressing `hardness` or `grainFineness` as formability rungs instead, breaking the axis
+  independence 2GN.101 exists to protect.
+- **No `-1` not-applicable sentinel, unlike `oxidisation`.** That sentinel is warranted only where
+  the fact is categorically absent — glass has no oxidation chemistry to measure, which is why gold
+  (chemistry present, merely resistant) is `0` rather than `-1`. Every material has a real
+  formability answer, including linen's genuine `1`; a sentinel here would misuse the mechanism to
+  encode a taxonomy (linen's "no regime" versus obsidian's "unsteerable regime") inside a magnitude
+  field — the same category error the casting/forging split was making. `decoration.ts`'s standing
+  ruling against new sentinels on continuous axes (`combustibility`, `rigidity`) and `porosity`'s
+  own rejection both apply here for the same reason.
+
+**Deferred, each recorded rather than quietly dropped:**
+
+1. **The casting/forging conflation at rung 5 is accepted for now, not resolved.** It is inert today
+   — `relief`'s gate is a `>= 3` threshold, so rungs 3–6 pass identically — but stops being inert
+   the moment a consumer reads the rungs as a difficulty gradient. **Reopens with the
+   difficulty-weighting follow-on below**, which must revisit rung 5 before authoring any
+   per-technique weight against it.
+2. **The six pre-existing axes' finished-state authoring is unreconciled.** Filed as a follow-on
+   task below: per-state property values (at minimum worked vs finished), re-auditing `hardness`,
+   `fragility`, `rigidity`, `grainFineness`, `porosity`, `combustibility` against the convention
+   this entry states for the first time. `glass`, `iron`, `fired-clay` and `leather` are the
+   known-affected entries.
+3. **Formability as a difficulty input is a separate task, not this one.** `formability` stays out
+   of `MaterialDifficultyAxis` — a pure substrate gate, matching `combustibility`'s precedent —
+   pending its own task with re-measured grade distributions and the rung-5 conflation resolved
+   first.
+4. **Whether other `rigidity`-gated substrates carry the same proxy-artefact exclusion leather did
+   is unaudited.** `overlay` uses the identical `rigidity >= 3` test `relief` used to; if
+   `formability` is the honest gate for one, the other may want the same scrutiny. Filed as a
+   follow-on below.
+
+| Doc | What changed                                                                                                                                                                    | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry — the axis, its independence tests, the leather correction, the working-state finding, the two scale rulings, four deferred items; §2.35's `relief` record corrected | 2026-08-11 |
+| 05  | §8.2's 2026-08-07 implementation note extended: seventh axis, `relief`'s "thick material" prerequisite resolves to formability, working-state convention noted                  | 2026-08-11 |
+| —   | `types/artefact.ts`: `physicalProperties` gains `formability`; preamble records the working-state inconsistency across all seven axes                                           | 2026-08-11 |
+| —   | `data/materials.ts`: all 16 materials scored on `formability`; header notes the working-state convention                                                                        | 2026-08-11 |
+| —   | `data/decorations.ts`: `relief` substrate gate rewritten to `formability >= 3`, single clause; label corrected from the stale "thick material"                                  | 2026-08-11 |
+| —   | Tests: `AXIS_RANGES` gains `formability`; two new independence tests; `relief`'s substrate test rewritten with an explicit full-verdict-delta assertion                         | 2026-08-11 |
+| —   | Roadmap: 2GN.102 done; three successors recorded (working-state model, formability-as-difficulty, substrate-gate audit)                                                         | 2026-08-11 |
 
 ---
 
