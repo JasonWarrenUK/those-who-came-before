@@ -18,7 +18,7 @@
  * Every `MaterialTag` (`tags.ts`) has at least one entry below.
  *
  * `physicalProperties.formability` (roadmap 2GN.102) is read at the material's *working* state, the
- * one axis on that convention — see its JSDoc (`types/artefact.ts`) for why, and why its five
+ * one axis on that convention — see its JSDoc (`types/artefact.ts`) for why, and why its six
  * siblings are inconsistent with it. `fired-clay`'s comment below is the one place that
  * inconsistency was previously named at all, as a one-off aside; reconciling all six axes into a
  * genuine per-state model is filed downstream of 2GN.102, not attempted here.
@@ -335,8 +335,8 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 			porosity: 6,
 			combustibility: 7, // Fibre ignites near 210 °C — the lowest ignition point in the catalogue.
 			// Shares rung 1 with obsidian for a different reason: a woven fibre has no shaping regime
-			// at all, rather than obsidian's unsteerable one. Already excluded from `relief` by
-			// `rigidity`, so this value is not load-bearing for that gate (roadmap 2GN.102).
+			// at all, rather than obsidian's unsteerable one. `formability: 1` is what excludes linen
+			// from `relief` (roadmap 2GN.102).
 			formability: 1,
 		},
 		reactivity: { oxidisation: -1 },

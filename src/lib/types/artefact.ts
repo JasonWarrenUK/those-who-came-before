@@ -273,7 +273,7 @@ export interface MaterialDefinition {
 		/**
 		 * How controllably a material can be given a raised form, `1`–`6`, **read at the point in its
 		 * working sequence where a craftsperson would shape it — the only axis on this convention.**
-		 * Its five siblings above are all silently authored against the *finished* object (roadmap
+		 * Its six siblings above are all silently authored against the *finished* object (roadmap
 		 * 2GN.102, discovered while adding this axis: see the `physicalProperties` preamble). Gates
 		 * `relief` (`formability >= 3`), which needs a material that can be given a raised form at all,
 		 * a fact no other axis states: `fragility` describes the wrong moment (fired clay and glass are
