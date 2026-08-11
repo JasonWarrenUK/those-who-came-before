@@ -399,11 +399,33 @@ carries the culture-phase baselines. Rules remain pure functions of their inputs
 only the signature widens. Chosen over pre-normalising into `ExtractedFeatures`, which would have
 made `extractFeatures` depend on world context and broken its purity instead.
 
-**Consequence: `MaterialTag`'s `precious-*` members survive as material descriptors, not as
-classification inputs.** `precious-metal`/`precious-stone` remain facts about a material's physical
-character. No classification rule may read them directly to award status; material-derived status
-comes from the material's situation in the world (availability × cultural affinity × provenance ×
-stratification).
+**Consequence: `MaterialTag`'s `precious-*` members are retired entirely.** _(Revised 2026-08-11 by
+roadmap 2GN.78 — see below for what this replaced.)_ `precious-metal` and `precious-stone` are no
+longer members of `MaterialTag`. Material-derived status comes from the material's situation in the
+world (availability × cultural affinity × provenance × stratification), never from a catalogue tag.
+
+This ruling originally kept the two members "as material descriptors, not as classification inputs",
+barring rules from reading them while leaving them to feed generation. 2GN.78 found that boundary
+untenable: `precious-metal` does not describe physical character, it asserts social valuation, in a
+vocabulary whose every other member names an observable material class. Keeping it out of
+classification while it still gated `gilding` and skewed `culturalAffinityWeight` left the same
+Earth-judgement stamp in the generator, one step removed.
+
+Everything the tags were doing was already modelled elsewhere. Gilding's real requirement is
+physical — a metal workable to leaf that will not tarnish — and
+`metallurgy && formability >= 5 && oxidisation <= 3` reproduces the retired tag's pool exactly (gold
+and silver; bronze and iron fail on oxidisation). The other five techniques naming a precious tag
+listed it redundantly beside its class tag, so their candidate pools were unchanged by removal.
+Scarcity lives in `GeologicalContext.materialAvailability`; a specific material's reachability lives
+in `MaterialFlow.specificMaterials`.
+
+**The test for a new `MaterialTag` member is whether two cultures looking at the same material would
+agree on it.** `metal` passes. `precious-metal` did not.
+
+One expressive loss is accepted and recorded: `CulturalProfile.materialAffinities` is keyed by tag,
+so a culture can no longer say "we prize gold specifically" — only "we prize metal". Whether the map
+should support per-material entries alongside per-tag ones is an open design question, filed rather
+than answered.
 
 **Consequence: material baselines are keyed by culture-phase × region.** Geology is regional and
 culture is not — nothing binds a culture to a single region — so a culture spanning two regions

@@ -1952,6 +1952,12 @@ hazard asked for.
 
 ### 2.37 2GN.78 Lands Doc-Only: Code Already Complied, One Instruction Was a Phantom (2026-08-10)
 
+> ⚠️ **Superseded by §2.40 (2026-08-11).** This entry's finding — that no consumer read the
+> `precious-*` tags to award an `ArtefactTag`, so the code already complied — was correct but drew
+> too small a boundary. §2.40 retired both members outright: the defect was not who read the tags
+> but that a vocabulary of material _classes_ carried two members asserting social _valuation_. Read
+> this entry as the first pass, not the resolution.
+
 **Origin:** Roadmap 2GN.78, gated on 2GN.77.
 
 **Source of truth:** doc 11 §2.9 lines 402-406 hold the ruling this task propagates; this entry
@@ -2167,6 +2173,84 @@ and deriving it twice would give two sources of truth to drift apart.
 | —   | `data/calibration.test.ts`: `DORMANT_RULE_INDICES` + two guards added; `EXPECTED_FIRE_RATES`, `MIGRATED_RULE_INDICES`, `UNIVERSAL_BY_DESIGN` renumbered | 2026-08-11 |
 | —   | `routes/dev/explorer/calibration/ruleCalibration.test.ts`: two label-based lookups renumbered                                                           | 2026-08-11 |
 | —   | Roadmap: 2GN.87 done; two successors filed (generation gap, contingent replacement rule)                                                                | 2026-08-11 |
+
+---
+
+### 2.40 The Precious Material Tags Retired; Gilding Gates on Physics (2026-08-11)
+
+**Origin:** Roadmap spike 2GN.78 **Source of truth:** doc 11 §2.9 holds the revised decision;
+`docs/spikes/2GN.78-precious-material-tags.md` holds the reasoning and measurements
+
+**§2.37 closed this task on a boundary that did not hold.** That entry found no classification rule
+read `MaterialTag`'s `precious-*` members and booked 2GN.78 done doc-only. The check was correct and
+the conclusion too narrow: `precious-metal` is not a description of physical character at all. Every
+other `MaterialTag` member names an observable material class two cultures would agree on; these two
+name what a material is _worth_, which is the Earth-judgement stamp doc 11 §2.9 identified. Barring
+them from classification while they still gated `gilding` and skewed `culturalAffinityWeight` left
+the same judgement in the generator, one step removed. **General lesson: a constraint on what may
+_read_ a field does not fix a field that shouldn't exist.**
+
+**Retirement was possible because everything the tags did was already modelled.** Gilding's real
+requirement is physical — a metal workable to leaf that will not tarnish — and
+`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3` admits gold and silver and
+nothing else across the shipped catalogue, reproducing the retired tag's pool exactly (gold reads
+oxidisation 0, silver 3, against bronze 6 and iron 7). Four candidate predicates were measured; the
+shipped one is the only exact match, and exact for a physically meaningful reason rather than by
+tuning. The other five techniques naming a precious tag listed it _redundantly_ beside its class tag
+— measured pool sizes are identical with and without — so gilding was the only real obstacle.
+Scarcity already lives in `GeologicalContext.materialAvailability`, and a specific material's
+reachability in `MaterialFlow.specificMaterials`.
+
+**The dead affinity data was worse than 2GN.84 recorded.** That entry named Khaltiris. Measured
+across all four Explorer presets, three of five authored precious affinities were inert: Khaltiris'
+`precious-metal: 1.4` (lost to `metal: 1.7`), Xoconahtl's `precious-stone: 1.4` (lost to
+`stone: 1.8`), with only Thalassar's `precious-metal: 1.2` live, and only because it authored no
+competing `metal` value. Retirement moved exactly two affinity weights in the entire preset set.
+
+**The affinity-reduction question dissolved rather than being answered.** With one tag per material
+there is nothing to reduce, so max/most-specific/product is moot. `culturalAffinityWeight` and
+`decoration.ts`'s inlined `bestMaterialAffinity` both keep the max but now record that the choice
+was never ruled and needs one before it carries weight again; a test pins the one-tag-per-material
+invariant that makes it unreachable.
+
+**A behaviour change was caught by the calibration harness mid-implementation.** The first attempt
+folded `ring-form`'s `metal: 0.4` and `precious-metal: 0.5` modifiers into `metal: 0.9`, on the
+reasoning that `effectiveOptionWeight` sums modifiers. R21 drifted 8.6pp (25.3% → 33.9%). The fold
+was wrong: a missing affinity reads as `0` in that sum, so the precious term only ever contributed
+for a culture authoring the tag, and none did — the "equivalent" fold handed `metal`-authoring
+cultures more than double their real modifier. Corrected to leave `metal` at its authored `0.4`.
+**General lesson: when removing a term from a summed weight, the arithmetically equivalent fold is
+only equivalent if the removed term was actually contributing.** With that fixed the whole
+retirement is behaviour-neutral — all nine calibration tests pass with no pin re-recorded.
+
+**`preciousMaterialsInDecoration` survives with a new producer contract.** The inference (decoration
+incorporating prized materials reads elite/ceremonial) is what doc 11 §2.9's formula was written to
+support; only its input was wrong. 2GN.68's earlier spec said "layer-material → precious-material
+lookup", which is the read the ruling forbids and now has nothing to look up. It must populate the
+field from the material's _situation_ instead — `explainMaterialWeight` (2GN.74, landed this branch)
+returns `level`, `culturalAffinity` and `tradeRescued` for exactly this. The threshold is 2GN.68's
+to rule. The rule stays dormant and allowlisted meanwhile.
+
+**One expressive loss, recorded rather than patched.** `materialAffinities` is keyed by tag, so a
+culture can no longer say "we prize gold specifically" — only "we prize metal". Thalassar's live
+`precious-metal: 1.2` is dropped rather than re-expressed as `metal: 1.2`, which would newly favour
+bronze and iron it was never authored to prefer. Whether the map should support per-material entries
+is filed as a design question.
+
+| Doc | What changed                                                                                                                                                      | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry; §2.37's "already compliant" reading superseded                                                                                                        | 2026-08-11 |
+| 11  | §2.9's `precious-*` consequence rewritten: retired outright, not kept as descriptors; the two-culture test for new members; the accepted expressive loss          | 2026-08-11 |
+| —   | `docs/spikes/2GN.78-precious-material-tags.md`: new — the argument, the four measured predicates, the pool table, the rejected alternatives                       | 2026-08-11 |
+| —   | `types/tags.ts`: `MaterialTag` loses both members; JSDoc carries the class-not-judgement test                                                                     | 2026-08-11 |
+| —   | `data/materials.ts`: gold, silver, jade drop their precious tag; header records why no entry carries one                                                          | 2026-08-11 |
+| —   | `engine/generation/decoration.ts`: `isGildingMaterial` added; five pools de-duplicated; access gate reads a resolved pool so `gilding` stays gated                | 2026-08-11 |
+| —   | `engine/generation/materials.ts`: `culturalAffinityWeight`'s max recorded as vestigial and unruled                                                                | 2026-08-11 |
+| —   | `data/grammars/core.ts`: `ring-form`/`sheet-form` drop the precious modifier, `metal` unchanged at its authored value                                             | 2026-08-11 |
+| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: precious affinities removed, trade flows re-keyed to `specificMaterials` preserving exact reach           | 2026-08-11 |
+| —   | `types/artefact.ts`, `data/classification.ts`: `preciousMaterialsInDecoration`'s producer contract rewritten for 2GN.68                                           | 2026-08-11 |
+| —   | Tests: gilding-pool test added, one-tag-per-material invariant pinned, two exhaustiveness guards and the pinned tag table updated; no calibration pin re-recorded | 2026-08-11 |
+| —   | Roadmap: 2GN.78 done; per-material affinity question filed                                                                                                        | 2026-08-11 |
 
 ---
 

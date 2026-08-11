@@ -154,12 +154,12 @@ or no risk to the current architecture.
 ## Design Spikes (`docs/spikes/`)
 
 Standalone write-ups for design spikes, one file per task (`<task-id>-<kebab-slug>.md`). A spike doc
-holds the **reasoning**: the argument, the measurements taken to settle it, the alternatives rejected
-and why. The ruling it reaches is propagated onward — doc 11 holds locked decisions, doc 12 records
-what changed as a result — and each spike doc names where its ruling landed.
+holds the **reasoning**: the argument, the measurements taken to settle it, the alternatives
+rejected and why. The ruling it reaches is propagated onward — doc 11 holds locked decisions, doc 12
+records what changed as a result — and each spike doc names where its ruling landed.
 
-Earlier spikes (2GN.77, 2GN.80, 2GN.98) predate this directory and recorded their rulings directly in
-doc 11 §2.9 and doc 12 entries.
+Earlier spikes (2GN.77, 2GN.80, 2GN.98) predate this directory and recorded their rulings directly
+in doc 11 §2.9 and doc 12 entries.
 
 ---
 
