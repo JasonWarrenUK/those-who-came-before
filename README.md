@@ -29,7 +29,7 @@ their open questions resolved as of the current design round. The implementation
 launch and is being rebuilt milestone by milestone against the [MVP roadmap](docs/roadmaps/mvp.md).
 **89 of 318 roadmap tasks are done (28%).** Milestone 1 (Foundation) is complete: Deno runtime, the
 full type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline)
-is 49/100 done: the component grammar system, plausibility checking, material assignment, decorative
+is 49/101 done: the component grammar system, plausibility checking, material assignment, decorative
 motif and introduced-material resolution, feature extraction, tag classification, and description
 generation are all in place; materials-classification integration and a handful of calibration
 follow-ons remain. Exact task-by-task status lives in
@@ -58,14 +58,15 @@ What the repository currently contains:
   (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag
   sets, material-aware execution grading)
 - Unified feature extraction and rule-based tag classification in
-  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (43 rules;
+  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (44 rules;
   culture-phase baseline sampling via `engine/generation/baselines.ts` for tags scored relative to a
   culture's own norms, doc 11 §2.9)
 - Description generation in `src/lib/engine/generation/prose.ts`, drawing on the observational
   register templates in `src/lib/data/descriptions/observational/`
 - The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with nine panels
-  — PRNG output, a live type index with dependency and reference graphs, structure viewer,
-  plausibility panel, material viewer, decoration inspector, tag inspector and rule calibration
+  — an overview, PRNG output, a live type index with dependency and reference graphs, structure
+  viewer, plausibility panel, material viewer, decoration inspector, tag inspector and rule
+  calibration
 - A CLI sampler suite (`deno task sample*`, see [`scripts/dev/README.md`](scripts/dev/README.md))
   for eyeballing pipeline output stage by stage ahead of its Explorer panel landing
 - The full design specification in `docs/`

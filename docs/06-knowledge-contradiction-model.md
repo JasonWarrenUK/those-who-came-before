@@ -33,8 +33,8 @@ publication requires public retraction with career consequences.
 
 Throughout this document, `ArtefactTag` (doc 05, section 9.2) is the tag classification system —
 `AbsoluteTag` values scored against fixed thresholds (what an object is _for_: weapon, tool,
-container, ritual, etc.) and `RelativeTag` values scored against culture-phase baselines (how it
-stands relative to its own culture's norms: personal, communal, elite, ceremonial, etc.), unioned as
+container, etc.) and `RelativeTag` values scored against culture-phase baselines (how it stands
+relative to its own culture's norms: personal, communal, elite, ceremonial, ritual, etc.), unioned as
 `ArtefactTag`. Tags are not mutually exclusive — an artefact can carry multiple tags simultaneously,
 and resolving which tags apply is a core part of the player's analytical work. `MaterialTag` is
 similarly defined in doc 05, section 9.2, and is a distinct, unrelated vocabulary (doc 12 §2.37).
