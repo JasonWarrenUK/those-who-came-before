@@ -14,7 +14,7 @@
  * asserts each rule's fire rate stays within `TOLERANCE_POINTS` of the rate recorded when it was
  * last calibrated. Materials are assigned and layers re-graded before `extractFeatures` runs, not
  * skipped, matching `sampleBaselines` (`engine/generation/baselines.ts`) — measuring `meanDecorativeGrade`
- * (R44) against ungraded layers while its baseline is sampled from graded ones compares two different
+ * (R43) against ungraded layers while its baseline is sampled from graded ones compares two different
  * quantities (roadmap 2GN.103, doc 12 §2.36).
  *
  * **When this fails, it is usually right and you should not just widen the band.** A generator
@@ -79,11 +79,11 @@ const TOLERANCE_POINTS = 6;
  * to fire is itself a signal worth failing on — it means its producer landed and its threshold has
  * never been calibrated against real output.
  *
- * R27 was a third such zero until 2GN.86: `very-heavy` sat above the old proxy's reachable maximum,
+ * R26 was a third such zero until 2GN.86: `very-heavy` sat above the old proxy's reachable maximum,
  * so the rule was unreachable by arithmetic rather than merely rare. It now fires on 4.3%.
  *
  * **Nine entries re-recorded 2026-08-05 for the culture-relative migration (roadmap 2GN.82, doc 12
- * §2.31)**, annotated `(2GN.82 relative basis: was N)`: R29, R30, R31, R35, R36, R40, R41, R42, R43
+ * §2.31)**, annotated `(2GN.82 relative basis: was N)`: R28, R29, R30, R34, R35, R39, R40, R41, R42
  * now read `ClassificationContext.exceeds` against a real per-cell baseline (below) instead of an
  * empty one — this is the one change licensed to move these nine, and every other entry must come
  * back bit-identical to prove it. **What this array means changed for those nine.** A migrated
@@ -93,85 +93,86 @@ const TOLERANCE_POINTS = 6;
  * (`EXPECTED_THRESHOLDS`) are what keeps this guard sensitive to a whole-distribution generator
  * shift once the fire rate itself sits close to its rung by construction.
  *
- * **R30–R43 re-recorded and R44 added 2026-08-06 for the decorative-volume/refinement split
+ * **R29–R42 re-recorded and R43 added 2026-08-06 for the decorative-volume/refinement split
  * (roadmap 2GN.98, doc 12 §2.33).** `decorationVolume` (`expandDecoration`) now reads
  * `aesthetics.decorativeEmphasis` alone rather than the equal-weight craft/emphasis blend, moving
- * the entire decoration-family distribution — every entry from R29 onward that reads a decoration
- * feature moved, and R1–R28/R37–R39 (structural, upstream of decoration) came back bit-identical,
- * the same inertness checkpoint 2GN.82 used. **R32 (any-decoration nudge) dropped from 98.0% to
+ * the entire decoration-family distribution — every entry from R28 onward that reads a decoration
+ * feature moved, and R1–R27/R36–R38 (structural, upstream of decoration) came back bit-identical,
+ * the same inertness checkpoint 2GN.82 used. **R31 (any-decoration nudge) dropped from 98.0% to
  * 89.2%** — still comfortably exempt from `SATURATION_CEILING` by design (doc 12 §2.24), but the
  * largest single move in this array, since emphasis-only volume produces materially fewer
- * near-zero-decoration artefacts at low emphasis than the old blend did. R44 is new:
+ * near-zero-decoration artefacts at low emphasis than the old blend did. R43 is new:
  * `meanDecorativeGrade >= p90` (its own JSDoc in `classification.ts` has the p75-vs-p90 argument).
  */
 const EXPECTED_FIRE_RATES: readonly number[] = [
 	39.3, // R1  hasEdge && !short → weapon/tool
 	4.3, // R2  short sharp blade → dagger family
 	6.6, // R3  short blunt blade → utility knife
-	0.0, // R4  short body, non-short blade band — never observed (roadmap 2GN.87)
-	24.8, // R5  edgeCount >= 2 → composite implement
-	4.4, // R6  sharp point, no edge → piercing
-	4.7, // R7  blunt point, no edge → craft tool
-	19.2, // R8  wide/open container
-	17.1, // R9  narrow/restricted container
-	12.1, // R10 slit container
-	17.6, // R11 sealed container
-	23.1, // R12 thin-walled container → fine ware
-	20.7, // R13 thick-walled container → utilitarian
-	20.6, // R14 deep curvature → holds contents
-	14.3, // R15 pedestal base → display/ritual
-	6.5, // R16 pointed base → amphora storage
-	13.2, // R17 central perforation → rotation
-	12.4, // R18 off-centre perforation → suspension
-	15.3, // R19 single perforation → pendant
-	11.3, // R20 multiple perforations → fitting
-	9.4, // R21 closed ring → worn
-	25.3, // R22 open/overlapping ring → fastener
-	9.4, // R23 rigid sheet → structural
-	7.7, // R24 flexible sheet → covering
-	7.5, // R25 heavy edge → labour tool (2GN.86 mass rebalance: was 21.6)
-	15.4, // R26 heavy container → storage (2GN.86 mass rebalance: was 40.5)
-	4.3, // R27 very-heavy → communal (2GN.86 made the band reachable: was 0.0)
-	2.8, // R28 small size → personal
-	21.3, // R29 attachmentDiversity >= p90 (2GN.98: was 21.5)
-	31.3, // R30 decorativeLayerCount >= p75 (2GN.98 volume/refinement split: was 30.9)
-	34.3, // R31 appliedElementCount >= p75 (2GN.98 volume/refinement split: was 37.3)
-	89.2, // R32 any decoration → ornament nudge (2GN.98 volume/refinement split: was 98.0, still deliberately universal, doc 12 §2.24)
-	0.0, // R33 DORMANT: preciousMaterialsInDecoration awaits roadmap 2GN.68
-	0.0, // R34 DORMANT: motifCulturalOrigins awaits roadmap 2GN.68
-	16.8, // R35 edged && layers >= p75 (2GN.98 volume/refinement split: was 16.6)
-	24.4, // R36 container && layers >= p75 (2GN.98 volume/refinement split: was 25.0)
-	2.2, // R37 fastening mechanism → fastener (2GN.86: more artefacts light enough)
-	31.2, // R38 impact surface → percussion
-	10.8, // R39 wearable → adornment (2GN.86: more artefacts light enough)
-	29.4, // R40 decorativeComplexity >= p75 (2GN.98 volume/refinement split: was 29.8)
-	7.0, // R41 decorativeComplexity >= p95 (2GN.98 volume/refinement split: was 5.8)
-	27.9, // R42 decorativePerPart >= p75 (2GN.98 volume/refinement split: was 30.8)
-	19.3, // R43 techniqueComplexity >= p90 (2GN.98 volume/refinement split: was 14.8)
-	10.4, // R44 meanDecorativeGrade >= p90 → artisanal/elite (2026-08-07: was 4.0, measureFireRates and
+	// The former R4 (short body, non-short blade band) was deleted at roadmap 2GN.87 as
+	// unsatisfiable — see `classification.ts`'s edge-family banner. Every rule below shifted up one.
+	24.8, // R4  edgeCount >= 2 → composite implement
+	4.4, // R5  sharp point, no edge → piercing
+	4.7, // R6  blunt point, no edge → craft tool
+	19.2, // R7  wide/open container
+	17.1, // R8  narrow/restricted container
+	12.1, // R9  slit container
+	17.6, // R10 sealed container
+	23.1, // R11 thin-walled container → fine ware
+	20.7, // R12 thick-walled container → utilitarian
+	20.6, // R13 deep curvature → holds contents
+	14.3, // R14 pedestal base → display/ritual
+	6.5, // R15 pointed base → amphora storage
+	13.2, // R16 central perforation → rotation
+	12.4, // R17 off-centre perforation → suspension
+	15.3, // R18 single perforation → pendant
+	11.3, // R19 multiple perforations → fitting
+	9.4, // R20 closed ring → worn
+	25.3, // R21 open/overlapping ring → fastener
+	9.4, // R22 rigid sheet → structural
+	7.7, // R23 flexible sheet → covering
+	7.5, // R24 heavy edge → labour tool (2GN.86 mass rebalance: was 21.6)
+	15.4, // R25 heavy container → storage (2GN.86 mass rebalance: was 40.5)
+	4.3, // R26 very-heavy → communal (2GN.86 made the band reachable: was 0.0)
+	2.8, // R27 small size → personal
+	21.3, // R28 attachmentDiversity >= p90 (2GN.98: was 21.5)
+	31.3, // R29 decorativeLayerCount >= p75 (2GN.98 volume/refinement split: was 30.9)
+	34.3, // R30 appliedElementCount >= p75 (2GN.98 volume/refinement split: was 37.3)
+	89.2, // R31 any decoration → ornament nudge (2GN.98 volume/refinement split: was 98.0, still deliberately universal, doc 12 §2.24)
+	0.0, // R32 DORMANT: preciousMaterialsInDecoration awaits roadmap 2GN.68
+	0.0, // R33 DORMANT: motifCulturalOrigins awaits roadmap 2GN.68
+	16.8, // R34 edged && layers >= p75 (2GN.98 volume/refinement split: was 16.6)
+	24.4, // R35 container && layers >= p75 (2GN.98 volume/refinement split: was 25.0)
+	2.2, // R36 fastening mechanism → fastener (2GN.86: more artefacts light enough)
+	31.2, // R37 impact surface → percussion
+	10.8, // R38 wearable → adornment (2GN.86: more artefacts light enough)
+	29.4, // R39 decorativeComplexity >= p75 (2GN.98 volume/refinement split: was 29.8)
+	7.0, // R40 decorativeComplexity >= p95 (2GN.98 volume/refinement split: was 5.8)
+	27.9, // R41 decorativePerPart >= p75 (2GN.98 volume/refinement split: was 30.8)
+	19.3, // R42 techniqueComplexity >= p90 (2GN.98 volume/refinement split: was 14.8)
+	10.4, // R43 meanDecorativeGrade >= p90 → artisanal/elite (2026-08-07: was 4.0, measureFireRates and
 	// calibrateRules weren't grading the measured artefacts through the material-aware pass either,
 	// so the 4.0 pin compared a graded baseline against ungraded artefacts: both now graded, landing
 	// at the p90 rung as expected (roadmap 2GN.103, doc 12 §2.36))
 ];
 
 /**
- * Sub-population fire rates for R35/R36 (roadmap 2GN.82, doc 12 §2.31): each rule's rate *within
+ * Sub-population fire rates for R34/R35 (roadmap 2GN.82, doc 12 §2.31): each rule's rate *within
  * its own gate population* (edged artefacts, containers), not the whole sample. Recorded because
  * relativisation moved both rules to a whole-population baseline (`ClassificationContext` has no
  * sub-population baseline), and the whole-sweep rate above mixes the gate's own rate with the
  * threshold's — a change in, say, the share of edged artefacts a generator change produces could
- * move R35's whole-sweep rate without any change to how selectively it reads decoration, and this
+ * move R34's whole-sweep rate without any change to how selectively it reads decoration, and this
  * guard would miss it. Pinning the gated rate directly closes that gap.
  */
-const EXPECTED_GATED_RATES: Readonly<Record<'R35' | 'R36', number>> = {
-	R35: 42.1, // of edged artefacts only (2GN.98 volume/refinement split: was 41.4)
-	R36: 37.1, // of containers only (2GN.98 volume/refinement split: was 38.0)
+const EXPECTED_GATED_RATES: Readonly<Record<'R34' | 'R35', number>> = {
+	R34: 42.1, // of edged artefacts only (2GN.98 volume/refinement split: was 41.4)
+	R35: 37.1, // of containers only (2GN.98 volume/refinement split: was 38.0)
 };
 
 /**
  * Per-cell sampled threshold values for a representative migrated feature at each rung actually
- * used (roadmap 2GN.82, doc 12 §2.31): `decorativeLayerCount` p75 (R30/R35/R36) and
- * `decorativeComplexity` p95 (R41), across the three `EMPHASES` settings. Pooled across the six
+ * used (roadmap 2GN.82, doc 12 §2.31): `decorativeLayerCount` p75 (R29/R34/R35) and
+ * `decorativeComplexity` p95 (R40), across the three `EMPHASES` settings. Pooled across the six
  * regional worlds, since these features are region-invariant (`expandGrammar`/`expandDecoration`'s
  * decorative stages read `decorativeEmphasis`, not geology, for these two).
  *
@@ -195,7 +196,7 @@ const EXPECTED_THRESHOLDS: Readonly<Record<number, { layerP75: number; complexit
 };
 
 /**
- * R44's per-region fire rate, pinned separately from `EXPECTED_THRESHOLDS` above (roadmap 2GN.103,
+ * R43's per-region fire rate, pinned separately from `EXPECTED_THRESHOLDS` above (roadmap 2GN.103,
  * doc 12 §2.36). `meanDecorativeGrade` reads assigned materials (`gradeDecorativeLayers`), and
  * material assignment is geology-driven (`assignMaterials` reads `GeologicalContext`/`MaterialFlow`),
  * so unlike `decorativeLayerCount`/`decorativeComplexity` above, this feature is NOT region-invariant
@@ -229,7 +230,7 @@ const EXPECTED_MEAN_GRADE_BY_REGION: Readonly<Record<string, number>> = {
 const THRESHOLD_TOLERANCE = 3;
 
 /**
- * How far R44's own recorded regional spread (`max - min` across `EXPECTED_MEAN_GRADE_BY_REGION`)
+ * How far R43's own recorded regional spread (`max - min` across `EXPECTED_MEAN_GRADE_BY_REGION`)
  * must reach before the per-region test below trusts it as real geology-driven variation rather than
  * a coincidence of the per-region tolerance. Needed because `TOLERANCE_POINTS` (6pp) is *wider* than
  * the recorded spread: every region could collapse to one pooled value and the per-region `Math.abs`
@@ -247,7 +248,7 @@ const MEAN_GRADE_SPREAD_FLOOR = 3;
  * this fails to catch a collapse toward uniformity (roadmap 2GN.82, doc 12 §2.31).
  *
  * Not a floor on discrimination — the ruling's whole premise is that relativisation *narrows*
- * per-cell spread relative to the absolute rules it replaced (R41 measured 2%–10%, an 8pp spread,
+ * per-cell spread relative to the absolute rules it replaced (R40 measured 2%–10%, an 8pp spread,
  * against the retired absolute rule's 4.3%–48.1%, a 44pp spread). This guard instead catches the
  * opposite failure: a baseline sampler bug that makes every cell read identically (spread ≈ 0),
  * which would mean the sampler stopped reflecting the culture it was pointed at.
@@ -255,24 +256,24 @@ const MEAN_GRADE_SPREAD_FLOOR = 3;
 const SPREAD_FLOOR = 2;
 
 /**
- * 0-based `CLASSIFICATION_RULES` indices of the nine rules migrated in roadmap 2GN.82, plus R44
+ * 0-based `CLASSIFICATION_RULES` indices of the nine rules migrated in roadmap 2GN.82, plus R43
  * (roadmap 2GN.98), which was authored directly against `ClassificationContext.exceeds` rather than
  * migrated but is equally exposed to the failure this guard catches: a baseline sampler bug that
  * makes a context-sensitive rule read identically across culture-phases.
  */
 const MIGRATED_RULE_INDICES: Readonly<
-	Record<'R29' | 'R30' | 'R31' | 'R35' | 'R36' | 'R40' | 'R41' | 'R42' | 'R43' | 'R44', number>
+	Record<'R28' | 'R29' | 'R30' | 'R34' | 'R35' | 'R39' | 'R40' | 'R41' | 'R42' | 'R43', number>
 > = {
+	R28: 27,
 	R29: 28,
 	R30: 29,
-	R31: 30,
+	R34: 33,
 	R35: 34,
-	R36: 35,
+	R39: 38,
 	R40: 39,
 	R41: 40,
 	R42: 41,
 	R43: 42,
-	R44: 43,
 };
 
 /**
@@ -320,16 +321,16 @@ function baselineFor(
  * Runs the pipeline across every world and emphasis, returning each rule's fire rate as a
  * percentage, plus the extra measurements the migrated-rule guards below need.
  *
- * `expandGrammar` (structural rules R1–R29) takes no region-specific input, so those rules'
+ * `expandGrammar` (structural rules R1–R28) takes no region-specific input, so those rules'
  * measured rates reflect region-wide availability rather than any one world; only
- * `expandDecoration` (decorative rules R30 onward) reads `world.geology` and `world.trade`
+ * `expandDecoration` (decorative rules R29 onward) reads `world.geology` and `world.trade`
  * per region. Sampled at `SAMPLES_PER_CELL` per world per emphasis, n=1800 total, against one real
  * `ClassificationContext` per cell (18 total) built by `baselineFor`.
  */
 function measureFireRates(): {
 	rates: number[];
 	sampleSize: number;
-	gatedRates: { R35: number; R36: number };
+	gatedRates: { R34: number; R35: number };
 	cellRates: Map<number, number[]>;
 	thresholdsByEmphasis: Map<number, { layerP75: number[]; complexityP95: number[] }>;
 	meanGradeRateByRegion: Map<string, number>;
@@ -351,7 +352,7 @@ function measureFireRates(): {
 	const thresholdsByEmphasis = new Map<number, { layerP75: number[]; complexityP95: number[] }>(
 		EMPHASES.map((emphasis) => [emphasis, { layerP75: [], complexityP95: [] }]),
 	);
-	// R44's fire rate aggregated per region across all three emphases — geology-sensitive, unlike the
+	// R43's fire rate aggregated per region across all three emphases — geology-sensitive, unlike the
 	// two features above, so pinned separately against `EXPECTED_MEAN_GRADE_BY_REGION`.
 	const meanGradeFiresByRegion = new Map<string, number>(MOCK_WORLD_REGIONS.map((r) => [r, 0]));
 	const meanGradeTotalByRegion = new Map<string, number>(MOCK_WORLD_REGIONS.map((r) => [r, 0]));
@@ -404,13 +405,13 @@ function measureFireRates(): {
 
 				if (extracted.hasEdge) {
 					edgedCount++;
-					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R35].condition(extracted, context)) {
+					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R34].condition(extracted, context)) {
 						edgedFireR35++;
 					}
 				}
 				if (extracted.hasContainer) {
 					containerCount++;
-					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R36].condition(extracted, context)) {
+					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R35].condition(extracted, context)) {
 						containerFireR36++;
 					}
 				}
@@ -424,7 +425,7 @@ function measureFireRates(): {
 				});
 				meanGradeTotalByRegion.set(region, meanGradeTotalByRegion.get(region)! + 1);
 				if (
-					CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R44].condition(extracted, context)
+					CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R43].condition(extracted, context)
 				) {
 					meanGradeFiresByRegion.set(region, meanGradeFiresByRegion.get(region)! + 1);
 				}
@@ -448,8 +449,8 @@ function measureFireRates(): {
 		rates: fires.map((count) => (count / sampleSize) * 100),
 		sampleSize,
 		gatedRates: {
-			R35: edgedCount === 0 ? 0 : (edgedFireR35 / edgedCount) * 100,
-			R36: containerCount === 0 ? 0 : (containerFireR36 / containerCount) * 100,
+			R34: edgedCount === 0 ? 0 : (edgedFireR35 / edgedCount) * 100,
+			R35: containerCount === 0 ? 0 : (containerFireR36 / containerCount) * 100,
 		},
 		cellRates: cellFires,
 		thresholdsByEmphasis,
@@ -470,6 +471,68 @@ Deno.test('calibration: EXPECTED_FIRE_RATES covers every shipped rule', () => {
 		`EXPECTED_FIRE_RATES has ${EXPECTED_FIRE_RATES.length} entries for ` +
 			`${CLASSIFICATION_RULES.length} rules — a rule was added or removed without recalibrating. ` +
 			`Measure the new rate against the six regional worlds and record it.`,
+	);
+});
+
+/**
+ * Rules allowed to measure 0.0%, each with the roadmap task that will make it fire (roadmap 2GN.87).
+ *
+ * A dormant rule is authored ahead of the feature that feeds it, so the design lands in one place
+ * rather than being reconstructed later; both entries here read decoration fields whose producer
+ * arrives with 2GN.68. That is legitimate. What is *not* legitimate is a rule reading a feature that
+ * already has a producer and still never firing — that rule is either unsatisfiable or mis-authored,
+ * and the guard below is what tells the two apart.
+ *
+ * The deleted short-edge rule (roadmap 2GN.87) is why this exists. It sat at a recorded `0.0` from
+ * 2026-07-22 with a comment explaining the zero, and the suite compared `0.0` against `0.0` and
+ * passed — the measurement was taken, written down, and never acted on. Its condition was
+ * arithmetically unsatisfiable: `primaryAxisLength` bands a `Math.max` over component extents drawn
+ * from the same table `bladeLengthBand` reads, so it required a blade longer than the object
+ * containing it. An unexplained zero must fail rather than be recorded.
+ */
+const DORMANT_RULE_INDICES: ReadonlyMap<number, string> = new Map([
+	[31, 'preciousMaterialsInDecoration has no producer until roadmap 2GN.68'],
+	[32, 'motifCulturalOrigins has no producer until roadmap 2GN.68'],
+]);
+
+Deno.test('calibration: no rule is silently dead (roadmap 2GN.87)', () => {
+	const { rates, sampleSize } = fireRates();
+	const unexplained: string[] = [];
+
+	rates.forEach((rate, index) => {
+		if (rate > 0) return;
+		if (DORMANT_RULE_INDICES.has(index)) return;
+		unexplained.push(`  R${index + 1} (index ${index})`);
+	});
+
+	assert(
+		unexplained.length === 0,
+		`${unexplained.length} rule(s) never fired at n=${sampleSize} and are not declared dormant:\n` +
+			`${unexplained.join('\n')}\n\n` +
+			`A rule that never fires is either unsatisfiable (its condition describes a combination ` +
+			`the generator cannot produce — check whether two features it reads are derived from the ` +
+			`same underlying quantity) or waiting on an unbuilt producer. If the latter, add it to ` +
+			`DORMANT_RULE_INDICES with the roadmap task that will feed it. Do not simply record 0.0 ` +
+			`in EXPECTED_FIRE_RATES: that is how the deleted short-edge rule survived three weeks.`,
+	);
+});
+
+Deno.test('calibration: every declared-dormant rule is still dormant (roadmap 2GN.87)', () => {
+	const { rates } = fireRates();
+	const woken: string[] = [];
+
+	for (const [index, reason] of DORMANT_RULE_INDICES) {
+		const rate = rates[index];
+		if (rate !== undefined && rate > 0) {
+			woken.push(`  R${index + 1}: now ${rate.toFixed(1)}% — ${reason}`);
+		}
+	}
+
+	assert(
+		woken.length === 0,
+		`${woken.length} rule(s) declared dormant have started firing:\n${woken.join('\n')}\n\n` +
+			`Its producer has landed. Remove it from DORMANT_RULE_INDICES and record its real rate in ` +
+			`EXPECTED_FIRE_RATES.`,
 	);
 });
 
@@ -497,11 +560,11 @@ Deno.test('calibration: every rule fires within tolerance of its recorded rate',
 	);
 });
 
-Deno.test('calibration: R35/R36 sub-population rates stay within tolerance (roadmap 2GN.82)', () => {
+Deno.test('calibration: R34/R35 sub-population rates stay within tolerance (roadmap 2GN.82)', () => {
 	const { gatedRates } = fireRates();
 	const drifted: string[] = [];
 
-	(['R35', 'R36'] as const).forEach((label) => {
+	(['R34', 'R35'] as const).forEach((label) => {
 		const actual = gatedRates[label];
 		const expected = EXPECTED_GATED_RATES[label];
 		if (Math.abs(actual - expected) > TOLERANCE_POINTS) {
@@ -558,7 +621,7 @@ Deno.test('calibration: sampled thresholds track the recorded distribution (road
 	);
 });
 
-Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2GN.103)", () => {
+Deno.test("calibration: R43's fire rate tracks per-region, not pooled (roadmap 2GN.103)", () => {
 	const { meanGradeRateByRegion } = fireRates();
 	const drifted: string[] = [];
 
@@ -574,7 +637,7 @@ Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2
 
 	assert(
 		drifted.length === 0,
-		`R44 region-level fire rate(s) drifted more than ${TOLERANCE_POINTS}pp:\n${
+		`R43 region-level fire rate(s) drifted more than ${TOLERANCE_POINTS}pp:\n${
 			drifted.join('\n')
 		}\n\n` +
 			`meanDecorativeGrade reads assigned materials, which are geology-driven — pooling this ` +
@@ -591,7 +654,7 @@ Deno.test("calibration: R44's fire rate tracks per-region, not pooled (roadmap 2
 	const spread = Math.max(...rates) - Math.min(...rates);
 	assert(
 		spread >= MEAN_GRADE_SPREAD_FLOOR,
-		`R44's regional spread has narrowed to ${
+		`R43's regional spread has narrowed to ${
 			spread.toFixed(1)
 		}pp (floor ${MEAN_GRADE_SPREAD_FLOOR}pp) ` +
 			`— every region could be collapsing toward the pooled rate, which the per-region tolerance ` +
@@ -634,7 +697,7 @@ Deno.test('calibration: migrated rules discriminate across culture-phases, not j
  */
 Deno.test('calibration: no rule claiming selectivity fires near-universally', () => {
 	const { rates } = fireRates();
-	const UNIVERSAL_BY_DESIGN = new Set([31]); // 0-based index of the any-decoration nudge (R32).
+	const UNIVERSAL_BY_DESIGN = new Set([30]); // 0-based index of the any-decoration nudge (R31).
 
 	const saturated = rates
 		.map((rate, index) => ({ rate, index }))
