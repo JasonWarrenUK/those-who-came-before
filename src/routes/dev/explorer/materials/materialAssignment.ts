@@ -2,17 +2,15 @@
  * Material-assignment model for the material viewer panel (roadmap 2GN.60).
  *
  * Resolves a material for every component of one artefact, and describes the candidate field each
- * draw was made from: which materials are obtainable, how heavily each is weighted, and — when a
- * material is only reachable because a trade flow rescued it — that fact.
+ * draw was made from: which materials are obtainable, how heavily each is weighted — decomposed
+ * into its cultural-affinity, phase-technology and scarcity factors — and, when a material is only
+ * reachable because a trade flow rescued it, that fact (roadmap 2GN.74).
  *
- * **Weight factors are not decomposed.** The roadmap line asks for a "scarcity vs affinity vs
- * trade" breakdown, which the engine cannot currently supply: `computeMaterialWeight` returns the
- * product of three private helpers, and their tuning constants are unexported module-level values
- * the engine JSDoc explicitly expects to retune. Recomputing them here would fossilise those
- * numbers in a second place. Exposing them is its own roadmap task; until then this module reports
- * the combined weight (as a normalised share) plus the availability reason, both of which are
- * exact. Trade is reported as a reason rather than a weight, because that is what it is — a
- * boolean rescue inside `isAvailable`, not a multiplier.
+ * Obtainability is derived entirely from `explainMaterialWeight`'s per-material read, not
+ * re-derived here — a previous version of this module re-implemented `isAvailable`'s region logic
+ * locally (`levelOf`/`classify`) but read only the culture's *first* region where the engine reads
+ * the *best* across all regions, a divergence that stayed invisible only because explorer presets
+ * author exactly one region each. Obtainability now has one source of truth.
  *
  * **`candidates` is culture-wide, not per-component compatibility-filtered.** `assignMaterial`
  * filters its candidate pool by `component.allowedMaterialTags` before weighting anything; this
@@ -31,8 +29,7 @@ import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import {
 	assignMaterial,
-	computeMaterialWeight,
-	isAvailable,
+	explainMaterialWeight,
 } from '../../../../lib/engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
@@ -55,7 +52,7 @@ export type Obtainability =
 export interface CandidateMaterial {
 	material: MaterialDefinition;
 
-	/** This material's level in the culture's single region, or `undefined` when unmodelled. */
+	/** This material's best availability level across regions, or `undefined` when unmodelled. */
 	level: AvailabilityLevel | undefined;
 
 	obtainability: Obtainability;
@@ -68,6 +65,15 @@ export interface CandidateMaterial {
 
 	/** `weight` over the heaviest obtainable candidate's weight, in `[0, 1]`. For bar widths. */
 	share: number;
+
+	/** Cultural-affinity factor of `weight` (`explainMaterialWeight`). Not zeroed when blocked. */
+	culturalAffinity: number;
+
+	/** Phase-technology factor of `weight` (`explainMaterialWeight`). Not zeroed when blocked. */
+	phaseTechnology: number;
+
+	/** Scarcity factor of `weight` (`explainMaterialWeight`). Not zeroed when blocked. */
+	scarcity: number;
 }
 
 /** One component's resolved material, plus how often it wins across repeated draws. */
@@ -102,32 +108,21 @@ export interface MaterialAssignmentModel {
 	draws: number;
 }
 
-/** Reads a material's level in the culture's geology, if it carries one. */
-function levelOf(materialId: string, culture: ExplorerCulture): AvailabilityLevel | undefined {
-	const entry = culture.geology.materialAvailability.get(materialId);
-	if (entry === undefined) return undefined;
-
-	// Explorer presets author exactly one region per culture.
-	const [level] = [...entry.regions.values()];
-	return level;
-}
-
 /**
- * Classifies why a material is or isn't reachable. `isAvailable` collapses local presence and
- * trade rescue into one boolean; this splits them back out so the panel can say *why*.
+ * Classifies why a material is or isn't reachable, from `explainMaterialWeight`'s read. `isAvailable`
+ * collapses local presence and trade rescue into one boolean; this splits them back out so the panel
+ * can say *why*.
  */
 function classify(
-	material: MaterialDefinition,
-	culture: ExplorerCulture,
+	level: AvailabilityLevel | undefined,
 	available: boolean,
-): { level: AvailabilityLevel | undefined; obtainability: Obtainability } {
-	const level = levelOf(material.id, culture);
+	tradeRescued: boolean,
+): Obtainability {
+	if (level === undefined) return 'unmodelled';
+	if (!available) return 'blocked';
+	if (tradeRescued) return 'trade';
 
-	if (level === undefined) return { level, obtainability: 'unmodelled' };
-	if (!available) return { level, obtainability: 'blocked' };
-	if (level === 'trade-only') return { level, obtainability: 'trade' };
-
-	return { level, obtainability: 'local' };
+	return 'local';
 }
 
 /**
@@ -150,13 +145,31 @@ export function assignMaterials(
 	const sampleCount = Math.max(1, Math.floor(draws) || 1);
 
 	const candidates: CandidateMaterial[] = MATERIALS.map((material) => {
-		const available = isAvailable(material, culture.geology, culture.trade);
-		const { level, obtainability } = classify(material, culture, available);
-		const weight = obtainability === 'blocked'
-			? 0
-			: computeMaterialWeight(material, culture.profile, culture.phase, culture.geology);
+		const explanation = explainMaterialWeight(
+			material,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+		);
+		const obtainability = classify(
+			explanation.level,
+			explanation.available,
+			explanation.tradeRescued,
+		);
+		const weight = obtainability === 'blocked' ? 0 : explanation.weight;
 
-		return { material, level, obtainability, available, weight, share: 0 };
+		return {
+			material,
+			level: explanation.level,
+			obtainability,
+			available: explanation.available,
+			weight,
+			share: 0,
+			culturalAffinity: explanation.culturalAffinity,
+			phaseTechnology: explanation.phaseTechnology,
+			scarcity: explanation.scarcity,
+		};
 	});
 
 	const heaviest = Math.max(0, ...candidates.map((c) => c.weight));
