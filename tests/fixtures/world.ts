@@ -170,12 +170,12 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 		trade: [
 			mockMaterialFlow({ materialTag: 'metal' }),
 			mockMaterialFlow({
-				materialTag: 'precious-metal',
+				materialTag: 'metal',
 				specificMaterials: ['gold'],
 				volume: 0.3,
 			}),
 			mockMaterialFlow({
-				materialTag: 'precious-stone',
+				materialTag: 'stone',
 				specificMaterials: ['jade'],
 				volume: 0.3,
 			}),
@@ -198,9 +198,13 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 			'trade-only': ['gold', 'jade', 'glass'],
 		}),
 		trade: [
-			mockMaterialFlow({ materialTag: 'precious-metal', volume: 0.4 }),
 			mockMaterialFlow({
-				materialTag: 'precious-stone',
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				volume: 0.4,
+			}),
+			mockMaterialFlow({
+				materialTag: 'stone',
 				specificMaterials: ['jade'],
 				volume: 0.3,
 			}),
@@ -224,9 +228,13 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 		}),
 		trade: [
 			mockMaterialFlow({ materialTag: 'metal', volume: 0.8 }),
-			mockMaterialFlow({ materialTag: 'precious-metal', volume: 0.6 }),
+			mockMaterialFlow({
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				volume: 0.6,
+			}),
 			mockMaterialFlow({ materialTag: 'stone', volume: 0.6 }),
-			mockMaterialFlow({ materialTag: 'precious-stone', volume: 0.5 }),
+			mockMaterialFlow({ materialTag: 'stone', specificMaterials: ['jade'], volume: 0.5 }),
 			mockMaterialFlow({ materialTag: 'glass', volume: 0.5 }),
 		],
 	},
@@ -266,9 +274,13 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 			absent: ['oak', 'ash', 'linen'],
 		}),
 		trade: [
-			mockMaterialFlow({ materialTag: 'precious-metal', volume: 0.4 }),
 			mockMaterialFlow({
-				materialTag: 'precious-stone',
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				volume: 0.4,
+			}),
+			mockMaterialFlow({
+				materialTag: 'stone',
 				specificMaterials: ['jade'],
 				volume: 0.3,
 			}),
@@ -291,7 +303,11 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 		}),
 		trade: [
 			mockMaterialFlow({ materialTag: 'metal', volume: 0.3 }),
-			mockMaterialFlow({ materialTag: 'precious-metal', volume: 0.2 }),
+			mockMaterialFlow({
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				volume: 0.2,
+			}),
 		],
 	},
 };

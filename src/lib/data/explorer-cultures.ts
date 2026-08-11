@@ -192,9 +192,16 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Thalassar',
 		description: 'Maritime-trade palace culture — moderate specialisation, clay and gilded glass.',
 		profile: {
+			// A `precious-metal: 1.2` entry sat here until roadmap 2GN.78 retired the tag. It was the
+			// only *live* precious affinity across the four presets (the others lost to a higher
+			// class-tag value under the max reduction), so dropping it is a real loss of authored
+			// intent: Thalassar meant "we favour gold and silver", and `materialAffinities` is keyed
+			// by tag, so there is no surviving way to say that about two specific materials. Left
+			// dropped rather than re-expressed as `metal: 1.2`, which would newly favour bronze and
+			// iron this culture was never authored to prefer. Whether the map should support
+			// per-material entries alongside per-tag ones is filed as a design question.
 			materialAffinities: materialAffinities([
 				['clay', 1.7],
-				['precious-metal', 1.2],
 				['glass', 1.1],
 			]),
 			techniqueAffinities: new Map([
@@ -265,7 +272,15 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'available',
 		}),
 		trade: [
-			{ materialTag: 'precious-metal', direction: 'bidirectional', volume: 0.8 },
+			// Was keyed on `precious-metal` (roadmap 2GN.78). Re-keyed to the class tag with an explicit
+			// material list so the flow still reaches exactly gold and silver — a bare `metal` flow would
+			// newly import bronze and iron.
+			{
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				direction: 'bidirectional',
+				volume: 0.8,
+			},
 			{ materialTag: 'metal', direction: 'bidirectional', volume: 0.6 },
 			{
 				materialTag: 'stone',
@@ -280,9 +295,11 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Xoconahtl',
 		description: 'Jungle religious/monumental culture — stone and relief-heavy, votive deposition.',
 		profile: {
+			// `precious-stone: 1.4` removed with the tag (roadmap 2GN.78). It was already dead data:
+			// jade carried both tags and `culturalAffinityWeight` takes the max, so `stone: 1.8`
+			// always won and the authored 1.4 never affected a draw.
 			materialAffinities: materialAffinities([
 				['stone', 1.8],
-				['precious-stone', 1.4],
 				['clay', 1.0],
 			]),
 			techniqueAffinities: new Map([
@@ -352,16 +369,27 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			linen: 'available',
 			leather: 'scarce',
 		}),
-		trade: [{ materialTag: 'precious-metal', direction: 'a-to-b', volume: 0.3 }],
+		trade: [
+			// Re-keyed from `precious-metal` (roadmap 2GN.78); `specificMaterials` preserves the exact
+			// gold/silver reach the tag gave it.
+			{
+				materialTag: 'metal',
+				specificMaterials: ['gold', 'silver'],
+				direction: 'a-to-b',
+				volume: 0.3,
+			},
+		],
 	},
 	{
 		id: 'khaltiris',
 		label: 'Khaltiris',
-		description: 'Imperial metalworking culture — high specialisation, precious-metal inlay.',
+		description: 'Imperial metalworking culture — high specialisation, gold and silver inlay.',
 		profile: {
+			// `precious-metal: 1.4` removed with the tag (roadmap 2GN.78). Dead data, like Xoconahtl's:
+			// gold and silver carried both tags and `metal: 1.7` always won the max. This is the
+			// specific entry doc 12 §2.34 measured when it folded the semantics question into 2GN.78.
 			materialAffinities: materialAffinities([
 				['metal', 1.7],
-				['precious-metal', 1.4],
 				['stone', 1.1],
 			]),
 			techniqueAffinities: new Map([
@@ -432,7 +460,14 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'available',
 		}),
 		trade: [
-			{ materialTag: 'precious-stone', direction: 'bidirectional', volume: 0.5 },
+			// Re-keyed from `precious-stone` (roadmap 2GN.78); jade was that tag's only carrier, so the
+			// explicit list reproduces the flow exactly rather than importing all stone.
+			{
+				materialTag: 'stone',
+				specificMaterials: ['jade'],
+				direction: 'bidirectional',
+				volume: 0.5,
+			},
 			{ materialTag: 'glass', direction: 'a-to-b', volume: 0.4 },
 		],
 	},

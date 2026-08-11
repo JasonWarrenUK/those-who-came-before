@@ -217,13 +217,20 @@ export interface ClassificationContext {
  * `MaterialDefinition.tags` (what a material is) and `NormalisedComponent.allowedMaterialTags`
  * (what a component can physically be made from) — see doc 05 §6.1.
  *
- * **`precious-stone`/`precious-metal` are descriptors, not classification inputs** (doc 11 §2.9,
- * roadmap 2GN.77/2GN.78). They remain facts about a material's physical character, read by
- * generation-time material selection — `computeMaterialWeight`'s cultural-affinity term
- * (`engine/generation/materials.ts`) and `INTRODUCED_MATERIAL_TAGS`' availability gate
- * (`engine/generation/decoration.ts`) both key off them. No `ClassificationRule.condition` may read
- * either directly to award an `ArtefactTag`: material-derived standing comes from the material's
- * situation in the world instead (availability × cultural affinity × provenance × stratification).
+ * **Every member names a material class — what a material *is*, observably and independently of any
+ * culture's opinion of it.** `precious-metal` and `precious-stone` were members until roadmap
+ * 2GN.78 retired them (doc 11 §2.9, doc 12 §2.40): they asserted social valuation, not physical
+ * character, which is the Earth-judgement stamp 2GN.77 ruled against — a culture with abundant gold
+ * does not read gold as precious. Preciousness is derived from the material's *situation*
+ * (availability × cultural affinity × provenance × stratification), never carried as a catalogue
+ * fact. Anything a precious tag was doing is now done by data that was already modelled: physical
+ * character by `MaterialDefinition.physicalProperties`/`reactivity`, scarcity by
+ * `GeologicalContext.materialAvailability`, and a specific material's reachability by
+ * `MaterialFlow.specificMaterials`.
+ *
+ * **Adding a member that names a judgement rather than a class re-opens that defect.** The test is
+ * whether two cultures looking at the same material would agree on the tag. `metal` passes;
+ * `precious-metal` did not.
  *
  * ⚠️ `MaterialTag` and `ArtefactTag` are unrelated vocabularies that happen to share the word "tag".
  * Doc 12 §2.28 once booked a re-key of doc 12 §2.22's `MaterialTag` sets against this ruling on that
@@ -238,9 +245,7 @@ export type MaterialTag =
 	| 'clay'
 	| 'glass'
 	| 'fiber'
-	| 'leather'
-	| 'precious-stone'
-	| 'precious-metal';
+	| 'leather';
 
 /**
  * One feature→tag scoring contribution (doc 05 §9.2). `classifyArtefact` (roadmap 2GN.20) folds
