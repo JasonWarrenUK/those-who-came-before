@@ -733,15 +733,20 @@ function borrowedSource(intensity: number, id = 'borrowed-motif'): SharedMotifSo
 /**
  * The authored per-technique introduced-material tag sets (interviewed 2026-07-25, roadmap
  * 2GN.33), pinned here so a silent edit to `INTRODUCED_MATERIAL_TAGS` fails a test.
+ *
+ * The `precious-metal`/`precious-stone` entries these sets carried were removed with the tags
+ * themselves (roadmap 2GN.78). Each was listed beside its class tag, so every pool here is unchanged
+ * in membership — the tags were redundant in all of them. `gilding` is the exception and is absent
+ * from this table entirely: it is the one technique whose pool no class tag can express, and it now
+ * gates on a physical predicate (`isGildingMaterial`) instead. Its pool is asserted separately.
  */
 const EXPECTED_INTRODUCED_TAGS: Partial<Record<DecorativeTechnique, MaterialTag[]>> = {
-	'inlay': ['metal', 'precious-metal', 'stone', 'precious-stone', 'glass', 'bone', 'wood'],
-	'overlay': ['metal', 'precious-metal', 'leather'],
-	'studs': ['metal', 'precious-metal', 'bone'],
-	'wire-wrapping': ['metal', 'precious-metal'],
-	'gilding': ['precious-metal'],
+	'inlay': ['metal', 'stone', 'glass', 'bone', 'wood'],
+	'overlay': ['metal', 'leather'],
+	'studs': ['metal', 'bone'],
+	'wire-wrapping': ['metal'],
 	'wrapping': ['fiber', 'leather'],
-	'beading': ['glass', 'stone', 'precious-stone', 'bone', 'metal', 'precious-metal'],
+	'beading': ['glass', 'stone', 'bone', 'metal'],
 };
 
 /** Every technique the shipped catalogue flags as motif-carrying, one layer each. */
@@ -1080,9 +1085,37 @@ Deno.test('assignDecorativeDetails: distribution — cultural material affinity 
 	);
 });
 
-Deno.test('assignDecorativeDetails: availability yields when it would exclude every tagged candidate', () => {
-	// Both precious metals marked absent: gilding's tagged pool survives the availability filter
-	// being emptied (assignMaterial's exact fallback) rather than dropping the material.
+Deno.test('assignDecorativeDetails: gilding draws only workable non-tarnishing metals (roadmap 2GN.78)', () => {
+	// Gilding's pool is the one that no `MaterialTag` can express, and the reason the precious tags
+	// could be retired: `isGildingMaterial` reads `formability` and `reactivity.oxidisation` instead.
+	// Across the shipped catalogue that admits gold (oxidisation 0) and silver (3) and excludes
+	// bronze (6) and iron (7) — reproducing the retired `['precious-metal']` pool exactly, but from
+	// physical facts rather than a judgement about worth.
+	const giltable = new Set(['gold', 'silver']);
+
+	for (let i = 0; i < 60; i++) {
+		const [resolved] = assignDecorativeDetails(
+			[detailLayer('gilding')],
+			mockCulturalProfile(),
+			mockPhaseCharacteristics(),
+			mockGeologicalContext(),
+			[mockMaterialFlow()],
+			[],
+			createPrng(`gilding-pool-${i}`),
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+		);
+
+		assert(
+			giltable.has(resolved!.material!),
+			`gilding drew '${resolved!.material}', which is not a workable non-tarnishing metal`,
+		);
+	}
+});
+
+Deno.test('assignDecorativeDetails: availability yields when it would exclude every gilding candidate', () => {
+	// Both giltable metals marked absent: gilding's pool survives the availability filter being
+	// emptied (assignMaterial's exact fallback) rather than dropping the material.
 	const geology: GeologicalContext = {
 		materialAvailability: new Map([
 			['gold', { materialId: 'gold', regions: new Map([['r', 'absent' as const]]) }],
@@ -1104,7 +1137,7 @@ Deno.test('assignDecorativeDetails: availability yields when it would exclude ev
 
 	assert(
 		resolved!.material === 'gold' || resolved!.material === 'silver',
-		`expected a precious metal despite absent availability, got '${resolved!.material}'`,
+		`expected a giltable metal despite absent availability, got '${resolved!.material}'`,
 	);
 });
 

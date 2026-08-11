@@ -13,8 +13,6 @@ const ALL_MATERIAL_TAGS_RECORD: Record<MaterialTag, true> = {
 	glass: true,
 	fiber: true,
 	leather: true,
-	'precious-stone': true,
-	'precious-metal': true,
 };
 const ALL_MATERIAL_TAGS = Object.keys(ALL_MATERIAL_TAGS_RECORD) as MaterialTag[];
 

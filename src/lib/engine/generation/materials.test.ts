@@ -88,24 +88,35 @@ Deno.test('computeMaterialWeight: higher cultural affinity increases weight', ()
 	assert(boosted > baseline, `expected boosted (${boosted}) > baseline (${baseline})`);
 });
 
-Deno.test('computeMaterialWeight: multi-tag material takes the max applicable affinity', () => {
+Deno.test('materials: every shipped material carries exactly one MaterialTag (roadmap 2GN.78)', () => {
+	// This replaced a test pinning `culturalAffinityWeight`'s max-across-tags reduction on gold
+	// (`metal` + `precious-metal`). With the precious tags retired there is no multi-tag material
+	// left to exercise it, so the reduction is unreachable rather than merely untested — and the
+	// honest thing to pin is the invariant that makes it so. If this ever fails, a genuine multi-tag
+	// material has been authored and the reduction (max / most-specific-wins / product) needs the
+	// ruling it has never had: see `culturalAffinityWeight`'s JSDoc.
+	for (const definition of MATERIALS) {
+		assertEquals(
+			definition.tags.length,
+			1,
+			`${definition.id} carries ${definition.tags.length} tags (${definition.tags.join(', ')})`,
+		);
+	}
+});
+
+Deno.test('computeMaterialWeight: a favoured material outweighs an unfavoured peer at equal scarcity', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
-	const culture = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 1], ['precious-metal', 3]]),
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1, stoneWorking: 1 } });
+	const metalLeaning = mockCulturalProfile({
+		materialAffinities: new Map([['metal', 3], ['stone', 1]]),
 	});
 
-	const weight = computeMaterialWeight(material('gold'), culture, phase, geology); // metal + precious-metal
-	const metalOnly = computeMaterialWeight(
-		material('bronze'),
-		culture,
-		phase,
-		geology,
-	);
+	const favoured = computeMaterialWeight(material('bronze'), metalLeaning, phase, geology);
+	const unfavoured = computeMaterialWeight(material('granite'), metalLeaning, phase, geology);
 
 	assert(
-		weight > metalOnly,
-		`expected the precious-metal max (${weight}) > metal-only (${metalOnly})`,
+		favoured > unfavoured,
+		`expected the favoured metal (${favoured}) > the unfavoured stone (${unfavoured})`,
 	);
 });
 
