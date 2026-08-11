@@ -81,25 +81,44 @@ Deno.test('decorations: engraving accepts workable-engravable materials, rejects
 	assert(!test(findMaterial('fired-clay')));
 });
 
-Deno.test('decorations: relief accepts rigid materials regardless of fragility (roadmap 2GN.101)', () => {
-	// Rigidity alone gates relief; fragility does not. Fired clay and glass are both fragile (they
-	// shatter outright once brittle) yet both pass through a formable state before that point —
-	// clay modelled wet then fired, glass cast or blown hot — so the relief exists before either
-	// becomes brittle. A prior version of this gate also checked `fragility <= 5`, which excluded
-	// both despite their real relief traditions (moulded pottery, cameo glass) being well attested.
+Deno.test('decorations: relief gates on formability, not rigidity (roadmap 2GN.102)', () => {
+	// `formability` correctly separates fired clay and glass (fragile once finished, but modelled wet
+	// or blown hot before that point — the relief exists before either becomes brittle) from obsidian
+	// and flint (worked only by conchoidal fracture, never pass through any formable state, so
+	// genuinely cannot take modelled relief despite reading the same `fragility` as fired clay). The
+	// prior `rigidity`-only gate (2GN.101) could not make this distinction and let obsidian and flint
+	// pass incorrectly — documented then as a known limitation, resolved here.
 	//
-	// Obsidian and flint pass here too, which is a known limitation: they are worked only by
-	// subtraction (conchoidal fracture) and never pass through a formable state, so they should not
-	// really take modelled relief. No current material axis expresses formability (roadmap 2GN.102
-	// tracks adding one), so rigidity-only is the honest gate for now rather than a fragility proxy
-	// that gets fired-clay and glass wrong to get obsidian and flint right.
+	// Leather now passes, correcting an exclusion the prior gate had no material-science basis for.
+	// Tooled/stamped cured leather and wet-moulded cuir bouilli both hold a raised form; the prior
+	// gate excluded it only as collateral from `rigidity >= 3`, aimed at linen. `studs`, `gilding` and
+	// `overlay` already carry a named leather exception for the same underlying fact — this brings
+	// `relief` in line with them rather than leaving it as the one outlier asserting the opposite.
 	const test = getMaterialTest('relief');
 	assert(test(findMaterial('fired-clay')), 'fragile but formable before firing: moulded pottery');
 	assert(test(findMaterial('glass')), 'fragile but formable while molten: cameo glass');
 	assert(test(findMaterial('granite')), 'rigid stone, carved rather than modelled relief');
 	assert(test(findMaterial('bronze')), 'rigid metal, repoussé/relief casting');
-	assert(!test(findMaterial('linen')), 'pliable ground cannot hold a raised form');
-	assert(!test(findMaterial('leather')), 'pliable ground cannot hold a raised form');
+	assert(test(findMaterial('leather')), 'tooled/stamped or cuir bouilli: a real relief tradition');
+	assert(
+		!test(findMaterial('obsidian')),
+		'conchoidal fracture only: cannot be steered into relief',
+	);
+	assert(!test(findMaterial('flint')), 'conchoidal fracture only: cannot be steered into relief');
+	assert(!test(findMaterial('linen')), 'no shaping regime at all');
+
+	// Full verdict delta from the 2GN.101 gate, asserted explicitly so a future edit to the gate
+	// cannot silently move a fourth material: obsidian and flint newly excluded, leather newly
+	// admitted, every other material's verdict unchanged.
+	const changedVerdict = ['obsidian', 'flint', 'leather'];
+	for (const material of MATERIALS) {
+		if (changedVerdict.includes(material.id)) continue;
+		assertEquals(
+			test(material),
+			material.physicalProperties.rigidity >= 3 || material.tags.includes('leather'),
+			`${material.id}'s relief verdict must be unchanged from the prior rigidity-based gate`,
+		);
+	}
 });
 
 Deno.test('decorations: glaze accepts only ceramic', () => {

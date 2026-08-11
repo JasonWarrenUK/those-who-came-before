@@ -85,24 +85,23 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 		category: 'surface-treatment',
 		substrate: {
 			kind: 'material',
-			label: 'thick material',
-			// Roadmap 2GN.101: was `hardness !== 'soft'`. A relief must hold a raised form, which
-			// rules out pliable ground — `rigidity` alone already excludes linen (1) and leather (2),
-			// so no further clause is needed for that.
+			label: 'formable or carvable material',
+			// Roadmap 2GN.102. A relief needs a material that can be *given* a raised form: `rigidity`
+			// alone (the pre-2GN.102 gate) could not distinguish that from mere structural firmness,
+			// which is why it wrongly admitted obsidian and flint (conchoidal fracture only, never
+			// steerable into a raised form) and wrongly excluded leather (holds a raised form fine, in
+			// its cured state via tooling/stamping or its wet state via cuir bouilli — the same
+			// exception `studs`/`gilding`/`overlay` already carry, just never applied here). Neither
+			// `fragility` nor `grainFineness` can substitute: fragility describes the finished object,
+			// not the working process — fired clay and glass are fragile only once brittle, not while
+			// modelled or blown — and grainFineness's top rung ("amorphous or glassy") describes
+			// obsidian and glass alike despite one being formable and the other not.
 			//
-			// Fragility is deliberately NOT gated, even though it looks like the natural second check.
-			// What actually separates a relief-capable material from one that isn't is whether it
-			// passes through a formable state: fired clay is modelled wet then fired, and glass is
-			// cast, blown or pressed hot (cameo glass is cut from cased blanks) — the relief exists
-			// before either becomes brittle, so their high `fragility` describes the finished object,
-			// not the working process. Obsidian and flint, by contrast, are worked only by subtraction
-			// via conchoidal fracture and never pass through a formable state, which is why they
-			// genuinely cannot take modelled relief despite comparable `fragility` to fired clay.
-			// `grainFineness` can't stand in for this distinction either: its top rung is "amorphous or
-			// glassy", which describes obsidian and glass alike. No current axis expresses formability
-			// (roadmap 2GN.102, filed to add one), so this gate is rigidity-only for now — a known
-			// limitation that lets obsidian and flint pass incorrectly until that task lands.
-			test: (material) => material.physicalProperties.rigidity >= 3,
+			// `formability >= 3` is a single clause: no `rigidity` fallback and no named exception, since
+			// `formability` correctly separates the excluded materials (obsidian, flint: unsteerable
+			// fracture; linen: no shaping regime) from every material with a real relief tradition,
+			// carved or modelled alike.
+			test: (material) => material.physicalProperties.formability >= 3,
 		},
 		carriesMotif: true,
 		introducesMaterial: false,
