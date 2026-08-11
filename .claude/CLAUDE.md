@@ -29,6 +29,12 @@ detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on th
    is its human-readable projection (task lines, annotations, Mermaid diagram), kept in sync by the
    `/roadmap-maintain` skill; when the two disagree, the JSON governs
 3. Current implementation is ~2% complete; most systems exist only in specification
+4. Docs are the source of truth for design intent, never for what shipped code currently does. Doc 12
+   in particular is a dated chronological log, not a live snapshot — a given entry's claims ("no rule
+   reads X yet", a rule count, a module list) were true only as of that entry's date and may be
+   superseded by a later entry or by the code itself. Before citing any such claim (in a review, a
+   doc edit, or an implementation decision), check it against the current `src/` rather than quoting
+   it as present-tense fact
 
 ### Reading Guide by Task
 

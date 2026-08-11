@@ -1140,7 +1140,8 @@ deliberately a structural bag rather than `CulturePhase` (`types/world.ts`), whi
 the three `expandDecoration` needs, so nothing in the sampler's signature has to change when 3WS.9
 lands a real `WorldState` culture source.
 
-**No shipped rule reads a context yet, so every current call site passes an empty one.**
+**No shipped rule reads a context yet, so every current call site passes an empty one — true only
+as of this entry; §2.31 migrates nine rules to `ClassificationContext.exceeds` the same day.**
 `emptyClassificationContext` (`baselines.ts`, re-exported from `tests/fixtures/artefact.ts` for test
 convenience) is used at both Explorer call sites (`tagInspector.ts`, `ruleCalibration.ts`) rather
 than a freshly-sampled real context: `inspectTags` runs interactively per artefact, and
