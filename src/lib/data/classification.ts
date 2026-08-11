@@ -143,17 +143,16 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['tool', 0.5], ['domestic', 0.4], ['everyday', 0.3]]),
 	},
 
-	/**
-	 * A short-bodied edge that isn't a formed blade (`bladeLengthBand` of `'none'`/`'medium'`/
-	 * `'long'` on a short overall axis): scraper, chisel, small adze — an edged tool, not a blade
-	 * weapon. Catches the short-axis edges the long-edge rule excludes (`primaryAxisLength ===
-	 * 'short'`) and the dagger/utility rules skip (they own `bladeLengthBand === 'short'` only), so
-	 * no edged artefact leaves the edge family with zero function signal.
-	 */
-	{
-		condition: (f) => f.hasEdge && f.primaryAxisLength === 'short' && f.bladeLengthBand !== 'short',
-		tags: new Map([['tool', 0.4], ['everyday', 0.2]]),
-	},
+	// A fourth edge rule (`hasEdge && primaryAxisLength === 'short' && bladeLengthBand !== 'short'`,
+	// tool 0.4 / everyday 0.2) sat here until roadmap 2GN.87 deleted it as unsatisfiable. It was
+	// authored in PR #37 review to close a gap found by enumerating the (axis, blade) truth table,
+	// but that combination cannot be generated: `primaryAxisLength` bands `primaryExtent`, a
+	// `Math.max` over every component's major axis drawn from the *same* `SHORT_MEDIUM_LONG_CM`
+	// table `bladeLengthBand` reads, so a non-short blade (14cm/40cm) always pushes the artefact's
+	// axis above the 9cm short cut. Measured over 8000 artefacts: blade never exceeds axis, and
+	// `axis === 'short'` carried `blade === 'short'` in all 84 cases. Whether the game *should*
+	// generate a short-bodied non-blade edge (scraper, chisel, adze) is a real question the rule
+	// never actually answered — it is filed separately rather than inherited from a dead condition.
 
 	/** Multiple distinct edges suggest a composite or multi-blade implement rather than one weapon. */
 	{
