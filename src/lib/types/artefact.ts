@@ -15,7 +15,7 @@
  * these annotations will migrate onto.
  */
 
-import type { ArtefactTag, MaterialTag } from './tags.ts';
+import type { ArtefactTag, MaterialName, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
 import type { DecorativeLayer } from './decoration.ts';
 import type { CraftDomain, Provenance } from './world.ts';
@@ -144,7 +144,7 @@ export interface NormalisedComponent {
  */
 export interface MaterialDefinition {
 	/** Stable id, referenced by `MaterialAssignment.materialId` and as the key into `GeologicalContext.materialAvailability`. */
-	id: string;
+	id: MaterialName;
 
 	/** Human-readable material name shown to the player (e.g. 'bronze', 'obsidian'). */
 	displayName: string;
@@ -414,7 +414,7 @@ export interface MaterialAssignment {
 	componentId: string;
 
 	/** Id of the assigned `MaterialDefinition`. */
-	materialId: string;
+	materialId: MaterialName;
 
 	/** Where the raw material likely came from (doc 05 §7.1). Occluded from the player. */
 	provenance: MaterialProvenance;

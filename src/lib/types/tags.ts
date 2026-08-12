@@ -225,8 +225,8 @@ export interface ClassificationContext {
  * (availability × cultural affinity × provenance × stratification), never carried as a catalogue
  * fact. Anything a precious tag was doing is now done by data that was already modelled: physical
  * character by `MaterialDefinition.physicalProperties`/`reactivity`, scarcity by
- * `GeologicalContext.materialAvailability`, and a specific material's reachability by
- * `MaterialFlow.specificMaterials`.
+ * `GeologicalContext.materialAvailability`, and a specific material's reachability by a
+ * `MaterialFlow`'s `{ id }` selector (`world.ts`).
  *
  * **Adding a member that names a judgement rather than a class re-opens that defect.** The test is
  * whether two cultures looking at the same material would agree on the tag. `metal` passes;
@@ -246,6 +246,44 @@ export type MaterialTag =
 	| 'glass'
 	| 'fiber'
 	| 'leather';
+
+/**
+ * Every shipped material id (`data/materials.ts`, doc 05 §7 §15). The join key wherever one
+ * material is named: `MaterialDefinition.id`, `GeologicalContext.materialAvailability`'s key,
+ * `RegionalAvailability.materialId`, and `MaterialSelector`'s `id` arm (`world.ts`).
+ *
+ * Declared here rather than derived from `MATERIALS` because the dependency runs one way:
+ * `data/materials.ts` imports its `MaterialDefinition` from `types/`, so `types/` importing the
+ * catalogue back would cycle. **The two are therefore kept in step by test, not by construction** —
+ * `materials.test.ts` pins both directions (every name has a definition, every definition has a
+ * name), so adding a material means editing this list too and the suite fails loudly until you do.
+ *
+ * ⚠️ `bone`, `glass` and `leather` are each *both* a `MaterialTag` and a `MaterialName`, naming a
+ * class and a specific material with the same string. That collision is why `MaterialSelector`
+ * tags its arms (`{ tag: 'bone' }` reaches bone and antler; `{ id: 'bone' }` reaches bone alone)
+ * instead of accepting a bare string, which could not tell the two apart.
+ */
+export const MATERIAL_NAMES = [
+	'bronze',
+	'iron',
+	'gold',
+	'silver',
+	'obsidian',
+	'flint',
+	'granite',
+	'jade',
+	'oak',
+	'ash',
+	'bone',
+	'antler',
+	'fired-clay',
+	'glass',
+	'linen',
+	'leather',
+] as const;
+
+/** One shipped material's id — see `MATERIAL_NAMES`. */
+export type MaterialName = (typeof MATERIAL_NAMES)[number];
 
 /**
  * One feature→tag scoring contribution (doc 05 §9.2). `classifyArtefact` (roadmap 2GN.20) folds
