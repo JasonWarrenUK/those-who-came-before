@@ -291,10 +291,13 @@ From doc 08, section 5:
 
 `docs/docs-rule-counts.test.ts` fails when prose states a classification-rule count that no longer
 matches `CLASSIFICATION_RULES` — the counterpart to the count assertions in
-`classification.test.ts`, covering the prose that quotes them. It is the only test that reads the
-filesystem, which is why the `test` task carries `--allow-read`. A dated entry that was accurate
-when written (doc 12's usually are) is exempted with a `<!-- rule-count: historical -->` comment on
-the line above, never by rewriting the record.
+`classification.test.ts`, covering the prose that quotes them. Despite its path, it walks every
+`.md`/`.html` in the repo (behind an ignore list for `node_modules` and build output), not just
+`docs/`: the walk moved to the repo root once the pipeline explainer became `index.html` for GitHub
+Pages, so a claim anywhere stays covered rather than silently escaping when it moves. It is the only
+test that reads the filesystem, which is why the `test` task carries `--allow-read`. A dated entry
+that was accurate when written (doc 12's usually are) is exempted with a
+`<!-- rule-count: historical -->` comment on the line above, never by rewriting the record.
 
 ### Test Patterns
 

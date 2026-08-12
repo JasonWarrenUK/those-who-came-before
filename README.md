@@ -58,7 +58,7 @@ What the repository currently contains:
   (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag
   sets, material-aware execution grading)
 - Unified feature extraction and rule-based tag classification in
-  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (44 rules;
+  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (43 rules;
   culture-phase baseline sampling via `engine/generation/baselines.ts` for tags scored relative to a
   culture's own norms, doc 11 §2.9)
 - Description generation in `src/lib/engine/generation/prose.ts`, drawing on the observational
