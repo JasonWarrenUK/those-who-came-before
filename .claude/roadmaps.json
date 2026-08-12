@@ -550,8 +550,8 @@
 					},
 					{
 						"id": "2GN.27",
-						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "todo",
+						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation: materials **the producing culture treats as precious** boost elite/ceremonial, derived from the material's situation rather than a catalogue fact. ⚠️ **Reframed 2026-08-11 by 2GN.78**: the original title read \"precious metals → elite/ceremonial boosts\", which presumed a static precious-material class that no longer exists — `MaterialTag`'s `precious-*` members are retired (doc 11 §2.9, doc 12 §2.40). Standing comes from availability × cultural affinity × provenance × stratification; `explainMaterialWeight` (2GN.74) supplies the first three. Blocked on 2GN.110 for the same reason as 2GN.68: whether `materialAffinities` can express a per-material judgement determines how precisely \"this culture values this material\" can be read",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
@@ -559,7 +559,8 @@
 							"2GN.82",
 							"2GN.83",
 							"2GN.84",
-							"2GN.85"
+							"2GN.85",
+							"2GN.110"
 						],
 						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid. Depends on 2GN.78: that task retires `precious-metal`/`precious-stone` as classification inputs entirely, so this task's \"precious metals → elite/ceremonial\" rule must derive standing from material situation (availability × affinity × provenance × stratification) rather than a static precious-tag lookup — without 2GN.78 sequenced first, this task could restore the static reading 2GN.77 ruled against.",
 						"assignee": "Jason Warren"
@@ -717,15 +718,16 @@
 					},
 					{
 						"id": "2GN.68",
-						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (motifCulturalOrigins from `DecorativeLayer.motifRef`→culture lookup, preciousMaterialsInDecoration from `DecorativeLayer.material`→precious-material lookup)",
-						"status": "todo",
+						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins` from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer material's **situation in the producing culture**). ⚠️ **Rescoped 2026-08-11 by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read \"`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup\", which is exactly the static catalogue read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired. Populate the field from availability × cultural affinity × provenance instead: `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a material/culture pair, which are the inputs. The threshold over them is this task's to rule and has not been set. Blocked on 2GN.110 because the affinity term's keyspace (per-tag only, or per-material too) changes what \"this culture prizes it\" can even mean",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20",
 							"2GN.82",
 							"2GN.83",
 							"2GN.84",
-							"2GN.85"
+							"2GN.85",
+							"2GN.110"
 						],
 						"notes": "**Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false` in `extractFeatures`.",
 						"assignee": "Jason Warren"
@@ -1372,9 +1374,10 @@
 					{
 						"id": "2GN.106",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — add `formability` to `MaterialDifficultyAxis`, an `AXIS_NORMALISATION` entry, and per-technique `TECHNIQUE_MATERIAL_SENSITIVITY` weights, with re-measured grade distributions and 2GN.103's regional pins re-verified",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.102"
+							"2GN.102",
+							"2GN.111"
 						],
 						"notes": "Filed 2026-08-11 alongside 2GN.102 (doc 12 §2.38). Must first revisit the rung-5 casting/forging conflation recorded in that entry: `formability`'s rung 5 deliberately groups cast metals (bronze/gold/silver) with hot-forged iron as one plastic-working-regime rung — a simplification that is inert while `relief`'s gate is a `>= 3` threshold (rungs 3–6 pass identically) but becomes load-bearing the moment this task reads the rungs as a difficulty gradient rather than a threshold. Note the `1`–`6` range differs from the other five difficulty axes' `1`–`7`, so `AXIS_NORMALISATION`'s `mid`/`half` need their own values, not a copy of a sibling's.",
 						"assignee": "Jason Warren"
@@ -1382,9 +1385,10 @@
 					{
 						"id": "2GN.107",
 						"description": "`data/decorations.ts` — sweep every `kind: 'material'` substrate test for exclusions that are artefacts of a proxy axis rather than attested practice, the way `relief`'s leather exclusion was",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.102"
+							"2GN.102",
+							"2GN.111"
 						],
 						"notes": "Filed 2026-08-11 during 2GN.102 (doc 12 §2.38). `relief` excluded leather solely as collateral from `rigidity >= 3`, a test aimed at linen, with no material-science basis — corrected in 2GN.102 once `formability` gave the gate something honest to key on. `overlay` uses the identical `rigidity >= 3` test `relief` used to carry; if `formability` is the correct gate for one, `overlay` is the first candidate for the same scrutiny. `studs`/`gilding` already carry a named leather exception and are not suspect on the same grounds.",
 						"assignee": "Jason Warren"
@@ -1456,7 +1460,8 @@
 						"description": "`engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)",
 						"status": "blocked",
 						"dependsOn": [
-							"3WS.2"
+							"3WS.2",
+							"2GN.110"
 						],
 						"assignee": "Jason Warren"
 					},
