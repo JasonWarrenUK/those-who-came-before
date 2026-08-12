@@ -37,9 +37,10 @@ import type {
 	CulturalProfile,
 	GeologicalContext,
 	MaterialFlow,
+	MaterialSelector,
 	PhaseCharacteristics,
 } from '../../types/world.ts';
-import type { MaterialTag } from '../../types/tags.ts';
+import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -103,7 +104,7 @@ export interface MaterialWeightExplanation {
  * to attribute `likelyOriginRegion`.
  */
 function bestRegionalLevel(
-	materialId: string,
+	materialId: MaterialName,
 	geology: GeologicalContext,
 ): RegionalLevel | undefined {
 	const regional = geology.materialAvailability.get(materialId);
@@ -121,13 +122,30 @@ function bestRegionalLevel(
 	return best;
 }
 
-/** Whether a single `MaterialFlow` can supply `material`, by tag or specific material id. */
-function flowSuppliesMaterial(material: MaterialDefinition, flow: MaterialFlow): boolean {
-	return material.tags.includes(flow.materialTag) ||
-		(flow.specificMaterials?.includes(material.id) ?? false);
+/** Whether one `MaterialSelector` names `material`, by its class or by its own id. */
+function selectorMatches(material: MaterialDefinition, selector: MaterialSelector): boolean {
+	return selector.tag !== undefined
+		? material.tags.includes(selector.tag)
+		: material.id === selector.id;
 }
 
-/** Whether any `MaterialFlow` in `trade` can supply `material`, by tag or specific material id. */
+/**
+ * Whether a single `MaterialFlow` can supply `material`: some `includes` selector names it and no
+ * `excludes` selector does (doc 05 §3.4, roadmap 2GN.112).
+ *
+ * Exclusion wins over inclusion, which is what lets a flow say "all metals except gold" — the case
+ * the retired `materialTag`/`specificMaterials` pair could not express in either of its readings.
+ * An empty `includes` supplies nothing rather than everything: a flow carrying no material is not a
+ * trade route, and defaulting the empty case to "everything" would make an authoring slip silently
+ * open the widest possible flow.
+ */
+function flowSuppliesMaterial(material: MaterialDefinition, flow: MaterialFlow): boolean {
+	if (!flow.includes.some((selector) => selectorMatches(material, selector))) return false;
+
+	return !(flow.excludes ?? []).some((selector) => selectorMatches(material, selector));
+}
+
+/** Whether any `MaterialFlow` in `trade` can supply `material`. */
 function reachableByTrade(material: MaterialDefinition, trade: readonly MaterialFlow[]): boolean {
 	return trade.some((flow) => flowSuppliesMaterial(material, flow));
 }
@@ -387,35 +405,43 @@ export function assignMaterial(
  * `RelationshipDynamics.trade.materialFlow[]`, and a relationship is identified only by
  * `cultureIds`, not a stable id of its own. This string is therefore *not* a real relationship
  * reference: it cannot be resolved back to a `CultureRelationship`, only reproduced from the same
- * `(materialTag, index)` pair that produced it. It exists purely so `MaterialProvenance.
- * tradePathId` is populated with *something* traceable to the flow that justified the 'trade'
- * verdict, rather than left `undefined`.
+ * flow position that produced it. It exists purely so `MaterialProvenance.tradePathId` is populated
+ * with *something* traceable to the flow that justified the 'trade' verdict, rather than left
+ * `undefined`.
+ *
+ * The id was `provisional-trade:${materialTag}:${index}` until roadmap 2GN.112 replaced that field
+ * with `includes`/`excludes`. A flow no longer has one tag to name it, and summarising a selector
+ * list into the id would read as a description of the flow's contents while being neither stable
+ * (re-authoring the list silently changes provenance ids) nor resolvable. The index alone already
+ * distinguishes flows within a `trade` array, which is all this ever guaranteed.
  *
  * Real trade-path identity is 3WS.5/3WS.6's to mint, once `generateRelationships` actually
  * constructs `CultureRelationship`s (rather than the hand-authored `explorer-cultures.ts` presets
  * this runs against at MVP). When that lands, this function — and every caller of it — should be
  * replaced with a lookup against the real relationship id, not extended.
  *
- * @param flow - The `MaterialFlow` that made the material trade-reachable.
  * @param index - The flow's position within the `trade` array passed to `isAvailable`, so two
- *   flows sharing a `materialTag` still resolve to distinct (if equally provisional) ids.
+ *   flows carrying overlapping materials still resolve to distinct (if equally provisional) ids.
  */
-function synthesiseTradePathId(flow: MaterialFlow, index: number): string {
-	return `provisional-trade:${flow.materialTag}:${index}`;
+function synthesiseTradePathId(index: number): string {
+	return `provisional-trade:${index}`;
 }
 
 /**
- * The first `trade` entry that makes `material` trade-reachable, sharing `reachableByTrade`'s
- * `flowSuppliesMaterial` check so the two can never disagree, paired with its index for
- * `synthesiseTradePathId`.
+ * The index of the first `trade` entry that makes `material` trade-reachable, or `undefined` if
+ * none does — sharing `reachableByTrade`'s `flowSuppliesMaterial` check so the two can never
+ * disagree, and feeding `synthesiseTradePathId`.
+ *
+ * Returned as a bare index since roadmap 2GN.112: the flow itself was only ever read for the
+ * `materialTag` that id-synthesis no longer uses.
  */
-function findReachableTradeFlow(
+function findReachableTradeFlowIndex(
 	material: MaterialDefinition,
 	trade: readonly MaterialFlow[],
-): { flow: MaterialFlow; index: number } | undefined {
+): number | undefined {
 	const index = trade.findIndex((flow) => flowSuppliesMaterial(material, flow));
 
-	return index === -1 ? undefined : { flow: trade[index]!, index };
+	return index === -1 ? undefined : index;
 }
 
 /**
@@ -457,11 +483,11 @@ export function deriveMaterialProvenance(
 	}
 
 	if (regional?.level === 'trade-only') {
-		const reached = findReachableTradeFlow(material, trade);
-		if (reached !== undefined) {
+		const reachedIndex = findReachableTradeFlowIndex(material, trade);
+		if (reachedIndex !== undefined) {
 			return {
 				source: 'trade',
-				tradePathId: synthesiseTradePathId(reached.flow, reached.index),
+				tradePathId: synthesiseTradePathId(reachedIndex),
 			};
 		}
 	}

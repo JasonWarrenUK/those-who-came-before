@@ -35,6 +35,7 @@ import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import type { MaterialDefinition, NormalisedArtefact } from '../../../../lib/types/artefact.ts';
 import type { AvailabilityLevel } from '../../../../lib/types/world.ts';
+import type { MaterialName } from '../../../../lib/types/tags.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Why a material is or isn't obtainable for a culture. */
@@ -93,7 +94,7 @@ export interface ComponentAssignment {
 	 * Mirrors `scripts/dev/sample-materials.ts --draws`, and is the honest way to show culture bias
 	 * without decomposing the weight formula.
 	 */
-	distribution: { materialId: string; displayName: string; share: number }[];
+	distribution: { materialId: MaterialName; displayName: string; share: number }[];
 }
 
 /** The render model for one artefact's material assignment. */
@@ -179,7 +180,7 @@ export function assignMaterials(
 	candidates.sort((a, b) => b.weight - a.weight);
 
 	const assignments = artefact.components.map((component) => {
-		const tally = new Map<string, number>();
+		const tally = new Map<MaterialName, number>();
 		let resolved: MaterialDefinition | undefined;
 
 		for (let draw = 0; draw < sampleCount; draw++) {
