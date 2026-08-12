@@ -1210,7 +1210,14 @@ type MaterialTag =
 // features may still write `(f) => ...`: TypeScript accepts the narrower arity against this wider
 // signature, so all shipped rules compiled and fired unchanged the moment the type widened (doc 12
 // §2.30). Nothing below has migrated to read `context` yet — see `data/classification.ts`.
+// `id` was added at roadmap 2GN.113: a kebab-case slug naming what the rule reads and concludes
+// (`edge-short-sharp-dagger`), unique across the array and pinned by test. It exists because a rule
+// had no identity independent of its position, so deleting one renumbered every rule after it and
+// silently invalidated every `R{n}` reference in prose, comments and docs — which is what 2GN.87's
+// deletion of the old R4 did, taking four follow-up commits to chase down. `R{n}` survives as a
+// display label only (`ruleDisplayLabel`); cite `id` in anything that must outlive a renumber.
 interface ClassificationRule {
+	id: string;
 	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 	tags: Map<ArtefactTag, number>;
 }

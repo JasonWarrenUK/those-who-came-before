@@ -40,7 +40,11 @@ import {
 } from '../../../../lib/engine/generation/classification.ts';
 import { sampleBaselines } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
+import {
+	CLASSIFICATION_RULES,
+	ruleDisplayLabel,
+	SATURATION_CEILING,
+} from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
@@ -72,10 +76,18 @@ export type CalibrationVerdict = 'saturated' | 'discriminating' | 'dormant';
 
 /** One rule's measured behaviour across the sample. */
 export interface RuleCalibration {
-	/** Display label, `R{index + 1}` — matching the Tag Inspector and the data-test blocks. */
+	/**
+	 * Display label, `R{index + 1}` — matching the Tag Inspector and the data-test blocks.
+	 *
+	 * Positional, so it shifts when a rule is deleted. Cite `ruleId` in anything that has to survive
+	 * that (roadmap 2GN.113).
+	 */
 	label: string;
 
-	/** The rule's index in `CLASSIFICATION_RULES`, its only runtime identity. */
+	/** The rule's stable id (roadmap 2GN.113), which survives deletion and reordering. */
+	ruleId: string;
+
+	/** The rule's index in `CLASSIFICATION_RULES`, its position in the shipped array. */
 	ruleIndex: number;
 
 	/** How many sampled artefacts the rule fired on. */
@@ -244,7 +256,8 @@ export function calibrateRules(
 		const fireCount = fireCounts[ruleIndex];
 		const firePercent = percent(fireCount);
 		return {
-			label: `R${ruleIndex + 1}`,
+			label: ruleDisplayLabel(rule) ?? `R${ruleIndex + 1}`,
+			ruleId: rule.id,
 			ruleIndex,
 			fireCount,
 			firePercent,
@@ -273,7 +286,7 @@ export function calibrateRules(
 					}
 				}
 				topContributor = {
-					label: `R${bestIndex + 1}`,
+					label: ruleDisplayLabel(CLASSIFICATION_RULES[bestIndex]!) ?? `R${bestIndex + 1}`,
 					ruleIndex: bestIndex,
 					firePercent: percent(fireCounts[bestIndex]),
 				};

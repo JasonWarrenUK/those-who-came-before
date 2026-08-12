@@ -1328,6 +1328,22 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       under the OR; every other preset/material pair is byte-identical to `origin/main`, all 30
       calibration pins hold with nothing re-recorded, 578 tests pass. Recorded in doc 05 §3.4 and
       doc 12 §2.41
+- [x] **2GN.113** — `ClassificationRule.id` — give rules a stable identity independent of position
+      _(depended on 2GN.87 — done)_ — filed and **ruled 2026-08-12** from PR #57 review, then
+      implemented on the same branch. Every rule carries a kebab-case slug naming what it reads and
+      concludes (`edge-short-sharp-dagger`), unique and pinned by test; `ruleById`/`requireRuleById`
+      resolve one, and `ruleDisplayLabel` renders the positional `R{n}` the Explorer and samplers
+      still show. **Why:** a rule's only identity was its index, so 2GN.87's deletion of R4 shifted
+      every later rule up one and invalidated every `R{n}` reference in comments, docs and tests at
+      once. Nothing failed — the staleness was found by eye across four follow-up commits, and this
+      review pass still found more (an `R32`/`R29` pair in `classification.ts`, an `R11` in
+      `types/tags.ts`, each describing a rule two indices away). An id reference cannot go quietly
+      stale: `requireRuleById` throws naming the missing id, verified by deleting a rule and
+      watching the suite fail rather than silently repoint. `classification.test.ts`'s 43 index
+      constants became id lookups and its 37 weight-signature guards were deleted as redundant, with
+      three id-contract tests added in their place. `R{n}` survives as a display label only; dated
+      measurement records (`calibration.test.ts`'s fire-rate tables, doc 12, the spikes) keep their
+      original numbering, since they describe the 44-rule set as measured. Recorded in doc 05 §9.2
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via

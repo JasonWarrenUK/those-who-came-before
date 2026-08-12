@@ -44,7 +44,7 @@ import {
 } from '../../src/lib/engine/generation/classification.ts';
 import { sampleBaselines } from '../../src/lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../src/lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES } from '../../src/lib/data/classification.ts';
+import { CLASSIFICATION_RULES, ruleDisplayLabel } from '../../src/lib/data/classification.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../src/lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../src/lib/types/tags.ts';
@@ -136,7 +136,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 	const fired: string[] = [];
 	CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
 		if (!rule.condition(features, context)) return;
-		const label = `R${ruleIndex + 1}`;
+		const label = ruleDisplayLabel(rule) ?? `R${ruleIndex + 1}`;
 		fired.push(label);
 		for (const [tag, weight] of rule.tags) {
 			const existing = contributions.get(tag) ?? [];
