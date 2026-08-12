@@ -2329,5 +2329,73 @@ calibration pins hold with nothing re-recorded, and 578 tests pass.
 
 ---
 
+### 2.42 Classification Rules Carry a Stable Id; `R{n}` Demoted to a Display Label (2026-08-12)
+
+**Origin:** PR #57 review **Source of truth:** `ClassificationRule.id` in `src/lib/types/tags.ts`;
+`.claude/roadmaps.json` 2GN.113 holds the ruling
+
+**A rule's only identity was its position in the array, and §2.39's deletion proved what that
+costs.** Removing R4 shifted every later rule up one, so every `R{n}` reference in comments, docs
+and tests silently came to name a different rule. Nothing failed. The staleness was found by eye
+across four separate follow-up commits (`49319ec`, `f12f535`, `15f8c8f`, `f7dd239`), each scoped
+somewhere the last one had not reached, and the PR review pass still found more afterwards: an
+`R32`/`R29` pair in `classification.ts` and an `R11` in `types/tags.ts` describing rules two indices
+away. **General lesson: an identifier that is derived from position cannot be cited safely, because
+nothing connects the citation to the thing it names.** A wrong `R{n}` is indistinguishable from a
+right one at the point of reading.
+
+**Every rule now carries a kebab-case slug naming what it reads and what it concludes.**
+`edge-short-sharp-dagger`, `container-slit-votive`, `applied-elements-above-p75`. The slugs were
+authored against each rule's own condition rather than derived from it or assigned by position, so
+the id states the intent a reader would otherwise reconstruct from a predicate. `RULES_BY_ID` is
+built once at module load and throws on a duplicate rather than letting the later rule win, so an
+ambiguous id cannot reach a lookup. `ruleById` returns `undefined`; `requireRuleById` throws naming
+the missing id and where ids are listed.
+
+**`R{n}` survives, as a rendering of current position and nothing else.**
+`ruleDisplayLabelAt(index)` is the form to call where the index is already in hand;
+`ruleDisplayLabel(rule)` is for where it is not, and returns `undefined` for an unshipped rule. The
+Explorer panels and `scripts/dev/sample-classification.ts` show the label, because a reader
+comparing a panel against the array wants the position. `tagInspector.ts` and `ruleCalibration.ts`
+carry `ruleId` alongside it, so the identity survives what the display cannot.
+
+**Dated measurements keep their original numbering, deliberately.** `calibration.test.ts`'s
+fire-rate tables, this register's own entries and the spikes all describe the 44-rule set as
+measured, so rewriting their numbers to today's positions would falsify a record. Only live
+cross-references were migrated. Where a dated passage sits next to live prose, the disambiguation is
+stated in place: `classification.ts`'s applied-element rule carries a note that the `R30` in the
+passages below it is `decorative-layers-above-p75`, which displays as R29 today.
+
+**The guard is that a deletion now fails loudly.** `classification.test.ts`'s 43 index constants
+call `requireRuleById`, and its 37 weight-signature identity guards were deleted as redundant, since
+the lookup is a strictly stronger check than the signature it replaced. Verified by deleting a rule:
+the suite fails with `no rule with id 'edge-multiple-composite'` rather than silently repointing a
+test at its neighbour. Three id-contract tests pin the mechanism itself (uniqueness and kebab-case
+shape, round-trip over every shipped rule plus rejection of a retired id, and display-label
+positionality).
+
+**Prose that quotes the rule count is checked too, since it was the other half of the same
+problem.** `docs/docs-rule-counts.test.ts` walks every `.md`/`.html` under `docs/` and fails when a
+count claim no longer matches `CLASSIFICATION_RULES.length`. Dated claims carry a
+`<!-- rule-count: historical -->` marker instead of an edit; §2.26 is the worked example. Two
+exemptions are structural rather than editorial: the marker is skipped past blank lines because
+`deno fmt` inserts one, and `<script type="application/json">` data islands are skipped entirely,
+because the roadmap artefacts embed `.claude/roadmaps.json` as a single 236KB line where no comment
+can sit.
+
+| Doc | What changed                                                                                                                   | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| 12  | This entry                                                                                                                     | 2026-08-12 |
+| 05  | §9.2's `ClassificationRule` block documents `id`, per that doc's dated-note convention                                         | 2026-08-12 |
+| —   | `types/tags.ts`: `id` added to `ClassificationRule`, with the positional-identity rationale inline                             | 2026-08-12 |
+| —   | `data/classification.ts`: 43 authored slugs; `RULES_BY_ID`, `ruleById`, `requireRuleById`, `ruleDisplayLabel{,At}`             | 2026-08-12 |
+| —   | `data/classification.test.ts`: index constants fetch by id; 37 weight-signature guards deleted; three id-contract tests added  | 2026-08-12 |
+| —   | Explorer: `tagInspector.ts` and `ruleCalibration.ts` carry `ruleId`; calibration assertions pin rules by id, not display label | 2026-08-12 |
+| —   | `scripts/dev/sample-classification.ts`: reads `ruleDisplayLabel` rather than hand-numbering                                    | 2026-08-12 |
+| —   | `docs/docs-rule-counts.test.ts`: new prose guard, with the historical marker and the data-island exemption                     | 2026-08-12 |
+| —   | Roadmap: 2GN.113 filed and closed                                                                                              | 2026-08-12 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
