@@ -21,7 +21,7 @@ import { mockGeologicalContext, mockMaterialFlow } from '../../../../tests/fixtu
 import type { DecorativeLayer, DecorativeTechnique } from '../../types/decoration.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
 import type { GeologicalContext } from '../../types/world.ts';
-import type { MaterialTag } from '../../types/tags.ts';
+import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped technique definition by name; throws if the catalogue ever drops it. */
 function technique(name: DecorativeTechnique) {
@@ -1373,7 +1373,16 @@ Deno.test('gradeDecorativeLayers: an assignment naming an unknown material keeps
 
 	const [regraded] = gradeDecorativeLayers(
 		layers,
-		[{ componentId: 'c0', materialId: 'unobtainium', provenance: { source: 'unknown' } }],
+		// Cast past `MaterialName` deliberately (roadmap 2GN.112): the id is typed against the shipped
+		// catalogue now, so this unknown-material case is unreachable through the type system. The
+		// runtime guard it exercises is still worth keeping — `gradeDecorativeLayers` looks the id up
+		// in a `Map` and must leave the grade untouched on a miss, which is what protects it against a
+		// persisted save or a future catalogue edit naming a material this build doesn't have.
+		[{
+			componentId: 'c0',
+			materialId: 'unobtainium' as MaterialName,
+			provenance: { source: 'unknown' },
+		}],
 		mockPhaseCharacteristics(),
 	);
 
@@ -1516,7 +1525,7 @@ function layer(
 }
 
 /** A material assignment, for enforceSubstrates fixtures. */
-function assignment(componentId: string, materialId: string) {
+function assignment(componentId: string, materialId: MaterialName) {
 	return { componentId, materialId, provenance: { source: 'local' as const } };
 }
 
@@ -1544,7 +1553,7 @@ Deno.test('enforceSubstrates: keeps every kind-none technique regardless of mate
 	const noneTechniques: DecorativeTechnique[] = ['polish', 'roughening', 'scoring', 'tassels'];
 
 	for (const name of noneTechniques) {
-		for (const materialId of ['linen', 'granite', 'gold']) {
+		for (const materialId of ['linen', 'granite', 'gold'] as MaterialName[]) {
 			const [result] = enforceSubstrates(
 				[layer(name)],
 				[assignment('c0', materialId)],
@@ -1588,7 +1597,8 @@ Deno.test('enforceSubstrates: an unmatched component keeps its layer', () => {
 Deno.test('enforceSubstrates: an assignment naming an unknown material keeps the layer', () => {
 	const [result] = enforceSubstrates(
 		[layer('glaze')],
-		[assignment('c0', 'unobtainium')],
+		// Cast past `MaterialName` deliberately — see the gradeDecorativeLayers case above.
+		[assignment('c0', 'unobtainium' as MaterialName)],
 	);
 
 	assertEquals(result?.technique, 'glaze');

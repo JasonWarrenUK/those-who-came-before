@@ -1,6 +1,7 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
 import { MATERIALS } from './materials.ts';
+import { MATERIAL_NAMES } from '../types/tags.ts';
 import type { MaterialTag } from '../types/tags.ts';
 
 /** Keyed by `MaterialTag` so the compiler flags a missing entry when the union gains a member. */
@@ -54,6 +55,43 @@ Deno.test('materials: every MaterialTag has at least one material', () => {
 Deno.test('materials: every id is unique', () => {
 	const ids = MATERIALS.map((material) => material.id);
 	assertEquals(ids.length, new Set(ids).size);
+});
+
+/**
+ * Pins `MATERIAL_NAMES` (`types/tags.ts`) against the catalogue in both directions (roadmap
+ * 2GN.112).
+ *
+ * The union is declared by hand rather than derived from `MATERIALS`, because `data/materials.ts`
+ * imports its `MaterialDefinition` from `types/` and the reverse import would cycle. That makes the
+ * two agree *by test rather than by construction*, so this is the guard that keeps them honest: add
+ * a material without extending `MATERIAL_NAMES` and its id stops being assignable everywhere the
+ * type is used (geology keys, `MaterialSelector`, `MaterialAssignment.materialId`); remove one
+ * without trimming the union and the type invites a reference to a material that no longer exists.
+ *
+ * Both directions matter. A one-way check would let the union drift wider than the catalogue, which
+ * is the direction that produces a compile-time-valid reference to a missing material.
+ */
+Deno.test('materials: MATERIAL_NAMES matches the shipped catalogue exactly (roadmap 2GN.112)', () => {
+	const catalogueIds = new Set<string>(MATERIALS.map((material) => material.id));
+	const declaredNames = new Set<string>(MATERIAL_NAMES);
+
+	const missingFromType = [...catalogueIds].filter((id) => !declaredNames.has(id));
+	const missingFromCatalogue = [...declaredNames].filter((name) => !catalogueIds.has(name));
+
+	assertEquals(
+		missingFromType,
+		[],
+		`shipped material(s) absent from MATERIAL_NAMES — add them to types/tags.ts: ${
+			missingFromType.join(', ')
+		}`,
+	);
+	assertEquals(
+		missingFromCatalogue,
+		[],
+		`MATERIAL_NAMES member(s) with no shipped material — remove them from types/tags.ts: ${
+			missingFromCatalogue.join(', ')
+		}`,
+	);
 });
 
 Deno.test('materials: every tags array is non-empty', () => {
