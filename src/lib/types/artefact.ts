@@ -659,11 +659,21 @@ export interface ExtractedFeatures {
 	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
 	 * forbids, and there is no longer a tag to look up.
 	 *
-	 * Populate it from the material's *situation* instead — availability × cultural affinity ×
-	 * provenance, per doc 11 §2.9. `explainMaterialWeight` (`engine/generation/materials.ts`, roadmap
-	 * 2GN.74) already returns those inputs for a given material and culture: `level` (how scarce it is
-	 * here), `culturalAffinity` (whether this culture prizes it) and `tradeRescued` (whether it only
-	 * arrives by trade). The threshold over those inputs is 2GN.68's to rule and has not been set.
+	 * Populate it from the material's *situation* instead. Doc 11 §2.9's formula has four terms —
+	 * availability × cultural affinity × provenance × stratification — and they come from three
+	 * places, none of them a catalogue lookup:
+	 *
+	 * - **availability** and **cultural affinity**: `explainMaterialWeight`
+	 *   (`engine/generation/materials.ts`, roadmap 2GN.74) returns `level` (how scarce the material is
+	 *   here), `culturalAffinity` (whether this culture prizes it) and `tradeRescued` (whether it only
+	 *   arrives by trade) for a given material/culture pair.
+	 * - **provenance**: `MaterialAssignment.provenance`, produced by `deriveMaterialProvenance` — a
+	 *   separate input, not part of `explainMaterialWeight`'s result. `tradeRescued` is a boolean
+	 *   about reachability and is not a substitute for it.
+	 * - **stratification**: `PhaseCharacteristics.society.stratification`, which doc 11 §2.9 makes a
+	 *   live input and which nothing reads yet.
+	 *
+	 * The threshold over those inputs is 2GN.68's to rule and has not been set.
 	 *
 	 * The classification rule reading this field is authored and dormant, allowlisted in
 	 * `calibration.test.ts`'s `DORMANT_RULE_INDICES` until that producer exists.

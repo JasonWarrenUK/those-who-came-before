@@ -91,23 +91,31 @@ the test for future members: would two cultures agree?
 
 **2. `gilding` gates physically** via `isGildingMaterial`, stated in terms of `formability` and
 `reactivity.oxidisation` so it reproduces itself under a changed catalogue — a newly-authored
-non-tarnishing workable metal becomes giltable automatically, and a gold-rich culture does not
-thereby make gold un-giltable.
+non-tarnishing workable metal becomes gildable automatically, and a gold-rich culture does not
+thereby make gold un-gildable.
 
 **3. The five redundant pools drop their precious entries**, unchanged in membership.
 
 **4. Trade flows re-key to `specificMaterials`.** Three shipped flows and several fixtures keyed on
 a precious tag; re-keying to the class tag alone would have over-reached (a `precious-metal` flow
-becoming a `metal` flow newly imports bronze and iron).
-`materialTag: 'metal', specificMaterials:
-['gold','silver']` reproduces each exactly.
+becoming a `metal` flow newly imports bronze and iron). `materialTag: 'metal'` with
+`specificMaterials: ['gold','silver']` names each flow's intent. ⚠️ Corrected in PR #57 review: this
+does **not** reproduce the old reach exactly. `flowSuppliesMaterial` ORs the tag arm with
+`specificMaterials`, so the list widens a flow and can never narrow it — these flows do reach bronze
+and iron. Availability is unaffected today (measured byte-identical to `origin/main` across four
+presets and six regional worlds), and whether the field should narrow is filed as 2GN.112.
 
 **5. `preciousMaterialsInDecoration` and its dormant rule survive, with a new producer contract.**
 The inference — decoration incorporating materials the culture prizes reads elite/ceremonial — is
 sound and is what doc 11 §2.9's formula was written to support. Only its input was wrong. 2GN.68
-must populate the field from the material's _situation_ (`explainMaterialWeight` returns `level`,
-`culturalAffinity` and `tradeRescued`), never a catalogue lookup. The threshold is 2GN.68's to rule.
-Deleting the rule instead would have discarded a correct inference because its wiring was wrong.
+must populate the field from the material's _situation_, never a catalogue lookup. That formula's
+four terms come from three places: `explainMaterialWeight` supplies availability and cultural
+affinity (`level`, `culturalAffinity`, `tradeRescued`); provenance comes separately from
+`MaterialAssignment.provenance` via `deriveMaterialProvenance`, since `tradeRescued` is a
+reachability boolean and not a provenance substitute; and stratification from
+`PhaseCharacteristics.society.stratification`, which doc 11 §2.9 makes live and nothing reads yet.
+The threshold over them is 2GN.68's to rule. Deleting the rule instead would have discarded a
+correct inference because its wiring was wrong.
 
 **6. The affinity-reduction question dissolves rather than being answered.** With one tag per
 material there is nothing to reduce; `max` is now vestigial in both `culturalAffinityWeight` and
@@ -131,10 +139,12 @@ combined pull should be preserved. The calibration harness failed: **R21 drifted
 33.9%).
 
 The fold was wrong. A missing affinity reads as `0` in that sum, so the `precious-metal` term only
-ever contributed for a culture authoring that tag — and no shipped preset did. Summing them handed
-`metal`-authoring cultures a modifier more than double what they had, raising `ring-form`'s share
-and everything downstream of it. The faithful fold is to drop the removed term and leave `metal` at
-its authored `0.4`.
+ever contributed for a culture whose `materialAffinities` authored that tag. Of the four Explorer
+presets, only Thalassar did (see the table above), and Thalassar authors no `metal` affinity — so
+the term paid out for no preset that would have received the folded `metal: 0.9`. Summing them
+handed every `metal`-authoring culture a modifier more than double what they had, raising
+`ring-form`'s share and everything downstream of it. The faithful fold is to drop the removed term
+and leave `metal` at its authored `0.4`.
 
 With that corrected, **the entire retirement is behaviour-neutral**: all 9 calibration tests pass
 with no pin re-recorded. That is the strongest available evidence the change is a refactor rather
