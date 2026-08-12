@@ -4,7 +4,7 @@
 		"build": "deno run -A npm:vite build",
 		"preview": "deno run -A npm:vite preview",
 		"check": "deno run -A npm:@sveltejs/kit sync && deno run -A npm:svelte-check --tsconfig ./tsconfig.json",
-		"test": "deno test --allow-env",
+		"test": "deno test --allow-env --allow-read",
 		"sample": "deno run -q --allow-run=gum,deno scripts/dev/sample-menu.ts",
 		"sample:artefact": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-artefact.ts",
 		"sample:materials": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-materials.ts",

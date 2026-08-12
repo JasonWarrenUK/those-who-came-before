@@ -25,13 +25,13 @@ detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on th
 
 1. **Always check the design docs first** before implementing anything
 2. The docs are the source of truth for design; `.claude/roadmaps.json` is the machine-readable
-   source of truth for task sequencing, dependency edges and completion state. `docs/roadmaps/mvp.md`
-   is its human-readable projection (task lines, annotations, Mermaid diagram), kept in sync by the
-   `/roadmap-maintain` skill; when the two disagree, the JSON governs
+   source of truth for task sequencing, dependency edges and completion state.
+   `docs/roadmaps/mvp.md` is its human-readable projection (task lines, annotations, Mermaid
+   diagram), kept in sync by the `/roadmap-maintain` skill; when the two disagree, the JSON governs
 3. Current implementation is ~2% complete; most systems exist only in specification
-4. Docs are the source of truth for design intent, never for what shipped code currently does. Doc 12
-   in particular is a dated chronological log, not a live snapshot — a given entry's claims ("no rule
-   reads X yet", a rule count, a module list) were true only as of that entry's date and may be
+4. Docs are the source of truth for design intent, never for what shipped code currently does. Doc
+   12 in particular is a dated chronological log, not a live snapshot — a given entry's claims ("no
+   rule reads X yet", a rule count, a module list) were true only as of that entry's date and may be
    superseded by a later entry or by the code itself. Before citing any such claim (in a review, a
    doc edit, or an implementation decision), check it against the current `src/` rather than quoting
    it as present-tense fact
@@ -58,7 +58,7 @@ deno task preview        # Preview production build
 deno task check          # Type checking (svelte-check via deno)
 deno fmt                 # Format (replaced Prettier)
 deno lint                # Lint (replaced ESLint)
-deno test                # Run tests (runner config lands with task 1FD.34)
+deno task test           # Run tests (--allow-env --allow-read; runner config lands with task 1FD.34)
 ```
 
 ## Architecture
@@ -286,6 +286,15 @@ From doc 08, section 5:
 - All engine modules get Deno tests
 - Fast, no browser needed
 - Deterministic via seeded PRNG
+
+### Docs Guards
+
+`docs/docs-rule-counts.test.ts` fails when prose states a classification-rule count that no longer
+matches `CLASSIFICATION_RULES` — the counterpart to the count assertions in
+`classification.test.ts`, covering the prose that quotes them. It is the only test that reads the
+filesystem, which is why the `test` task carries `--allow-read`. A dated entry that was accurate
+when written (doc 12's usually are) is exempted with a `<!-- rule-count: historical -->` comment on
+the line above, never by rewriting the record.
 
 ### Test Patterns
 
