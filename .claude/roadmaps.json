@@ -551,7 +551,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation (precious metals → elite/ceremonial boosts)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
@@ -663,7 +663,7 @@
 					{
 						"id": "2GN.78",
 						"description": "`src/lib/types/tags.ts` + `src/lib/data/materials.ts` — revisit `MaterialTag`'s `precious-metal`/`precious-stone` members per the 2GN.77 ruling",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.77"
 						],
@@ -1141,7 +1141,7 @@
 					{
 						"id": "2GN.74",
 						"description": "`engine/generation/materials.ts` — `explainMaterialWeight(material, culture, phase, geology, trade)` returning the decomposed factors (cultural affinity, phase technology, scarcity) plus the availability level and whether trade rescued it, so the material viewer (2GN.60) can show the scarcity-vs-affinity breakdown its roadmap line asks for. Today `computeMaterialWeight` returns only the product and the tuning constants (`SCARCITY_WEIGHT`, `NO_TECHNOLOGY_FLOOR`) are module-private, so the panel cannot decompose it without duplicating numbers the engine expects to retune",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.23"
 						],
@@ -1291,7 +1291,7 @@
 					{
 						"id": "2GN.87",
 						"description": "`src/lib/data/classification.ts` — R4's edge-family safety net catches nothing; decide whether to fix the grammar, the condition, or delete the rule",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.79"
 						],
@@ -1362,9 +1362,9 @@
 					{
 						"id": "2GN.105",
 						"description": "`engine/generation/materials.ts` + `types/artefact.ts` + `data/materials.ts` — let a material carry per-state property values (at minimum worked vs finished) rather than one silently-finished-state set, and re-audit the six pre-2GN.102 `physicalProperties` axes (`hardness`, `fragility`, `rigidity`, `grainFineness`, `porosity`, `combustibility`) against the working-state convention 2GN.102 established for `formability` but did not apply to them",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.102"
+							"2GN.111"
 						],
 						"notes": "Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ.",
 						"assignee": "Jason Warren"
@@ -1387,6 +1387,42 @@
 							"2GN.102"
 						],
 						"notes": "Filed 2026-08-11 during 2GN.102 (doc 12 §2.38). `relief` excluded leather solely as collateral from `rigidity >= 3`, a test aimed at linen, with no material-science basis — corrected in 2GN.102 once `formability` gave the gate something honest to key on. `overlay` uses the identical `rigidity >= 3` test `relief` used to carry; if `formability` is the correct gate for one, `overlay` is the first candidate for the same scrutiny. `studs`/`gilding` already carry a named leather exception and are not suspect on the same grounds.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.108",
+						"description": "design spike — should the artefact vocabulary express a short-bodied edged tool that is not a formed blade (scraper, chisel, small adze)? Today it cannot: `primaryAxisLength` bands `dimensions.primaryExtent`, a `Math.max` over every component's major axis drawn from the same `SHORT_MEDIUM_LONG_CM` table `bladeLengthBand` reads, so a non-short blade always lifts the artefact's axis above `short` and the blade band can never exceed the axis band. Measured over 8000 artefacts (2GN.87): only 6 of 12 `(axis, blade)` pairs occur, in a strict triangle, and `axis === 'short'` carried `blade === 'short'` in all 84 cases. These are among the commonest real assemblage finds, so the absence is a genuine content gap — but 2GN.87 ruled that the deleted R4 never encoded a decision to model them (it was authored in PR #37 review to plug a truth-table cell, with the scraper/chisel reading attached afterwards), so the question is open rather than inherited. If ruled yes, this spike also rules the mechanism: a shorter `elongated.length` rung below `short` / decoupling `bladeLengthBand` from the shared cm table so it bands the component's own proportion rather than absolute size / changing `deriveDimensions` so `primaryExtent` is not a plain `Math.max` (the 2GN.86 fix applied to a second symptom of the same cause). Each shifts fire rates set-wide and needs a recalibration sweep costed before it is chosen. A spike, not an implementation task — same shape as 2GN.80/2GN.77",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.87"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.109",
+						"description": "`src/lib/data/classification.ts` — replacement edge-family rule for the short-bodied non-blade edge, framed morphologically rather than as a truth-table cell. The deleted R4 (roadmap 2GN.87) failed because its condition described a combination of feature *bands* rather than a shape: whatever signal this rule reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather than authoring a rule for a form the game does not produce. Adding it shifts `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`, `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts` and the Explorer panel's label lookups all need updating together",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.108"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.110",
+						"description": "design spike — should `CulturalProfile.materialAffinities` support per-material entries alongside per-tag ones? Surfaced by 2GN.78 (doc 11 §2.9, doc 12 §2.40) as an accepted expressive loss: the map is keyed by `MaterialTag`, so with the `precious-*` members retired a culture can say \"we prize metal\" but no longer \"we prize gold specifically\". Thalassar's authored `precious-metal: 1.2` was the one live instance across the four Explorer presets and was dropped rather than re-expressed as `metal: 1.2`, which would newly favour bronze and iron that culture was never authored to prefer. Rule whether that granularity is worth carrying — and if so whether it belongs in `materialAffinities` as a second keyspace, or is better derived from the material's situation the way 2GN.77 ruled preciousness itself must be. Note the tension: a per-material affinity entry is a culture-authored judgement about one material, which is legitimate (it is *that culture's* opinion, not Earth's) but sits close enough to the retired tags that the boundary wants stating explicitly",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.78"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.111",
+						"description": "design spike — should `MaterialDefinition.physicalProperties` carry per-state values at all, and if so which states? 2GN.102 established a working-state convention for `formability` alone and named the inconsistency in `types/artefact.ts`'s preamble without resolving it (doc 12 §2.38); 2GN.105 was then filed presupposing the answer (\"at minimum worked vs finished\"). Rule the shape before the re-audit: whether a per-state model is warranted or the six pre-2GN.102 axes should instead be pinned to one documented state, how many states (`worked`/`finished`, or a third for `raw`), whether every axis needs every state or only those where the states genuinely differ, and what that does to the authoring burden across 16 materials × 7 axes. `glass`, `iron`, `fired-clay` and `leather` are the known-affected entries. 2GN.105 re-pointed to depend on this rather than on 2GN.102 directly, so the audit follows the ruling instead of assuming it",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.102"
+						],
 						"assignee": "Jason Warren"
 					}
 				]
