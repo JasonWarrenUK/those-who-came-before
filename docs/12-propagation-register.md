@@ -803,6 +803,8 @@ legibly — verified by reverting the retune, which named the drift and its size
 
 ### 2.26 Mass Proxy Saturation + Band Rebalance (2026-08-01)
 
+<!-- rule-count: historical -->
+
 **Origin:** Per-rule audit of all 43 classification rules, requested after 2GN.79 cleared 41 of them
 in prose rather than individually **Source of truth:** `deriveDimensions` and `MASS_BAND_CM2` in
 `src/lib/engine/generation/grammar.ts`

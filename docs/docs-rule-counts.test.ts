@@ -20,14 +20,20 @@ import { RELATIVE_TAGS } from '../src/lib/types/tags.ts';
  * ## Historical claims
  *
  * Doc 12 is a dated chronological log: an entry describing a measurement taken under the 44-rule
- * set is *correct* and must not be rewritten to today's number. Those mentions carry a `<!-- rule
- * -count: historical -->` marker on the preceding line, and this guard skips them.
+ * set is *correct* and must not be rewritten to today's number. Those mentions carry a
+ * `<!-- rule-count: historical -->` marker on the nearest non-blank line above, and this guard skips
+ * them. Blank lines between marker and claim are tolerated because `deno fmt` inserts one.
  *
  * The marker exists rather than a file-level exclusion because doc 12's July entries currently read
  * "43" — accurate as history, and matching today's count only by coincidence, since the set went
  * 43 → 44 (2GN.98, the execution-quality rule) → 43 (2GN.87, the short-edge deletion). Excluding
  * the file would hide a genuine live claim added to it later; matching on the number alone would
  * pass today and fire falsely the next time the count moves. Marking says which reading is meant.
+ *
+ * **Worked example:** doc 12 §2.26's "audit of all 43 classification rules" carries the marker. That
+ * audit ran on 2026-08-01, before 2GN.98 added the 44th rule, so its 43 describes the set it
+ * actually measured and coincides with today's count for unrelated reasons. It is the shape every
+ * future marker should copy: a dated measurement, left verbatim, exempted rather than edited.
  *
  * **When this fails, decide which kind of claim it is.** Live prose describing the shipped set gets
  * the new number. A dated record of what was true when it was written gets the marker, not an edit.
@@ -57,10 +63,18 @@ const RELATIVE_COUNT = CLASSIFICATION_RULES.filter((rule) => {
  * subset — `docs/roadmaps/mvp.md` uses "not all 34 rules the ruling's selector catches" for the
  * relative count, correctly. Nothing in the phrase distinguishes the two, so matching it produced
  * false positives on prose that was right. The qualified forms below are unambiguous.
+ *
+ * **The verb form is matched, though, and the bare noun phrase is the only exclusion.** "runs 43
+ * rules" names the whole set by construction: something that *runs* or *evaluates* N rules is
+ * describing the evaluated set, where a bare "all N rules" can be scoping a subset introduced
+ * earlier in the sentence. The distinction is not cosmetic — `how-an-artefact-gets-made.html`'s
+ * "`classifyArtefact` runs all 43 rules" read 44 for two commits, was caught by eye rather than by
+ * this guard, and is exactly the sentence this file exists to catch (roadmap 2GN.113).
  */
 const TOTAL_PATTERNS: readonly RegExp[] = [
 	/\ball (\d+) (?:classification|scoring|shipped) rules\b/g,
 	/\b(\d+) (?:classification|scoring) rules\b/g,
+	/\b(?:runs|evaluates|applies|fires) (?:all )?(\d+) rules\b/g,
 ];
 
 /** Prose asserting the relative/total split, e.g. "34 of the 43 rules". */
@@ -87,10 +101,24 @@ async function docFiles(dir: URL): Promise<URL[]> {
 	return found;
 }
 
-/** Whether this line, or the one above it, marks the mention as a dated historical claim. */
+/**
+ * Whether this line, or the nearest non-blank line above it, marks the mention as historical.
+ *
+ * Blank lines are skipped rather than ending the search, because `deno fmt` inserts one between an
+ * HTML comment and the paragraph below it. A strict one-line lookback would therefore hold only
+ * until the next `deno fmt` run, which would silently void every marker in the tree rather than
+ * failing visibly — the worst outcome available for an exemption mechanism.
+ */
 function isHistorical(lines: readonly string[], index: number): boolean {
-	return (lines[index]?.includes(HISTORICAL_MARKER) ?? false) ||
-		(lines[index - 1]?.includes(HISTORICAL_MARKER) ?? false);
+	if (lines[index]?.includes(HISTORICAL_MARKER) ?? false) return true;
+
+	for (let above = index - 1; above >= 0; above--) {
+		const line = lines[above] ?? '';
+		if (line.trim() === '') continue;
+		return line.includes(HISTORICAL_MARKER);
+	}
+
+	return false;
 }
 
 function scan(path: string, source: string): Mention[] {
