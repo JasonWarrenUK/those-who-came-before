@@ -16,7 +16,12 @@ import {
 	mockCulturalProfile,
 	mockPhaseCharacteristics,
 } from '../../../../tests/fixtures/culture.ts';
-import { mockGeologicalContext, mockMaterialFlow } from '../../../../tests/fixtures/world.ts';
+import {
+	MOCK_WORLD_REGIONS,
+	mockGeologicalContext,
+	mockMaterialFlow,
+	mockRegionalWorld,
+} from '../../../../tests/fixtures/world.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
 import type { MaterialTag } from '../../types/tags.ts';
 
@@ -234,6 +239,37 @@ Deno.test('explainMaterialWeight: factors multiply back to computeMaterialWeight
 			explanation.weight,
 			`${id}: factors should multiply back to weight exactly`,
 		);
+	}
+});
+
+/**
+ * Pins `explainMaterialWeight`'s inlined availability ladder against `isAvailable`, the function the
+ * Explorer's obtainability column claims to mirror.
+ *
+ * `explainMaterialWeight` deliberately inlines `isAvailable`'s rung test rather than calling it, so
+ * `bestRegionalLevel` is computed once instead of the two independent calls `isAvailable` and
+ * `scarcityWeight` each make. That leaves two copies of the ladder that have to move together. The
+ * weight side already has its guard (the multiply-back test above would catch a scarcity drift);
+ * this is the missing equivalent for `available`, so a future edit to `isAvailable`'s branch order,
+ * a new `AvailabilityLevel`, or a change to `LOCALLY_OBTAINABLE_LEVELS` cannot leave the two
+ * silently disagreeing.
+ *
+ * Swept over the whole catalogue crossed with the six exhaustive regional worlds, which between them
+ * exercise every rung including `trade-only` both rescued and unrescued.
+ */
+Deno.test('explainMaterialWeight: available agrees with isAvailable everywhere', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: {} });
+
+	for (const region of MOCK_WORLD_REGIONS) {
+		const world = mockRegionalWorld(region);
+		for (const definition of MATERIALS) {
+			assertEquals(
+				explainMaterialWeight(definition, culture, phase, world.geology, world.trade).available,
+				isAvailable(definition, world.geology, world.trade),
+				`${region}/${definition.id}`,
+			);
+		}
 	}
 });
 
