@@ -37,6 +37,12 @@ import { RELATIVE_TAGS } from '../src/lib/types/tags.ts';
  *
  * **When this fails, decide which kind of claim it is.** Live prose describing the shipped set gets
  * the new number. A dated record of what was true when it was written gets the marker, not an edit.
+ *
+ * ## Generated data islands
+ *
+ * One case the marker cannot serve: `<script type="application/json">` blocks, where the roadmap
+ * artefacts embed `.claude/roadmaps.json` as a single minified line. `isEmbeddedData` skips those,
+ * for the reasons given at its own definition.
  */
 
 /** Docs whose prose is checked. Every `.md`/`.html` under `docs/`, walked rather than listed. */
@@ -121,12 +127,32 @@ function isHistorical(lines: readonly string[], index: number): boolean {
 	return false;
 }
 
+/**
+ * Whether this line is an embedded JSON data island rather than prose.
+ *
+ * `docs/artefacts/roadmap-*.html` carry the whole roadmap as one `<script type="application/json">`
+ * line, projected from `.claude/roadmaps.json`. 2GN.83's note in there records an audit run on
+ * 2026-08-01, before 2GN.98 added the 44th rule, so its "all 43 classification rules" is the same
+ * dated claim doc 12 §2.26 carries — and the marker cannot reach it, because a line-level HTML
+ * comment has nowhere to sit inside a 236KB single line. Without this skip the next count change
+ * hits two files where editing falsifies a dated measurement and marking is impossible.
+ *
+ * Exempting the data island rather than the file is what keeps the rest of those pages honest, and
+ * the `type` attribute is load-bearing: `how-an-artefact-gets-made.html` states "43 scoring rules"
+ * inside a plain `<script>` block of page JS (line 557), which is a live claim and stays checked.
+ * The source of truth for these strings is `.claude/roadmaps.json`, reviewed as prose in its own
+ * right; what is skipped here is a projection of it, not an independent assertion.
+ */
+function isEmbeddedData(line: string): boolean {
+	return /<script[^>]*\btype\s*=\s*["']application\/json["']/i.test(line);
+}
+
 function scan(path: string, source: string): Mention[] {
 	const lines = source.split('\n');
 	const mentions: Mention[] = [];
 
 	lines.forEach((line, index) => {
-		if (isHistorical(lines, index)) return;
+		if (isHistorical(lines, index) || isEmbeddedData(line)) return;
 
 		// "all 43 classification rules" matches both total patterns, at overlapping offsets. Report
 		// the longest match at each position once: two lines naming the same claim twice reads as two
@@ -164,6 +190,29 @@ function scan(path: string, source: string): Mention[] {
 
 	return mentions;
 }
+
+/**
+ * The data-island skip is scoped by `type`, and that boundary is the whole point of it.
+ *
+ * A skip written as "any `<script>`" would read as the same fix and silently drop
+ * `how-an-artefact-gets-made.html`'s live "43 scoring rules" claim, which sits in a plain page-JS
+ * block. This pins both sides so the narrowing cannot be lost to a later tidy-up.
+ */
+Deno.test('scan: skips embedded JSON data islands, still reads plain script blocks', () => {
+	const stale = String(RULE_COUNT + 1);
+
+	const embedded = scan(
+		'artefacts/generated.html',
+		`<script id="roadmap-data" type="application/json">{"notes": "audit of all ${stale} classification rules"}</script>`,
+	);
+	assert(embedded.length === 0, `data island should be skipped, got ${embedded.length} mention(s)`);
+
+	const pageScript = scan('artefacts/page.html', `<script>\nconst d = '${stale} scoring rules';\n`);
+	assert(
+		pageScript.length === 1,
+		`plain script block should stay checked, got ${pageScript.length} mention(s)`,
+	);
+});
 
 Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.87)', async () => {
 	const files = await docFiles(DOCS_ROOT);
