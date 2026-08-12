@@ -229,6 +229,14 @@ const INTRODUCED_MATERIAL_TAGS: Record<DecorativeTechnique, readonly MaterialTag
  * `['precious-metal']` tag list produced — because gold reads `oxidisation: 0` and silver `3`
  * against bronze's `6` and iron's `7`.
  *
+ * **Only the oxidisation clause discriminates on today's catalogue.** All four `metallurgy`
+ * materials read `formability: 5`, so `>= 5` admits everything it currently sees; the pool rests
+ * entirely on `oxidisation <= 3`. The formability clause is kept because it states the other half of
+ * the physical requirement — a metal that cannot be beaten to leaf cannot be gilded with, whatever
+ * its tarnish behaviour — and it starts discriminating the moment the catalogue spreads those values
+ * (roadmap 2GN.111 may well do exactly that). Anyone retuning these numbers should know the gate is
+ * currently one-legged.
+ *
  * Stated physically rather than by tag so the gate reproduces itself under a changed catalogue: a
  * newly-authored non-tarnishing workable metal becomes giltable automatically, and a culture that
  * happens to be swimming in gold does not thereby make gold un-giltable. The retired tag encoded

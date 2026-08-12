@@ -273,8 +273,12 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		}),
 		trade: [
 			// Was keyed on `precious-metal` (roadmap 2GN.78). Re-keyed to the class tag with an explicit
-			// material list so the flow still reaches exactly gold and silver — a bare `metal` flow would
-			// newly import bronze and iron.
+			// material list naming what the flow is *for*. Note this does not narrow it:
+			// `flowSuppliesMaterial` ORs the tag arm with `specificMaterials`, so this flow reaches all
+			// four metals, exactly as a bare `metal` flow would. The list widens, never restricts.
+			// Availability is unchanged from before the re-key, measured across all four presets and all
+			// six regional worlds, because bronze and iron are reachable here by geology anyway. Whether
+			// `specificMaterials` *should* narrow is filed as roadmap 2GN.112.
 			{
 				materialTag: 'metal',
 				specificMaterials: ['gold', 'silver'],
@@ -370,8 +374,12 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'scarce',
 		}),
 		trade: [
-			// Re-keyed from `precious-metal` (roadmap 2GN.78); `specificMaterials` preserves the exact
-			// gold/silver reach the tag gave it.
+			// Re-keyed from `precious-metal` (roadmap 2GN.78). `specificMaterials` does not preserve the
+			// tag's exact gold/silver reach — it cannot, since `flowSuppliesMaterial` ORs the two arms, so
+			// this flow nominally reaches bronze and iron too (roadmap 2GN.112).
+			// Xoconahtl is unaffected, but by geology rather than by this flow: it marks `bronze: 'absent'`
+			// and `iron: 'absent'`, and `isAvailable` rejects `absent` before trade is consulted. Move
+			// either to `trade-only` and this flow will import it.
 			{
 				materialTag: 'metal',
 				specificMaterials: ['gold', 'silver'],
@@ -460,8 +468,11 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'available',
 		}),
 		trade: [
-			// Re-keyed from `precious-stone` (roadmap 2GN.78); jade was that tag's only carrier, so the
-			// explicit list reproduces the flow exactly rather than importing all stone.
+			// Re-keyed from `precious-stone` (roadmap 2GN.78). Jade was that tag's only carrier, but it is
+			// not `stone`'s: this flow also reaches obsidian, flint and granite, since
+			// `flowSuppliesMaterial` ORs the tag arm with `specificMaterials` (roadmap 2GN.112). Harmless
+			// for Khaltiris, whose geology already reaches all three locally, so availability is unchanged
+			// — but this is not the jade-only flow the tag gave it.
 			{
 				materialTag: 'stone',
 				specificMaterials: ['jade'],

@@ -52,8 +52,10 @@ const BADGE: Record<Obtainability, string> = {
 
 <p class="text-base-content/70 mt-2 max-w-prose text-sm">
 	The candidate table below breaks weight into its three factors — cultural affinity, phase
-	technology, scarcity — multiplying to the combined weight in the last column. The per-component
-	distribution samples the draw repeatedly, which shows the same bias empirically.
+	technology, scarcity — multiplying to the combined weight in the last column for every obtainable
+	candidate. A blocked candidate keeps its three engine factors but shows a combined weight of zero,
+	since it never enters the draw whatever those factors say. The per-component distribution samples
+	the draw repeatedly, which shows the same bias empirically.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
