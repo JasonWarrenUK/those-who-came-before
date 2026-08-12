@@ -23,9 +23,9 @@
  * same reasoning as the Explorer's `tagInspector.ts` memo: the baseline is a property of the
  * culture being sampled, not of any one artefact. Each sampled artefact's own layers are assigned
  * materials and re-graded before `extractFeatures`, matching `sampleBaselines` itself and
- * `ruleCalibration.ts`'s `calibrateRules` — without that pass, `meanDecorativeGrade` (R44) here
- * would be the provisional technique-only grade, measured on a different scale than the baseline it
- * is being compared against (roadmap 2GN.103, doc 12 §2.36).
+ * `ruleCalibration.ts`'s `calibrateRules` — without that pass, `meanDecorativeGrade`
+ * (`execution-quality-above-p90`) here would be the provisional technique-only grade, measured on a
+ * different scale than the baseline it is being compared against (roadmap 2GN.103, doc 12 §2.36).
  *
  * Run via `deno task sample:classification` — see `scripts/dev/shared.ts` for the fixture-world
  * caveat.
@@ -44,7 +44,7 @@ import {
 } from '../../src/lib/engine/generation/classification.ts';
 import { sampleBaselines } from '../../src/lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../src/lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES, ruleDisplayLabel } from '../../src/lib/data/classification.ts';
+import { CLASSIFICATION_RULES, ruleDisplayLabelAt } from '../../src/lib/data/classification.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../src/lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../src/lib/types/tags.ts';
@@ -136,7 +136,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 	const fired: string[] = [];
 	CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {
 		if (!rule.condition(features, context)) return;
-		const label = ruleDisplayLabel(rule) ?? `R${ruleIndex + 1}`;
+		const label = ruleDisplayLabelAt(ruleIndex);
 		fired.push(label);
 		for (const [tag, weight] of rule.tags) {
 			const existing = contributions.get(tag) ?? [];
