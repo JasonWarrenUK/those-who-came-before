@@ -2246,20 +2246,84 @@ culture can no longer say "we prize gold specifically" — only "we prize metal"
 bronze and iron it was never authored to prefer. Whether the map should support per-material entries
 is filed as a design question.
 
-| Doc | What changed                                                                                                                                                                                                    | Completed  |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 12  | This entry; §2.37's "already compliant" reading superseded                                                                                                                                                      | 2026-08-11 |
-| 11  | §2.9's `precious-*` consequence rewritten: retired outright, not kept as descriptors; the two-culture test for new members; the accepted expressive loss                                                        | 2026-08-11 |
-| —   | `docs/spikes/2GN.78-precious-material-tags.md`: new — the argument, the four measured predicates, the pool table, the rejected alternatives                                                                     | 2026-08-11 |
-| —   | `types/tags.ts`: `MaterialTag` loses both members; JSDoc carries the class-not-judgement test                                                                                                                   | 2026-08-11 |
-| —   | `data/materials.ts`: gold, silver, jade drop their precious tag; header records why no entry carries one                                                                                                        | 2026-08-11 |
-| —   | `engine/generation/decoration.ts`: `isGildingMaterial` added; five pools de-duplicated; access gate reads a resolved pool so `gilding` stays gated                                                              | 2026-08-11 |
-| —   | `engine/generation/materials.ts`: `culturalAffinityWeight`'s max recorded as vestigial and unruled                                                                                                              | 2026-08-11 |
-| —   | `data/grammars/core.ts`: `ring-form`/`sheet-form` drop the precious modifier, `metal` unchanged at its authored value                                                                                           | 2026-08-11 |
-| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: precious affinities removed, trade flows re-keyed onto class tag + `specificMaterials` (widens, not narrows — 2GN.112; availability measured unchanged) | 2026-08-11 |
-| —   | `types/artefact.ts`, `data/classification.ts`: `preciousMaterialsInDecoration`'s producer contract rewritten for 2GN.68                                                                                         | 2026-08-11 |
-| —   | Tests: gilding-pool test added, one-tag-per-material invariant pinned, two exhaustiveness guards and the pinned tag table updated; no calibration pin re-recorded                                               | 2026-08-11 |
-| —   | Roadmap: 2GN.78 done; per-material affinity question filed                                                                                                                                                      | 2026-08-11 |
+| Doc | What changed                                                                                                                                                                                                                                                                                                            | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry; §2.37's "already compliant" reading superseded                                                                                                                                                                                                                                                              | 2026-08-11 |
+| 11  | §2.9's `precious-*` consequence rewritten: retired outright, not kept as descriptors; the two-culture test for new members; the accepted expressive loss                                                                                                                                                                | 2026-08-11 |
+| —   | `docs/spikes/2GN.78-precious-material-tags.md`: new — the argument, the four measured predicates, the pool table, the rejected alternatives                                                                                                                                                                             | 2026-08-11 |
+| —   | `types/tags.ts`: `MaterialTag` loses both members; JSDoc carries the class-not-judgement test                                                                                                                                                                                                                           | 2026-08-11 |
+| —   | `data/materials.ts`: gold, silver, jade drop their precious tag; header records why no entry carries one                                                                                                                                                                                                                | 2026-08-11 |
+| —   | `engine/generation/decoration.ts`: `isGildingMaterial` added; five pools de-duplicated; access gate reads a resolved pool so `gilding` stays gated                                                                                                                                                                      | 2026-08-11 |
+| —   | `engine/generation/materials.ts`: `culturalAffinityWeight`'s max recorded as vestigial and unruled                                                                                                                                                                                                                      | 2026-08-11 |
+| —   | `data/grammars/core.ts`: `ring-form`/`sheet-form` drop the precious modifier, `metal` unchanged at its authored value                                                                                                                                                                                                   | 2026-08-11 |
+| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: precious affinities removed, trade flows re-keyed onto class tag + `specificMaterials` — which ORed rather than narrowing, so the flows reached the whole class; superseded by §2.41's `includes`/`excludes` shape, which makes them mean what this row claimed | 2026-08-11 |
+| —   | `types/artefact.ts`, `data/classification.ts`: `preciousMaterialsInDecoration`'s producer contract rewritten for 2GN.68                                                                                                                                                                                                 | 2026-08-11 |
+| —   | Tests: gilding-pool test added, one-tag-per-material invariant pinned, two exhaustiveness guards and the pinned tag table updated; no calibration pin re-recorded                                                                                                                                                       | 2026-08-11 |
+| —   | Roadmap: 2GN.78 done; per-material affinity question filed                                                                                                                                                                                                                                                              | 2026-08-11 |
+
+---
+
+### 2.41 `MaterialFlow` Selects by Include/Exclude; `MaterialName` Types Every Material Id (2026-08-12)
+
+**Origin:** PR #57 review **Source of truth:** doc 05 §3.4 holds the shape; `.claude/roadmaps.json`
+2GN.112 holds the ruling
+
+**The old shape had two fields feeding one selector with the operator left unstated.**
+`MaterialFlow` carried `materialTag: MaterialTag` plus an optional `specificMaterials: string[]`,
+and `MaterialFlow.specificMaterials`' own JSDoc said it applied "when the flow is narrower than the
+whole tag". `flowSuppliesMaterial` ORed the two arms, so the list could only ever _widen_ a flow and
+never restrict it: `materialTag: 'metal'` supplied bronze and iron whatever the list said. The type
+documented a contract the implementation did not provide, and no test pinned either reading.
+
+**§2.40's re-key was the first code to depend on the narrowing reading, and it silently didn't
+work.** Retiring `precious-metal` left three shipped flows needing a new key; they were re-authored
+as class tag + `specificMaterials` specifically to hold the retired tag's exact reach, and commented
+as doing so. Under the OR they reached the whole class instead. Availability happened not to move,
+because every material the OR newly reached was already reachable another way — which is why the
+error survived review and a full suite run. **General lesson: a mechanism that is inert today
+because other data happens to mask it is not thereby correct, and "the tests still pass" does not
+distinguish the two.**
+
+**Both candidate fixes were insufficient, which is what forced the shape change.** Making the
+implementation narrow would have expressed "no metals except gold" but not "all metals except gold"
+— the latter only by enumerating the complement, which freezes against a catalogue that later gains
+a metal. Replacing the pair with one explicit material list had the same gap and additionally lost
+the open-over-the-catalogue property a class tag gives. `includes`/`excludes` is the smallest shape
+expressing both: union the includes, subtract the excludes, no precedence and no ordering. A
+rejected third option resolved a tag/id collision by discarding the tag and warning; it bought
+exactly what narrowing bought, told authors writing a legitimate "class plus this one especially"
+that they had erred, and made a flow's reach depend on which other entries sat beside it.
+
+**Selector arms are tagged because three strings live in both vocabularies.** `bone`, `glass` and
+`leather` each name a `MaterialTag` _and_ a material id, so a `MaterialTag | MaterialName` union
+could not tell "the bone class, including antler" from "the bone material alone". Resolving that by
+precedence would have made three of sixteen materials unselectable by one of their two readings.
+
+**`MaterialName` types every material id, not just the selector's.** The union is declared in
+`types/tags.ts` rather than derived from `MATERIALS`, because `data/materials.ts` imports its
+`MaterialDefinition` from `types/` and the reverse import would cycle — so the two are kept in step
+by a two-directional test rather than by construction. It now types `MaterialDefinition.id`,
+`RegionalAvailability.materialId`, `GeologicalContext.materialAvailability`'s key and
+`MaterialAssignment.materialId`, so a mistyped id fails at compile time wherever a material is
+named. `tests/fixtures/world.ts` had been hand-rolling a runtime equivalent of exactly this check.
+
+**One availability outcome changed, deliberately.** Measured across all four Explorer presets × 16
+materials against `origin/main`: Thalassar loses jade. Its jade is `trade-only` and was arriving
+through the obsidian flow's `stone` tag arm — the OR reach nobody authored — so the flow now
+carrying obsidian alone is the authored intent restored. Every other pair is byte-identical, all 30
+calibration pins hold with nothing re-recorded, and 578 tests pass.
+
+| Doc | What changed                                                                                                                                 | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry                                                                                                                                   | 2026-08-12 |
+| 05  | §3.4's `MaterialFlow` code block replaced; the include/exclude rule and the tagged-arm rationale stated                                      | 2026-08-12 |
+| —   | `types/world.ts`: `MaterialSelector` added; `MaterialFlow` re-shaped; `RegionalAvailability`/`GeologicalContext` keyed by `MaterialName`     | 2026-08-12 |
+| —   | `types/tags.ts`: `MATERIAL_NAMES` + `MaterialName` added, with the collision warning and the declared-not-derived rationale                  | 2026-08-12 |
+| —   | `types/artefact.ts`: `MaterialDefinition.id` and `MaterialAssignment.materialId` typed `MaterialName`                                        | 2026-08-12 |
+| —   | `engine/generation/materials.ts`: `selectorMatches` added, `flowSuppliesMaterial` rewritten; `synthesiseTradePathId` drops its tag component | 2026-08-12 |
+| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: every flow re-authored; §2.40's three re-keyed flows now mean what they claimed      | 2026-08-12 |
+| —   | Tests: six selector-semantics cases, the `MATERIAL_NAMES` two-way invariant; the "even off-tag" case renamed for what it now pins            | 2026-08-12 |
+| —   | Roadmap: 2GN.112 rewritten from "should `specificMaterials` narrow?" to the ruling it became                                                 | 2026-08-12 |
 
 ---
 

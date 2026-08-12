@@ -99,11 +99,14 @@ thereby make gold un-gildable.
 **4. Trade flows re-key to `specificMaterials`.** Three shipped flows and several fixtures keyed on
 a precious tag; re-keying to the class tag alone would have over-reached (a `precious-metal` flow
 becoming a `metal` flow newly imports bronze and iron). `materialTag: 'metal'` with
-`specificMaterials: ['gold','silver']` names each flow's intent. ⚠️ Corrected in PR #57 review: this
-does **not** reproduce the old reach exactly. `flowSuppliesMaterial` ORs the tag arm with
-`specificMaterials`, so the list widens a flow and can never narrow it — these flows do reach bronze
-and iron. Availability is unaffected today (measured byte-identical to `origin/main` across four
-presets and six regional worlds), and whether the field should narrow is filed as 2GN.112.
+`specificMaterials: ['gold','silver']` was written to name each flow's intent.
+
+⚠️ **Corrected in PR #57 review, then superseded.** That pairing did not reproduce the old reach:
+`flowSuppliesMaterial` ORed the tag arm with `specificMaterials`, so the list widened a flow and
+could never narrow it, and these flows reached the whole class. The defect was invisible because
+every material the OR newly reached was already reachable another way. **2GN.112** replaced the pair
+with `includes`/`excludes` over a tagged `MaterialSelector`, under which these flows now carry
+exactly gold and silver (and jade, for Khaltiris) as this section always claimed. See doc 12 §2.41.
 
 **5. `preciousMaterialsInDecoration` and its dormant rule survive, with a new producer contract.**
 The inference — decoration incorporating materials the culture prizes reads elite/ceremonial — is

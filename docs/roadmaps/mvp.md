@@ -1276,14 +1276,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       admits gold and silver and nothing else — the retired pool exactly, since gold reads
       oxidisation `0` and silver `3` against bronze `6` and iron `7` — and the other five techniques
       listed a precious tag _redundantly_ beside its class tag (measured pool sizes identical with
-      and without). Trade flows re-keyed onto class tag + `specificMaterials`, which names each
-      flow's intent but widens rather than preserves its reach (corrected in PR #57 review; filed as
-      **2GN.112**, availability measured unchanged). Three of the five authored precious affinities
-      were already dead data under the max reduction; the affinity semantics question 2GN.84 folded
-      in **dissolves** rather than being answered, since one tag per material leaves nothing to
-      reduce. The grammar's precious `culturalModifiers` were _dropped_, not folded into their
-      `metal` siblings — the calibration harness caught the first attempt drifting R21 by 8.6pp,
-      because `effectiveOptionWeight` reads a missing affinity as `0` so the precious term only ever
+      and without). Trade flows re-keyed onto class tag + `specificMaterials`, which named each
+      flow's intent but widened rather than preserved its reach, since that pair ORed — corrected in
+      PR #57 review and superseded by **2GN.112**'s `includes`/`excludes` shape, under which these
+      flows finally mean what this line claimed. Three of the five authored precious affinities were
+      already dead data under the max reduction; the affinity semantics question 2GN.84 folded in
+      **dissolves** rather than being answered, since one tag per material leaves nothing to reduce.
+      The grammar's precious `culturalModifiers` were _dropped_, not folded into their `metal`
+      siblings — the calibration harness caught the first attempt drifting R21 by 8.6pp, because
+      `effectiveOptionWeight` reads a missing affinity as `0` so the precious term only ever
       contributed for a culture authoring that tag — of the four presets only Thalassar, which
       authors no competing `metal` value, so no preset that would have received the folded
       `metal: 0.9` was getting the precious term at all. With that corrected the whole retirement is
@@ -1302,26 +1303,31 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       explicitly: a per-material affinity entry _is_ a culture-authored judgement about one
       material, which is legitimate (it is that culture's opinion, not Earth's) but sits close
       enough to the retired tags that the boundary wants drawing rather than assuming
-- [ ] **2GN.112** — design spike — should `MaterialFlow.specificMaterials` narrow a flow, or widen
-      it? _(depends on 2GN.78 — done; unblocked)_ — filed 2026-08-12 from PR #57 review. The type's
-      JSDoc says "when the flow is narrower than the whole tag", but `flowSuppliesMaterial`
-      (`engine/generation/materials.ts`) ORs the two arms, so a list can only ever _add_ materials
-      to a tag's reach, never restrict it:
-      `materialTag: 'metal', specificMaterials: ['gold',
-      'silver']` supplies bronze and iron
-      too. The type documents a contract the implementation does not provide. Surfaced by 2GN.78
-      (doc 12 §2.40), which re-keyed three shipped flows and several fixtures from the retired
-      precious tags onto `class tag + specificMaterials`, making this the first code to lean on the
-      narrowing reading. Behaviour is unaffected today, measured: availability is byte-identical to
-      `origin/main` across all four Explorer presets and all six `MOCK_WORLD_REGIONS`, because every
-      material the OR newly reaches was already reachable another way — Xoconahtl is protected by
-      `bronze`/`iron: 'absent'` short-circuiting before trade, not by its flow, so the protection
-      would evaporate if either moved to `trade-only`. Rule which reading is correct and make type,
-      implementation and the `explorer-cultures.ts` comments agree. Note `materials.test.ts`
-      deliberately pins the widening
-      (`isAvailable:
-      trade-only reachable via a specificMaterials id even off-tag`), so
-      narrowing is a behaviour change with a test to re-rule, not a bug fix
+- [x] **2GN.112** — design spike — should `MaterialFlow.specificMaterials` narrow a flow, or widen
+      it? _(depended on 2GN.78 — done)_ — filed and **ruled 2026-08-12** from PR #57 review, then
+      implemented on the same branch. **Neither: the field is gone.** `MaterialFlow` now selects via
+      `includes: MaterialSelector[]` plus optional `excludes`, where `MaterialSelector` is
+      `{ tag: MaterialTag } | { id: MaterialName }` — a flow supplies a material when some
+      `includes` selector names it and no `excludes` selector does. The old pair had two fields
+      feeding one selector with the combining rule unstated: `flowSuppliesMaterial` ORed them while
+      the type's JSDoc claimed the id list narrowed the tag, so the list could only widen and
+      2GN.78's three re-keyed flows silently reached the whole class rather than the gold/silver and
+      jade they were authored and commented as carrying. Narrowing alone was rejected as
+      insufficient: it expresses "no metals except gold" but reaches "all metals except gold" only
+      by enumerating the complement, which freezes against a catalogue that later gains a metal —
+      `excludes` is what buys that case. A single explicit material list had the same gap and also
+      lost a class tag's open-over-the-catalogue property. Selector arms are tagged rather than bare
+      strings because `bone`, `glass` and `leather` each name both a `MaterialTag` and a material
+      id. **Scope addition:** `MaterialName` now types every material id — `MaterialDefinition.id`,
+      `RegionalAvailability.materialId`, `GeologicalContext.materialAvailability`'s key,
+      `MaterialAssignment.materialId` and the selector's `id` arm — declared in `types/tags.ts`
+      rather than derived from `MATERIALS` (that import would cycle) and pinned to the catalogue by
+      a two-directional test, replacing a runtime equivalent `tests/fixtures/world.ts` was
+      hand-rolling. ⚠️ breaking on both counts. **One measured behaviour change:** Thalassar loses
+      jade, whose `trade-only` entry had been arriving through the obsidian flow's `stone` tag arm
+      under the OR; every other preset/material pair is byte-identical to `origin/main`, all 30
+      calibration pins hold with nothing re-recorded, 578 tests pass. Recorded in doc 05 §3.4 and
+      doc 12 §2.41
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via

@@ -230,9 +230,13 @@ interface RelationshipDynamics {
 	};
 }
 
+type MaterialSelector =
+	| { tag: MaterialTag }
+	| { id: MaterialName };
+
 interface MaterialFlow {
-	materialTag: MaterialTag;
-	specificMaterials?: string[];
+	includes: MaterialSelector[];
+	excludes?: MaterialSelector[];
 	direction: 'a-to-b' | 'b-to-a' | 'bidirectional';
 	volume: number;
 }
@@ -241,6 +245,17 @@ interface MaterialFlow {
 A relationship can simultaneously involve trade in materials and low-level raiding. The player
 seeing Culture A artefacts with Culture B materials can't simply conclude "they traded" — there are
 multiple explanations, and the relationship data supports all of them.
+
+A flow supplies a material when some `includes` selector names it and no `excludes` selector does:
+union the includes, subtract the excludes. `excludes` is what lets a route carry a class _minus_ a
+material — an embargoed metal on an otherwise open metal route — which a whitelist alone can only
+express by enumerating the complement, freezing it against a catalogue that later grows.
+
+Selector arms are tagged rather than bare strings because `bone`, `glass` and `leather` each name
+both a `MaterialTag` and a `MaterialName`: `{ tag: 'bone' }` reaches bone and antler,
+`{ id: 'bone' }` reaches bone alone. This replaced a `materialTag` + `specificMaterials` pair whose
+combining operator was never stated, and which ORed in practice while its own JSDoc claimed the id
+list narrowed the tag (roadmap 2GN.112, doc 12 §2.41).
 
 ### 3.5 Provenance Generation
 

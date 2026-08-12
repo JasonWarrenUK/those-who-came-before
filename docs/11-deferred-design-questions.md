@@ -417,7 +417,7 @@ physical — a metal workable to leaf that will not tarnish — and
 and silver; bronze and iron fail on oxidisation). The other five techniques naming a precious tag
 listed it redundantly beside its class tag, so their candidate pools were unchanged by removal.
 Scarcity lives in `GeologicalContext.materialAvailability`; a specific material's reachability lives
-in `MaterialFlow.specificMaterials`.
+in a `MaterialFlow`'s `{ id }` selector (roadmap 2GN.112, doc 12 §2.41).
 
 **The test for a new `MaterialTag` member is whether two cultures looking at the same material would
 agree on it.** `metal` passes. `precious-metal` did not.
