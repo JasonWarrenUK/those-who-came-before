@@ -6,6 +6,7 @@ import {
 	assignMaterialWithProvenance,
 	computeMaterialWeight,
 	deriveMaterialProvenance,
+	explainMaterialWeight,
 	isAvailable,
 } from './materials.ts';
 import { MATERIALS } from '../../data/materials.ts';
@@ -15,9 +16,14 @@ import {
 	mockCulturalProfile,
 	mockPhaseCharacteristics,
 } from '../../../../tests/fixtures/culture.ts';
-import { mockGeologicalContext, mockMaterialFlow } from '../../../../tests/fixtures/world.ts';
+import {
+	MOCK_WORLD_REGIONS,
+	mockGeologicalContext,
+	mockMaterialFlow,
+	mockRegionalWorld,
+} from '../../../../tests/fixtures/world.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
-import type { MaterialTag } from '../../types/tags.ts';
+import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped material by id; throws if the fixture data ever drops it. */
 function material(id: string) {
@@ -53,19 +59,125 @@ Deno.test('isAvailable: trade-only requires a matching trade flow', () => {
 	const geology = mockGeologicalContext(); // gold is 'trade-only'
 	assertEquals(isAvailable(material('gold'), geology, []), false);
 	assertEquals(
-		isAvailable(material('gold'), geology, [mockMaterialFlow({ materialTag: 'metal' })]),
+		isAvailable(material('gold'), geology, [mockMaterialFlow({ includes: [{ tag: 'metal' }] })]),
 		true,
 	);
 	assertEquals(
-		isAvailable(material('gold'), geology, [mockMaterialFlow({ materialTag: 'wood' })]),
+		isAvailable(material('gold'), geology, [mockMaterialFlow({ includes: [{ tag: 'wood' }] })]),
 		false,
 	);
 });
 
-Deno.test('isAvailable: trade-only reachable via a specificMaterials id even off-tag', () => {
+Deno.test('isAvailable: trade-only reachable via an id selector whose class the flow does not carry', () => {
 	const geology = mockGeologicalContext();
-	const flow = mockMaterialFlow({ materialTag: 'wood', specificMaterials: ['gold'] });
+	const flow = mockMaterialFlow({ includes: [{ tag: 'wood' }, { id: 'gold' }] });
 	assertEquals(isAvailable(material('gold'), geology, [flow]), true);
+});
+
+// --- MaterialSelector semantics (roadmap 2GN.112) ------------------------------------------------
+//
+// `gold` and `silver` are `trade-only` in `mockGeologicalContext` and `bronze`/`iron` are locally
+// obtainable, so `isAvailable` reads trade for the first pair only. These cases drive the selector
+// through `isAvailable` rather than testing `flowSuppliesMaterial` directly, since that predicate is
+// module-private and its whole purpose is what reaches the availability verdict.
+
+Deno.test('MaterialSelector: an id selector supplies only that material, not its whole class', () => {
+	// The case the retired `materialTag` + `specificMaterials` pair could not express: that shape
+	// ORed the two arms, so naming gold beside a `metal` tag reached bronze and iron as well.
+	//
+	// Silver is modelled `trade-only` explicitly rather than left to `mockGeologicalContext`'s
+	// four-material default: unmodelled materials take `isAvailable`'s lenience branch and read
+	// obtainable whatever the flows say, which would pass this assertion without consulting the
+	// selector at all.
+	const geology = mockGeologicalContext({
+		materialAvailability: new Map([
+			['gold', { materialId: 'gold' as const, regions: new Map([['r', 'trade-only' as const]]) }],
+			[
+				'silver',
+				{ materialId: 'silver' as const, regions: new Map([['r', 'trade-only' as const]]) },
+			],
+		]),
+	});
+	const flow = mockMaterialFlow({ includes: [{ id: 'gold' }] });
+
+	assertEquals(isAvailable(material('gold'), geology, [flow]), true);
+	assertEquals(isAvailable(material('silver'), geology, [flow]), false);
+});
+
+Deno.test('MaterialSelector: excludes subtracts one material from an included class', () => {
+	// "All metals except gold" — unexpressible under either reading of the retired pair: the OR had
+	// no subtraction at all, and a narrowing reading could only enumerate the complement, freezing it
+	// against a catalogue that may later gain a metal.
+	//
+	// Both metals modelled `trade-only` so each verdict genuinely reads the flow (see the id-selector
+	// case above on why an unmodelled material would pass vacuously).
+	const geology = mockGeologicalContext({
+		materialAvailability: new Map([
+			['gold', { materialId: 'gold' as const, regions: new Map([['r', 'trade-only' as const]]) }],
+			[
+				'silver',
+				{ materialId: 'silver' as const, regions: new Map([['r', 'trade-only' as const]]) },
+			],
+		]),
+	});
+	const flow = mockMaterialFlow({
+		includes: [{ tag: 'metal' }],
+		excludes: [{ id: 'gold' }],
+	});
+
+	assertEquals(isAvailable(material('gold'), geology, [flow]), false);
+	assertEquals(isAvailable(material('silver'), geology, [flow]), true);
+});
+
+Deno.test('MaterialSelector: excludes wins over includes when both name the same material', () => {
+	const geology = mockGeologicalContext();
+	const flow = mockMaterialFlow({
+		includes: [{ tag: 'metal' }, { id: 'gold' }],
+		excludes: [{ id: 'gold' }],
+	});
+
+	assertEquals(isAvailable(material('gold'), geology, [flow]), false);
+});
+
+Deno.test('MaterialSelector: an excludes entry naming nothing included is redundant, not an error', () => {
+	const geology = mockGeologicalContext();
+	const flow = mockMaterialFlow({
+		includes: [{ id: 'gold' }],
+		excludes: [{ id: 'jade' }], // never selected by `includes` in the first place
+	});
+
+	assertEquals(isAvailable(material('gold'), geology, [flow]), true);
+});
+
+Deno.test('MaterialSelector: a tag arm and an id arm of the same string select differently', () => {
+	// `bone`, `glass` and `leather` each name both a MaterialTag and a MaterialName. This is why the
+	// selector arms are tagged rather than a bare string union: `{ tag: 'bone' }` must reach antler
+	// and `{ id: 'bone' }` must not.
+	const geology = mockGeologicalContext({
+		materialAvailability: new Map([
+			['bone', { materialId: 'bone' as const, regions: new Map([['r', 'trade-only' as const]]) }],
+			[
+				'antler',
+				{ materialId: 'antler' as const, regions: new Map([['r', 'trade-only' as const]]) },
+			],
+		]),
+	});
+
+	const byClass = mockMaterialFlow({ includes: [{ tag: 'bone' }] });
+	const byMaterial = mockMaterialFlow({ includes: [{ id: 'bone' }] });
+
+	assertEquals(isAvailable(material('antler'), geology, [byClass]), true);
+	assertEquals(isAvailable(material('antler'), geology, [byMaterial]), false);
+	assertEquals(isAvailable(material('bone'), geology, [byMaterial]), true);
+});
+
+Deno.test('MaterialSelector: an empty includes supplies nothing rather than everything', () => {
+	// A flow carrying no material is not a trade route. Defaulting the empty case to "everything"
+	// would let an authoring slip silently open the widest possible flow.
+	const geology = mockGeologicalContext();
+	const flow = mockMaterialFlow({ includes: [] });
+
+	assertEquals(isAvailable(material('gold'), geology, [flow]), false);
 });
 
 Deno.test('isAvailable: a material with no geology entry is obtainable (M2 lenience)', () => {
@@ -87,24 +199,35 @@ Deno.test('computeMaterialWeight: higher cultural affinity increases weight', ()
 	assert(boosted > baseline, `expected boosted (${boosted}) > baseline (${baseline})`);
 });
 
-Deno.test('computeMaterialWeight: multi-tag material takes the max applicable affinity', () => {
+Deno.test('materials: every shipped material carries exactly one MaterialTag (roadmap 2GN.78)', () => {
+	// This replaced a test pinning `culturalAffinityWeight`'s max-across-tags reduction on gold
+	// (`metal` + `precious-metal`). With the precious tags retired there is no multi-tag material
+	// left to exercise it, so the reduction is unreachable rather than merely untested — and the
+	// honest thing to pin is the invariant that makes it so. If this ever fails, a genuine multi-tag
+	// material has been authored and the reduction (max / most-specific-wins / product) needs the
+	// ruling it has never had: see `culturalAffinityWeight`'s JSDoc.
+	for (const definition of MATERIALS) {
+		assertEquals(
+			definition.tags.length,
+			1,
+			`${definition.id} carries ${definition.tags.length} tags (${definition.tags.join(', ')})`,
+		);
+	}
+});
+
+Deno.test('computeMaterialWeight: a favoured material outweighs an unfavoured peer at equal scarcity', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
-	const culture = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 1], ['precious-metal', 3]]),
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1, stoneWorking: 1 } });
+	const metalLeaning = mockCulturalProfile({
+		materialAffinities: new Map([['metal', 3], ['stone', 1]]),
 	});
 
-	const weight = computeMaterialWeight(material('gold'), culture, phase, geology); // metal + precious-metal
-	const metalOnly = computeMaterialWeight(
-		material('bronze'),
-		culture,
-		phase,
-		geology,
-	);
+	const favoured = computeMaterialWeight(material('bronze'), metalLeaning, phase, geology);
+	const unfavoured = computeMaterialWeight(material('granite'), metalLeaning, phase, geology);
 
 	assert(
-		weight > metalOnly,
-		`expected the precious-metal max (${weight}) > metal-only (${metalOnly})`,
+		favoured > unfavoured,
+		`expected the favoured metal (${favoured}) > the unfavoured stone (${unfavoured})`,
 	);
 });
 
@@ -200,6 +323,125 @@ Deno.test('computeMaterialWeight: scarcity rungs form a strict descending order'
 	assert(abundant > available, `expected abundant (${abundant}) > available (${available})`);
 	assert(available > scarce, `expected available (${available}) > scarce (${scarce})`);
 	assert(scarce > tradeOnly, `expected scarce (${scarce}) > trade-only (${tradeOnly})`);
+});
+
+// --- explainMaterialWeight ---------------------------------------------------------------------------
+
+Deno.test('explainMaterialWeight: factors multiply back to computeMaterialWeight exactly', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map([['metal', 1.5]]) });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 0.7 } });
+
+	// Covers all four mockGeologicalContext cases: bronze abundant, iron scarce, gold trade-only
+	// (with a reaching flow), flint absent.
+	for (const id of ['bronze', 'iron', 'gold', 'flint']) {
+		const geology = mockGeologicalContext();
+		const trade = [mockMaterialFlow({ includes: [{ tag: 'metal' }] })];
+		const expected = computeMaterialWeight(material(id), culture, phase, geology);
+		const explanation = explainMaterialWeight(material(id), culture, phase, geology, trade);
+
+		assertEquals(explanation.weight, expected, `${id}: weight should equal computeMaterialWeight`);
+		assertEquals(
+			explanation.culturalAffinity * explanation.phaseTechnology * explanation.scarcity,
+			explanation.weight,
+			`${id}: factors should multiply back to weight exactly`,
+		);
+	}
+});
+
+/**
+ * Pins `explainMaterialWeight`'s inlined availability ladder against `isAvailable`, the function the
+ * Explorer's obtainability column claims to mirror.
+ *
+ * `explainMaterialWeight` deliberately inlines `isAvailable`'s rung test rather than calling it, so
+ * `bestRegionalLevel` is computed once instead of the two independent calls `isAvailable` and
+ * `scarcityWeight` each make. That leaves two copies of the ladder that have to move together. The
+ * weight side already has its guard (the multiply-back test above would catch a scarcity drift);
+ * this is the missing equivalent for `available`, so a future edit to `isAvailable`'s branch order,
+ * a new `AvailabilityLevel`, or a change to `LOCALLY_OBTAINABLE_LEVELS` cannot leave the two
+ * silently disagreeing.
+ *
+ * Swept over the whole catalogue crossed with the six exhaustive regional worlds, which between them
+ * exercise every rung including `trade-only` both rescued and unrescued.
+ */
+Deno.test('explainMaterialWeight: available agrees with isAvailable everywhere', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: {} });
+
+	for (const region of MOCK_WORLD_REGIONS) {
+		const world = mockRegionalWorld(region);
+		for (const definition of MATERIALS) {
+			assertEquals(
+				explainMaterialWeight(definition, culture, phase, world.geology, world.trade).available,
+				isAvailable(definition, world.geology, world.trade),
+				`${region}/${definition.id}`,
+			);
+		}
+	}
+});
+
+Deno.test('explainMaterialWeight: reports region-agnostic availability and level', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+	const geology = mockGeologicalContext();
+
+	const bronze = explainMaterialWeight(material('bronze'), culture, phase, geology, []);
+	assertEquals(bronze.level, 'abundant');
+	assertEquals(bronze.available, true);
+	assertEquals(bronze.tradeRescued, false);
+
+	const flint = explainMaterialWeight(material('flint'), culture, phase, geology, []);
+	assertEquals(flint.level, 'absent');
+	assertEquals(flint.available, false);
+	assertEquals(flint.tradeRescued, false);
+});
+
+Deno.test('explainMaterialWeight: tradeRescued is true only when a flow reaches a trade-only material', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+	const geology = mockGeologicalContext(); // gold is trade-only
+
+	const unreached = explainMaterialWeight(material('gold'), culture, phase, geology, []);
+	assertEquals(unreached.level, 'trade-only');
+	assertEquals(unreached.available, false);
+	assertEquals(unreached.tradeRescued, false);
+
+	const reached = explainMaterialWeight(
+		material('gold'),
+		culture,
+		phase,
+		geology,
+		[mockMaterialFlow({ includes: [{ tag: 'metal' }] })],
+	);
+	assertEquals(reached.level, 'trade-only');
+	assertEquals(reached.available, true);
+	assertEquals(reached.tradeRescued, true);
+});
+
+Deno.test('explainMaterialWeight: an unmodelled material reads level undefined but scarcity at the available rung', () => {
+	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+
+	const explanation = explainMaterialWeight(material('jade'), culture, phase, geology, []);
+
+	assertEquals(explanation.level, undefined);
+	assertEquals(explanation.region, undefined);
+	assertEquals(explanation.available, true); // isAvailable's MVP lenience
+	// scarcity reads the 'available' rung's weight — matching scarcityWeight's own deliberate
+	// asymmetry with isAvailable (materials.ts: "this function answers 'how much', isAvailable
+	// answers 'at all'") — not the neutral 1 that would out-rank every modelled peer.
+	const modelledAvailable = explainMaterialWeight(
+		material('bronze'),
+		culture,
+		mockPhaseCharacteristics({ technology: { metallurgy: 1 } }),
+		mockGeologicalContext({
+			materialAvailability: new Map([
+				['bronze', { materialId: 'bronze', regions: new Map([['test-region', 'available']]) }],
+			]),
+		}),
+		[],
+	);
+	assertEquals(explanation.scarcity, modelledAvailable.scarcity);
 });
 
 // --- assignMaterial ---------------------------------------------------------------------------------
@@ -337,9 +579,9 @@ function tallySelections(
 	geology: ReturnType<typeof mockGeologicalContext>,
 	seed: string,
 	draws: number,
-): Map<string, number> {
+): Map<MaterialName, number> {
 	const prng = createPrng(seed);
-	const tally = new Map<string, number>();
+	const tally = new Map<MaterialName, number>();
 
 	for (let i = 0; i < draws; i++) {
 		const chosen = assignMaterial(component, culture, phase, geology, [], prng, MATERIALS);
@@ -361,7 +603,7 @@ Deno.test('assignMaterial: distribution — a metal-affine culture selects metal
 
 	const draws = 1000;
 	const metalTagIds = new Set(MATERIALS.filter((m) => m.tags.includes('metal')).map((m) => m.id));
-	const metalShare = (tally: Map<string, number>) =>
+	const metalShare = (tally: Map<MaterialName, number>) =>
 		[...tally.entries()].filter(([id]) => metalTagIds.has(id)).reduce((sum, [, n]) => sum + n, 0) /
 		draws;
 
@@ -386,7 +628,7 @@ Deno.test('assignMaterial: distribution — low metallurgy technology suppresses
 	const subject = component(['metal', 'stone']);
 	const draws = 1000;
 	const metalTagIds = new Set(MATERIALS.filter((m) => m.tags.includes('metal')).map((m) => m.id));
-	const metalShare = (tally: Map<string, number>) =>
+	const metalShare = (tally: Map<MaterialName, number>) =>
 		[...tally.entries()].filter(([id]) => metalTagIds.has(id)).reduce((sum, [, n]) => sum + n, 0) /
 		draws;
 
@@ -455,7 +697,7 @@ Deno.test('deriveMaterialProvenance: a scarce material is still "local"', () => 
 
 Deno.test('deriveMaterialProvenance: a trade-only material reached via trade is "trade" with a tradePathId', () => {
 	const geology = mockGeologicalContext(); // gold trade-only
-	const flow = mockMaterialFlow({ materialTag: 'metal' });
+	const flow = mockMaterialFlow({ includes: [{ tag: 'metal' }] });
 	const provenance = deriveMaterialProvenance(material('gold'), geology, [flow]);
 
 	assertEquals(provenance.source, 'trade');
@@ -475,7 +717,7 @@ Deno.test('deriveMaterialProvenance: a trade-only material with no matching flow
 
 Deno.test('deriveMaterialProvenance: a trade-only material with only an off-tag, off-id flow is "unknown"', () => {
 	const geology = mockGeologicalContext(); // gold trade-only
-	const flow = mockMaterialFlow({ materialTag: 'wood' });
+	const flow = mockMaterialFlow({ includes: [{ tag: 'wood' }] });
 	const provenance = deriveMaterialProvenance(material('gold'), geology, [flow]);
 
 	assertEquals(provenance, { source: 'unknown' });
@@ -497,7 +739,7 @@ Deno.test('deriveMaterialProvenance: a material with no geology entry at all is 
 
 Deno.test('deriveMaterialProvenance: tradePathId is reproducible from the same flow position, not random', () => {
 	const geology = mockGeologicalContext();
-	const flow = mockMaterialFlow({ materialTag: 'metal' });
+	const flow = mockMaterialFlow({ includes: [{ tag: 'metal' }] });
 
 	const first = deriveMaterialProvenance(material('gold'), geology, [flow]);
 	const second = deriveMaterialProvenance(material('gold'), geology, [flow]);
@@ -507,8 +749,8 @@ Deno.test('deriveMaterialProvenance: tradePathId is reproducible from the same f
 
 Deno.test('deriveMaterialProvenance: two distinct trade-reachable materials sharing a flow get distinct tradePathIds only when flow position differs', () => {
 	const geology = mockGeologicalContext();
-	const preciousFlow = mockMaterialFlow({ materialTag: 'metal' });
-	const woodFlow = mockMaterialFlow({ materialTag: 'wood' });
+	const preciousFlow = mockMaterialFlow({ includes: [{ tag: 'metal' }] });
+	const woodFlow = mockMaterialFlow({ includes: [{ tag: 'wood' }] });
 
 	// gold reached by the flow at index 0.
 	const goldViaFirst = deriveMaterialProvenance(material('gold'), geology, [
@@ -530,7 +772,7 @@ Deno.test('assignMaterialWithProvenance: returns a MaterialAssignment consistent
 	const geology = mockGeologicalContext();
 	const culture = mockCulturalProfile();
 	const phase = mockPhaseCharacteristics();
-	const trade = [mockMaterialFlow({ materialTag: 'metal' })];
+	const trade = [mockMaterialFlow({ includes: [{ tag: 'metal' }] })];
 	const subject = component(['metal', 'stone', 'wood']);
 
 	const assignment = assignMaterialWithProvenance(
@@ -676,7 +918,7 @@ Deno.test('assignMaterials: every assignment carries a complete provenance, neve
 	const geology = mockGeologicalContext();
 	const culture = mockCulturalProfile();
 	const phase = mockPhaseCharacteristics();
-	const trade = [mockMaterialFlow({ materialTag: 'metal' })];
+	const trade = [mockMaterialFlow({ includes: [{ tag: 'metal' }] })];
 	const artefact = mockNormalisedArtefact({
 		components: [
 			componentAt('a', 0, ['metal', 'stone', 'wood']),

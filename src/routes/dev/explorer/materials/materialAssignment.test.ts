@@ -80,6 +80,22 @@ Deno.test('assignMaterials — Explorer presets model every material, so none is
 	}
 });
 
+Deno.test('assignMaterials — candidate factors multiply back to weight, even when blocked', () => {
+	// `weight` is zeroed for blocked candidates (so they never enter the draw), but the three
+	// factors underneath are still the real values `explainMaterialWeight` computed — this checks
+	// the reconciliation holds for the obtainable candidates, where weight isn't zeroed out.
+	const model = assignMaterials('mat-factors', khaltiris, 1);
+	for (const candidate of model.candidates) {
+		if (candidate.obtainability === 'blocked') continue;
+		assertAlmostEquals(
+			candidate.culturalAffinity * candidate.phaseTechnology * candidate.scarcity,
+			candidate.weight,
+			1e-9,
+			candidate.material.id,
+		);
+	}
+});
+
 Deno.test('assignMaterials — a trade-rescued candidate is reported as trade, not local', () => {
 	// Tarpan's iron is `trade-only` and its metal flow reaches it; gold is `absent` outright.
 	const model = assignMaterials('mat-trade', tarpan, 1);

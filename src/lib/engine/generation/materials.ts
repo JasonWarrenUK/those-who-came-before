@@ -37,9 +37,10 @@ import type {
 	CulturalProfile,
 	GeologicalContext,
 	MaterialFlow,
+	MaterialSelector,
 	PhaseCharacteristics,
 } from '../../types/world.ts';
-import type { MaterialTag } from '../../types/tags.ts';
+import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -79,6 +80,23 @@ interface RegionalLevel {
 	level: AvailabilityLevel;
 }
 
+/** `computeMaterialWeight`'s three factors, decomposed, plus availability. See `explainMaterialWeight`. */
+export interface MaterialWeightExplanation {
+	/** Exactly `culturalAffinity * phaseTechnology * scarcity` — `computeMaterialWeight`'s result. */
+	weight: number;
+	culturalAffinity: number;
+	phaseTechnology: number;
+	scarcity: number;
+	/** The best availability level across regions, or `undefined` when unmodelled in this geology. */
+	level: AvailabilityLevel | undefined;
+	/** Which region produced `level`. `undefined` iff `level` is. */
+	region: string | undefined;
+	/** `isAvailable`'s verdict for this material. */
+	available: boolean;
+	/** `true` only when `level` is `'trade-only'` and a `MaterialFlow` reaches it. */
+	tradeRescued: boolean;
+}
+
 /**
  * The best (most abundant) availability level for `materialId` across every region in `geology`,
  * plus which region produced it. Region-agnostic callers (`isAvailable`, `scarcityWeight`) read
@@ -86,7 +104,7 @@ interface RegionalLevel {
  * to attribute `likelyOriginRegion`.
  */
 function bestRegionalLevel(
-	materialId: string,
+	materialId: MaterialName,
 	geology: GeologicalContext,
 ): RegionalLevel | undefined {
 	const regional = geology.materialAvailability.get(materialId);
@@ -104,13 +122,30 @@ function bestRegionalLevel(
 	return best;
 }
 
-/** Whether a single `MaterialFlow` can supply `material`, by tag or specific material id. */
-function flowSuppliesMaterial(material: MaterialDefinition, flow: MaterialFlow): boolean {
-	return material.tags.includes(flow.materialTag) ||
-		(flow.specificMaterials?.includes(material.id) ?? false);
+/** Whether one `MaterialSelector` names `material`, by its class or by its own id. */
+function selectorMatches(material: MaterialDefinition, selector: MaterialSelector): boolean {
+	return selector.tag !== undefined
+		? material.tags.includes(selector.tag)
+		: material.id === selector.id;
 }
 
-/** Whether any `MaterialFlow` in `trade` can supply `material`, by tag or specific material id. */
+/**
+ * Whether a single `MaterialFlow` can supply `material`: some `includes` selector names it and no
+ * `excludes` selector does (doc 05 §3.4, roadmap 2GN.112).
+ *
+ * Exclusion wins over inclusion, which is what lets a flow say "all metals except gold" — the case
+ * the retired `materialTag`/`specificMaterials` pair could not express in either of its readings.
+ * An empty `includes` supplies nothing rather than everything: a flow carrying no material is not a
+ * trade route, and defaulting the empty case to "everything" would make an authoring slip silently
+ * open the widest possible flow.
+ */
+function flowSuppliesMaterial(material: MaterialDefinition, flow: MaterialFlow): boolean {
+	if (!flow.includes.some((selector) => selectorMatches(material, selector))) return false;
+
+	return !(flow.excludes ?? []).some((selector) => selectorMatches(material, selector));
+}
+
+/** Whether any `MaterialFlow` in `trade` can supply `material`. */
 function reachableByTrade(material: MaterialDefinition, trade: readonly MaterialFlow[]): boolean {
 	return trade.some((flow) => flowSuppliesMaterial(material, flow));
 }
@@ -144,11 +179,22 @@ export function isAvailable(
 }
 
 /**
- * Combines a material's cultural-affinity weight across every tag it carries (doc 05 §3.3,
- * `CulturalProfile.materialAffinities`). Takes the **max** across tags, not a sum or average — a
- * material like gold (`metal` + `precious-metal`) should read by its strongest applicable cultural
- * leaning, not have that leaning diluted by an unrelated second tag. A tag absent from the map
- * contributes a neutral `1`.
+ * A material's cultural-affinity weight (doc 05 §3.3, `CulturalProfile.materialAffinities`). A tag
+ * absent from the map contributes a neutral `1`.
+ *
+ * **The max across tags is vestigial** since roadmap 2GN.78 (doc 12 §2.40): every shipped material
+ * now carries exactly one `MaterialTag`, so there is only ever one affinity to read. It previously
+ * justified itself on gold (`metal` + `precious-metal`) reading by its strongest leaning rather than
+ * being diluted — but 2GN.84 measured the opposite effect, the max *discarding* authored
+ * `precious-*` values whenever the class tag scored higher (3 of the 5 authored across the Explorer
+ * presets were dead this way). That one-directional behaviour — a second tag could only ever raise a
+ * material, never lower it — was itself evidence the precious tags were encoding a judgement rather
+ * than a class, and contributed to retiring them.
+ *
+ * Kept rather than simplified to a single lookup because `MaterialDefinition.tags` is still a list.
+ * **If a genuine multi-tag material is ever authored, this reduction needs a ruling** (max /
+ * most-specific-wins / product-of-deviations) before it carries weight again; it has never had one.
+ * `decoration.ts`'s `bestMaterialAffinity` inlines the same reduction and must move with it.
  */
 function culturalAffinityWeight(material: MaterialDefinition, culture: CulturalProfile): number {
 	let best = -Infinity;
@@ -227,6 +273,74 @@ export function computeMaterialWeight(
 }
 
 /**
+ * `computeMaterialWeight`'s three factors, decomposed, plus the availability read they were derived
+ * alongside (doc 05 §7, roadmap 2GN.74). Exists so a caller — the material viewer panel (2GN.60) —
+ * can show a scarcity-vs-affinity-vs-technology breakdown without duplicating `SCARCITY_WEIGHT` or
+ * `NO_TECHNOLOGY_FLOOR`, which stay private so the engine remains the only place that retunes them.
+ *
+ * `weight` is exactly `computeMaterialWeight(material, culture, phase, geology)` — the three factors
+ * multiply back to it precisely; `materials.test.ts` pins this.
+ *
+ * `level`/`region`/`available` mirror `isAvailable`'s read of `bestRegionalLevel`, computed once here
+ * rather than the two separate calls `isAvailable` and `scarcityWeight` each make independently.
+ * `level` is `undefined` for a material with no geology entry — genuinely unmodelled, not the
+ * `'available'` rung `scarcity` reads for it. Keep that distinction: an unmodelled material is
+ * lenient on *whether* it's obtainable (`available: true`, matching `isAvailable`) but not treated as
+ * more plentiful than a modelled peer (`scarcity` still reads the `available` rung's weight, per
+ * `scarcityWeight`'s own JSDoc on why unmodelled isn't neutral `1`).
+ *
+ * `tradeRescued` is `true` only when the material is `trade-only` locally and a `MaterialFlow`
+ * actually reaches it — the boolean rescue `isAvailable` performs, reported rather than folded away.
+ * Trade is not a weight multiplier anywhere in this module; a rescued material's `scarcity` still
+ * reads the `trade-only` rung.
+ *
+ * @param material - The candidate material.
+ * @param culture - The culture whose material affinities apply.
+ * @param phase - The phase whose technology levels apply.
+ * @param geology - World-level material scarcity.
+ * @param trade - Material flows reachable through cultural relationships.
+ * @returns The decomposed weight factors, availability level and region, and trade-rescue flag.
+ */
+export function explainMaterialWeight(
+	material: MaterialDefinition,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+): MaterialWeightExplanation {
+	const regional = bestRegionalLevel(material.id, geology);
+	const level = regional?.level;
+
+	const available = level === undefined
+		? true
+		: LOCALLY_OBTAINABLE_LEVELS.has(level)
+		? true
+		: level === 'trade-only'
+		? reachableByTrade(material, trade)
+		: false;
+
+	const tradeRescued = level === 'trade-only' && reachableByTrade(material, trade);
+
+	const scarcity = level === undefined
+		? SCARCITY_WEIGHT['available']
+		: SCARCITY_WEIGHT[level] ?? SCARCITY_WEIGHT['available'];
+
+	const culturalAffinity = culturalAffinityWeight(material, culture);
+	const phaseTechnology = phaseTechnologyWeight(material, phase);
+
+	return {
+		weight: culturalAffinity * phaseTechnology * scarcity,
+		culturalAffinity,
+		phaseTechnology,
+		scarcity,
+		level,
+		region: regional?.region,
+		available,
+		tradeRescued,
+	};
+}
+
+/**
  * Assigns a material to one normalised component (doc 05 §7, roadmap 2GN.23): filters the catalogue
  * by physical compatibility, then by availability, then weights survivors by cultural affinity,
  * phase technology and geological scarcity before a weighted PRNG draw.
@@ -291,35 +405,43 @@ export function assignMaterial(
  * `RelationshipDynamics.trade.materialFlow[]`, and a relationship is identified only by
  * `cultureIds`, not a stable id of its own. This string is therefore *not* a real relationship
  * reference: it cannot be resolved back to a `CultureRelationship`, only reproduced from the same
- * `(materialTag, index)` pair that produced it. It exists purely so `MaterialProvenance.
- * tradePathId` is populated with *something* traceable to the flow that justified the 'trade'
- * verdict, rather than left `undefined`.
+ * flow position that produced it. It exists purely so `MaterialProvenance.tradePathId` is populated
+ * with *something* traceable to the flow that justified the 'trade' verdict, rather than left
+ * `undefined`.
+ *
+ * The id was `provisional-trade:${materialTag}:${index}` until roadmap 2GN.112 replaced that field
+ * with `includes`/`excludes`. A flow no longer has one tag to name it, and summarising a selector
+ * list into the id would read as a description of the flow's contents while being neither stable
+ * (re-authoring the list silently changes provenance ids) nor resolvable. The index alone already
+ * distinguishes flows within a `trade` array, which is all this ever guaranteed.
  *
  * Real trade-path identity is 3WS.5/3WS.6's to mint, once `generateRelationships` actually
  * constructs `CultureRelationship`s (rather than the hand-authored `explorer-cultures.ts` presets
  * this runs against at MVP). When that lands, this function — and every caller of it — should be
  * replaced with a lookup against the real relationship id, not extended.
  *
- * @param flow - The `MaterialFlow` that made the material trade-reachable.
  * @param index - The flow's position within the `trade` array passed to `isAvailable`, so two
- *   flows sharing a `materialTag` still resolve to distinct (if equally provisional) ids.
+ *   flows carrying overlapping materials still resolve to distinct (if equally provisional) ids.
  */
-function synthesiseTradePathId(flow: MaterialFlow, index: number): string {
-	return `provisional-trade:${flow.materialTag}:${index}`;
+function synthesiseTradePathId(index: number): string {
+	return `provisional-trade:${index}`;
 }
 
 /**
- * The first `trade` entry that makes `material` trade-reachable, sharing `reachableByTrade`'s
- * `flowSuppliesMaterial` check so the two can never disagree, paired with its index for
- * `synthesiseTradePathId`.
+ * The index of the first `trade` entry that makes `material` trade-reachable, or `undefined` if
+ * none does — sharing `reachableByTrade`'s `flowSuppliesMaterial` check so the two can never
+ * disagree, and feeding `synthesiseTradePathId`.
+ *
+ * Returned as a bare index since roadmap 2GN.112: the flow itself was only ever read for the
+ * `materialTag` that id-synthesis no longer uses.
  */
-function findReachableTradeFlow(
+function findReachableTradeFlowIndex(
 	material: MaterialDefinition,
 	trade: readonly MaterialFlow[],
-): { flow: MaterialFlow; index: number } | undefined {
+): number | undefined {
 	const index = trade.findIndex((flow) => flowSuppliesMaterial(material, flow));
 
-	return index === -1 ? undefined : { flow: trade[index]!, index };
+	return index === -1 ? undefined : index;
 }
 
 /**
@@ -361,11 +483,11 @@ export function deriveMaterialProvenance(
 	}
 
 	if (regional?.level === 'trade-only') {
-		const reached = findReachableTradeFlow(material, trade);
-		if (reached !== undefined) {
+		const reachedIndex = findReachableTradeFlowIndex(material, trade);
+		if (reachedIndex !== undefined) {
 			return {
 				source: 'trade',
-				tradePathId: synthesiseTradePathId(reached.flow, reached.index),
+				tradePathId: synthesiseTradePathId(reachedIndex),
 			};
 		}
 	}

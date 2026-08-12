@@ -15,7 +15,7 @@
  * these annotations will migrate onto.
  */
 
-import type { ArtefactTag, MaterialTag } from './tags.ts';
+import type { ArtefactTag, MaterialName, MaterialTag } from './tags.ts';
 import type { ArrangementPattern, AttachmentType } from './grammar.ts';
 import type { DecorativeLayer } from './decoration.ts';
 import type { CraftDomain, Provenance } from './world.ts';
@@ -144,7 +144,7 @@ export interface NormalisedComponent {
  */
 export interface MaterialDefinition {
 	/** Stable id, referenced by `MaterialAssignment.materialId` and as the key into `GeologicalContext.materialAvailability`. */
-	id: string;
+	id: MaterialName;
 
 	/** Human-readable material name shown to the player (e.g. 'bronze', 'obsidian'). */
 	displayName: string;
@@ -414,7 +414,7 @@ export interface MaterialAssignment {
 	componentId: string;
 
 	/** Id of the assigned `MaterialDefinition`. */
-	materialId: string;
+	materialId: MaterialName;
 
 	/** Where the raw material likely came from (doc 05 §7.1). Occluded from the player. */
 	provenance: MaterialProvenance;
@@ -649,12 +649,34 @@ export interface ExtractedFeatures {
 	techniqueComplexity: number;
 
 	/**
-	 * Whether precious materials appear in the decoration. Currently always `false`: decorative
-	 * layer material assignment (roadmap 2GN.33) is unbuilt, so no `DecorativeLayer` carries a
-	 * `material` yet. The classification rules that read this field are authored and dormant,
-	 * ready to fire once 2GN.68 wires the layer-material→precious-material lookup this field
-	 * needs (see `classification.ts`); 2GN.33 only produces the underlying `DecorativeLayer.material`
-	 * data, it does not itself populate this field.
+	 * Whether the decoration incorporates a material **this culture** would read as precious.
+	 * Currently always `false` — 2GN.68 is the task that populates it, and has not landed.
+	 *
+	 * ⚠️ **Do not populate this from a catalogue tag.** Roadmap 2GN.78 retired
+	 * `MaterialTag`'s `precious-metal`/`precious-stone` members precisely because a static "this
+	 * material is precious" fact stamps one culture's judgement onto every culture (doc 11 §2.9, doc
+	 * 12 §2.40); a culture with abundant gold does not read gold as precious. The earlier spec for
+	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
+	 * forbids, and there is no longer a tag to look up.
+	 *
+	 * Populate it from the material's *situation* instead. Doc 11 §2.9's formula has four terms —
+	 * availability × cultural affinity × provenance × stratification — and they come from three
+	 * places, none of them a catalogue lookup:
+	 *
+	 * - **availability** and **cultural affinity**: `explainMaterialWeight`
+	 *   (`engine/generation/materials.ts`, roadmap 2GN.74) returns `level` (how scarce the material is
+	 *   here), `culturalAffinity` (whether this culture prizes it) and `tradeRescued` (whether it only
+	 *   arrives by trade) for a given material/culture pair.
+	 * - **provenance**: `MaterialAssignment.provenance`, produced by `deriveMaterialProvenance` — a
+	 *   separate input, not part of `explainMaterialWeight`'s result. `tradeRescued` is a boolean
+	 *   about reachability and is not a substitute for it.
+	 * - **stratification**: `PhaseCharacteristics.society.stratification`, which doc 11 §2.9 makes a
+	 *   live input and which nothing reads yet.
+	 *
+	 * The threshold over those inputs is 2GN.68's to rule and has not been set.
+	 *
+	 * The classification rule reading this field is authored and dormant, allowlisted in
+	 * `calibration.test.ts`'s `DORMANT_RULE_INDICES` until that producer exists.
 	 */
 	preciousMaterialsInDecoration: boolean;
 

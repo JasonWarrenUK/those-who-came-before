@@ -29,7 +29,7 @@ import {
 } from '../../../../lib/engine/generation/classification.ts';
 import { baselineFor } from '../shared/baselineCache.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
+import { CLASSIFICATION_RULES, ruleDisplayLabelAt } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
@@ -43,10 +43,18 @@ export type Tag = ArtefactTag;
 
 /** One rule's contribution to one tag's score. */
 export interface Contribution {
-	/** Display label for the rule, `R{index + 1}` — matching `scripts/dev/sample-classification.ts`. */
+	/**
+	 * Display label for the rule, `R{index + 1}` — matching `scripts/dev/sample-classification.ts`.
+	 *
+	 * Positional, so it shifts when a rule is deleted. Cite `ruleId` in anything that has to survive
+	 * that (roadmap 2GN.113).
+	 */
 	rule: string;
 
-	/** The rule's index in `CLASSIFICATION_RULES`, the only runtime identity a rule has. */
+	/** The rule's stable id (roadmap 2GN.113), which survives deletion and reordering. */
+	ruleId: string;
+
+	/** The rule's index in `CLASSIFICATION_RULES`, its position in the shipped array. */
 	ruleIndex: number;
 
 	/** The weight this rule adds to the tag. */
@@ -278,7 +286,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	);
 	// Materials assigned and layers re-graded before `extractFeatures`, matching `sampleBaselines`
 	// (`engine/generation/baselines.ts`) and `ruleCalibration.ts`'s `calibrateRules` — otherwise
-	// `meanDecorativeGrade` (R44) here is the provisional technique-only grade compared against a
+	// `meanDecorativeGrade` (R43) here is the provisional technique-only grade compared against a
 	// baseline sampled from material-aware grades, the same scale mismatch fixed in those two
 	// callers (roadmap 2GN.103, doc 12 §2.36). Also makes the grades shown in this panel's own
 	// `TagInspection.layers` honest, since they render directly.
@@ -308,7 +316,12 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		firedRuleIndices.push(ruleIndex);
 		for (const [tag, weight] of rule.tags) {
 			const existing = contributions.get(tag) ?? [];
-			existing.push({ rule: `R${ruleIndex + 1}`, ruleIndex, weight });
+			existing.push({
+				rule: ruleDisplayLabelAt(ruleIndex),
+				ruleId: rule.id,
+				ruleIndex,
+				weight,
+			});
 			contributions.set(tag, existing);
 		}
 	});

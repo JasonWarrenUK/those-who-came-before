@@ -5,7 +5,7 @@ import { isPrimitiveType, PRIMITIVE_TYPES } from './primitives.ts';
 import { ATTACHMENT_TYPE_VALUES } from '../../types/grammar.ts';
 import type { MaterialTag } from '../../types/tags.ts';
 
-/** The ten material tags — typed so the compiler catches drift against `MaterialTag`. */
+/** The eight material tags — typed so the compiler catches drift against `MaterialTag`. */
 const MATERIAL_TAGS: MaterialTag[] = [
 	'bone',
 	'wood',
@@ -15,8 +15,6 @@ const MATERIAL_TAGS: MaterialTag[] = [
 	'glass',
 	'fiber',
 	'leather',
-	'precious-stone',
-	'precious-metal',
 ];
 
 /** Dotted `PhaseCharacteristics` paths the data is permitted to key `phaseModifiers` on. */

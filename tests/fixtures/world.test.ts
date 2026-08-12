@@ -146,7 +146,7 @@ Deno.test('mockRegionalWorld: returns equal geology across calls (stable identit
 });
 
 Deno.test('mockMaterialFlow: overrides merge over the bidirectional metal default', () => {
-	assertEquals(mockMaterialFlow().materialTag, 'metal');
-	assertEquals(mockMaterialFlow({ materialTag: 'glass' }).materialTag, 'glass');
+	assertEquals(mockMaterialFlow().includes, [{ tag: 'metal' }]);
+	assertEquals(mockMaterialFlow({ includes: [{ tag: 'glass' }] }).includes, [{ tag: 'glass' }]);
 	assertEquals(mockMaterialFlow({ volume: 0.1 }).direction, 'bidirectional');
 });

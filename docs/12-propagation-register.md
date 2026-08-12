@@ -803,6 +803,8 @@ legibly — verified by reverting the retune, which named the drift and its size
 
 ### 2.26 Mass Proxy Saturation + Band Rebalance (2026-08-01)
 
+<!-- rule-count: historical -->
+
 **Origin:** Per-rule audit of all 43 classification rules, requested after 2GN.79 cleared 41 of them
 in prose rather than individually **Source of truth:** `deriveDimensions` and `MASS_BAND_CM2` in
 `src/lib/engine/generation/grammar.ts`
@@ -1952,6 +1954,12 @@ hazard asked for.
 
 ### 2.37 2GN.78 Lands Doc-Only: Code Already Complied, One Instruction Was a Phantom (2026-08-10)
 
+> ⚠️ **Superseded by §2.40 (2026-08-11).** This entry's finding — that no consumer read the
+> `precious-*` tags to award an `ArtefactTag`, so the code already complied — was correct but drew
+> too small a boundary. §2.40 retired both members outright: the defect was not who read the tags
+> but that a vocabulary of material _classes_ carried two members asserting social _valuation_. Read
+> this entry as the first pass, not the resolution.
+
 **Origin:** Roadmap 2GN.78, gated on 2GN.77.
 
 **Source of truth:** doc 11 §2.9 lines 402-406 hold the ruling this task propagates; this entry
@@ -2106,6 +2114,286 @@ buried one layer deeper.
 | —   | `data/decorations.ts`: `relief` substrate gate rewritten to `formability >= 3`, single clause; label corrected from the stale "thick material"                                  | 2026-08-11 |
 | —   | Tests: `AXIS_RANGES` gains `formability`; two new independence tests; `relief`'s substrate test rewritten with an explicit full-verdict-delta assertion                         | 2026-08-11 |
 | —   | Roadmap: 2GN.102 done; three successors recorded (working-state model, formability-as-difficulty, substrate-gate audit)                                                         | 2026-08-11 |
+
+---
+
+### 2.39 R4 Deleted as Unsatisfiable; an Ignored Zero Made to Fail (2026-08-11)
+
+**Origin:** Roadmap spike 2GN.87 **Source of truth:**
+`docs/spikes/2GN.87-r4-unsatisfiable-condition.md` holds the ruling and the measurements; this entry
+records what propagated
+
+**R4's condition could not be satisfied, and the proof is arithmetic rather than statistical.**
+`primaryAxisLength` bands `dimensions.primaryExtent`, which `deriveDimensions` computes as a
+`Math.max` over every component's major axis — drawn from the _same_ `SHORT_MEDIUM_LONG_CM` table
+(short 4cm, medium 14cm, long 40cm) that `bladeLengthBand` reads, against a 9cm `short` cut. A
+non-short blade therefore always lifts the whole artefact's axis above `short`, so R4's
+`primaryAxisLength === 'short' && bladeLengthBand !== 'short'` required a blade longer than the
+object containing it. Measured over 8000 artefacts across four Explorer cultures: only 6 of 12
+`(axis, blade)` pairs occur, in a strict triangle where blade never exceeds axis; `axis === 'short'`
+carried `blade === 'short'` in all 84 cases. The 2GN.86 audit's "50 of 7200, all short-banded" was
+the shadow of this identity, not a sampling artefact.
+
+**The rule was a truth-table patch that acquired an archaeological justification afterwards.** Doc
+12's PR #37 review record (2026-07-22) shows the order: someone enumerated
+`hasEdge × primaryAxisLength × bladeLengthBand`, found cells no rule matched, authored a rule to
+cover them, and added a sweep asserting full coverage. The sweep builds `ExtractedFeatures` by hand
+and never runs the generator, so it cannot tell a reachable cell from an impossible one. R4's
+scraper/chisel JSDoc reads as intent but was written to explain a cell. **General lesson: a typed
+feature vocabulary is not a reachability claim — when two fields derive from the same underlying
+quantity, their types still present them as independent, and a rule can be authored against a
+combination the derivation forbids.** This is the second defect from `deriveDimensions`' `Math.max`
+after §2.26's mass proxy, and the third in the family with §2.25's saturating boolean.
+
+**Whether the game should generate the form is left open, deliberately.** A short-bodied edged tool
+that is not a formed blade (scraper, chisel, adze) is a real and common archaeological form, and its
+absence is a real content gap. But R4 never encoded a decision to model it, and its condition is
+phrased in truth-table rather than morphological terms, so keeping it would inherit a decision
+nobody made. Filed as a generation task with a replacement rule contingent on it, rather than
+resolved by reflex here.
+
+**The test gap was smaller than first claimed, and the claim was withdrawn.** This spike initially
+framed the hand-built-features blind spot as more valuable than R4 itself. Measurement did not
+support it: `EXPECTED_FIRE_RATES` already pins every rule's real-pipeline rate, only R4/R33/R34 read
+0.0%, and R33/R34 are deliberately dormant pending 2GN.68. R27 moved 0.0 → 4.3 when 2GN.86 made it
+reachable, so the harness catches both directions. R4 was the only dead rule in 44. (All rule
+numbers in this paragraph are **pre-deletion** coordinates, since the audit ran against the 44-rule
+set. After the deletion the two dormant rules are R32/R33 — `DORMANT_RULE_INDICES` holds indices
+31/32 — and the former mass rule is R26.)
+
+**What actually failed was that a recorded zero passed.** R4 sat at `0.0` with a comment explaining
+the zero, and the suite compared `0.0` against `0.0` and said fine — the measurement was taken,
+written down and never acted on. A `0.0` rate now fails unless the rule is declared in
+`DORMANT_RULE_INDICES` with the roadmap task that will feed it, and a second guard fails when a
+declared-dormant rule starts firing so its real rate gets recorded. This reuses the existing n=1800
+sweep rather than adding a reachability harness: a `0.0` entry and "never fires" are the same fact,
+and deriving it twice would give two sources of truth to drift apart.
+
+| Doc | What changed                                                                                                                                            | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry                                                                                                                                              | 2026-08-11 |
+| —   | `docs/spikes/2GN.87-r4-unsatisfiable-condition.md`: new — the ruling, the arithmetic proof, the measured joint distribution, the rejected alternatives  | 2026-08-11 |
+| —   | `data/classification.ts`: R4 deleted; edge-family banner records why the combination is unreachable                                                     | 2026-08-11 |
+| —   | `data/classification.test.ts`: R4's block removed, R5–R44 renumbered R4–R43, cartesian sweep narrowed to `REACHABLE_AXIS_BLADE_PAIRS`, counts 44→43     | 2026-08-11 |
+| —   | `data/calibration.test.ts`: `DORMANT_RULE_INDICES` + two guards added; `EXPECTED_FIRE_RATES`, `MIGRATED_RULE_INDICES`, `UNIVERSAL_BY_DESIGN` renumbered | 2026-08-11 |
+| —   | `routes/dev/explorer/calibration/ruleCalibration.test.ts`: two label-based lookups renumbered                                                           | 2026-08-11 |
+| —   | Roadmap: 2GN.87 done; two successors filed (generation gap, contingent replacement rule)                                                                | 2026-08-11 |
+
+---
+
+### 2.40 The Precious Material Tags Retired; Gilding Gates on Physics (2026-08-11)
+
+**Origin:** Roadmap spike 2GN.78 **Source of truth:** doc 11 §2.9 holds the revised decision;
+`docs/spikes/2GN.78-precious-material-tags.md` holds the reasoning and measurements
+
+**§2.37 closed this task on a boundary that did not hold.** That entry found no classification rule
+read `MaterialTag`'s `precious-*` members and booked 2GN.78 done doc-only. The check was correct and
+the conclusion too narrow: `precious-metal` is not a description of physical character at all. Every
+other `MaterialTag` member names an observable material class two cultures would agree on; these two
+name what a material is _worth_, which is the Earth-judgement stamp doc 11 §2.9 identified. Barring
+them from classification while they still gated `gilding` and skewed `culturalAffinityWeight` left
+the same judgement in the generator, one step removed. **General lesson: a constraint on what may
+_read_ a field does not fix a field that shouldn't exist.**
+
+**Retirement was possible because everything the tags did was already modelled.** Gilding's real
+requirement is physical — a metal workable to leaf that will not tarnish — and
+`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3` admits gold and silver and
+nothing else across the shipped catalogue, reproducing the retired tag's pool exactly (gold reads
+oxidisation 0, silver 3, against bronze 6 and iron 7). Four candidate predicates were measured; the
+shipped one is the only exact match, and exact for a physically meaningful reason rather than by
+tuning. The other five techniques naming a precious tag listed it _redundantly_ beside its class tag
+— measured pool sizes are identical with and without — so gilding was the only real obstacle.
+Scarcity already lives in `GeologicalContext.materialAvailability`, and a specific material's
+reachability in `MaterialFlow.specificMaterials`.
+
+**The dead affinity data was worse than 2GN.84 recorded.** That entry named Khaltiris. Measured
+across all four Explorer presets, three of five authored precious affinities were inert: Khaltiris'
+`precious-metal: 1.4` (lost to `metal: 1.7`), Xoconahtl's `precious-stone: 1.4` (lost to
+`stone: 1.8`), with only Thalassar's `precious-metal: 1.2` live, and only because it authored no
+competing `metal` value. Retirement moved exactly two affinity weights in the entire preset set.
+
+**The affinity-reduction question dissolved rather than being answered.** With one tag per material
+there is nothing to reduce, so max/most-specific/product is moot. `culturalAffinityWeight` and
+`decoration.ts`'s inlined `bestMaterialAffinity` both keep the max but now record that the choice
+was never ruled and needs one before it carries weight again; a test pins the one-tag-per-material
+invariant that makes it unreachable.
+
+**A behaviour change was caught by the calibration harness mid-implementation.** The first attempt
+folded `ring-form`'s `metal: 0.4` and `precious-metal: 0.5` modifiers into `metal: 0.9`, on the
+reasoning that `effectiveOptionWeight` sums modifiers. R21 drifted 8.6pp (25.3% → 33.9%). The fold
+was wrong: a missing affinity reads as `0` in that sum, so the precious term only ever contributed
+for a culture whose `materialAffinities` authored the tag — only Thalassar of the four presets, and
+it authors no competing `metal` value, so no preset receiving the folded `metal: 0.9` had been
+getting the precious term at all. The "equivalent" fold handed every `metal`-authoring culture more
+than double their real modifier. Corrected to leave `metal` at its authored `0.4`. **General lesson:
+when removing a term from a summed weight, the arithmetically equivalent fold is only equivalent if
+the removed term was actually contributing.** With that fixed the whole retirement is
+behaviour-neutral — all nine calibration tests pass with no pin re-recorded.
+
+**`preciousMaterialsInDecoration` survives with a new producer contract.** The inference (decoration
+incorporating prized materials reads elite/ceremonial) is what doc 11 §2.9's formula was written to
+support; only its input was wrong. 2GN.68's earlier spec said "layer-material → precious-material
+lookup", which is the read the ruling forbids and now has nothing to look up. It must populate the
+field from the material's _situation_ instead. Doc 11 §2.9's formula has four terms, sourced from
+three places: `explainMaterialWeight` (2GN.74, landed this branch) returns `level`,
+`culturalAffinity` and `tradeRescued`, covering availability and cultural affinity; provenance comes
+separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance` (`tradeRescued` is a
+reachability boolean, not a provenance substitute); and stratification from
+`PhaseCharacteristics.society.stratification`, which §2.9 makes a live input and nothing reads yet.
+The threshold over them is 2GN.68's to rule. The rule stays dormant and allowlisted meanwhile.
+
+**One expressive loss, recorded rather than patched.** `materialAffinities` is keyed by tag, so a
+culture can no longer say "we prize gold specifically" — only "we prize metal". Thalassar's live
+`precious-metal: 1.2` is dropped rather than re-expressed as `metal: 1.2`, which would newly favour
+bronze and iron it was never authored to prefer. Whether the map should support per-material entries
+is filed as a design question.
+
+| Doc | What changed                                                                                                                                                                                                                                                                                                            | Completed  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry; §2.37's "already compliant" reading superseded                                                                                                                                                                                                                                                              | 2026-08-11 |
+| 11  | §2.9's `precious-*` consequence rewritten: retired outright, not kept as descriptors; the two-culture test for new members; the accepted expressive loss                                                                                                                                                                | 2026-08-11 |
+| —   | `docs/spikes/2GN.78-precious-material-tags.md`: new — the argument, the four measured predicates, the pool table, the rejected alternatives                                                                                                                                                                             | 2026-08-11 |
+| —   | `types/tags.ts`: `MaterialTag` loses both members; JSDoc carries the class-not-judgement test                                                                                                                                                                                                                           | 2026-08-11 |
+| —   | `data/materials.ts`: gold, silver, jade drop their precious tag; header records why no entry carries one                                                                                                                                                                                                                | 2026-08-11 |
+| —   | `engine/generation/decoration.ts`: `isGildingMaterial` added; five pools de-duplicated; access gate reads a resolved pool so `gilding` stays gated                                                                                                                                                                      | 2026-08-11 |
+| —   | `engine/generation/materials.ts`: `culturalAffinityWeight`'s max recorded as vestigial and unruled                                                                                                                                                                                                                      | 2026-08-11 |
+| —   | `data/grammars/core.ts`: `ring-form`/`sheet-form` drop the precious modifier, `metal` unchanged at its authored value                                                                                                                                                                                                   | 2026-08-11 |
+| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: precious affinities removed, trade flows re-keyed onto class tag + `specificMaterials` — which ORed rather than narrowing, so the flows reached the whole class; superseded by §2.41's `includes`/`excludes` shape, which makes them mean what this row claimed | 2026-08-11 |
+| —   | `types/artefact.ts`, `data/classification.ts`: `preciousMaterialsInDecoration`'s producer contract rewritten for 2GN.68                                                                                                                                                                                                 | 2026-08-11 |
+| —   | Tests: gilding-pool test added, one-tag-per-material invariant pinned, two exhaustiveness guards and the pinned tag table updated; no calibration pin re-recorded                                                                                                                                                       | 2026-08-11 |
+| —   | Roadmap: 2GN.78 done; per-material affinity question filed                                                                                                                                                                                                                                                              | 2026-08-11 |
+
+---
+
+### 2.41 `MaterialFlow` Selects by Include/Exclude; `MaterialName` Types Every Material Id (2026-08-12)
+
+**Origin:** PR #57 review **Source of truth:** doc 05 §3.4 holds the shape; `.claude/roadmaps.json`
+2GN.112 holds the ruling
+
+**The old shape had two fields feeding one selector with the operator left unstated.**
+`MaterialFlow` carried `materialTag: MaterialTag` plus an optional `specificMaterials: string[]`,
+and `MaterialFlow.specificMaterials`' own JSDoc said it applied "when the flow is narrower than the
+whole tag". `flowSuppliesMaterial` ORed the two arms, so the list could only ever _widen_ a flow and
+never restrict it: `materialTag: 'metal'` supplied bronze and iron whatever the list said. The type
+documented a contract the implementation did not provide, and no test pinned either reading.
+
+**§2.40's re-key was the first code to depend on the narrowing reading, and it silently didn't
+work.** Retiring `precious-metal` left three shipped flows needing a new key; they were re-authored
+as class tag + `specificMaterials` specifically to hold the retired tag's exact reach, and commented
+as doing so. Under the OR they reached the whole class instead. Availability happened not to move,
+because every material the OR newly reached was already reachable another way — which is why the
+error survived review and a full suite run. **General lesson: a mechanism that is inert today
+because other data happens to mask it is not thereby correct, and "the tests still pass" does not
+distinguish the two.**
+
+**Both candidate fixes were insufficient, which is what forced the shape change.** Making the
+implementation narrow would have expressed "no metals except gold" but not "all metals except gold"
+— the latter only by enumerating the complement, which freezes against a catalogue that later gains
+a metal. Replacing the pair with one explicit material list had the same gap and additionally lost
+the open-over-the-catalogue property a class tag gives. `includes`/`excludes` is the smallest shape
+expressing both: union the includes, subtract the excludes, no precedence and no ordering. A
+rejected third option resolved a tag/id collision by discarding the tag and warning; it bought
+exactly what narrowing bought, told authors writing a legitimate "class plus this one especially"
+that they had erred, and made a flow's reach depend on which other entries sat beside it.
+
+**Selector arms are tagged because three strings live in both vocabularies.** `bone`, `glass` and
+`leather` each name a `MaterialTag` _and_ a material id, so a `MaterialTag | MaterialName` union
+could not tell "the bone class, including antler" from "the bone material alone". Resolving that by
+precedence would have made three of sixteen materials unselectable by one of their two readings.
+
+**`MaterialName` types every material id, not just the selector's.** The union is declared in
+`types/tags.ts` rather than derived from `MATERIALS`, because `data/materials.ts` imports its
+`MaterialDefinition` from `types/` and the reverse import would cycle — so the two are kept in step
+by a two-directional test rather than by construction. It now types `MaterialDefinition.id`,
+`RegionalAvailability.materialId`, `GeologicalContext.materialAvailability`'s key and
+`MaterialAssignment.materialId`, so a mistyped id fails at compile time wherever a material is
+named. `tests/fixtures/world.ts` had been hand-rolling a runtime equivalent of exactly this check.
+
+**One availability outcome changed, deliberately.** Measured across all four Explorer presets × 16
+materials against `origin/main`: Thalassar loses jade. Its jade is `trade-only` and was arriving
+through the obsidian flow's `stone` tag arm — the OR reach nobody authored — so the flow now
+carrying obsidian alone is the authored intent restored. Every other pair is byte-identical, all 30
+calibration pins hold with nothing re-recorded, and 578 tests pass.
+
+| Doc | What changed                                                                                                                                 | Completed  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12  | This entry                                                                                                                                   | 2026-08-12 |
+| 05  | §3.4's `MaterialFlow` code block replaced; the include/exclude rule and the tagged-arm rationale stated                                      | 2026-08-12 |
+| —   | `types/world.ts`: `MaterialSelector` added; `MaterialFlow` re-shaped; `RegionalAvailability`/`GeologicalContext` keyed by `MaterialName`     | 2026-08-12 |
+| —   | `types/tags.ts`: `MATERIAL_NAMES` + `MaterialName` added, with the collision warning and the declared-not-derived rationale                  | 2026-08-12 |
+| —   | `types/artefact.ts`: `MaterialDefinition.id` and `MaterialAssignment.materialId` typed `MaterialName`                                        | 2026-08-12 |
+| —   | `engine/generation/materials.ts`: `selectorMatches` added, `flowSuppliesMaterial` rewritten; `synthesiseTradePathId` drops its tag component | 2026-08-12 |
+| —   | `data/explorer-cultures.ts`, `tests/fixtures/world.ts`: every flow re-authored; §2.40's three re-keyed flows now mean what they claimed      | 2026-08-12 |
+| —   | Tests: six selector-semantics cases, the `MATERIAL_NAMES` two-way invariant; the "even off-tag" case renamed for what it now pins            | 2026-08-12 |
+| —   | Roadmap: 2GN.112 rewritten from "should `specificMaterials` narrow?" to the ruling it became                                                 | 2026-08-12 |
+
+---
+
+### 2.42 Classification Rules Carry a Stable Id; `R{n}` Demoted to a Display Label (2026-08-12)
+
+**Origin:** PR #57 review **Source of truth:** `ClassificationRule.id` in `src/lib/types/tags.ts`;
+`.claude/roadmaps.json` 2GN.113 holds the ruling
+
+**A rule's only identity was its position in the array, and §2.39's deletion proved what that
+costs.** Removing R4 shifted every later rule up one, so every `R{n}` reference in comments, docs
+and tests silently came to name a different rule. Nothing failed. The staleness was found by eye
+across four separate follow-up commits (`49319ec`, `f12f535`, `15f8c8f`, `f7dd239`), each scoped
+somewhere the last one had not reached, and the PR review pass still found more afterwards: an
+`R32`/`R29` pair in `classification.ts` and an `R11` in `types/tags.ts` describing rules two indices
+away. **General lesson: an identifier that is derived from position cannot be cited safely, because
+nothing connects the citation to the thing it names.** A wrong `R{n}` is indistinguishable from a
+right one at the point of reading.
+
+**Every rule now carries a kebab-case slug naming what it reads and what it concludes.**
+`edge-short-sharp-dagger`, `container-slit-votive`, `applied-elements-above-p75`. The slugs were
+authored against each rule's own condition rather than derived from it or assigned by position, so
+the id states the intent a reader would otherwise reconstruct from a predicate. `RULES_BY_ID` is
+built once at module load and throws on a duplicate rather than letting the later rule win, so an
+ambiguous id cannot reach a lookup. `ruleById` returns `undefined`; `requireRuleById` throws naming
+the missing id and where ids are listed.
+
+**`R{n}` survives, as a rendering of current position and nothing else.**
+`ruleDisplayLabelAt(index)` is the form to call where the index is already in hand;
+`ruleDisplayLabel(rule)` is for where it is not, and returns `undefined` for an unshipped rule. The
+Explorer panels and `scripts/dev/sample-classification.ts` show the label, because a reader
+comparing a panel against the array wants the position. `tagInspector.ts` and `ruleCalibration.ts`
+carry `ruleId` alongside it, so the identity survives what the display cannot.
+
+**Dated measurements keep their original numbering, deliberately.** `calibration.test.ts`'s
+fire-rate tables, this register's own entries and the spikes all describe the 44-rule set as
+measured, so rewriting their numbers to today's positions would falsify a record. Only live
+cross-references were migrated. Where a dated passage sits next to live prose, the disambiguation is
+stated in place: `classification.ts`'s applied-element rule carries a note that the `R30` in the
+passages below it is `decorative-layers-above-p75`, which displays as R29 today.
+
+**The guard is that a deletion now fails loudly.** `classification.test.ts`'s 43 index constants
+call `requireRuleById`, and its 37 weight-signature identity guards were deleted as redundant, since
+the lookup is a strictly stronger check than the signature it replaced. Verified by deleting a rule:
+the suite fails with `no rule with id 'edge-multiple-composite'` rather than silently repointing a
+test at its neighbour. Three id-contract tests pin the mechanism itself (uniqueness and kebab-case
+shape, round-trip over every shipped rule plus rejection of a retired id, and display-label
+positionality).
+
+**Prose that quotes the rule count is checked too, since it was the other half of the same
+problem.** `docs/docs-rule-counts.test.ts` walks every `.md`/`.html` under `docs/` and fails when a
+count claim no longer matches `CLASSIFICATION_RULES.length`. Dated claims carry a
+`<!-- rule-count: historical -->` marker instead of an edit; §2.26 is the worked example. Two
+exemptions are structural rather than editorial: the marker is skipped past blank lines because
+`deno fmt` inserts one, and `<script type="application/json">` data islands are skipped entirely,
+because the roadmap artefacts embed `.claude/roadmaps.json` as a single 236KB line where no comment
+can sit.
+
+| Doc | What changed                                                                                                                   | Completed  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| 12  | This entry                                                                                                                     | 2026-08-12 |
+| 05  | §9.2's `ClassificationRule` block documents `id`, per that doc's dated-note convention                                         | 2026-08-12 |
+| —   | `types/tags.ts`: `id` added to `ClassificationRule`, with the positional-identity rationale inline                             | 2026-08-12 |
+| —   | `data/classification.ts`: 43 authored slugs; `RULES_BY_ID`, `ruleById`, `requireRuleById`, `ruleDisplayLabel{,At}`             | 2026-08-12 |
+| —   | `data/classification.test.ts`: index constants fetch by id; 37 weight-signature guards deleted; three id-contract tests added  | 2026-08-12 |
+| —   | Explorer: `tagInspector.ts` and `ruleCalibration.ts` carry `ruleId`; calibration assertions pin rules by id, not display label | 2026-08-12 |
+| —   | `scripts/dev/sample-classification.ts`: reads `ruleDisplayLabel` rather than hand-numbering                                    | 2026-08-12 |
+| —   | `docs/docs-rule-counts.test.ts`: new prose guard, with the historical marker and the data-island exemption                     | 2026-08-12 |
+| —   | Roadmap: 2GN.113 filed and closed                                                                                              | 2026-08-12 |
 
 ---
 

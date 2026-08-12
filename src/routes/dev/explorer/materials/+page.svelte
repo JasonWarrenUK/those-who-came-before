@@ -51,10 +51,11 @@ const BADGE: Record<Obtainability, string> = {
 </p>
 
 <p class="text-base-content/70 mt-2 max-w-prose text-sm">
-	The weight column is the <em>combined</em> selection weight, not a scarcity/affinity/technology
-	split — <code>computeMaterialWeight</code> returns a single product and its tuning constants are
-	private to the engine. The per-component distribution below samples the draw repeatedly instead,
-	which shows culture bias empirically without duplicating those numbers.
+	The candidate table below breaks weight into its three factors — cultural affinity, phase
+	technology, scarcity — multiplying to the combined weight in the last column for every obtainable
+	candidate. A blocked candidate keeps its three engine factors but shows a combined weight of zero,
+	since it never enters the draw whatever those factors say. The per-component distribution samples
+	the draw repeatedly, which shows the same bias empirically.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -130,6 +131,9 @@ const BADGE: Record<Obtainability, string> = {
 						<th>Material</th>
 						<th>Level</th>
 						<th>Via</th>
+						<th class="text-right">Affinity</th>
+						<th class="text-right">Technology</th>
+						<th class="text-right">Scarcity</th>
 						<th>Weight</th>
 					</tr>
 				</thead>
@@ -143,6 +147,9 @@ const BADGE: Record<Obtainability, string> = {
 									{candidate.obtainability}
 								</span>
 							</td>
+							<td class="text-right font-mono text-xs">{candidate.culturalAffinity.toFixed(2)}</td>
+							<td class="text-right font-mono text-xs">{candidate.phaseTechnology.toFixed(2)}</td>
+							<td class="text-right font-mono text-xs">{candidate.scarcity.toFixed(2)}</td>
 							<td>
 								<span class="flex items-center gap-2">
 									<span class="bg-base-300 h-2 w-16 shrink-0 overflow-hidden rounded-sm">

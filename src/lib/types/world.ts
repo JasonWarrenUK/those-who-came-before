@@ -11,7 +11,7 @@
  * these annotations will migrate onto, per the convention set in artefact.ts.
  */
 
-import type { MaterialTag } from './tags.ts';
+import type { MaterialName, MaterialTag } from './tags.ts';
 import type { DecorativeTechnique } from './decoration.ts';
 
 /**
@@ -263,15 +263,50 @@ export interface Culture {
 }
 
 /**
- * A directional flow of a material tag between the two cultures in a `CultureRelationship` (doc 05
+ * One entry in a `MaterialFlow`'s `includes`/`excludes`, naming either a whole material class or a
+ * single material (doc 05 §3.4, roadmap 2GN.112).
+ *
+ * The arms are tagged rather than a bare string because `bone`, `glass` and `leather` each name
+ * *both* a `MaterialTag` and a `MaterialName`: `{ tag: 'bone' }` selects the class (bone and
+ * antler), `{ id: 'bone' }` selects the material alone. A `MaterialTag | MaterialName` union could
+ * not distinguish them, and resolving the collision by precedence would make three of sixteen
+ * materials unselectable by one of their two readings.
+ */
+export type MaterialSelector =
+	| { tag: MaterialTag; id?: never }
+	| { id: MaterialName; tag?: never };
+
+/**
+ * A directional flow of materials between the two cultures in a `CultureRelationship` (doc 05
  * §3.4). Part of `RelationshipDynamics.trade.materialFlow`. Visibility: occluded.
+ *
+ * **A flow supplies a material when some `includes` selector matches it and no `excludes` selector
+ * does.** Union the includes, subtract the excludes; there is no precedence between the two field's
+ * entries and no ordering within them, so one selector can be read without consulting its
+ * neighbours.
+ *
+ * ⚠️ **Replaces the `materialTag` + `specificMaterials` pair (roadmap 2GN.112).** That shape had two
+ * fields feeding one selector with the combining operator left unstated, and the implementation
+ * (`flowSuppliesMaterial`) ORed them while this JSDoc claimed `specificMaterials` narrowed the tag —
+ * so the list could only ever *widen* a flow and the three shipped flows re-keyed onto it by 2GN.78
+ * silently reached the whole class. Neither reading could express "all metals except gold": the OR
+ * had no subtraction, and narrowing could only enumerate the complement, freezing it against a
+ * catalogue that later grows. `excludes` is what buys that case, and it is why the pair was not
+ * simply replaced by an explicit material list.
  */
 export interface MaterialFlow {
-	/** The material tag flowing between cultures. */
-	materialTag: MaterialTag;
+	/**
+	 * What the flow carries: classes, specific materials, or a mix. An empty array supplies nothing
+	 * (a flow that carries nothing is not a flow) rather than defaulting to everything.
+	 */
+	includes: MaterialSelector[];
 
-	/** Optional specific material ids, when the flow is narrower than the whole tag. */
-	specificMaterials?: string[];
+	/**
+	 * Materials removed from what `includes` selects — an embargoed material on an otherwise open
+	 * route, a class the partner keeps back. Subtracting something `includes` never selected is
+	 * redundant rather than an error, and a material matched by both is excluded.
+	 */
+	excludes?: MaterialSelector[];
 
 	/** Which culture the material flows from and to, keyed against `CultureRelationship.cultureIds`. */
 	direction:
@@ -506,7 +541,7 @@ export type AvailabilityLevel =
  */
 export interface RegionalAvailability {
 	/** Id of the material this availability map describes. */
-	materialId: string;
+	materialId: MaterialName;
 
 	/** Availability level keyed by region name. */
 	regions: Map<string, AvailabilityLevel>;
@@ -520,7 +555,7 @@ export interface RegionalAvailability {
  */
 export interface GeologicalContext {
 	/** Availability keyed by material id. */
-	materialAvailability: Map<string, RegionalAvailability>;
+	materialAvailability: Map<MaterialName, RegionalAvailability>;
 }
 
 /**

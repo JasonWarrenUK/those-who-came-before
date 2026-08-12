@@ -629,12 +629,20 @@ Deno.test('extractFeatures: unrecognised parameter values degrade to first-liste
 /**
  * A fixture rule from a condition and tag/weight pairs. Weights in these tests are exact binary
  * fractions (0.25, 0.5, 0.75) so plain-sum assertions need no floating-point tolerance.
+ *
+ * Ids are synthesised (`fixture-rule-1`, `fixture-rule-2`, ...) rather than passed in: these rules
+ * are anonymous throwaways built to exercise `classifyArtefact`'s fold, and none is ever fetched by
+ * id. They still need *an* id to satisfy `ClassificationRule` (roadmap 2GN.113), and unique ones so
+ * a fixture set never trips the duplicate-id check a real catalogue would.
  */
+let fixtureRuleCount = 0;
+
 function rule(
 	condition: (f: ExtractedFeatures) => boolean,
 	tags: [ArtefactTag, number][],
 ): ClassificationRule {
-	return { condition, tags: new Map(tags) };
+	fixtureRuleCount += 1;
+	return { id: `fixture-rule-${fixtureRuleCount}`, condition, tags: new Map(tags) };
 }
 
 /**

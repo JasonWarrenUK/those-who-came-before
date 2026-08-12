@@ -113,8 +113,17 @@ export const CORE_GRAMMAR_RULES: readonly GrammarRule[] = [
 			{
 				expandsTo: 'ring-form',
 				baseWeight: 0.8,
+				// A `precious-metal: 0.5` entry sat beside `metal` here until roadmap 2GN.78 retired the
+				// precious tags. `metal` keeps its authored 0.4 rather than absorbing the 0.5:
+				// `effectiveOptionWeight` *sums* modifiers and multiplies each by the culture's
+				// affinity for that tag, reading a missing affinity as 0. So this precious term paid
+				// out only for a culture whose `materialAffinities` authored `precious-metal` — of the
+				// four Explorer presets, only Thalassar did (1.2), and it authored no competing `metal`
+				// value, which is why retiring the tag moved its gold/silver weights 1.20 → 1.00 and
+				// nothing else. Summing the two into 0.9 was measured raising ring-form's share enough
+				// to drift R21 by 8.6pp — a behaviour change dressed as a refactor. Removing the term
+				// is the faithful fold.
 				culturalModifiers: new Map<MaterialTag, number>([
-					['precious-metal', 0.5],
 					['metal', 0.4],
 					['bone', 0.2],
 				]),
@@ -140,10 +149,11 @@ export const CORE_GRAMMAR_RULES: readonly GrammarRule[] = [
 			{
 				expandsTo: 'sheet-form',
 				baseWeight: 0.4,
+				// `precious-metal: 0.3` removed with the tag (roadmap 2GN.78); `metal` keeps its authored
+				// 0.4 — see `ring-form` above for why the removed term is not absorbed into it.
 				culturalModifiers: new Map<MaterialTag, number>([
 					['metal', 0.4],
 					['leather', 0.3],
-					['precious-metal', 0.3],
 				]),
 			},
 		],

@@ -217,13 +217,20 @@ export interface ClassificationContext {
  * `MaterialDefinition.tags` (what a material is) and `NormalisedComponent.allowedMaterialTags`
  * (what a component can physically be made from) — see doc 05 §6.1.
  *
- * **`precious-stone`/`precious-metal` are descriptors, not classification inputs** (doc 11 §2.9,
- * roadmap 2GN.77/2GN.78). They remain facts about a material's physical character, read by
- * generation-time material selection — `computeMaterialWeight`'s cultural-affinity term
- * (`engine/generation/materials.ts`) and `INTRODUCED_MATERIAL_TAGS`' availability gate
- * (`engine/generation/decoration.ts`) both key off them. No `ClassificationRule.condition` may read
- * either directly to award an `ArtefactTag`: material-derived standing comes from the material's
- * situation in the world instead (availability × cultural affinity × provenance × stratification).
+ * **Every member names a material class — what a material *is*, observably and independently of any
+ * culture's opinion of it.** `precious-metal` and `precious-stone` were members until roadmap
+ * 2GN.78 retired them (doc 11 §2.9, doc 12 §2.40): they asserted social valuation, not physical
+ * character, which is the Earth-judgement stamp 2GN.77 ruled against — a culture with abundant gold
+ * does not read gold as precious. Preciousness is derived from the material's *situation*
+ * (availability × cultural affinity × provenance × stratification), never carried as a catalogue
+ * fact. Anything a precious tag was doing is now done by data that was already modelled: physical
+ * character by `MaterialDefinition.physicalProperties`/`reactivity`, scarcity by
+ * `GeologicalContext.materialAvailability`, and a specific material's reachability by a
+ * `MaterialFlow`'s `{ id }` selector (`world.ts`).
+ *
+ * **Adding a member that names a judgement rather than a class re-opens that defect.** The test is
+ * whether two cultures looking at the same material would agree on the tag. `metal` passes;
+ * `precious-metal` did not.
  *
  * ⚠️ `MaterialTag` and `ArtefactTag` are unrelated vocabularies that happen to share the word "tag".
  * Doc 12 §2.28 once booked a re-key of doc 12 §2.22's `MaterialTag` sets against this ruling on that
@@ -238,9 +245,45 @@ export type MaterialTag =
 	| 'clay'
 	| 'glass'
 	| 'fiber'
-	| 'leather'
-	| 'precious-stone'
-	| 'precious-metal';
+	| 'leather';
+
+/**
+ * Every shipped material id (`data/materials.ts`, doc 05 §7 §15). The join key wherever one
+ * material is named: `MaterialDefinition.id`, `GeologicalContext.materialAvailability`'s key,
+ * `RegionalAvailability.materialId`, and `MaterialSelector`'s `id` arm (`world.ts`).
+ *
+ * Declared here rather than derived from `MATERIALS` because the dependency runs one way:
+ * `data/materials.ts` imports its `MaterialDefinition` from `types/`, so `types/` importing the
+ * catalogue back would cycle. **The two are therefore kept in step by test, not by construction** —
+ * `materials.test.ts` pins both directions (every name has a definition, every definition has a
+ * name), so adding a material means editing this list too and the suite fails loudly until you do.
+ *
+ * ⚠️ `bone`, `glass` and `leather` are each *both* a `MaterialTag` and a `MaterialName`, naming a
+ * class and a specific material with the same string. That collision is why `MaterialSelector`
+ * tags its arms (`{ tag: 'bone' }` reaches bone and antler; `{ id: 'bone' }` reaches bone alone)
+ * instead of accepting a bare string, which could not tell the two apart.
+ */
+export const MATERIAL_NAMES = [
+	'bronze',
+	'iron',
+	'gold',
+	'silver',
+	'obsidian',
+	'flint',
+	'granite',
+	'jade',
+	'oak',
+	'ash',
+	'bone',
+	'antler',
+	'fired-clay',
+	'glass',
+	'linen',
+	'leather',
+] as const;
+
+/** One shipped material's id — see `MATERIAL_NAMES`. */
+export type MaterialName = (typeof MATERIAL_NAMES)[number];
 
 /**
  * One feature→tag scoring contribution (doc 05 §9.2). `classifyArtefact` (roadmap 2GN.20) folds
@@ -248,8 +291,8 @@ export type MaterialTag =
  * scores — structural, decorative and cross-layer rules all contribute to the same map, which is
  * how a single artefact can score on multiple, overlapping tags at once.
  *
- * A rule may award tags from both scoring bases at once, and many do: R11 awards `container`
- * (absolute) alongside `votive` and `funerary` (relative) from one sealed-container condition.
+ * A rule may award tags from both scoring bases at once, and many do: `container-sealed-deposition`
+ * awards `container` (absolute) alongside `votive` and `funerary` (relative) from one condition.
  * The basis is a property of each awarded tag, not of the rule, so a rule awarding any
  * `RelativeTag` needs culture-phase baselines even when its condition reads purely physical
  * features (doc 11 §2.9 — this is what catches the thin-walled-container and pedestal-base rules).
@@ -260,6 +303,19 @@ export type MaterialTag =
  * parameter; TypeScript accepts a narrower-arity function wherever this wider signature is expected.
  */
 export interface ClassificationRule {
+	/**
+	 * Stable identity, independent of position in `CLASSIFICATION_RULES` (roadmap 2GN.113).
+	 *
+	 * A kebab-case slug naming what the rule reads and what it concludes
+	 * (`edge-short-sharp-dagger`), unique across the array and pinned by test. **Cite this in prose,
+	 * comments and docs, never the display number.** `R{index + 1}` is a rendering of a rule's
+	 * current position, so deleting one silently renumbers every rule below it: 2GN.87's deletion of
+	 * the old R4 turned every later reference stale in one commit, and four follow-up commits were
+	 * still chasing the leftovers. An id survives deletion, insertion and reordering, and a
+	 * reference to a retired one fails a lookup instead of quietly resolving to its neighbour.
+	 */
+	id: string;
+
 	/** Predicate over the artefact's unified extracted features and its culture-phase baselines. */
 	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 

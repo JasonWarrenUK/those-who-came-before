@@ -20,7 +20,7 @@
  * `classifyArtefact`) against the Explorer culture presets, which model all 16 materials explicitly
  * — so unlike the test fixtures before 2GN.79, nothing here reaches `isAvailable`'s
  * unmodelled-material lenience. Materials are assigned and layers re-graded before `extractFeatures`
- * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R44)
+ * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R43)
  * is measured on the same scale its baseline is sampled from (roadmap 2GN.103, doc 12 §2.36).
  *
  * Pure, no DOM/Svelte, unit-testable directly per the `tagInspector.ts`/`structureTree.ts`
@@ -40,7 +40,11 @@ import {
 } from '../../../../lib/engine/generation/classification.ts';
 import { sampleBaselines } from '../../../../lib/engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES, SATURATION_CEILING } from '../../../../lib/data/classification.ts';
+import {
+	CLASSIFICATION_RULES,
+	ruleDisplayLabelAt,
+	SATURATION_CEILING,
+} from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
@@ -60,7 +64,8 @@ export { SATURATION_CEILING };
  * How a rule's fire rate reads.
  *
  * Three verdicts, each mapping to an action: `dormant` (fires on nothing — investigate, since a
- * rule can be unreachable rather than merely rare, as R4 is and R27 was before roadmap 2GN.86),
+ * rule can be unreachable rather than merely rare, as R26 was before roadmap 2GN.86 made its
+ * `very-heavy` band reachable, and as the deleted R4 was permanently, roadmap 2GN.87),
  * `saturated` (above `SATURATION_CEILING` — check the stated intent against the behaviour), and
  * `discriminating` (working). A fourth `rare` band below 1% was measured and dropped: it flagged
  * the decoration rules on low-decoration cultures, where they are behaving correctly, so it
@@ -71,10 +76,18 @@ export type CalibrationVerdict = 'saturated' | 'discriminating' | 'dormant';
 
 /** One rule's measured behaviour across the sample. */
 export interface RuleCalibration {
-	/** Display label, `R{index + 1}` — matching the Tag Inspector and the data-test blocks. */
+	/**
+	 * Display label, `R{index + 1}` — matching the Tag Inspector and the data-test blocks.
+	 *
+	 * Positional, so it shifts when a rule is deleted. Cite `ruleId` in anything that has to survive
+	 * that (roadmap 2GN.113).
+	 */
 	label: string;
 
-	/** The rule's index in `CLASSIFICATION_RULES`, its only runtime identity. */
+	/** The rule's stable id (roadmap 2GN.113), which survives deletion and reordering. */
+	ruleId: string;
+
+	/** The rule's index in `CLASSIFICATION_RULES`, its position in the shipped array. */
 	ruleIndex: number;
 
 	/** How many sampled artefacts the rule fired on. */
@@ -118,9 +131,14 @@ export interface TagCalibration {
 
 	/**
 	 * The rule contributing the most total weight to this tag across the sample, if any. This is
-	 * what turns "elite is everywhere" into "because R31 fires on 85% of artefacts".
+	 * what turns "elite is everywhere" into "because `applied-elements-above-p75` fires on 85% of
+	 * artefacts".
+	 *
+	 * Carries `ruleId` alongside the positional `label` for the same reason `RuleCalibration` does
+	 * (roadmap 2GN.113): this is the field a reader chases when a tag looks wrong, so it is the one
+	 * that most needs to survive a deletion.
 	 */
-	topContributor?: { label: string; ruleIndex: number; firePercent: number };
+	topContributor?: { label: string; ruleId: string; ruleIndex: number; firePercent: number };
 }
 
 /** A full calibration run. */
@@ -243,7 +261,8 @@ export function calibrateRules(
 		const fireCount = fireCounts[ruleIndex];
 		const firePercent = percent(fireCount);
 		return {
-			label: `R${ruleIndex + 1}`,
+			label: ruleDisplayLabelAt(ruleIndex),
+			ruleId: rule.id,
 			ruleIndex,
 			fireCount,
 			firePercent,
@@ -272,7 +291,8 @@ export function calibrateRules(
 					}
 				}
 				topContributor = {
-					label: `R${bestIndex + 1}`,
+					label: ruleDisplayLabelAt(bestIndex),
+					ruleId: CLASSIFICATION_RULES[bestIndex].id,
 					ruleIndex: bestIndex,
 					firePercent: percent(fireCounts[bestIndex]),
 				};

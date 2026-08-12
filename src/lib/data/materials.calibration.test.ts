@@ -22,15 +22,16 @@
  * material's share moving. The tree separates them: a tag-level share (`metal`: 22%) plus, only
  * where a tag has two or more leaf materials, a conditional intra-tag split (of that metal:
  * bronze 40% / iron 35% / gold 15% / silver 10%). Four single-leaf tags (clay, glass, fiber, leather)
- * emit no split — it would always read 100% and carry no information. `gold`/`silver` nest under
- * `metal`, their primary tag; `jade` nests under `stone` the same way (roadmap 2GN.84's catalogue
- * audit gave jade `['stone', 'precious-stone']`, matching gold/silver's `['metal', 'precious-metal']`
- * pattern — it previously carried only `precious-stone` and was invisible to any plain `stone`
- * reading). The intra-tag split's leaf entries already carry the precious/base distinction (a
- * `metal` split naming bronze, iron, gold and silver separately shows a tin-poor-but-metal-rich
- * culture as depressed bronze/iron shares within an otherwise-normal `metal` tag total) without a
- * separate third level, since `precious-metal`/`precious-stone` each currently have too few leaves
- * of their own to need one.
+ * emit no split — it would always read 100% and carry no information. `gold`/`silver` sit under
+ * `metal` and `jade` under `stone`, which since roadmap 2GN.78 is simply where their single tag puts
+ * them: the `precious-metal`/`precious-stone` tags that once gave those three a second membership
+ * were retired as social valuation rather than material class (doc 12 §2.40).
+ *
+ * The two-level shape is unaffected by that retirement, and the reason is worth keeping: the
+ * intra-tag split's leaf entries already express what a "precious" tier would have (a `metal` split
+ * naming bronze, iron, gold and silver separately shows a tin-poor-but-metal-rich culture as
+ * depressed bronze/iron shares within an otherwise-normal `metal` tag total). A third level was
+ * never needed, and now there is no candidate for one.
  *
  * Deriving which materials belong to which tag from `MaterialDefinition.tags` directly (rather than
  * hand-writing the tree) is what lets this guard survive catalogue expansion: a 17th material
@@ -96,8 +97,11 @@ const MULTI_LEAF_PRIMARY_TAGS: readonly string[] = ['metal', 'stone', 'wood', 'b
 
 /**
  * Measured per-region tag share (roadmap 2GN.84), at `SAMPLES_PER_REGION` per region, recorded
- * 2026-08-06 against the corrected catalogue (jade → `['stone', 'precious-stone']`, glass →
- * engravable/paintable) and the closed introduced-material gate hole. A material with zero
+ * 2026-08-06 against the then-current catalogue (jade → `['stone', 'precious-stone']`, glass →
+ * engravable/paintable) and the closed introduced-material gate hole. Jade's tags have since become
+ * `['stone']` — roadmap 2GN.78 retired the `precious-*` members — which left these shares unmoved,
+ * since jade already counted under `stone` here and the tag was carrying no share of its own. A
+ * material with zero
  * modelled presence in a region (`forestInterior`'s absent metals, `desertMargin`'s absent wood)
  * reads as an omitted tag entry, not a zero, matching `tests/fixtures/world.ts`'s own
  * "regions differ in which materials are obtainable" design.

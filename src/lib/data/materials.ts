@@ -17,6 +17,14 @@
  *
  * Every `MaterialTag` (`tags.ts`) has at least one entry below.
  *
+ * **No entry carries a "precious" tag** (roadmap 2GN.78, doc 12 §2.40). Gold, silver and jade were
+ * tagged `precious-metal`/`precious-stone` until that ruling retired both members as social
+ * valuation masquerading as physical character. What made gold giltable is here already and always
+ * was — `physicalProperties.formability` and `reactivity.oxidisation` (gold 0, silver 3, against
+ * bronze 6 and iron 7) — and what makes it *precious* belongs to the world, not the catalogue:
+ * `GeologicalContext.materialAvailability` says how scarce it is here, `CulturalProfile` says
+ * whether this culture cares. Do not reintroduce a tag that encodes an opinion about a material.
+ *
  * `physicalProperties.formability` (roadmap 2GN.102) is read at the material's *working* state, the
  * one axis on that convention — see its JSDoc (`types/artefact.ts`) for why, and why its six
  * siblings are inconsistent with it. `fired-clay`'s comment below is the one place that
@@ -67,7 +75,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'gold',
 		displayName: 'Gold',
-		tags: ['metal', 'precious-metal'],
+		tags: ['metal'],
 		craftDomain: 'metallurgy',
 		physicalProperties: {
 			hardness: 3, // Mohs ≈2.5–3, the softest metal here alongside silver.
@@ -87,7 +95,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'silver',
 		displayName: 'Silver',
-		tags: ['metal', 'precious-metal'],
+		tags: ['metal'],
 		craftDomain: 'metallurgy',
 		physicalProperties: {
 			hardness: 3, // Mohs ≈2.5–3, same tier as gold.
@@ -169,10 +177,7 @@ export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'jade',
 		displayName: 'Jade',
-		// Carries both tiers, matching gold/silver's `['metal', 'precious-metal']` (roadmap 2GN.84
-		// catalogue audit) — `precious-stone` alone made jade invisible to any plain `stone` affinity
-		// or `allowedMaterialTags: ['stone']` constraint, which no other precious material exhibits.
-		tags: ['stone', 'precious-stone'],
+		tags: ['stone'],
 		craftDomain: 'stoneWorking',
 		physicalProperties: {
 			hardness: 6, // Mohs ≈6–6.5 for nephrite/jadeite.
