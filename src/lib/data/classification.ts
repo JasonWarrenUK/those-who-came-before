@@ -775,14 +775,28 @@ export function requireRuleById(id: string): ClassificationRule {
 }
 
 /**
- * A rule's display label, `R{position + 1}` (roadmap 2GN.113).
+ * A rule's display label from its position, `R{index + 1}` (roadmap 2GN.113).
  *
  * **A rendering, not an identity.** The Explorer panels and `scripts/dev/sample-classification.ts`
  * show this so a reader can scan the array in order, and it necessarily shifts when a rule is
  * deleted. Anything that has to survive that shift (a comment, a doc, a pinned test) cites
- * `rule.id`. Returns `undefined` for a rule not in the shipped array, since it has no position.
+ * `rule.id`.
+ *
+ * Prefer this over `ruleDisplayLabel` wherever the index is already in hand — an iteration over
+ * `CLASSIFICATION_RULES` always has it, and recovering it by `indexOf` reads as though the lookup
+ * could fail when it cannot.
+ */
+export function ruleDisplayLabelAt(index: number): string {
+	return `R${index + 1}`;
+}
+
+/**
+ * A rule's display label, looked up by position in `CLASSIFICATION_RULES` (roadmap 2GN.113).
+ *
+ * For callers holding a rule but not its index. Returns `undefined` for a rule not in the shipped
+ * array, since it has no position. When the index *is* available, call `ruleDisplayLabelAt`.
  */
 export function ruleDisplayLabel(rule: ClassificationRule): string | undefined {
 	const index = CLASSIFICATION_RULES.indexOf(rule);
-	return index === -1 ? undefined : `R${index + 1}`;
+	return index === -1 ? undefined : ruleDisplayLabelAt(index);
 }

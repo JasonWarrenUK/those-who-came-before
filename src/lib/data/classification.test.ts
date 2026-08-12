@@ -1,6 +1,11 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals, assertFalse, assertThrows } from '@std/assert';
-import { CLASSIFICATION_RULES, requireRuleById, ruleDisplayLabel } from './classification.ts';
+import {
+	CLASSIFICATION_RULES,
+	requireRuleById,
+	ruleDisplayLabel,
+	ruleDisplayLabelAt,
+} from './classification.ts';
 import {
 	emptyClassificationContext,
 	neutralExtractedFeatures as features,
@@ -200,6 +205,12 @@ Deno.test('rule ids: the display label is positional, and separate from identity
 		ruleDisplayLabel({ id: 'not-shipped', condition: () => false, tags: new Map() }),
 		undefined,
 	);
+
+	// `ruleDisplayLabelAt` is the same rendering for callers that already hold the index — every
+	// iteration over `CLASSIFICATION_RULES` does — so the two must never disagree about a position.
+	CLASSIFICATION_RULES.forEach((rule, index) => {
+		assertEquals(ruleDisplayLabelAt(index), ruleDisplayLabel(rule), `rule ${rule.id}`);
+	});
 });
 
 Deno.test('ruling: the remaining rules award only AbsoluteTags', () => {

@@ -42,7 +42,7 @@ import { sampleBaselines } from '../../../../lib/engine/generation/baselines.ts'
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import {
 	CLASSIFICATION_RULES,
-	ruleDisplayLabel,
+	ruleDisplayLabelAt,
 	SATURATION_CEILING,
 } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
@@ -256,7 +256,7 @@ export function calibrateRules(
 		const fireCount = fireCounts[ruleIndex];
 		const firePercent = percent(fireCount);
 		return {
-			label: ruleDisplayLabel(rule) ?? `R${ruleIndex + 1}`,
+			label: ruleDisplayLabelAt(ruleIndex),
 			ruleId: rule.id,
 			ruleIndex,
 			fireCount,
@@ -286,7 +286,7 @@ export function calibrateRules(
 					}
 				}
 				topContributor = {
-					label: ruleDisplayLabel(CLASSIFICATION_RULES[bestIndex]!) ?? `R${bestIndex + 1}`,
+					label: ruleDisplayLabelAt(bestIndex),
 					ruleIndex: bestIndex,
 					firePercent: percent(fireCounts[bestIndex]),
 				};

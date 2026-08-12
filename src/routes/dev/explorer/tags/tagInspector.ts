@@ -29,7 +29,7 @@ import {
 } from '../../../../lib/engine/generation/classification.ts';
 import { baselineFor } from '../shared/baselineCache.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { CLASSIFICATION_RULES, ruleDisplayLabel } from '../../../../lib/data/classification.ts';
+import { CLASSIFICATION_RULES, ruleDisplayLabelAt } from '../../../../lib/data/classification.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../../../lib/types/tags.ts';
@@ -317,7 +317,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		for (const [tag, weight] of rule.tags) {
 			const existing = contributions.get(tag) ?? [];
 			existing.push({
-				rule: ruleDisplayLabel(rule) ?? `R${ruleIndex + 1}`,
+				rule: ruleDisplayLabelAt(ruleIndex),
 				ruleId: rule.id,
 				ruleIndex,
 				weight,
