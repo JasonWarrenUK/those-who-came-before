@@ -21,7 +21,11 @@
   --code-accent:#d9a466;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --shell:52rem;
+  --prose:46rem;
 }
+@media(min-width:1000px){:root{--shell:64rem}}
+@media(min-width:1300px){:root{--shell:74rem}}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
@@ -49,7 +53,7 @@ pre .c{color:#8f7f63;font-style:italic}
   border-bottom:1px solid var(--line);
 }
 #topbar .inner{
-  max-width:52rem;margin:0 auto;padding:.6rem 1.25rem;
+  max-width:var(--shell);margin:0 auto;padding:.6rem 1.5rem;
   display:flex;align-items:baseline;gap:1rem;
 }
 #topbar .site{
@@ -65,8 +69,8 @@ pre .c{color:#8f7f63;font-style:italic}
 .page{display:none;animation:fade .25s ease}
 .page.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.wrap{max-width:52rem;margin:0 auto;padding:0 1.25rem}
-article.wrap{max-width:46rem;padding-bottom:2rem}
+.wrap{max-width:var(--shell);margin:0 auto;padding:0 1.5rem}
+article.wrap{max-width:var(--prose);padding-bottom:2rem}
 
 .kicker{
   font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
@@ -113,7 +117,7 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 .srcbox code{white-space:nowrap}
 
 .pagenav{
-  max-width:46rem;margin:0 auto 3rem;padding:1.2rem 1.25rem 0;
+  max-width:var(--prose);margin:0 auto 3rem;padding:1.2rem 1.5rem 0;
   display:flex;justify-content:space-between;gap:1rem;border-top:1px solid var(--line);
   font-size:.92rem;
 }
@@ -144,7 +148,7 @@ pre .t{color:#9dc3d4}
 .pagenav .next{text-align:right;margin-left:auto}
 
 /* ---------- hub ---------- */
-#page-hub .hero{max-width:52rem;margin:0 auto;padding:3.2rem 1.25rem 1rem}
+#page-hub .hero{max-width:var(--shell);margin:0 auto;padding:3.2rem 1.5rem 1rem}
 #page-hub h1{font-size:2.7rem;max-width:30ch}
 #page-hub .lede{max-width:56ch}
 .statusline{
@@ -152,8 +156,8 @@ pre .t{color:#9dc3d4}
   padding:.55rem 0;margin:1.6rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;
 }
 .statusline b{color:var(--ink);font-weight:600}
-.cardstack{max-width:52rem;margin:1.8rem auto 4rem;padding:0 1.25rem;display:flex;flex-direction:column;gap:.9rem}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.9rem}
+.cardstack{max-width:var(--shell);margin:1.8rem auto 4rem;padding:0 1.5rem;display:flex;flex-direction:column;gap:1.1rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
 .cardgroup{border:1px solid var(--line);border-radius:14px}
 .cardgroup summary{
   list-style:none;cursor:pointer;display:flex;align-items:center;gap:.7rem;
@@ -183,13 +187,13 @@ pre .t{color:#9dc3d4}
 .card .badge{align-self:flex-start;margin-top:.35rem}
 
 /* pipeline strip on hub */
-.pipestrip{max-width:52rem;margin:2.2rem auto 0;padding:0 1.25rem;overflow-x:auto}
-.pipestrip svg{display:block;min-width:640px;width:100%}
-.pipestrip text{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
-.pipestrip .cad{fill:var(--faint);font-size:9.5px}
+.pipestrip{max-width:var(--shell);margin:2.2rem auto 0;padding:0 1.5rem;overflow-x:auto}
+.pipestrip svg{display:block;min-width:640px;width:100%;max-width:100%}
+.pipestrip text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+.pipestrip .cad{fill:var(--faint);font-size:10px}
 
 footer{
-  max-width:52rem;margin:0 auto;padding:1.2rem 1.25rem 2.4rem;
+  max-width:var(--shell);margin:0 auto;padding:1.2rem 1.5rem 2.4rem;
   font-size:.78rem;color:var(--faint);border-top:1px solid var(--line);
 }
 @media(max-width:600px){
@@ -227,7 +231,7 @@ footer{
   </div>
 
   <div class="pipestrip">
-    <svg viewBox="0 0 940 118" role="img" aria-label="The nine pipeline stages in order">
+    <svg viewBox="0 0 1334 150" role="img" aria-label="The nine pipeline stages in order">
       <g id="pipe"></g>
     </svg>
   </div>
@@ -255,22 +259,22 @@ footer{
 
   <p>Stages 1–3 run once, at world creation: they produce the chronology, the cultures, the geology and a simulated century of scholarship for the player to inherit. Stages 4–8 run every time the world needs a new artefact, building a physical object, dressing it and scoring it against the tag vocabulary. Only stage 9 repeats per <em>inspection</em>, because the player's beliefs and available registers shift between viewings; the same object can read differently on Tuesday than it did on Monday.</p>
 
-  <figure class="diag"><svg viewBox="0 0 720 170" role="img" aria-label="The three cadences">
-    <text class="lab" x="8" y="31">once per world</text>
-    <rect class="box" x="150" y="14" width="110" height="26" rx="6"/><text x="205" y="31" text-anchor="middle">1 · seed</text>
-    <rect class="soft" x="270" y="14" width="110" height="26" rx="6"/><text x="325" y="31" text-anchor="middle">2 · chronology</text>
-    <rect class="soft" x="390" y="14" width="110" height="26" rx="6"/><text x="445" y="31" text-anchor="middle">3 · corpus</text>
-    <text class="lab" x="8" y="85">per artefact</text>
-    <rect class="box" x="150" y="68" width="100" height="26" rx="6"/><text x="200" y="85" text-anchor="middle">4 · grammar</text>
-    <rect class="box" x="258" y="68" width="112" height="26" rx="6"/><text x="314" y="85" text-anchor="middle">5 · plausibility</text>
-    <rect class="box" x="378" y="68" width="100" height="26" rx="6"/><text x="428" y="85" text-anchor="middle">6 · materials</text>
-    <rect class="box" x="486" y="68" width="104" height="26" rx="6"/><text x="538" y="85" text-anchor="middle">7 · decoration</text>
-    <rect class="box" x="598" y="68" width="112" height="26" rx="6"/><text x="654" y="85" text-anchor="middle">8 · classification</text>
-    <text class="lab" x="8" y="139">per inspection</text>
-    <rect class="gold" x="150" y="122" width="118" height="26" rx="6"/><text x="209" y="139" text-anchor="middle">9 · description</text>
-    <path class="arrow" d="M 320 44 l 0 18"/><path class="arrow" d="M 316 56 l 4 6 l 4 -6"/>
-    <path class="arrow" d="M 209 98 l 0 18"/><path class="arrow" d="M 205 110 l 4 6 l 4 -6"/>
-    <text class="lab" x="290" y="145">re-runs whenever the player looks again</text>
+  <figure class="diag"><svg viewBox="0 0 926 174" role="img" aria-label="The three cadences">
+    <text class="lab" x="8" y="33">once per world</text>
+    <rect class="box" x="150" y="14" width="118" height="28" rx="6"/><text x="209" y="33" text-anchor="middle">1 · seed</text>
+    <rect class="soft" x="282" y="14" width="118" height="28" rx="6"/><text x="341" y="33" text-anchor="middle">2 · chronology</text>
+    <rect class="soft" x="414" y="14" width="118" height="28" rx="6"/><text x="473" y="33" text-anchor="middle">3 · corpus</text>
+    <text class="lab" x="8" y="95">per artefact</text>
+    <rect class="box" x="150" y="76" width="142" height="28" rx="6"/><text x="221" y="95" text-anchor="middle">4 · grammar</text>
+    <rect class="box" x="306" y="76" width="142" height="28" rx="6"/><text x="377" y="95" text-anchor="middle">5 · plausibility</text>
+    <rect class="box" x="462" y="76" width="142" height="28" rx="6"/><text x="533" y="95" text-anchor="middle">6 · materials</text>
+    <rect class="box" x="618" y="76" width="142" height="28" rx="6"/><text x="689" y="95" text-anchor="middle">7 · decoration</text>
+    <rect class="box" x="774" y="76" width="142" height="28" rx="6"/><text x="845" y="95" text-anchor="middle">8 · classification</text>
+    <text class="lab" x="8" y="157">per inspection</text>
+    <rect class="gold" x="150" y="138" width="132" height="28" rx="6"/><text x="216" y="157" text-anchor="middle">9 · description</text>
+    <path class="arrow" d="M 341 42 l 0 26"/><path class="arrow" d="M 337 62 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 216 104 l 0 26"/><path class="arrow" d="M 212 124 l 4 6 l 4 -6"/>
+    <text class="lab" x="330" y="151">re-runs whenever the player looks again</text>
   </svg>
   <figcaption class="diagcap">The three cadences. Rows run left to right; a row's outputs feed the row below.</figcaption></figure>
 
@@ -636,16 +640,16 @@ const SCARCITY_WEIGHT: Record&lt;string, number&gt; = {
   <p>Craft keeps one legitimate indirect effect on volume: high-craft cultures build more complex objects, and more parts means more canvases.</p>
   <p>Grades get a second pass once materials are known, because execution difficulty is material-sensitive: engraving iron and engraving gold no longer score identically. Classification later reads mean decorative grade as a quality signal independent of quantity, so a sparse, superb object can outrank a busy, clumsy one.</p>
 
-  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Layers on one component">
-    <rect class="soft" x="8" y="106" width="480" height="30" rx="6"/><text x="248" y="125" text-anchor="middle">component: bronze flat-broad panel (the canvas)</text>
-    <rect class="box" x="48" y="66" width="400" height="28" rx="6"/><text x="248" y="84" text-anchor="middle">layer: engraving · motif: coiled-beast · grade 0.78</text>
-    <rect class="gold" x="88" y="26" width="320" height="28" rx="6"/><text x="248" y="44" text-anchor="middle">layer: inlay · material: silver · grade 0.61</text>
-    <text class="lab" x="508" y="122">substrate check: bronze holds</text>
-    <text class="lab" x="508" y="134">an incised line ✓</text>
-    <text class="lab" x="508" y="78">grade = craft × technique</text>
-    <text class="lab" x="508" y="90">difficulty × material fit</text>
-    <text class="lab" x="508" y="38">introduced material: gated on</text>
-    <text class="lab" x="508" y="50">availability, weighted like stage 6</text>
+  <figure class="diag"><svg viewBox="0 0 786 150" role="img" aria-label="Layers on one component">
+    <rect class="soft" x="8" y="106" width="520" height="30" rx="6"/><text x="268" y="125" text-anchor="middle">component: bronze flat-broad panel (the canvas)</text>
+    <rect class="box" x="52" y="66" width="432" height="28" rx="6"/><text x="268" y="84" text-anchor="middle">layer: engraving · motif: coiled-beast · grade 0.78</text>
+    <rect class="gold" x="96" y="26" width="344" height="28" rx="6"/><text x="268" y="44" text-anchor="middle">layer: inlay · material: silver · grade 0.61</text>
+    <text class="lab" x="556" y="122">substrate check: bronze holds</text>
+    <text class="lab" x="556" y="134">an incised line ✓</text>
+    <text class="lab" x="556" y="78">grade = craft × technique</text>
+    <text class="lab" x="556" y="90">difficulty × material fit</text>
+    <text class="lab" x="556" y="38">introduced material: gated on</text>
+    <text class="lab" x="556" y="50">availability, weighted like stage 6</text>
   </svg>
   <figcaption class="diagcap">Two flat layers on one canvas. Nesting (<code>sublayers</code>) is scheduled work; the temporal story is already legible from the motif vocabularies.</figcaption></figure>
 
@@ -987,22 +991,22 @@ export const SLOT_PATTERN = /#([a-zA-Z][\w-]*?)(\.a)?#/g;
     <li><strong>Tag inspector</strong> shows the scored map with per-rule contributions, and <strong>rule calibration</strong> samples fire rates across settings; these two are where the measured-threshold work on the classification page actually happened.</li>
   </ul>
 
-  <figure class="diag"><svg viewBox="0 0 720 170" role="img" aria-label="Panels tap the pipeline between stages">
-    <rect class="box" x="8"   y="30" width="120" height="28" rx="6"/><text x="68"  y="48" text-anchor="middle">4 · grammar</text>
-    <rect class="box" x="152" y="30" width="130" height="28" rx="6"/><text x="217" y="48" text-anchor="middle">5 · plausibility</text>
-    <rect class="box" x="306" y="30" width="120" height="28" rx="6"/><text x="366" y="48" text-anchor="middle">6 · materials</text>
-    <rect class="box" x="450" y="30" width="124" height="28" rx="6"/><text x="512" y="48" text-anchor="middle">7 · decoration</text>
-    <rect class="box" x="598" y="30" width="114" height="28" rx="6"/><text x="655" y="48" text-anchor="middle">8 · tags</text>
-    <rect class="gold" x="8"   y="106" width="120" height="28" rx="6"/><text x="68"  y="124" text-anchor="middle">structure</text>
-    <rect class="gold" x="152" y="106" width="130" height="28" rx="6"/><text x="217" y="124" text-anchor="middle">plausibility</text>
-    <rect class="gold" x="306" y="106" width="120" height="28" rx="6"/><text x="366" y="124" text-anchor="middle">materials</text>
-    <rect class="gold" x="450" y="106" width="124" height="28" rx="6"/><text x="512" y="124" text-anchor="middle">decoration</text>
-    <rect class="gold" x="598" y="106" width="114" height="28" rx="6"/><text x="655" y="124" text-anchor="middle">tags · calibration</text>
-    <path class="arrow" d="M 68 58 v 40"/><path class="arrow" d="M 64 90 l 4 6 l 4 -6"/>
-    <path class="arrow" d="M 217 58 v 40"/><path class="arrow" d="M 213 90 l 4 6 l 4 -6"/>
-    <path class="arrow" d="M 366 58 v 40"/><path class="arrow" d="M 362 90 l 4 6 l 4 -6"/>
-    <path class="arrow" d="M 512 58 v 40"/><path class="arrow" d="M 508 90 l 4 6 l 4 -6"/>
-    <path class="arrow" d="M 655 58 v 40"/><path class="arrow" d="M 651 90 l 4 6 l 4 -6"/>
+  <figure class="diag"><svg viewBox="0 0 797 170" role="img" aria-label="Panels tap the pipeline between stages">
+    <rect class="box" x="8"   y="30" width="145" height="28" rx="6"/><text x="80.5"  y="48" text-anchor="middle">4 · grammar</text>
+    <rect class="box" x="167" y="30" width="145" height="28" rx="6"/><text x="239.5" y="48" text-anchor="middle">5 · plausibility</text>
+    <rect class="box" x="326" y="30" width="145" height="28" rx="6"/><text x="398.5" y="48" text-anchor="middle">6 · materials</text>
+    <rect class="box" x="485" y="30" width="145" height="28" rx="6"/><text x="557.5" y="48" text-anchor="middle">7 · decoration</text>
+    <rect class="box" x="644" y="30" width="145" height="28" rx="6"/><text x="716.5" y="48" text-anchor="middle">8 · tags</text>
+    <rect class="gold" x="8"   y="106" width="145" height="28" rx="6"/><text x="80.5"  y="124" text-anchor="middle">structure</text>
+    <rect class="gold" x="167" y="106" width="145" height="28" rx="6"/><text x="239.5" y="124" text-anchor="middle">plausibility</text>
+    <rect class="gold" x="326" y="106" width="145" height="28" rx="6"/><text x="398.5" y="124" text-anchor="middle">materials</text>
+    <rect class="gold" x="485" y="106" width="145" height="28" rx="6"/><text x="557.5" y="124" text-anchor="middle">decoration</text>
+    <rect class="gold" x="644" y="106" width="145" height="28" rx="6"/><text x="716.5" y="124" text-anchor="middle">tags · calibration</text>
+    <path class="arrow" d="M 80.5 58 v 40"/><path class="arrow" d="M 76.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 239.5 58 v 40"/><path class="arrow" d="M 235.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 398.5 58 v 40"/><path class="arrow" d="M 394.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 557.5 58 v 40"/><path class="arrow" d="M 553.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 716.5 58 v 40"/><path class="arrow" d="M 712.5 90 l 4 6 l 4 -6"/>
     <text class="lab" x="8" y="18">pipeline stages</text>
     <text class="lab" x="8" y="158">panels and samplers, one per stage (plus overview, PRNG and the type index)</text>
   </svg>
@@ -1137,32 +1141,33 @@ document.getElementById('cardgrid').innerHTML = GROUPS.map(g => {
 (function(){
   const stages=[
     ['1 · Seed','once'],['2 · Chronology\n& cultures','once'],['3 · Initial\ncorpus','once'],
-    ['4 · Structural\ngrammar','per artefact'],['5 · Normalise +\nplausibility','per artefact'],
-    ['6 · Materials','per artefact'],['7 · Decoration','per artefact'],['8 · Features\n+ tags','per artefact'],
+    ['4 · Structural\ngrammar','per artefact'],['5 · Normalise\n& plausibility','per artefact'],
+    ['6 · Materials','per artefact'],['7 · Decoration','per artefact'],['8 · Features\n& tags','per artefact'],
     ['9 · Description','per inspection']
   ];
   const g=document.getElementById('pipe');
-  let x=6; const w=92, gap=12, y=30, h=44;
+  let x=10; const w=130, gap=18, y=34, h=58;
   let out='';
   stages.forEach((s,i)=>{
     const built = i===0 || (i>=3 && i<=7);
     const partial = i===8;
     const fill = built ? 'rgba(47,106,92,.13)' : partial ? 'rgba(138,109,59,.14)' : 'rgba(113,98,77,.10)';
     const stroke = built ? '#2f6a5c' : partial ? '#8a6d3b' : '#a3947c';
-    out+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
+    out+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
     const lines=s[0].split('\n');
+    const lineY = lines.length===1 ? y+h/2+4 : y+h/2-6;
     lines.forEach((ln,j)=>{
-      out+=`<text x="${x+w/2}" y="${y+(lines.length===1?26:20)+j*12}" text-anchor="middle">${ln}</text>`;
+      out+=`<text x="${x+w/2}" y="${lineY+j*15}" text-anchor="middle">${ln}</text>`;
     });
-    out+=`<text class="cad" x="${x+w/2}" y="${y+h+16}" text-anchor="middle">${s[1]}</text>`;
+    out+=`<text class="cad" x="${x+w/2}" y="${y+h+20}" text-anchor="middle">${s[1]}</text>`;
     if(i<stages.length-1){
-      out+=`<path d="M ${x+w+2} ${y+h/2} l ${gap-4} 0" stroke="#a3947c" stroke-width="1.2"/><path d="M ${x+w+gap-6} ${y+h/2-3} l 4 3 l -4 3" fill="none" stroke="#a3947c" stroke-width="1.2"/>`;
+      out+=`<path d="M ${x+w+3} ${y+h/2} l ${gap-8} 0" stroke="#a3947c" stroke-width="1.2"/><path d="M ${x+w+gap-9} ${y+h/2-4} l 5 4 l -5 4" fill="none" stroke="#a3947c" stroke-width="1.2"/>`;
     }
     x+=w+gap;
   });
-  out+=`<text class="cad" x="214" y="14" text-anchor="middle">stages 2–3: not yet built (mock fixtures)</text>`;
-  out+=`<text class="cad" x="628" y="14" text-anchor="middle">stages 4–8: shipped</text>`;
-  out+=`<text class="cad" x="934" y="14" text-anchor="end">stage 9: partial</text>`;
+  out+=`<text class="cad" x="297" y="16" text-anchor="middle">stages 2–3: not yet built (mock fixtures)</text>`;
+  out+=`<text class="cad" x="815" y="16" text-anchor="middle">stages 4–8: shipped</text>`;
+  out+=`<text class="cad" x="1324" y="16" text-anchor="end">stage 9: partial</text>`;
   g.innerHTML=out;
 })();
 
