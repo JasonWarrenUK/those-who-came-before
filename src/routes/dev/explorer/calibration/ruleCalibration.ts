@@ -20,7 +20,7 @@
  * `classifyArtefact`) against the Explorer culture presets, which model all 16 materials explicitly
  * — so unlike the test fixtures before 2GN.79, nothing here reaches `isAvailable`'s
  * unmodelled-material lenience. Materials are assigned and layers re-graded before `extractFeatures`
- * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R44)
+ * runs, matching `sampleBaselines` (`engine/generation/baselines.ts`), so `meanDecorativeGrade` (R43)
  * is measured on the same scale its baseline is sampled from (roadmap 2GN.103, doc 12 §2.36).
  *
  * Pure, no DOM/Svelte, unit-testable directly per the `tagInspector.ts`/`structureTree.ts`

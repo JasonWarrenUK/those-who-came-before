@@ -653,7 +653,7 @@ const R26 = CLASSIFICATION_RULES[25];
 if (R24.tags.get('agricultural') !== 0.3) {
 	throw new Error('CLASSIFICATION_RULES[23] must be the heavy-edge rule');
 }
-if (R25.tags.get('utilitarian') !== 0.4 && R25.tags.get('domestic') !== 0.3) {
+if (R25.tags.get('utilitarian') !== 0.4 || R25.tags.get('domestic') !== 0.3) {
 	throw new Error('CLASSIFICATION_RULES[24] must be the heavy-container rule');
 }
 if (R26.tags.get('communal') !== 0.4) {
@@ -697,15 +697,15 @@ if (R28.tags.get('artisanal') !== 0.3 || !R28.tags.has('tool')) {
 }
 
 /** A context with a p90 `attachmentDiversity` threshold of 3, matching the rule's shipped rung. */
-const R29_CONTEXT = relativeContext({ attachmentDiversity: { 0.9: 3 } });
+const R28_CONTEXT = relativeContext({ attachmentDiversity: { 0.9: 3 } });
 
 Deno.test('R28: attachmentDiversity at or above the culture-phase p90 fires', () => {
-	assert(R28.condition(features({ partCount: 4, attachmentDiversity: 3 }), R29_CONTEXT));
+	assert(R28.condition(features({ partCount: 4, attachmentDiversity: 3 }), R28_CONTEXT));
 });
 
 Deno.test('R28: attachmentDiversity below the culture-phase p90 does not fire', () => {
-	assert(!R28.condition(features({ partCount: 4, attachmentDiversity: 2 }), R29_CONTEXT));
-	assert(!R28.condition(features({ partCount: 4, attachmentDiversity: 0 }), R29_CONTEXT));
+	assert(!R28.condition(features({ partCount: 4, attachmentDiversity: 2 }), R28_CONTEXT));
+	assert(!R28.condition(features({ partCount: 4, attachmentDiversity: 0 }), R28_CONTEXT));
 });
 
 /**
@@ -714,9 +714,9 @@ Deno.test('R28: attachmentDiversity below the culture-phase p90 does not fire', 
  * a `partCount` clause, this fails.
  */
 Deno.test('R28: partCount does not gate the rule — diversity alone decides', () => {
-	assert(R28.condition(features({ partCount: 0, attachmentDiversity: 3 }), R29_CONTEXT));
-	assert(R28.condition(features({ partCount: 99, attachmentDiversity: 3 }), R29_CONTEXT));
-	assert(!R28.condition(features({ partCount: 99, attachmentDiversity: 2 }), R29_CONTEXT));
+	assert(R28.condition(features({ partCount: 0, attachmentDiversity: 3 }), R28_CONTEXT));
+	assert(R28.condition(features({ partCount: 99, attachmentDiversity: 3 }), R28_CONTEXT));
+	assert(!R28.condition(features({ partCount: 99, attachmentDiversity: 2 }), R28_CONTEXT));
 });
 
 /** The rule's documented contract: no baseline for the feature it reads means it never fires. */
@@ -731,7 +731,7 @@ Deno.test('R28: returns false under an empty context, rather than falling back t
 const R29 = CLASSIFICATION_RULES[28];
 const R30 = CLASSIFICATION_RULES[29];
 const R31 = CLASSIFICATION_RULES[30];
-if (R29.tags.get('elite') !== 0.4 && R29.tags.get('ceremonial') !== 0.3) {
+if (R29.tags.get('elite') !== 0.4 || R29.tags.get('ceremonial') !== 0.3) {
 	throw new Error('CLASSIFICATION_RULES[28] must be the heavy-decoration rule');
 }
 if (R30.tags.get('elite') !== 0.4 || R30.tags.size !== 2) {
@@ -742,12 +742,12 @@ if (R31.tags.size !== 1 || R31.tags.get('ornament') !== 0.2) {
 }
 
 /** A context with p75 thresholds of 10 (layers) and 4 (applied elements) — the rules' shipped rungs. */
-const R30_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 10 } });
-const R31_CONTEXT = relativeContext({ appliedElementCount: { 0.75: 4 } });
+const R29_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 10 } });
+const R30_CONTEXT = relativeContext({ appliedElementCount: { 0.75: 4 } });
 
 Deno.test('R29: decorativeLayerCount at or above the culture-phase p75 fires', () => {
-	assert(R29.condition(features({ decorativeLayerCount: 10 }), R30_CONTEXT));
-	assert(!R29.condition(features({ decorativeLayerCount: 9 }), R30_CONTEXT));
+	assert(R29.condition(features({ decorativeLayerCount: 10 }), R29_CONTEXT));
+	assert(!R29.condition(features({ decorativeLayerCount: 9 }), R29_CONTEXT));
 });
 
 Deno.test('R29: returns false under an empty context', () => {
@@ -755,9 +755,9 @@ Deno.test('R29: returns false under an empty context', () => {
 });
 
 Deno.test('R30: appliedElementCount at or above the culture-phase p75 fires', () => {
-	assert(R30.condition(features({ appliedElementCount: 4 }), R31_CONTEXT));
-	assert(!R30.condition(features({ appliedElementCount: 3 }), R31_CONTEXT));
-	assert(!R30.condition(features({ appliedElementCount: 0 }), R31_CONTEXT));
+	assert(R30.condition(features({ appliedElementCount: 4 }), R30_CONTEXT));
+	assert(!R30.condition(features({ appliedElementCount: 3 }), R30_CONTEXT));
+	assert(!R30.condition(features({ appliedElementCount: 0 }), R30_CONTEXT));
 });
 
 /**
@@ -767,11 +767,11 @@ Deno.test('R30: appliedElementCount at or above the culture-phase p75 fires', ()
  */
 Deno.test('R30: reads the count, not the presence flag', () => {
 	assert(
-		!R30.condition(features({ appliedElementPresent: true, appliedElementCount: 1 }), R31_CONTEXT),
+		!R30.condition(features({ appliedElementPresent: true, appliedElementCount: 1 }), R30_CONTEXT),
 		'one applied element must not read as deliberate embellishment',
 	);
 	assert(
-		R30.condition(features({ appliedElementPresent: true, appliedElementCount: 4 }), R31_CONTEXT),
+		R30.condition(features({ appliedElementPresent: true, appliedElementCount: 4 }), R30_CONTEXT),
 	);
 });
 
@@ -830,12 +830,12 @@ if (R35.tags.get('votive') !== 0.3) {
 }
 
 /** A context with a p75 `decorativeLayerCount` threshold of 6, shared by R34 and R35's gates. */
-const R35_R36_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 6 } });
+const R34_R35_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 6 } });
 
 Deno.test('R34: an edged object with decorativeLayerCount at or above the whole-population p75 fires', () => {
-	assert(R34.condition(features({ hasEdge: true, decorativeLayerCount: 6 }), R35_R36_CONTEXT));
-	assert(!R34.condition(features({ hasEdge: true, decorativeLayerCount: 5 }), R35_R36_CONTEXT));
-	assert(!R34.condition(features({ hasEdge: false, decorativeLayerCount: 6 }), R35_R36_CONTEXT));
+	assert(R34.condition(features({ hasEdge: true, decorativeLayerCount: 6 }), R34_R35_CONTEXT));
+	assert(!R34.condition(features({ hasEdge: true, decorativeLayerCount: 5 }), R34_R35_CONTEXT));
+	assert(!R34.condition(features({ hasEdge: false, decorativeLayerCount: 6 }), R34_R35_CONTEXT));
 });
 
 Deno.test('R34: returns false under an empty context even when hasEdge is true', () => {
@@ -843,12 +843,12 @@ Deno.test('R34: returns false under an empty context even when hasEdge is true',
 });
 
 Deno.test('R35: a container with decorativeLayerCount at or above the whole-population p75 fires', () => {
-	assert(R35.condition(features({ hasContainer: true, decorativeLayerCount: 6 }), R35_R36_CONTEXT));
+	assert(R35.condition(features({ hasContainer: true, decorativeLayerCount: 6 }), R34_R35_CONTEXT));
 	assert(
-		!R35.condition(features({ hasContainer: true, decorativeLayerCount: 5 }), R35_R36_CONTEXT),
+		!R35.condition(features({ hasContainer: true, decorativeLayerCount: 5 }), R34_R35_CONTEXT),
 	);
 	assert(
-		!R35.condition(features({ hasContainer: false, decorativeLayerCount: 6 }), R35_R36_CONTEXT),
+		!R35.condition(features({ hasContainer: false, decorativeLayerCount: 6 }), R34_R35_CONTEXT),
 	);
 });
 
@@ -910,62 +910,62 @@ if (R42.tags.get('artisanal') !== 0.4 || R42.tags.get('elite') !== 0.2) {
  * `decorativeComplexity` p75 16 / p95 25 (R39/R40), `decorativePerPart` p75 4 (R41),
  * `techniqueComplexity` p90 8 (R42).
  */
-const R40_R43_CONTEXT = relativeContext({
+const R39_R42_CONTEXT = relativeContext({
 	decorativeComplexity: { 0.75: 16, 0.95: 25 },
 	decorativePerPart: { 0.75: 4 },
 	techniqueComplexity: { 0.9: 8 },
 });
 
 Deno.test('R39: decorativeComplexity at or above the culture-phase p75 fires', () => {
-	assert(R39.condition(features({ decorativeComplexity: 16 }), R40_R43_CONTEXT));
-	assert(!R39.condition(features({ decorativeComplexity: 15 }), R40_R43_CONTEXT));
+	assert(R39.condition(features({ decorativeComplexity: 16 }), R39_R42_CONTEXT));
+	assert(!R39.condition(features({ decorativeComplexity: 15 }), R39_R42_CONTEXT));
 });
 
 Deno.test('R40: decorativeComplexity at or above the culture-phase p95 fires — and R39 also fires alongside it', () => {
-	assert(R40.condition(features({ decorativeComplexity: 25 }), R40_R43_CONTEXT));
-	assert(!R40.condition(features({ decorativeComplexity: 24 }), R40_R43_CONTEXT));
+	assert(R40.condition(features({ decorativeComplexity: 25 }), R39_R42_CONTEXT));
+	assert(!R40.condition(features({ decorativeComplexity: 24 }), R39_R42_CONTEXT));
 	// R39/R40 are deliberately cumulative, not exclusive tiers — an exceptional artefact should
 	// score both, reaching the combined elite weight the rules' JSDoc describes. Structural under the
 	// ladder: `percentileLadder` thresholds are monotonic across rungs (baselines.test.ts), so p95
 	// nests inside p75 by construction, not merely because these two values happen to agree.
-	assert(R39.condition(features({ decorativeComplexity: 25 }), R40_R43_CONTEXT));
+	assert(R39.condition(features({ decorativeComplexity: 25 }), R39_R42_CONTEXT));
 });
 
 Deno.test('R41: decoration disproportionate to part count fires; proportionate decoration does not', () => {
-	assert(R41.condition(features({ decorativeComplexity: 8, partCount: 2 }), R40_R43_CONTEXT)); // ratio 4
-	assert(!R41.condition(features({ decorativeComplexity: 7, partCount: 2 }), R40_R43_CONTEXT)); // ratio 3.5
+	assert(R41.condition(features({ decorativeComplexity: 8, partCount: 2 }), R39_R42_CONTEXT)); // ratio 4
+	assert(!R41.condition(features({ decorativeComplexity: 7, partCount: 2 }), R39_R42_CONTEXT)); // ratio 3.5
 	// Same absolute decorativeComplexity as the fires-case above, but spread over more parts — the
 	// whole point of the rule is that this must NOT fire.
-	assert(!R41.condition(features({ decorativeComplexity: 8, partCount: 3 }), R40_R43_CONTEXT));
+	assert(!R41.condition(features({ decorativeComplexity: 8, partCount: 3 }), R39_R42_CONTEXT));
 });
 
 Deno.test('R41: a partless artefact never fires, rather than dividing by zero', () => {
-	assert(!R41.condition(features({ decorativeComplexity: 20, partCount: 0 }), R40_R43_CONTEXT));
+	assert(!R41.condition(features({ decorativeComplexity: 20, partCount: 0 }), R39_R42_CONTEXT));
 });
 
 Deno.test('R42: techniqueComplexity at or above the culture-phase p90 fires', () => {
-	assert(R42.condition(features({ techniqueComplexity: 8 }), R40_R43_CONTEXT));
-	assert(!R42.condition(features({ techniqueComplexity: 7 }), R40_R43_CONTEXT));
+	assert(R42.condition(features({ techniqueComplexity: 8 }), R39_R42_CONTEXT));
+	assert(!R42.condition(features({ techniqueComplexity: 7 }), R39_R42_CONTEXT));
 });
 
 Deno.test('R39, R40, R42: firing is monotonic — once true at a threshold, stays true above it', () => {
 	for (let dc = 16; dc <= 40; dc++) {
-		assert(R39.condition(features({ decorativeComplexity: dc }), R40_R43_CONTEXT));
+		assert(R39.condition(features({ decorativeComplexity: dc }), R39_R42_CONTEXT));
 	}
 	for (let dc = 25; dc <= 40; dc++) {
-		assert(R40.condition(features({ decorativeComplexity: dc }), R40_R43_CONTEXT));
+		assert(R40.condition(features({ decorativeComplexity: dc }), R39_R42_CONTEXT));
 	}
 	for (let tc = 8; tc <= 15; tc++) {
-		assert(R42.condition(features({ techniqueComplexity: tc }), R40_R43_CONTEXT));
+		assert(R42.condition(features({ techniqueComplexity: tc }), R39_R42_CONTEXT));
 	}
 });
 
 Deno.test('R39-R42: none fire on neutral (zero-decoration) features', () => {
 	const neutral = features();
-	assert(!R39.condition(neutral, R40_R43_CONTEXT));
-	assert(!R40.condition(neutral, R40_R43_CONTEXT));
-	assert(!R41.condition(neutral, R40_R43_CONTEXT));
-	assert(!R42.condition(neutral, R40_R43_CONTEXT));
+	assert(!R39.condition(neutral, R39_R42_CONTEXT));
+	assert(!R40.condition(neutral, R39_R42_CONTEXT));
+	assert(!R41.condition(neutral, R39_R42_CONTEXT));
+	assert(!R42.condition(neutral, R39_R42_CONTEXT));
 });
 
 Deno.test('R39-R42: each returns false under an empty context, rather than falling back to an absolute reading', () => {
@@ -999,7 +999,7 @@ if (R43.tags.get('artisanal') !== 0.4 || R43.tags.get('elite') !== 0.2) {
 	throw new Error('CLASSIFICATION_RULES[42] must be the execution-quality rule');
 }
 
-/** A context carrying `meanDecorativeGrade` at a hand-set p90 threshold, mirroring `R40_R43_CONTEXT` above. */
+/** A context carrying `meanDecorativeGrade` at a hand-set p90 threshold, mirroring `R39_R42_CONTEXT` above. */
 const R43_CONTEXT = relativeContext({ meanDecorativeGrade: { 0.9: 0.72 } });
 
 Deno.test('R43: meanDecorativeGrade at or above the culture-phase p90 fires', () => {
@@ -1056,7 +1056,7 @@ Deno.test('integration: an engraved long bronze blade fires weapon, ritual, cere
 	// R34 (this test's archetype rule) reads decorativeLayerCount against a culture-phase baseline
 	// since roadmap 2GN.82 — a hand-built context with the same p75 = 6 the shipped rule uses.
 	const firing = CLASSIFICATION_RULES.filter((rule) =>
-		rule.condition(engravedBlade, R35_R36_CONTEXT)
+		rule.condition(engravedBlade, R34_R35_CONTEXT)
 	);
 	const firedTags = new Set<ArtefactTag>();
 	for (const rule of firing) {

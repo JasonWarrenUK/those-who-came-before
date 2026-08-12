@@ -572,8 +572,11 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       than this line anticipated:** the tags are gone from `MaterialTag` entirely, so there is no
       precious-tag lookup left to restore even accidentally, and the "precious metals →
       elite/ceremonial" framing in this task's own title must be re-read as _materials this culture
-      treats as precious_. `explainMaterialWeight` (2GN.74) returns the situation inputs — `level`,
-      `culturalAffinity`, `tradeRescued` — this task's rules should read. **Blocked on 2GN.110
+      treats as precious_. The situation formula's four terms come from three places:
+      `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued`
+      (availability and cultural affinity); provenance comes separately from
+      `MaterialAssignment.provenance` via `deriveMaterialProvenance`; stratification from
+      `PhaseCharacteristics.society.stratification`, unread today. **Blocked on 2GN.110
       (2026-08-11):** whether `materialAffinities` can carry a per-material judgement determines how
       precisely "this culture values this material" can be read, which is this task's core input
 - [x] **2GN.28** — `src/lib/data/decorations.ts` — decorative technique definitions: surface
@@ -1150,10 +1153,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       **2GN.108** with a contingent replacement rule at **2GN.109**. The edge-family sweep now
       iterates only `REACHABLE_AXIS_BLADE_PAIRS`. Separately, the audit found the suite was _not_
       riddled with dead rules — `EXPECTED_FIRE_RATES` already pins every rule's real rate and only
-      R4/R33/R34 read `0.0`, the latter two deliberately dormant — so the real hole was that a
-      recorded `0.0` **passed**: added `DORMANT_RULE_INDICES` plus two guards, so an unexplained
-      zero now fails and a declared-dormant rule that wakes up fails too _(depended on 2GN.79 —
-      done)_
+      R4/R33/R34 read `0.0` (pre-deletion numbering; the two dormant rules are R32/R33 after the
+      renumber), the latter two deliberately dormant — so the real hole was that a recorded `0.0`
+      **passed**: added `DORMANT_RULE_INDICES` plus two guards, so an unexplained zero now fails and
+      a declared-dormant rule that wakes up fails too _(depended on 2GN.79 — done)_
 - [ ] **2GN.108** — design spike — should the artefact vocabulary express a short-bodied edged tool
       that is not a formed blade (scraper, chisel, small adze)? _(depends on 2GN.87 — done;
       unblocked)_ — filed 2026-08-11 by the 2GN.87 ruling. Today it cannot: `primaryAxisLength`
@@ -1273,15 +1276,19 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       admits gold and silver and nothing else — the retired pool exactly, since gold reads
       oxidisation `0` and silver `3` against bronze `6` and iron `7` — and the other five techniques
       listed a precious tag _redundantly_ beside its class tag (measured pool sizes identical with
-      and without). Trade flows re-keyed to `specificMaterials` to preserve exact reach. Three of
-      the five authored precious affinities were already dead data under the max reduction; the
-      affinity semantics question 2GN.84 folded in **dissolves** rather than being answered, since
-      one tag per material leaves nothing to reduce. The grammar's precious `culturalModifiers` were
-      _dropped_, not folded into their `metal` siblings — the calibration harness caught the first
-      attempt drifting R21 by 8.6pp, because `effectiveOptionWeight` reads a missing affinity as `0`
-      so the precious term only ever contributed for a culture authoring that tag, and none did.
-      With that corrected the whole retirement is behaviour-neutral: no calibration pin re-recorded.
-      One expressive loss accepted and filed as **2GN.110** _(depended on 2GN.77 — done)_
+      and without). Trade flows re-keyed onto class tag + `specificMaterials`, which names each
+      flow's intent but widens rather than preserves its reach (corrected in PR #57 review; filed as
+      **2GN.112**, availability measured unchanged). Three of the five authored precious affinities
+      were already dead data under the max reduction; the affinity semantics question 2GN.84 folded
+      in **dissolves** rather than being answered, since one tag per material leaves nothing to
+      reduce. The grammar's precious `culturalModifiers` were _dropped_, not folded into their
+      `metal` siblings — the calibration harness caught the first attempt drifting R21 by 8.6pp,
+      because `effectiveOptionWeight` reads a missing affinity as `0` so the precious term only ever
+      contributed for a culture authoring that tag — of the four presets only Thalassar, which
+      authors no competing `metal` value, so no preset that would have received the folded
+      `metal: 0.9` was getting the precious term at all. With that corrected the whole retirement is
+      behaviour-neutral: no calibration pin re-recorded. One expressive loss accepted and filed as
+      **2GN.110** _(depended on 2GN.77 — done)_
 - [ ] **2GN.110** — design spike — should `CulturalProfile.materialAffinities` support per-material
       entries alongside per-tag ones? _(depends on 2GN.78 — done; unblocked)_ — filed 2026-08-11 as
       2GN.78's one accepted expressive loss (doc 11 §2.9, doc 12 §2.40). The map is keyed by
@@ -1295,6 +1302,26 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       explicitly: a per-material affinity entry _is_ a culture-authored judgement about one
       material, which is legitimate (it is that culture's opinion, not Earth's) but sits close
       enough to the retired tags that the boundary wants drawing rather than assuming
+- [ ] **2GN.112** — design spike — should `MaterialFlow.specificMaterials` narrow a flow, or widen
+      it? _(depends on 2GN.78 — done; unblocked)_ — filed 2026-08-12 from PR #57 review. The type's
+      JSDoc says "when the flow is narrower than the whole tag", but `flowSuppliesMaterial`
+      (`engine/generation/materials.ts`) ORs the two arms, so a list can only ever _add_ materials
+      to a tag's reach, never restrict it:
+      `materialTag: 'metal', specificMaterials: ['gold',
+      'silver']` supplies bronze and iron
+      too. The type documents a contract the implementation does not provide. Surfaced by 2GN.78
+      (doc 12 §2.40), which re-keyed three shipped flows and several fixtures from the retired
+      precious tags onto `class tag + specificMaterials`, making this the first code to lean on the
+      narrowing reading. Behaviour is unaffected today, measured: availability is byte-identical to
+      `origin/main` across all four Explorer presets and all six `MOCK_WORLD_REGIONS`, because every
+      material the OR newly reaches was already reachable another way — Xoconahtl is protected by
+      `bronze`/`iron: 'absent'` short-circuiting before trade, not by its flow, so the protection
+      would evaporate if either moved to `trade-only`. Rule which reading is correct and make type,
+      implementation and the `explorer-cultures.ts` comments agree. Note `materials.test.ts`
+      deliberately pins the widening
+      (`isAvailable:
+      trade-only reachable via a specificMaterials id even off-tag`), so
+      narrowing is a behaviour change with a test to re-rule, not a bug fix
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
@@ -1342,16 +1369,20 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       11 §2.9, doc 12 §2.40): this line previously read "`preciousMaterialsInDecoration` from
       `DecorativeLayer.material`→precious-material lookup", which is exactly the static catalogue
       read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s
-      `precious-metal`/`precious-stone` members are retired. Populate the field from availability ×
-      cultural affinity × provenance instead: `explainMaterialWeight` (2GN.74) returns `level`,
-      `culturalAffinity` and `tradeRescued` for a material/culture pair, which are the inputs; the
-      threshold over them is this task's to rule and has not been set. Blocked on **2GN.110**
-      because the affinity term's keyspace (per-tag only, or per-material too) changes what "this
-      culture prizes it" can even mean. **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed
-      `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller
-      anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline
-      before `DecorativeLayer.material` is ever populated outside tests, which is the direct
-      upstream reason `preciousMaterialsInDecoration` is hardcoded `false`
+      `precious-metal`/`precious-stone` members are retired. Populate the field from the material's
+      situation instead. Doc 11 §2.9's formula has four terms sourced from three places:
+      `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a
+      material/culture pair, covering availability and cultural affinity; provenance comes
+      separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`, since
+      `tradeRescued` is a reachability boolean and not a provenance substitute; and stratification
+      from `PhaseCharacteristics.society.stratification`, which §2.9 makes a live input and nothing
+      reads yet. The threshold over them is this task's to rule and has not been set. Blocked on
+      **2GN.110** because the affinity term's keyspace (per-tag only, or per-material too) changes
+      what "this culture prizes it" can even mean. **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):**
+      confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production
+      caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the
+      pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the
+      direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false`
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
