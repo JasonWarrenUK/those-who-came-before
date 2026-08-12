@@ -151,6 +151,10 @@ Deno.test('calibrateRules: topContributor names a rule that actually fired', () 
 	for (const tag of report.tags) {
 		if (tag.topContributor === undefined) continue;
 		const rule = report.rules[tag.topContributor.ruleIndex];
+		// `ruleId` as well as `label`: both sides of the label check are positional, so it agrees
+		// whenever the index is self-consistent, including when the index points at a neighbour that
+		// merely inherited the label after a deletion (roadmap 2GN.113). The id pins the rule itself.
+		assertEquals(tag.topContributor.ruleId, rule.ruleId);
 		assertEquals(tag.topContributor.label, rule.label);
 		assert(rule.fireCount > 0, `${tag.tag}'s top contributor ${rule.label} never fired`);
 		assert(
