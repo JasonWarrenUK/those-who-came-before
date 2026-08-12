@@ -118,6 +118,27 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
   font-size:.92rem;
 }
 .pagenav[hidden]{display:none}
+.pagenav.pn-top{margin:0 auto;border-top:none;border-bottom:1px solid var(--line);padding:.55rem 1.25rem;font-size:.82rem}
+.ghead{grid-column:1/-1;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin:.9rem 0 -.1rem;font-weight:600}
+.ghead:first-child{margin-top:0}
+
+/* diagrams */
+.diag{margin:1.2rem 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem .9rem .5rem;overflow-x:auto}
+.diag svg{display:block;min-width:560px;width:100%}
+.diag text{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
+.diag .lab{fill:var(--muted);font-size:9.5px}
+.diag .box{fill:rgba(47,106,92,.10);stroke:#2f6a5c;stroke-width:1.1}
+.diag .warn{fill:rgba(164,74,36,.10);stroke:#a44a24}
+.diag .soft{fill:rgba(113,98,77,.08);stroke:#a3947c}
+.diag .gold{fill:rgba(138,109,59,.14);stroke:#8a6d3b}
+.diag .arrow{stroke:#a3947c;fill:none;stroke-width:1.1}
+.diag .bar{fill:rgba(138,109,59,.45)}
+.diagcap{font-size:.78rem;color:var(--muted);margin:.5rem .2rem .3rem}
+
+/* syntax tokens */
+pre .s{color:#a9c48b}
+pre .n{color:#e0b26a}
+pre .t{color:#9dc3d4}
 .pagenav a{display:block}
 .pagenav .dir{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:block}
 .pagenav .next{text-align:right;margin-left:auto}
@@ -131,10 +152,21 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
   padding:.55rem 0;margin:1.6rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;
 }
 .statusline b{color:var(--ink);font-weight:600}
-.cards{
-  max-width:52rem;margin:1.8rem auto 4rem;padding:0 1.25rem;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.9rem;
+.cardstack{max-width:52rem;margin:1.8rem auto 4rem;padding:0 1.25rem;display:flex;flex-direction:column;gap:.9rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.9rem}
+.cardgroup{border:1px solid var(--line);border-radius:14px}
+.cardgroup summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:.7rem;
+  padding:.85rem 1.1rem;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--bronze);font-weight:600;user-select:none;
 }
+.cardgroup summary::-webkit-details-marker{display:none}
+.cardgroup summary::before{content:"▸";color:var(--faint);transition:transform .15s;font-size:.9em}
+.cardgroup[open] summary::before{transform:rotate(90deg)}
+.cardgroup summary:hover{color:var(--terra)}
+.cardgroup .gcount{margin-left:auto;font-family:var(--mono);font-size:.68rem;letter-spacing:0;text-transform:none;color:var(--faint);font-weight:400}
+.cardgroup[open] summary{border-bottom:1px dashed var(--line)}
+.cardgroup .cards{padding:1rem 1.1rem 1.1rem}
 .card{
   display:flex;flex-direction:column;gap:.3rem;
   background:var(--surface);border:1px solid var(--line);border-radius:12px;
@@ -143,8 +175,11 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 }
 .card:hover{text-decoration:none;border-color:var(--bronze);transform:translateY(-2px);box-shadow:0 6px 18px rgba(60,45,20,.08)}
 .card .num{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
-.card .t{font-weight:600;font-size:1.02rem;line-height:1.25}
-.card .d{font-size:.84rem;color:var(--muted);line-height:1.45;flex:1}
+.card .topic{font-weight:650;font-size:1.02rem;line-height:1.25}
+.card .t{font-style:italic;font-size:.86rem;color:var(--bronze);line-height:1.3}
+.card .t::before{content:"“"}
+.card .t::after{content:"”"}
+.card .d{font-size:.84rem;color:var(--muted);line-height:1.45;flex:1;margin-top:.15rem}
 .card .badge{align-self:flex-start;margin-top:.35rem}
 
 /* pipeline strip on hub */
@@ -173,6 +208,8 @@ footer{
   </div>
 </nav>
 
+<div class="pagenav pn-top" hidden></div>
+
 <main>
 
 <!-- ================= HUB ================= -->
@@ -195,15 +232,15 @@ footer{
     </svg>
   </div>
 
-  <div class="cards" id="cardgrid"></div>
+  <div class="cardstack" id="cardgrid"></div>
 </section>
 
 <!-- ================= 01 OVERVIEW ================= -->
 <section class="page" id="page-overview">
 <article class="wrap">
-  <div class="kicker">01 · Pipeline</div>
+  <div class="kicker">Stages 1–9 · Pipeline overview</div>
   <h1>Nine Stages, Three Cadences</h1>
-  <p class="lede">Every artefact the player will ever touch has passed through nine stages, in order. The stages run at three different cadences, and knowing which cadence a stage runs at tells you most of what you need to know about it.</p>
+  <p class="lede">Every artefact the player will ever touch has passed through nine stages, in order, at three cadences: three stages run once per world, five run per artefact and one runs per inspection.</p>
 
   <h2>The spine</h2>
   <pre><code>World Seed
@@ -216,28 +253,48 @@ footer{
               → Feature Extraction + Tags   <span class="c">(per artefact)</span>
                 → Description Generation    <span class="c">(per inspection)</span></code></pre>
 
-  <p>The three cadences do different jobs. Stages 1–3 run once, at world creation: they produce the chronology, the cultures, the geology and a simulated century of scholarship for the player to inherit. Stages 4–8 run every time the world needs a new artefact: they build a physical object, dress it and score it against the tag vocabulary. Stage 9 runs every time the player <em>inspects</em> an artefact, because the player's beliefs and available registers shift between viewings; the same object can read differently on Tuesday than it did on Monday, and that is the game.</p>
+  <p>Stages 1–3 run once, at world creation: they produce the chronology, the cultures, the geology and a simulated century of scholarship for the player to inherit. Stages 4–8 run every time the world needs a new artefact, building a physical object, dressing it and scoring it against the tag vocabulary. Only stage 9 repeats per <em>inspection</em>, because the player's beliefs and available registers shift between viewings; the same object can read differently on Tuesday than it did on Monday.</p>
 
-  <h2>The one idea that organises everything</h2>
-  <p>Structure comes first and meaning comes last. The grammar in stage 4 produces geometry with no idea what it's for; classification in stage 8 reads that geometry back and scores it against functional tags; the description in stage 9 hedges even those scores through registers and the player's interpretive lens. Nothing upstream ever branches on "make a sword". If you take one thing from these pages, take that: the pipeline is a one-way flow from physical fact to contested interpretation, and every stage boundary is a place where information is deliberately narrowed.</p>
+  <figure class="diag"><svg viewBox="0 0 720 170" role="img" aria-label="The three cadences">
+    <text class="lab" x="8" y="31">once per world</text>
+    <rect class="box" x="150" y="14" width="110" height="26" rx="6"/><text x="205" y="31" text-anchor="middle">1 · seed</text>
+    <rect class="soft" x="270" y="14" width="110" height="26" rx="6"/><text x="325" y="31" text-anchor="middle">2 · chronology</text>
+    <rect class="soft" x="390" y="14" width="110" height="26" rx="6"/><text x="445" y="31" text-anchor="middle">3 · corpus</text>
+    <text class="lab" x="8" y="85">per artefact</text>
+    <rect class="box" x="150" y="68" width="100" height="26" rx="6"/><text x="200" y="85" text-anchor="middle">4 · grammar</text>
+    <rect class="box" x="258" y="68" width="112" height="26" rx="6"/><text x="314" y="85" text-anchor="middle">5 · plausibility</text>
+    <rect class="box" x="378" y="68" width="100" height="26" rx="6"/><text x="428" y="85" text-anchor="middle">6 · materials</text>
+    <rect class="box" x="486" y="68" width="104" height="26" rx="6"/><text x="538" y="85" text-anchor="middle">7 · decoration</text>
+    <rect class="box" x="598" y="68" width="112" height="26" rx="6"/><text x="654" y="85" text-anchor="middle">8 · classification</text>
+    <text class="lab" x="8" y="139">per inspection</text>
+    <rect class="gold" x="150" y="122" width="118" height="26" rx="6"/><text x="209" y="139" text-anchor="middle">9 · description</text>
+    <path class="arrow" d="M 320 44 l 0 18"/><path class="arrow" d="M 316 56 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 209 98 l 0 18"/><path class="arrow" d="M 205 110 l 4 6 l 4 -6"/>
+    <text class="lab" x="290" y="145">re-runs whenever the player looks again</text>
+  </svg>
+  <figcaption class="diagcap">The three cadences. Rows run left to right; a row's outputs feed the row below.</figcaption></figure>
+
+  <h2>Structure first, meaning last</h2>
+  <p>The grammar in stage 4 produces geometry with no idea what it's for; classification in stage 8 reads that geometry back and scores it against functional tags; the description in stage 9 hedges even those scores through registers and the player's interpretive lens. Nothing upstream ever branches on "make a sword".</p>
 
   <h2>Visibility levels</h2>
-  <p>Every property the pipeline produces sits at one of four visibility levels, and the level is part of the type system's contract rather than a rendering nicety.</p>
+  <p>Every property the pipeline produces sits at one of four visibility levels, and the level is part of the type system's contract.</p>
   <table>
     <tr><th>Level</th><th>Meaning</th><th>Examples</th></tr>
     <tr><td><strong>Observable</strong></td><td>Directly perceptible on inspection</td><td>Component structure, decoration layers, material identity</td></tr>
     <tr><td><strong>Inferable</strong></td><td>Recoverable by reasoning from observables</td><td>Material provenance, motif significance</td></tr>
-    <tr><td><strong>Occluded</strong></td><td>Ground truth the player must guess at, never reads</td><td>Chronology, culture profiles, true tag scores</td></tr>
+    <tr><td><strong>Occluded</strong></td><td>Ground truth the player can only infer</td><td>Chronology, culture profiles, true tag scores</td></tr>
     <tr><td><strong>Engine-internal</strong></td><td>Not a world fact at all</td><td>The seed, plausibility checking, corpus simulation</td></tr>
   </table>
-  <p>The interpretive lens (the game's core mechanic) operates on observable and inferable properties only. It can reorder, reframe and de-emphasise; it cannot reveal occluded properties and it cannot hide observable ones. That constraint is what keeps the unreliable-narrator premise honest: the player is misled by their own filtering, never by the engine lying about physics.</p>
+  <p>The interpretive lens (the game's core mechanic) operates on observable and inferable properties only. It can reorder, reframe and de-emphasise; it cannot reveal occluded properties and it cannot hide observable ones. Every wrong belief the player forms traces back to their own filtering.</p>
 
   <h2>What exists today</h2>
   <p>The implementation restarted from scratch for launch and is being rebuilt against a 318-task MVP roadmap; 89 tasks were done at the time of writing. Milestone 1 (runtime, the full type system, the seeded PRNG, the developer workbench) is complete. Milestone 2 is the generation pipeline itself, at 49 of 101 tasks.</p>
   <ul>
-    <li><strong>Stages 4–8 are shipped</strong> as pure TypeScript engine modules: grammar expansion, normalisation, plausibility, materials, decoration, feature extraction and classification, each with substantial test suites.</li>
+    <li><strong>Stages 4–8 are shipped</strong> as pure TypeScript engine modules: grammar expansion, normalisation, plausibility, materials, decoration, feature extraction and classification, each with its own test suite.</li>
     <li><strong>Stage 9 is partial.</strong> The observational register's templates and a minimal renderer exist; the full description engine (variant selection, register filtering, lens integration) is a later roadmap task.</li>
-    <li><strong>Stages 1–3 are designed but not built.</strong> The engine currently runs against mock cultures and six fixture worlds. Page 09 covers what's coming.</li>
+    <li><strong>Stage 1 shipped with Milestone 1:</strong> the seed machinery is real, tested and drives everything below; the determinism page covers it.</li>
+    <li><strong>Stages 2–3 are designed but not built.</strong> The engine currently runs against mock cultures and six fixture worlds. The world page covers them.</li>
   </ul>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
@@ -249,27 +306,45 @@ footer{
 <!-- ================= 02 DETERMINISM ================= -->
 <section class="page" id="page-determinism">
 <article class="wrap">
-  <div class="kicker">02 · Foundations</div>
+  <div class="kicker">Foundation · Seeding &amp; determinism</div>
   <h1>Every Draw Is Accounted For</h1>
-  <p class="lede">The entire game world unfolds from one seed string. Same seed, same world, same sequence of artefacts, on every machine, forever. That guarantee rests on a module about a hundred lines long, and on a discipline the rest of the engine has to keep.</p>
+  <p class="lede">The entire game world unfolds from one seed string. Same seed, same world, same sequence of artefacts, on every machine, forever. That guarantee rests on a module about a hundred lines long and two habits: every generation function takes the PRNG as a parameter, and no function changes how many draws it makes.</p>
 
   <h2>The generator</h2>
-  <p>The seed string is hashed by xmur3 into a stream of well-mixed 32-bit integers, which seed the four state words of a xoshiro128** generator. Each call advances the state and returns a float in [0, 1). There's a guard against the all-zero state (xoshiro is degenerate there; xmur3 makes it vanishingly unlikely, but a guard is cheaper than an incident) and that is essentially the whole module. Nothing exotic. The interesting part is what the rest of the codebase is obliged to do with it.</p>
+  <p>The seed string is hashed by xmur3 into a stream of well-mixed 32-bit integers, which seed the four state words of a xoshiro128** generator. Each call advances the state and returns a float in [0, 1). There's a guard against the all-zero state (xoshiro is degenerate there; xmur3 makes it vanishingly unlikely, but a guard is cheaper than an incident) and that, with <code>weightedSelect</code> below, is the whole module.</p>
 
-  <h2>Determinism is injected, never ambient</h2>
-  <p>No engine module ever calls <code>Math.random()</code>. Every generation function takes a <code>prng: () =&gt; number</code> parameter, and determinism flows entirely from that injection. The engine modules are pure TypeScript with no framework or browser dependencies; the design docs call this the engine boundary, and it's what makes the whole pipeline runnable in a test, a CLI sampler or a browser panel with identical output.</p>
+  <figure class="diag"><svg viewBox="0 0 720 120" role="img" aria-label="From seed string to draw stream">
+    <rect class="soft" x="8" y="30" width="130" height="30" rx="6"/><text x="73" y="49" text-anchor="middle">"twcb-demo"</text>
+    <rect class="box" x="168" y="30" width="80" height="30" rx="6"/><text x="208" y="49" text-anchor="middle">xmur3</text>
+    <rect class="box" x="278" y="30" width="120" height="30" rx="6"/><text x="338" y="49" text-anchor="middle">s0 s1 s2 s3</text>
+    <rect class="box" x="428" y="30" width="118" height="30" rx="6"/><text x="487" y="49" text-anchor="middle">xoshiro128**</text>
+    <rect class="gold" x="576" y="30" width="136" height="30" rx="6"/><text x="644" y="49" text-anchor="middle">.481 .077 .930 …</text>
+    <path class="arrow" d="M 138 45 h 24"/><path class="arrow" d="M 156 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 248 45 h 24"/><path class="arrow" d="M 266 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 398 45 h 24"/><path class="arrow" d="M 416 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 546 45 h 24"/><path class="arrow" d="M 564 42 l 6 3 l -6 3"/>
+    <text class="lab" x="8" y="20">seed string</text>
+    <text class="lab" x="278" y="20">four state words</text>
+    <text class="lab" x="576" y="20">floats in [0, 1)</text>
+    <text class="lab" x="576" y="86">draw 1: grammar option · draw 2: parameter band · draw 3: …</text>
+    <path class="arrow" d="M 644 60 v 12"/><path class="arrow" d="M 640 66 l 4 6 l 4 -6"/>
+  </svg>
+  <figcaption class="diagcap">One string in, one infinite stream out. Which draw feeds which decision is fixed by contract.</figcaption></figure>
+
+  <h2>Determinism is injected</h2>
+  <p>No engine module ever calls <code>Math.random()</code>. Every generation function takes a <code>prng: () =&gt; number</code> parameter, and determinism flows entirely from that injection. The engine modules are pure TypeScript with no framework or browser dependencies; the design docs call this the engine boundary. The same pipeline runs in a test, a CLI sampler or a browser panel with identical output.</p>
 
   <h2>Draw ordering is part of the API</h2>
-  <p>Here's the discipline that surprises people who haven't built seeded generation before: <em>how many times</em> a function draws from the PRNG is a contract, not an implementation detail. <code>selectGrammarOption</code> documents that it consumes exactly one draw per call regardless of how many options it weighs. If a refactor made it draw twice, every seed in existence would produce a different world, and every regression fixture would be lies. Consumers are entitled to rely on a fixed number of draws per selection; changing the draw count is a breaking change even when the function's return type is untouched.</p>
-  <div class="callout"><span class="tag">The transferable lesson</span>
-  In seeded procgen, your PRNG call sequence is a serialisation format. Treat "how many draws, in what order" with the same care you'd treat a wire protocol, because that's what it is: the seed is the message and the draw sequence is the schema.</div>
+  <p><em>How many times</em> a function draws from the PRNG is part of its public contract. <code>selectGrammarOption</code> documents that it consumes exactly one draw per call regardless of how many options it weighs. If a refactor made it draw twice, every seed in existence would produce a different world, and every regression fixture would be lies. Changing the draw count is a breaking change even when the function's return type is untouched.</p>
+  <div class="callout"><span class="tag">Draw order is a wire format</span>
+  In seeded procgen the PRNG call sequence is a serialisation format: the seed is the message and the draw order is the schema. A change to either deserves the review a wire-protocol change gets.</div>
 
   <h2>Weighted selection</h2>
   <p>One utility, <code>weightedSelect</code>, does nearly all the choosing in the pipeline. It takes candidates, a PRNG and a weight callback; the callback shape exists because callers weigh differently-shaped things (grammar options by effective weight, materials by a three-factor product). Two edge cases are handled deliberately: a zero-total weight table degrades to a uniform draw rather than crashing or silently picking the first item, and floating-point drift on the final subtraction falls through to the last candidate.</p>
-  <pre><code><span class="k">export function</span> weightedSelect&lt;T&gt;(
-  items: <span class="k">readonly</span> T[],
-  prng: () =&gt; <span class="k">number</span>,
-  getWeight: (item: T) =&gt; <span class="k">number</span>,
+  <pre><code class="lang-ts">export function weightedSelect&lt;T&gt;(
+  items: readonly T[],
+  prng: () =&gt; number,
+  getWeight: (item: T) =&gt; number, // callers weigh differently-shaped things
 ): T</code></pre>
 
   <h2>What the seed does and doesn't pin</h2>
@@ -283,35 +358,64 @@ footer{
 <!-- ================= 03 STRUCTURE ================= -->
 <section class="page" id="page-structure">
 <article class="wrap">
-  <div class="kicker">03 · Stage 4</div>
+  <div class="kicker">Stage 4 · Structural grammar</div>
   <h1>The Grammar Doesn&rsquo;t Know What a Sword Is</h1>
   <p class="lede">Stage 4 builds the physical object. It works bottom-up from geometric primitives, and it is forbidden, as a matter of design law, from ever branching by intent. The spec marks exactly one principle non-negotiable, and it's this one.</p>
 
   <h2>Why bottom-up</h2>
-  <p>The obvious way to generate game items is top-down: pick "sword" from a table, then fill in sword-shaped details. The whole game premise dies if you do that. If the generator knows it made a sword, the classification is trivially recoverable and interpretation has nothing to do; the player's job of working out what a thing <em>was</em> only exists if the engine itself never decided. So the grammar produces structures (an elongated form with an edge, socketed to a cylindrical form) and classification happens downstream, by reading the geometry back like an archaeologist would. Ambiguity isn't sprinkled on top; it falls out of the fact that a long edged thing genuinely might be a weapon, a tool or a ritual object, because nothing anywhere says otherwise.</p>
+  <p>The obvious way to generate game items is top-down: pick "sword" from a table, then fill in sword-shaped details. The whole game premise dies if you do that. If the generator knows it made a sword, the classification is trivially recoverable and interpretation has nothing to do; the player's job of working out what a thing <em>was</em> only exists if the engine itself never decided. So the grammar produces structures (an elongated form with an edge, socketed to a cylindrical form) and classification happens downstream, by reading the geometry back like an archaeologist would. The ambiguity is native: a long edged thing genuinely might be a weapon, a tool or a ritual object.</p>
 
   <h2>The vocabulary</h2>
-  <p>Eight geometric primitives, each with its own parameter set: <code>elongated</code>, <code>cylindrical</code>, <code>flat-broad</code>, <code>hollow-enclosed</code>, <code>ring-form</code>, <code>disc-form</code>, <code>bar-form</code>, <code>sheet-form</code>. An elongated form has a length band, a cross-section, a taper, an edge count and a point; a hollow-enclosed form has a shape, wall thickness, an opening and a base. Components join through nine attachment types (<code>inline</code>, <code>perpendicular</code>, <code>socketed</code>, <code>riveted</code>, <code>wrapped</code>, <code>lashed</code>, <code>hinged</code>, <code>threaded</code>, <code>friction-fit</code>), and the attachments matter later: a hinged join is evidence of fine metalwork, and classification will read brooch anatomy off a pin bearing on a hoop.</p>
+  <p>Eight geometric primitives, each with its own parameter set: <code>elongated</code>, <code>cylindrical</code>, <code>flat-broad</code>, <code>hollow-enclosed</code>, <code>ring-form</code>, <code>disc-form</code>, <code>bar-form</code>, <code>sheet-form</code>. Two examples of the parameter space:</p>
+  <ul>
+    <li>An <strong>elongated</strong> form has a length band, a cross-section, a taper, an edge count and a point: enough to be a pin, a blade or a shaft, without ever saying which.</li>
+    <li>A <strong>hollow-enclosed</strong> form has a shape, wall thickness, an opening and a base: enough to be a jar, a box or an urn, same rule.</li>
+  </ul>
+  <p>Components join through nine attachment types (<code>inline</code>, <code>perpendicular</code>, <code>socketed</code>, <code>riveted</code>, <code>wrapped</code>, <code>lashed</code>, <code>hinged</code>, <code>threaded</code>, <code>friction-fit</code>), and the attachments matter later: a hinged join is evidence of fine metalwork, and classification will read brooch anatomy off a pin bearing on a hoop.</p>
   <pre><code>&lt;object&gt;            ::= &lt;component-group&gt;+
 &lt;component-group&gt;   ::= &lt;primary-component&gt; [&lt;attachment&gt; &lt;component-group&gt;]*
 &lt;primary-component&gt; ::= &lt;elongated&gt; | &lt;cylindrical&gt; | &lt;flat-broad&gt;
                       | &lt;hollow-enclosed&gt; | &lt;ring-form&gt; | &lt;disc-form&gt;
                       | &lt;bar-form&gt; | &lt;sheet-form&gt;</code></pre>
-  <p>The BNF's repetition operators are engine-owned: the data module supplies alternatives and weights only, and <code>expandGrammar</code> decides how many groups and how long the attachment chains run, bounded by the complexity budget below. Grammar rules live in a data file as plain objects; the engine looks them up by symbol. Four production rules cover the MVP.</p>
+  <p>The BNF's repetition operators are engine-owned: the data module supplies alternatives and weights only, and <code>expandGrammar</code> decides how many groups and how long the attachment chains run, bounded by the complexity budget below.</p>
+  <p>Grammar rules live in a data file as plain objects; the engine looks them up by symbol. Four production rules cover the MVP.</p>
 
-  <h2>Culture biases, never dictates</h2>
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="One expanded object">
+    <rect class="box" x="8" y="40" width="190" height="34" rx="6"/><text x="103" y="56" text-anchor="middle">elongated</text><text class="lab" x="103" y="68" text-anchor="middle">long · double edge · sharp point</text>
+    <rect class="box" x="280" y="40" width="160" height="34" rx="6"/><text x="360" y="56" text-anchor="middle">cylindrical</text><text class="lab" x="360" y="68" text-anchor="middle">short · narrow · thick wall</text>
+    <rect class="box" x="522" y="40" width="190" height="34" rx="6"/><text x="617" y="56" text-anchor="middle">disc-form × 2</text><text class="lab" x="617" y="68" text-anchor="middle">arrangement: symmetric</text>
+    <path class="arrow" d="M 198 57 h 78"/><path class="arrow" d="M 270 54 l 6 3 l -6 3"/>
+    <text class="lab" x="237" y="50" text-anchor="middle">socketed</text>
+    <path class="arrow" d="M 440 57 h 78"/><path class="arrow" d="M 512 54 l 6 3 l -6 3"/>
+    <text class="lab" x="479" y="50" text-anchor="middle">riveted</text>
+    <text class="lab" x="8" y="110">Three component groups, two attachments, one arrangement group. Nothing here says "sword";</text>
+    <text class="lab" x="8" y="124">stage 8 will read the edge, the grip-shaped cylinder and the symmetric pair as evidence.</text>
+  </svg>
+  <figcaption class="diagcap">One expansion, flattened left to right along the primary axis.</figcaption></figure>
+
+  <h2>Culture is a weight modifier</h2>
   <p>Cultures don't have allowed artefact types. They have tendencies, expressed as weight modifiers over grammar options. Selection works like this: start from the option's authored base weight, add each cultural modifier scaled by the culture's affinity for that material tag, multiply by phase influence, floor at 0.01.</p>
   <pre><code>weight = max(0.01,
   (baseWeight + Σ affinity(tag) × modifier)
   × Π (1 + (multiplier − 1) × phaseAttribute))</code></pre>
-  <p>Two properties of this formula carry design weight. The 0.01 floor means nothing is ever impossible: a deeply pacifist culture occasionally produces a blade, because archaeology is like that (the comment in the source says exactly this). And phase influence is calibrated so a high attribute amplifies while a low attribute merely fails to amplify; "low metallurgy" never punishes an option below its base weight, matching the doc's framing that attributes increase probabilities rather than gate them.</p>
+  <p>The 0.01 floor means nothing is ever impossible: a deeply pacifist culture occasionally produces a blade. The source comment reads, in full, "Because archaeology." Phase influence is calibrated so a high attribute amplifies while a low one merely fails to amplify; "low metallurgy" never drags an option below its base weight.</p>
   <p>A phase is a multi-attribute profile, one per culture per period: eight technology axes (metallurgy, ceramics, textiles, leather-working, stone, glass, wood, bone), plus economy, society and aesthetics blocks. A culture can be exceptional metalworkers with crude ceramics, and its artefacts will say so.</p>
 
   <h2>Complexity budgets and arrangement patterns</h2>
-  <p>Uncontrolled repetition produces nonsense, so repetition is patterned. The culture's <code>craftSpecialisation</code> resolves to one of three tiers: simple cultures get 1–2 component groups and basic patterns (symmetric, linear); moderate get 2–3 groups and most patterns; sophisticated get 3–4 groups and all six, including nesting and branching. Six arrangement patterns constrain <em>how</em> a component repeats: symmetric pairs, radial spreads of 3–12, linear arrays, stacks, nests, branches. An accumulation checker validates the expanded tree against these constraints after the fact.</p>
+  <p>Uncontrolled repetition produces nonsense, so repetition is patterned, and the constraint system encodes two claims about the world rather than two knobs on a generator.</p>
+  <h3>The budget is a claim about people</h3>
+  <p>Object complexity tracks who a culture can afford to specialise: a part-time potter makes simple forms, a workshop tradition supports composite objects with several distinct assemblies. So the budget hangs off <code>society.craftSpecialisation</code>, one number per culture-phase, resolved into a tier that every object draws against:</p>
+  <ul>
+    <li><strong>Simple</strong> (0–0.3): 1–2 component groups, basic patterns only (symmetric, linear).</li>
+    <li><strong>Moderate</strong> (0.3–0.6): 2–3 groups, most patterns available.</li>
+    <li><strong>Sophisticated</strong> (0.6–1.0): 3–4 groups, all six patterns, including nesting and branching.</li>
+  </ul>
+  <p>Complexity is a property of the society before it's a property of any object, which is why the budget binds at the culture level and not per artefact.</p>
+  <h3>The patterns are a claim about objects</h3>
+  <p>Real artefacts repeat components deliberately: rivets march in rows, beads circle a rim, sockets stack. Six arrangement patterns cover the MVP (symmetric pairs, radial spreads of 3–12, linear arrays, stacks, nests, branches), and a repeated component must belong to one of them; the accumulation checker rejects an expansion whose repetition fits no pattern, because unpatterned repetition reads as noise where patterned repetition reads as intent. The arrangement group survives normalisation, so downstream feature extraction can tell a radial spread of studs from one stud, and the player can too.</p>
 
   <h2>Portability, derived</h2>
-  <p>Generated objects carry a portability band, from <code>pocketable</code> through <code>team-lift</code> to <code>major-effort</code>, and an inspection depth derived from physical dimensions: anything up to 30cm can be held and fully examined, up to 150cm examined in detail, beyond that observed in situ. These are mechanical facts about player handling. Hold that thought for page 07, because there's a rule about who is allowed to read them.</p>
+  <p>Generated objects carry a portability band, from <code>pocketable</code> through <code>team-lift</code> to <code>major-effort</code>, and an inspection depth derived from physical dimensions: anything up to 30cm can be held and fully examined, up to 150cm examined in detail, beyond that observed in situ. These are mechanical facts about player handling, and classification rules are banned from reading them; the classification page has the boundary and the test that guards it.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     Engine: <code>src/lib/engine/generation/grammar.ts</code> · Rules: <code>src/lib/data/grammars/core.ts</code> · Primitives: <code>src/lib/data/grammars/primitives.ts</code> · Spec: doc 05 §5
@@ -322,29 +426,53 @@ footer{
 <!-- ================= 04 PLAUSIBILITY ================= -->
 <section class="page" id="page-plausibility">
 <article class="wrap">
-  <div class="kicker">04 · Stage 5</div>
-  <h1>Nonsense Is Rejected, Never Patched</h1>
-  <p class="lede">The grammar is honest about geometry and ignorant of physics. Stage 5 flattens its tree into a normalised structure, then checks the result against physical plausibility rules. What happens on failure is the most opinionated engineering decision in the pipeline.</p>
+  <div class="kicker">Stage 5 · Normalisation &amp; plausibility</div>
+  <h1>Exhaustion Throws</h1>
+  <p class="lede">The grammar is honest about geometry and ignorant of physics. Stage 5 flattens its tree into a normalised structure, then checks the result against physical plausibility rules. On failure it re-rolls; on exhaustion it refuses to emit anything at all.</p>
 
   <h2>Normalisation</h2>
-  <p>Grammar expansion yields a tree; downstream stages want a flat, standardised shape. <code>NormalisedArtefact</code> carries the component list (each with its primitive type, parameters, position along the primary axis and arrangement-group membership), the attachment list, derived dimensions, portability and inspection depth. The spec also makes normalisation the owner of <code>allowedMaterialTags</code> per component, derived from a physical compatibility table: an edged elongated form admits metal and stone; a hollow-enclosed form admits clay, metal, wood and stone. Physics supplies these constraints; the grammar never did. In the shipped code the field is honestly stubbed empty (its compatibility table is a scheduled task, 2GN.10, and the stub is labelled as such at the assignment site), and the convention downstream is that an empty list means "no constraint recorded yet" rather than "nothing fits".</p>
+  <p>Grammar expansion yields a tree; downstream stages want a flat, standardised shape. <code>NormalisedArtefact</code> carries the component list (each with its primitive type, parameters, position along the primary axis and arrangement-group membership), the attachment list, derived dimensions, portability and inspection depth. The spec also makes normalisation the owner of <code>allowedMaterialTags</code> per component, derived from a physical compatibility table: an edged elongated form admits metal and stone; a hollow-enclosed form admits clay, metal, wood and stone. Physics supplies these constraints; the grammar never did. In the shipped code the field is stubbed empty (its compatibility table is a scheduled task, 2GN.10, and the stub is labelled as such at the assignment site), and the convention downstream is that an empty list means "no constraint recorded yet" rather than "nothing fits".</p>
 
   <h2>The rule set</h2>
-  <pre><code><span class="k">type</span> PlausibilityRule =
-  | { type: <span class="k">'requires'</span>;  component: string; dependsOn: string }
-  | { type: <span class="k">'excludes'</span>;  component: string; excludes: string }
-  | { type: <span class="k">'ordering'</span>;  component: string; before?: string; after?: string }
-  | { type: <span class="k">'material-physics'</span>; predicate: (a) =&gt; boolean; reason: string }
-  | { type: <span class="k">'ergonomic'</span>;        predicate: (a) =&gt; boolean; reason: string }</code></pre>
-  <p>The rules encode things a craftsperson would never build: an edged form with nothing grippable attached, a long blade on a stubby grip, a heavy head lashed to a cord, a heavy component perched on a thin-walled vessel. Each predicate rule carries a human-readable reason, because a failed check is a diagnostic, and diagnostics that can't explain themselves are noise.</p>
+  <pre><code class="lang-ts">type PlausibilityRule =
+  | { type: 'requires';  component: string; dependsOn: string }
+  | { type: 'excludes';  component: string; excludes: string }
+  | { type: 'ordering';  component: string; before?: string; after?: string }
+  | { type: 'material-physics'; predicate: (a) =&gt; boolean; reason: string }
+  | { type: 'ergonomic';        predicate: (a) =&gt; boolean; reason: string }</code></pre>
+  <p>The rules encode things a craftsperson would never build: an edged form with nothing grippable attached, a long blade on a stubby grip, a heavy head lashed to a cord, a heavy component perched on a thin-walled vessel. Each predicate rule carries a human-readable reason; a failed check is a diagnostic. The five shapes are five kinds of impossibility:</p>
+  <ul>
+    <li><strong><code>requires</code> / <code>excludes</code></strong> carry affordance logic: an edged form demands something grippable, because a blade nobody could hold is a blade nobody would have made.</li>
+    <li><strong><code>ordering</code></strong> carries assembly logic, constraining which components can precede which along the primary axis.</li>
+    <li><strong><code>material-physics</code></strong> rejects configurations that fail statics: the heavy head on the thin-walled vessel.</li>
+    <li><strong><code>ergonomic</code></strong> encodes the one constant every culture in every generated world shares, the human body. A long blade demands at least a medium grip because wrists are wrists everywhere; this is the only rule family that holds across all possible cultures by construction.</li>
+  </ul>
+  <p>The set is written negatively, and the direction is a design decision. Enumerating everything a craftsperson might build is open-ended; enumerating what nobody would build is tractable. The rules stay as ignorant of function as the grammar: they know certain geometry could never be used by human hands, whoever made it and whatever it was for.</p>
 
-  <h2>Fail loudly or don't fail at all</h2>
-  <p>When plausibility fails, the pipeline re-expands from stage 4 and tries again, up to N attempts. Grammar expansion is cheap; re-rolling is the intended control flow. The interesting case is exhaustion. If all N attempts fail, the contract (assigned to a scheduled roadmap task; <code>checkPlausibility</code> is shipped, the retry orchestration around it comes with the pipeline assembler) is to throw a typed <code>PlausibilityExhaustedError</code> carrying the seed, the attempt count and the last failing rule set. Not to relax the rules. Not to emit a canned fallback artefact.</p>
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="The re-roll loop">
+    <rect class="box" x="8" y="30" width="140" height="30" rx="6"/><text x="78" y="49" text-anchor="middle">expandGrammar</text>
+    <rect class="box" x="188" y="30" width="130" height="30" rx="6"/><text x="253" y="49" text-anchor="middle">normalise</text>
+    <rect class="box" x="358" y="30" width="160" height="30" rx="6"/><text x="438" y="49" text-anchor="middle">checkPlausibility</text>
+    <rect class="gold" x="580" y="30" width="132" height="30" rx="6"/><text x="646" y="49" text-anchor="middle">→ stage 6</text>
+    <rect class="warn" x="358" y="104" width="240" height="30" rx="6"/><text x="478" y="123" text-anchor="middle">PlausibilityExhaustedError</text>
+    <path class="arrow" d="M 148 45 h 32"/><path class="arrow" d="M 174 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 318 45 h 32"/><path class="arrow" d="M 344 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 518 45 h 54"/><path class="arrow" d="M 566 42 l 6 3 l -6 3"/>
+    <text class="lab" x="524" y="40">pass</text>
+    <path class="arrow" d="M 438 60 v 20 h -360 v -14"/><path class="arrow" d="M 74 74 l 4 -6 l 4 6"/>
+    <text class="lab" x="180" y="76">fail: re-expand from stage 4, up to N attempts</text>
+    <path class="arrow" d="M 478 60 v 44"/><path class="arrow" d="M 474 96 l 4 6 l 4 -6"/>
+    <text class="lab" x="488" y="90">all N fail</text>
+  </svg>
+  <figcaption class="diagcap">Re-rolling is the intended control flow; exhaustion is a defect report, with the seed attached so it reproduces.</figcaption></figure>
+
+  <h2>The exhaustion contract</h2>
+  <p>When plausibility fails, the pipeline re-expands from stage 4 and tries again, up to N attempts. Grammar expansion is cheap; re-rolling is the intended control flow. If all N attempts fail, the contract (assigned to a scheduled roadmap task; <code>checkPlausibility</code> is shipped, the retry orchestration around it comes with the pipeline assembler) is to throw a typed <code>PlausibilityExhaustedError</code> carrying the seed, the attempt count and the last failing rule set.</p>
   <div class="callout warn"><span class="tag">Why throwing is correct here</span>
-  Exhaustion means the grammar and the rule set disagree: a generator defect to surface, never a runtime condition to paper over. A relaxed rule set would break the pipeline guarantee that every artefact reaching the player passes every plausibility rule. A fallback artefact not derived from the grammar would break Simulation Honesty, the design pillar that says all player-facing content derives from the same underlying data. Both escape hatches are cheap to build and each quietly destroys an invariant the rest of the game leans on. The strongest case for a fallback is availability (a live game that throws is worse for the player than one that shows a slightly wrong pot); the project's answer is that the error is a development-time signal by construction, because determinism means any exhausting seed can be reproduced and fixed before release.</div>
+  Exhaustion means the grammar and the rule set disagree: a generator defect to surface during development. A relaxed rule set would break the pipeline guarantee that every artefact reaching the player passes every plausibility rule. A fallback artefact not derived from the grammar would break Simulation Honesty, the design pillar that says all player-facing content derives from the same underlying data. The strongest case for a fallback is availability (a live game that throws is worse for the player than one that shows a slightly wrong pot); the project's answer is that the error is a development-time signal by construction, because determinism means any exhausting seed can be reproduced and fixed before release.</div>
 
-  <h2>The guarantee it buys</h2>
-  <p>This stage is why the pipeline can promise structural coherence unconditionally: no artefact that fails a plausibility rule ever reaches the player, and the promise holds vacuously through exhaustion because in that case <em>nothing</em> reaches the player. Guarantees phrased to hold vacuously survive edge cases; guarantees phrased as "we always produce something valid" quietly become "we usually do".</p>
+  <h2>The guarantee</h2>
+  <p>The pipeline promises structural coherence unconditionally: no artefact that fails a plausibility rule ever reaches the player, and the promise holds vacuously through exhaustion because in that case <em>nothing</em> reaches the player.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     <code>src/lib/engine/generation/plausibility.ts</code> (checkPlausibility, rule predicates) · rules data: <code>src/lib/data/plausibility.ts</code> · normalisation: <code>grammar.ts</code>'s <code>normaliseArtefact</code> · Spec: doc 05 §6, §14
@@ -354,9 +482,9 @@ footer{
 <!-- ================= 05 MATERIALS ================= -->
 <section class="page" id="page-materials">
 <article class="wrap">
-  <div class="kicker">05 · Stage 6</div>
+  <div class="kicker">Stage 6 · Material assignment</div>
   <h1>Fake Relics Obey Real Geology</h1>
-  <p class="lede">Materials are assigned per component, and the assignment is where the world outside the object first presses in: what the region's geology offers, what the culture prefers, what its technology can work at this point in its history.</p>
+  <p class="lede">Materials are assigned per component, and assignment is the first stage that consults the world beyond the object: what the region's geology offers, what the culture prefers, what its technology can work at this point in its history.</p>
 
   <h2>The catalogue</h2>
   <p>Sixteen materials, each a definition with tags, availability data and physical properties: bronze, iron, gold, silver, obsidian, flint, granite, jade, oak, ash, bone, antler, fired clay, glass, linen, leather. Tags group them (<code>metal</code>, <code>stone</code>, <code>wood</code> and so on) so that component compatibility can be expressed against kinds while selection lands on specifics.</p>
@@ -369,18 +497,81 @@ footer{
     <li><strong>Weighted draw.</strong> Survivors are weighted by the product <code>culturalAffinity × phaseTechnology × scarcity</code>.</li>
   </ol>
   <p>Availability is a five-rung ladder per material per region: <code>abundant</code>, <code>available</code>, <code>scarce</code>, <code>trade-only</code>, <code>absent</code>. A trade-only material is rescued by a matching <code>MaterialFlow</code> in an active relationship window; an absent one is excluded outright. Scarcity then weights the survivors: 1.0, 0.6, 0.25, 0.15 down the rungs. A scarce material still appears, just rarely, and a trade material arrives at the doc's "present but uncommon" level.</p>
+  <pre><code class="lang-ts">// materials.ts: pinned by the calibration suite as ratios, not absolutes
+const SCARCITY_WEIGHT: Record&lt;string, number&gt; = {
+  'abundant':   1.0,
+  'available':  0.6,
+  'scarce':     0.25,
+  'trade-only': 0.15,  // "present but uncommon" (doc 05 §7)
+  'absent':     0,     // never reached: isAvailable excludes it first
+};
+// per surviving material:
+// weight = culturalAffinity × phaseTechnology × SCARCITY_WEIGHT[level]</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 160" role="img" aria-label="The selection funnel">
+    <rect class="soft" x="8" y="16" width="330" height="26" rx="6"/><text x="173" y="33" text-anchor="middle">catalogue: 16 materials</text>
+    <rect class="soft" x="8" y="58" width="240" height="26" rx="6"/><text x="128" y="75" text-anchor="middle">tag-compatible</text>
+    <rect class="box" x="8" y="100" width="170" height="26" rx="6"/><text x="93" y="117" text-anchor="middle">available here</text>
+    <rect class="gold" x="240" y="100" width="150" height="26" rx="6"/><text x="315" y="117" text-anchor="middle">weighted draw</text>
+    <path class="arrow" d="M 60 42 v 10"/><path class="arrow" d="M 56 46 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 60 84 v 10"/><path class="arrow" d="M 56 88 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 178 113 h 56"/><path class="arrow" d="M 228 110 l 6 3 l -6 3"/>
+    <text class="lab" x="360" y="33">empty pool? fall back a level; the draw never starves</text>
+    <text class="lab" x="420" y="70">scarcity weights:</text>
+    <rect class="bar" x="420" y="80" width="120" height="8"/><text class="lab" x="548" y="88">abundant 1.0</text>
+    <rect class="bar" x="420" y="94" width="72" height="8"/><text class="lab" x="548" y="102">available 0.6</text>
+    <rect class="bar" x="420" y="108" width="30" height="8"/><text class="lab" x="548" y="116">scarce 0.25</text>
+    <rect class="bar" x="420" y="122" width="18" height="8"/><text class="lab" x="548" y="130">trade-only 0.15</text>
+  </svg>
+  <figcaption class="diagcap">Two filters narrow the pool, a fallback ladder stops it emptying, and scarcity shapes the final draw.</figcaption></figure>
 
   <div class="callout"><span class="tag">Weights are ratios, and the tests know it</span>
   No document anywhere specifies "12% bronze". The spec states priorities directionally and explicitly disclaims quota readings; the numbers above are authored, marked MVP-provisional. What stops a typo silently reshaping the world is a calibration test suite that pins the <em>distribution</em>: per-region tag shares, splits within a tag (how metal divides into bronze, iron, gold, silver) and a provenance mix sensitive specifically to the trade-only rung. Before that suite existed, the distribution tests were bare directional inequalities that would pass for any descending set of four numbers; nothing could tell a deliberate recalibration from a slip. That gap, and the fix, are recorded in the doc itself.</div>
 
   <h2>Provenance: the engine remembers, the player infers</h2>
-  <p>Each assignment carries provenance metadata: local, regional or trade sourcing, a likely origin region, a trade-path reference. All of it is hidden. The player sees a copper object from a culture with no copper deposits and has to construct the explanation themselves; trade, migration, conquest, a stolen trophy and a misattributed culture are all live hypotheses, and the relationship data upstream genuinely supports several of them. The engine holds the answer and never volunteers it.</p>
+  <p>Provenance answers a different question from findspot. Where an artefact was dug up belongs to stage 2 (the site, the layer, the deposition); where its raw material came from is decided here, at assignment time, because the answer depends on world state no later stage can reconstruct.</p>
+  <p>Trade windows close; a query run centuries later, against the world as it ended up, would get a different answer from the one that was true when the object was made. So the engine records the answer at the moment it's determined:</p>
+  <ul>
+    <li><strong>Source:</strong> local, regional, trade or unknown. A mechanism, never an intent.</li>
+    <li><strong>Likely origin region:</strong> where the raw material plausibly came out of the ground.</li>
+    <li><strong>Trade-path reference:</strong> which relationship window carried it, when trade did.</li>
+  </ul>
+  <p>All of it is hidden, and the hiding is the game design. A traded ingot, a looted trophy and a diplomatic gift can leave identical material signatures, so the player who sees a copper object from a culture with no copper deposits has to construct the explanation themselves; trade, migration, conquest, a stolen trophy and a misattributed culture are all live hypotheses, and the relationship data upstream genuinely supports several of them.</p>
+  <p>The engine's record exists so that a player's provenance claim can eventually be marked right or wrong against something.</p>
 
   <h2>Physical properties feed the next stage</h2>
-  <p>Each material definition carries seven authored physical axes plus a keyed reactivity object: hardness on the real Mohs scale, fragility, rigidity, grain fineness, porosity, combustibility and formability (this last one assessed at the material's <em>working</em> state rather than its finished state, the one axis on that convention, an inconsistency the docs name rather than hide). These axes exist because decoration needs them: substrate prerequisites and execution difficulty both resolve against named physical facts. An earlier model with a vague <code>workable</code> boolean was retired for conflating brittleness, pliability and grain coarseness; the replacement lets each check name the fact it actually depends on.</p>
+  <p>Each material definition carries seven authored physical axes plus a keyed reactivity object, and each axis earns its slot by splitting a pair of materials that some downstream check must treat differently. An earlier model with a vague <code>workable</code> axis was retired for conflating brittleness, pliability and grain coarseness; these are the axes that replaced it, with the catalogue's own values.</p>
+  <table>
+    <tr><th>Axis</th><th>What it measures</th><th>The values that justify it</th></tr>
+    <tr><td><code>hardness</code></td><td>Scratch and dent resistance, on the real Mohs scale</td><td>Flint 7, granite 6, bronze 4, gold 3, leather 1. The real scale keeps authored data auditable: granite below gold would be catchable with a geology book.</td></tr>
+    <tr><td><code>fragility</code></td><td>How it fails: shatter against deform</td><td>Glass 7 (the value the axis was introduced to capture), obsidian 6, jade 2, gold 1. Jade is harder than obsidian and far tougher; hardness can't predict shattering, so it can't stand in for this.</td></tr>
+    <tr><td><code>rigidity</code></td><td>Holds its shape under force</td><td>Granite and fired clay 7, oak 5, leather 2, linen 1. Gilding gates here: leaf needs a surface that stays put.</td></tr>
+    <tr><td><code>grainFineness</code></td><td>The precision cap on worked detail</td><td>Gold 7 (why chasing reaches such fine detail), obsidian 7 (a true glass), granite 3: coarse visible crystals cap fineness however carefully the mason works. The granite case is the one that motivated the axis.</td></tr>
+    <tr><td><code>porosity</code></td><td>Absorbency</td><td>Fired clay 6, the physical reason glazing exists as a technique; oak 4 takes stain and paint readily; vitrified glass 1.</td></tr>
+    <tr><td><code>combustibility</code></td><td>Ignition behaviour</td><td>Linen 7 (ignites near 210&nbsp;°C), oak 5 (around 300&nbsp;°C), fired clay 1: already fired, inert in this range.</td></tr>
+    <tr><td><code>formability</code></td><td>Whether it can be given a raised form, read at the working state</td><td>Fired clay 6 (read wet, a true plastic state), the metals 5 (cast or forged), granite 4 (pecked in controlled increments), leather 3 (wet-moulded or tooled), obsidian and flint 1: knapping is controlled fracture, unsteerable into relief. Splitting granite from obsidian is the job the axis exists to do.</td></tr>
+    <tr><td><code>reactivity</code></td><td>Chemistry, one value per key; <code>oxidisation</code> so far</td><td>Iron 7 (rust), bronze 6 (verdigris), silver 3 (tarnish), gold 0, stone and glass −1. Gold's 0 is deliberate against the minerals' −1: gold has oxidation chemistry and famously resists it; a mineral has none to speak of.</td></tr>
+  </table>
+  <p>One real entry, so the shape is concrete:</p>
+  <pre><code class="lang-ts">// data/materials.ts (comments abridged)
+{
+  id: 'obsidian', tags: ['stone'], craftDomain: 'stoneWorking',
+  physicalProperties: {
+    hardness: 5,      // Mohs 5–5.5: genuinely softer than flint, despite feeling sharper
+    fragility: 6,     // textbook conchoidal fracture; flakes under a mis-strike
+    rigidity: 7,
+    grainFineness: 7, // a true volcanic glass: knapped edges sharper than steel
+    porosity: 1,
+    combustibility: 1,
+    formability: 1,   // removal can't be steered into a raised form
+  },
+  reactivity: { oxidisation: -1 },
+  decorability: { engravable: true, paintable: false, glazeable: false },
+}</code></pre>
+  <p>Obsidian's row is the axes doing their job in one material: its edge comes from fracture behaviour and grain, its hardness is unremarkable, and no single "workable" number could carry those three facts at once. Formability is the one axis read at the working state where the other six describe the finished object; fired clay is modelled wet there (6) and shatter-prone everywhere else (fragility 6), and the docs record that single-state inconsistency with the task id that owns resolving it.</p>
 
-  <h2>Honest scaffolding</h2>
-  <p>Milestone 2 runs this stage against mock world fixtures, and the module JSDoc is blunt about the consequences: there's no culture-to-region mapping yet, so availability answers "obtainable anywhere in this geology" rather than gating on the artefact's eventual findspot region, and the trade-path id is a synthesised string because relationships don't carry stable ids yet. Each shortcut names the roadmap task that retires it. Provisional code that documents its own provisionality is the pattern to steal here; the alternative is scaffolding that quietly becomes load-bearing.</p>
+  <h2>Scaffolding, labelled</h2>
+  <p>Milestone 2 runs this stage against mock world fixtures, and the module JSDoc records the consequences: there's no culture-to-region mapping yet, so availability answers "obtainable anywhere in this geology" rather than gating on the artefact's eventual findspot region, and the trade-path id is a synthesised string because relationships don't carry stable ids yet. Each shortcut names the roadmap task that retires it.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     <code>src/lib/engine/generation/materials.ts</code> (assignMaterial, isAvailable, computeMaterialWeight) · catalogue: <code>src/lib/data/materials.ts</code> · distribution pins: <code>src/lib/data/materials.calibration.test.ts</code> · Spec: doc 05 §7
@@ -391,32 +582,78 @@ footer{
 <!-- ================= 06 DECORATION ================= -->
 <section class="page" id="page-decoration">
 <article class="wrap">
-  <div class="kicker">06 · Stage 7</div>
+  <div class="kicker">Stage 7 · Decorative grammar</div>
   <h1>Every Layer Is an Act of Craft</h1>
-  <p class="lede">After structure and materials, a second grammar runs over the artefact, treating each component as a potential canvas. Decoration isn't cosmetic in this game: it feeds the same classification as structure, it carries the strongest cultural fingerprints and it's where the pipeline's best bug stories live.</p>
+  <p class="lede">After structure and materials, a second grammar runs over the artefact, treating each component as a potential canvas. Decorative features feed the same unified classification as structural ones: an object can read as ritual because of its shape, because of its decoration or because of both.</p>
 
   <h2>Sixteen techniques, three families</h2>
-  <p>The decorative BNF has three categories: surface treatments (polish, patina, roughening, scoring, engraving, relief, painting, glaze), applied elements (inlay, overlay, studs, wire-wrapping, gilding) and textile elements (wrapping, tassels, beading). Each technique declares a substrate prerequisite, and the prerequisites resolve against the material property axes from stage 6 rather than vibes:</p>
+  <p>The decorative BNF has three categories: surface treatments (polish, patina, roughening, scoring, engraving, relief, painting, glaze), applied elements (inlay, overlay, studs, wire-wrapping, gilding) and textile elements (wrapping, tassels, beading).</p>
+  <pre><code>&lt;decoration&gt;        ::= &lt;surface-treatment&gt;* &lt;applied-element&gt;* &lt;textile-element&gt;*
+
+&lt;surface-treatment&gt; ::= polish | patina | roughening | scoring
+                      | engraving(&lt;motif&gt;)            [requires: holds an incised line]
+                      | relief(&lt;motif&gt;)               [requires: formability ≥ 3]
+                      | painting(&lt;motif&gt;, &lt;pigment&gt;)  [requires: solid surface]
+                      | glaze(&lt;colour&gt;)               [requires: ceramic]
+
+&lt;applied-element&gt;   ::= inlay(&lt;material&gt;, &lt;motif&gt;)      [requires: engravable surface]
+                      | overlay(&lt;material&gt;, &lt;coverage&gt;) [requires: rigid surface]
+                      | studs(&lt;material&gt;, &lt;pattern&gt;)
+                      | wire-wrapping(&lt;material&gt;, &lt;pattern&gt;)
+                      | gilding(&lt;precious-metal&gt;)
+
+&lt;textile-element&gt;   ::= wrapping(&lt;material&gt;, &lt;pattern&gt;) | tassels | beading(&lt;material&gt;)</code></pre>
+  <p>The families are three different relationships between decoration and object:</p>
   <ul>
-    <li><strong>Engraving</strong> requires a material that can hold an incised line; soft precious metals qualify via chasing and repoussé despite not being structurally hard. Workability, not raw hardness.</li>
+    <li><strong>Surface treatments</strong> rework material already present: engraving, scoring and polish remove or rearrange, and their evidence is toolmarks in the substrate itself.</li>
+    <li><strong>Applied elements</strong> bind a second material onto a surface, so each one is also a supply decision.</li>
+    <li><strong>Textile elements</strong> attach flexible material at anchor points, and they answer to a different technology axis (spinning and weaving) than the metalwork most applied elements lean on.</li>
+  </ul>
+  <p>The <code>&lt;material&gt;</code> arguments in the BNF are doing real work: seven of the sixteen techniques bring a material of their own, on top of whatever the component is made of.</p>
+  <ul>
+    <li>The introduced material is a genuine assignment: constrained by per-technique tag sets (wire-wrapping introduces metal; wrapping, fibre or leather) and weighted by the same affinity × technology × scarcity product stage 6 used, gated on the culture actually being able to obtain it.</li>
+    <li>An inlaid panel is two supply chains in one object, each able to carry its own trade story; the wire-wrapping defect below sits exactly on this seam.</li>
+    <li>The extra cost is why <code>appliedElementCount</code> is one of classification's discriminating signals: adding material is dearer than reworking what's there.</li>
+  </ul>
+  <p>Each technique also declares a substrate prerequisite, resolved against the material property axes from stage 6:</p>
+  <ul>
+    <li><strong>Engraving</strong> requires a material that can hold an incised line; soft precious metals qualify via chasing and repoussé despite not being structurally hard. The gate is workability.</li>
     <li><strong>Relief</strong> requires <code>formability ≥ 3</code>: the material must take a raised form at all. The earlier rigidity proxy wrongly admitted obsidian and flint (worked only by conchoidal fracture) and wrongly excluded leather (tooled or wet-moulded into relief for millennia).</li>
-    <li><strong>Gilding</strong> gates on physical facts about the gilt material rather than a catalogue tag: <code>metallurgy</code>, <code>formability ≥ 5</code> (it must beat to leaf) and <code>oxidisation ≤ 3</code> (the finish must survive). That admits gold and silver and nothing else, reproducing the retired <code>precious-metal</code> tag's pool from physics alone. Substrate is the separate question: the spec once said "you don't gild wood", and that sentence has been removed as factually wrong, since gilded wood over gesso is the commonest gilding in the historical record. The doc keeps the correction inline, dated, with the reasoning.</li>
+    <li><strong>Gilding</strong> gates on rigidity. The spec once said "you don't gild wood", and that sentence has been removed as factually wrong: gilded wood over gesso is the commonest gilding in the historical record. The doc keeps the correction inline, dated, with the reasoning.</li>
   </ul>
 
   <h2>Technique choice and imagery are independent signals</h2>
-  <p>A culture's preference for techniques (<code>techniqueAffinities</code>) is deliberately separate from its motif vocabulary and from its material affinities. A culture can engrave beasts, engrave without beasts, depict beasts without engraving or do neither; those four combinations only exist if the two signals vary independently, so the type system keeps them apart. On top of affinity sits a one-directional material-access gate: a culture with no suitable material in plentiful, favoured supply has the technique suppressed however much it "likes" it, but favouring a suitable material never forces the technique. You can't engrave what you cannot obtain; owning bronze doesn't oblige you to decorate it.</p>
+  <p>A culture's preference for techniques (<code>techniqueAffinities</code>) is deliberately separate from its motif vocabulary and from its material affinities. A culture can engrave beasts, engrave without beasts, depict beasts without engraving or do neither; those four combinations only exist if the two signals vary independently, so the type system keeps them apart. On top of affinity sits a one-directional material-access gate: a culture with no suitable material in plentiful, favoured supply has the technique suppressed however much it "likes" it, but favouring a suitable material never forces the technique.</p>
   <div class="callout warn"><span class="tag">The wire-wrapping defect</span>
-  The gate originally checked only a technique's substrate. Wire-wrapping's substrate is the grippable form it wraps, which is fine; the metal wire is a material the technique <em>introduces</em>, and that side went unchecked. Result, found by measurement rather than review: metal-free cultures produced more metal wirework than anywhere else in the world. The gate now checks both what a technique sits on and what it brings with it. Semantic bugs like this pass every type check and every unit test written from the same mental model; the sampling harness that catches them is on page 10.</div>
+  The gate originally checked only a technique's substrate. Wire-wrapping's substrate is the grippable form it wraps, which is fine; the metal wire is a material the technique <em>introduces</em>, and that side went unchecked. A sampling pass found the result: metal-free cultures produced more metal wirework than anywhere else in the world. The gate now checks both what a technique sits on and what it brings with it. Semantic bugs like this pass every type check and every unit test written from the same mental model; the Explorer page covers the harness that caught it.</div>
 
   <h2>How much, versus how well</h2>
-  <p>The spec described a 2×2 of craft skill against decorative emphasis, controlling recursion depth. Measured against the real pipeline, its two middle corners ("technically refined but sparse", "abundant but simple") proved unsatisfiable by any single volume scalar, because they differ in kind rather than magnitude. The shipped design splits the axes into two mechanisms. <strong>Volume</strong> (layers per component) reads the culture's decorative emphasis alone. <strong>Grade</strong> (a 0–1 execution quality per layer) reads craft specialisation scaled by the technique's own difficulty; polish and scoring sit at the easy end, inlay and gilding at the hard end. Craft keeps one legitimate indirect effect on volume: high-craft cultures build more complex objects, and more parts means more canvases.</p>
-  <p>Grades get a second pass once materials are known, because execution difficulty is material-sensitive: engraving iron and engraving gold no longer score identically. Classification later reads mean decorative grade as a quality signal independent of quantity, which is what lets a sparse, superb object outrank a busy, clumsy one.</p>
+  <p>The spec described a 2×2 of craft skill against decorative emphasis, controlling recursion depth. Measured against the real pipeline, its two middle corners ("technically refined but sparse", "abundant but simple") proved unsatisfiable by any single volume scalar, because they differ in kind rather than magnitude. The shipped design splits the axes into two mechanisms:</p>
+  <ul>
+    <li><strong>Volume</strong> (layers per component) reads the culture's decorative emphasis alone: how much decoration a culture puts on things.</li>
+    <li><strong>Grade</strong> (a 0–1 execution quality per layer) reads craft specialisation scaled by the technique's own difficulty: polish and scoring sit at the easy end, inlay and gilding at the hard end.</li>
+  </ul>
+  <p>Craft keeps one legitimate indirect effect on volume: high-craft cultures build more complex objects, and more parts means more canvases.</p>
+  <p>Grades get a second pass once materials are known, because execution difficulty is material-sensitive: engraving iron and engraving gold no longer score identically. Classification later reads mean decorative grade as a quality signal independent of quantity, so a sparse, superb object can outrank a busy, clumsy one.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Layers on one component">
+    <rect class="soft" x="8" y="106" width="480" height="30" rx="6"/><text x="248" y="125" text-anchor="middle">component: bronze flat-broad panel (the canvas)</text>
+    <rect class="box" x="48" y="66" width="400" height="28" rx="6"/><text x="248" y="84" text-anchor="middle">layer: engraving · motif: coiled-beast · grade 0.78</text>
+    <rect class="gold" x="88" y="26" width="320" height="28" rx="6"/><text x="248" y="44" text-anchor="middle">layer: inlay · material: silver · grade 0.61</text>
+    <text class="lab" x="508" y="122">substrate check: bronze holds</text>
+    <text class="lab" x="508" y="134">an incised line ✓</text>
+    <text class="lab" x="508" y="78">grade = craft × technique</text>
+    <text class="lab" x="508" y="90">difficulty × material fit</text>
+    <text class="lab" x="508" y="38">introduced material: gated on</text>
+    <text class="lab" x="508" y="50">availability, weighted like stage 6</text>
+  </svg>
+  <figcaption class="diagcap">Two flat layers on one canvas. Nesting (<code>sublayers</code>) is scheduled work; the temporal story is already legible from the motif vocabularies.</figcaption></figure>
 
   <h2>Motifs, borrowed and otherwise</h2>
-  <p>Motif-carrying layers draw from the producing culture's motif vocabulary, weighted 1, plus motifs borrowed through any cultural-exchange relationship active in the production year, weighted by that window's exchange intensity. Introduced materials for techniques like inlay are constrained to per-technique tag sets and weighted by the same affinity × technology × scarcity product as structural assignment. This is where interpretive ambiguity gets manufactured wholesale: an artefact bearing Culture B's motifs might be B's work, or A's work under heavy exchange, and the sequence of layers (base engraving in one vocabulary, later inlay in another) hints at reworking without any flag saying so. The system produces layers; noticing is the player's job.</p>
+  <p>Motif-carrying layers draw from the producing culture's motif vocabulary, weighted 1, plus motifs borrowed through any cultural-exchange relationship active in the production year, weighted by that window's exchange intensity. Introduced materials for techniques like inlay are constrained to per-technique tag sets and weighted by the same affinity × technology × scarcity product as structural assignment. An artefact bearing Culture B's motifs might be B's work, or A's work under heavy exchange, and the sequence of layers (base engraving in one vocabulary, later inlay in another) hints at reworking without any flag saying so.</p>
 
   <h2>Deliberate gaps</h2>
-  <p>Layers currently ship flat: <code>sublayers</code> is always empty, and decoration-on-decoration is a scheduled task rather than an accident. Substrate enforcement strips candidate layers whose component's actual material fails the prerequisite, except for the three form-substrate techniques (wire-wrapping, wrapping, beading), which pass through unstripped because nothing in the pipeline can yet answer a geometry question about a component; stripping on a check that cannot run would delete three techniques from every artefact on no evidence. The module JSDoc lists each gap, its owner and its reasoning. That's the house style: a gap you can cite beats a gap you have to discover.</p>
+  <p>Layers currently ship flat: <code>sublayers</code> is always empty, and decoration-on-decoration is a scheduled task rather than an accident. Substrate enforcement strips candidate layers whose component's actual material fails the prerequisite, except for the three form-substrate techniques (wire-wrapping, wrapping, beading), which pass through unstripped because nothing in the pipeline can yet answer a geometry question about a component; stripping on a check that cannot run would delete three techniques from every artefact on no evidence. The module JSDoc lists each gap, its owner and its reasoning.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     <code>src/lib/engine/generation/decoration.ts</code> (expandDecoration, assignDecorativeDetails, enforceSubstrates, gradeDecorativeLayers) · catalogue and difficulty tables: <code>src/lib/data/decorations.ts</code> · Spec: doc 05 §8
@@ -426,27 +663,122 @@ footer{
 <!-- ================= 07 CLASSIFICATION ================= -->
 <section class="page" id="page-classification">
 <article class="wrap">
-  <div class="kicker">07 · Stage 8</div>
+  <div class="kicker">Stage 8 · Features &amp; classification</div>
   <h1>Tags Are Evidence Tallies</h1>
-  <p class="lede">Stage 8 is where the pipeline reads its own output back. A single extraction pass turns the finished object into a feature set; 43 scoring rules turn features into tag scores. The scores are the game's occluded ground truth: the player's claims are eventually judged against them, and the player never sees them.</p>
+  <p class="lede">Stage 8 is where the pipeline reads its own output back. A single extraction pass turns the finished object into a feature set; 44 scoring rules turn features into tag scores. The scores are the game's occluded ground truth: the player's claims are eventually judged against them, and the player never sees them.</p>
 
   <h2>Extraction: one pass, one value per question</h2>
-  <p><code>extractFeatures</code> runs once across components, attachments and decorative layers together, and it's pure and PRNG-free: same artefact in, same features out. The awkward part of feature extraction is collisions. An artefact can have three edged components; which one is "the blade"? Every multi-component collision resolves to one value through a documented collapse policy: blade fields read from the dominant edged component (longest, earliest position on ties) so length band and profile never describe different blades; container fields read from the dominant container (largest hollow-enclosed, falling back to longest cylindrical) so a bowl with a socketed ferrule reads the bowl's opening and base; categorical fields like perforation collapse to the most classificatorily loaded value present, with the priority order pinned in comments.</p>
-  <p>Some features have no single grammar signal and are derived from interviewed anatomy rules instead. An impact surface is an untapered bar end or a thick disc (hammer, pestle, mace head). A fastening mechanism is brooch anatomy (a sharp, edgeless pin bearing on a hoop) or any hinged join, gated to body scale. Wearability is a ring form or a suspension perforation, gated the same way, because a hinged chest lid is not a dress fastener and nobody wears a perforated slab. The presence flags deliberately refuse the module's own graceful-degradation contract: unrecognised signals leave them false, so degradation can never fabricate a pin.</p>
+  <p><code>extractFeatures</code> runs once across components, attachments and decorative layers together, and it's pure and PRNG-free: same artefact in, same features out. An artefact can have three edged components. Which one is "the blade"? Every multi-component collision resolves to one value through a documented collapse policy:</p>
+  <ul>
+    <li><strong>Blade fields</strong> read from the dominant edged component (longest, earliest position on ties), so length band and profile never describe different blades.</li>
+    <li><strong>Container fields</strong> read from the dominant container (largest hollow-enclosed, falling back to longest cylindrical), so a bowl with a socketed ferrule reads the bowl's opening and base, never a mix.</li>
+    <li><strong>Categorical fields</strong> like perforation collapse to the most classificatorily loaded value present, with the priority order pinned in comments.</li>
+  </ul>
+  <p>Some features have no single grammar signal and are derived from interviewed anatomy rules instead:</p>
+  <ul>
+    <li><strong>Impact surface:</strong> an untapered bar end or a thick disc. A plain bar end is a striking face; think hammer, pestle, mace head.</li>
+    <li><strong>Fastening mechanism:</strong> brooch anatomy (a sharp, edgeless pin bearing on a hoop) or any hinged join, gated to body scale.</li>
+    <li><strong>Wearable:</strong> a ring form or a suspension perforation, gated the same way, because a hinged chest lid is not a dress fastener and nobody wears a perforated slab.</li>
+  </ul>
+  <p>The presence flags deliberately refuse the module's own graceful-degradation contract: unrecognised signals leave them false, so degradation can never fabricate a pin.</p>
 
   <div class="callout"><span class="tag">A boundary with a test on it</span>
-  No classification rule may read <code>portability</code> or <code>inspectionDepth</code>. Both derive from the same dimensions as the physical <code>massBand</code> and <code>sizeBand</code>, but they are mechanical facts about player handling, and letting classification consume them would smuggle game mechanics into world semantics. Rules read the physical bands instead, and a boundary guard test fails the suite if any rule ever touches the mechanical pair. Enforcing an architectural boundary with a test costs ten lines and survives every future contributor's good intentions.</div>
+  No classification rule may read <code>portability</code> or <code>inspectionDepth</code>. Both derive from the same dimensions as the physical <code>massBand</code> and <code>sizeBand</code>, but they are mechanical facts about player handling, and letting classification consume them would smuggle game mechanics into world semantics. Rules read the physical bands instead, and a boundary guard test fails the suite if any rule ever touches the mechanical pair.</div>
 
-  <h2>Scoring: a fold you can reason about</h2>
-  <p><code>classifyArtefact</code> runs all 43 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The docs are explicit about what the numbers mean: evidence tallies, never confidences. Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
+  <h2>Scoring: a plain sum, on purpose</h2>
+  <p><code>classifyArtefact</code> runs all 44 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The JSDoc pins what the numbers mean: "evidence tallies, not confidences". Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
+  <pre><code class="lang-ts">// the rule shape (shipped rules live in data/classification.ts; weights here illustrative)
+interface ClassificationRule {
+  condition: (features: ExtractedFeatures, context: ClassificationContext) =&gt; boolean;
+  tags: Map&lt;ArtefactTag, number&gt;;
+}
 
-  <h2>Two kinds of tag, and why the split earns its keep</h2>
-  <p>The vocabulary splits by scoring basis. <strong>Absolute tags</strong> (weapon, tool, container, fastener, ornament, domestic, agricultural, maritime, trade-good, currency) are reachable from physical affordances alone and score against fixed thresholds. <strong>Relative tags</strong> (personal, communal, elite, utilitarian, ceremonial, everyday, military, artisanal, ritual, votive, funerary) assert something about an artefact's standing <em>among its own culture's output</em>, and they score against baselines sampled per culture-phase: the engine generates 400 artefacts through stages 4–7 for that culture-phase, builds percentile ladders over the sampled features and scores the real artefact against those. There's no bootstrap circularity because nothing upstream of classification reads a tag.</p>
-  <p>The split was forced by a measured failure. Under absolute thresholds, the applied-element rule fired on 4.3% of artefacts from an austere culture and 48.1% from a decorative one, an order of magnitude of phase sensitivity; "elite" had quietly come to mean "unusually decorated in absolute terms", so a decorative culture read as composed almost entirely of elites. The design pillar being violated has a name (Simulation Honesty), and the fix follows the tag's semantics: elite means unusually rich <em>for this culture</em>, so the threshold must come from this culture's own distribution.</p>
+{ condition: (f) =&gt; f.hasEdge &amp;&amp; f.bladeLengthBand !== 'short',
+  tags: new Map([['weapon', 0.6], ['tool', 0.3]]) }</code></pre>
 
-  <h2>Calibration is measured, never transcribed</h2>
-  <p>The spec's illustrative thresholds (<code>decorativeComplexity &gt; 2</code> and friends) were authored before any decoration pipeline existed. Once one did, sampling 1200 real artefacts showed those thresholds firing on 87–99% of output; under a plain-sum fold, a rule that fires on nearly everything adds a constant to every score and discriminates nothing. The shipped thresholds are pinned to measured percentiles of real output, and the doc carries the distribution table. A later re-measurement found the original sample itself was skewed: the mock geology modelled only 4 of 16 materials, so the other twelve passed an "unmodelled means obtainable" lenience at full weight and silver came out the world's second commonest material. Re-sampling 7200 artefacts across six fully modelled fixture worlds corrected the material mix and, usefully, proved the elite inflation (steady at ~90% presence in every world) had never been material-driven in the first place.</p>
-  <p>Even the migration to percentiles carries a recorded subtlety: sampled features are coarse integers with heavy tie-mass, and the comparison is ≥, so a p75 threshold landing on a tie point admits the whole tie and fires at nearly double the implied rate. Each migrated rule records the realised fire rate it was checked against rather than trusting the rung's name. Of the rules awarding relative tags (34 of the 43, per the pinned split), only nine had numeric conditions a percentile could replace, and those are migrated; the 25 reading categorical bands stay absolute pending a design spike, because what "relative" means for a categorical value is a design question nobody has pretended to have answered yet. One tag, <code>currency</code>, has no rule at all: no grammar signal exists to key on, and it stays absent rather than force-fitted.</p>
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Evidence tallies for one artefact">
+    <text class="lab" x="8" y="18">engraved bronze blade: accumulated tallies (illustrative values)</text>
+    <text x="8" y="44">weapon</text><rect class="bar" x="110" y="34" width="220" height="10"/><text class="lab" x="338" y="44">1.1</text>
+    <text x="8" y="66">elite</text><rect class="bar" x="110" y="56" width="180" height="10"/><text class="lab" x="298" y="66">0.9</text>
+    <text x="8" y="88">ritual</text><rect class="bar" x="110" y="78" width="160" height="10"/><text class="lab" x="278" y="88">0.8</text>
+    <text x="8" y="110">ceremonial</text><rect class="bar" x="110" y="100" width="140" height="10"/><text class="lab" x="258" y="110">0.7</text>
+    <text x="8" y="132">tool</text><rect class="bar" x="110" y="122" width="60" height="10"/><text class="lab" x="178" y="132">0.3</text>
+    <text class="lab" x="420" y="66">no winner is declared;</text>
+    <text class="lab" x="420" y="80">rank and margin are the signal,</text>
+    <text class="lab" x="420" y="94">and the player never sees these numbers</text>
+  </svg>
+  <figcaption class="diagcap">A plain sum leaves the argument open. Four high tallies on one object is a puzzle, and puzzles are the product.</figcaption></figure>
+
+  <h2>Absolute tags, relative tags</h2>
+  <p>The vocabulary splits by scoring basis, and the two halves make two different kinds of claim.</p>
+  <table>
+    <tr><th>Basis</th><th>The claim</th><th>Tags</th><th>Threshold</th></tr>
+    <tr><td><strong>Absolute</strong></td><td>About the object: affordances a lone examiner could verify with the thing in hand</td><td>weapon, tool, container, fastener, ornament, domestic, agricultural, maritime, trade-good, currency</td><td>Fixed</td></tr>
+    <tr><td><strong>Relative</strong></td><td>About a population: this object sits in the upper tail of its own culture's output</td><td>personal, communal, elite, utilitarian, ceremonial, everyday, military, artisanal, ritual, votive, funerary</td><td>Sampled per culture-phase</td></tr>
+  </table>
+
+  <h3>The failure that forced the split</h3>
+  <p>Under absolute thresholds, the applied-element rule fired on 4.3% of artefacts from an austere culture and 48.1% from a decorative one, an order of magnitude of phase sensitivity; "elite" had quietly come to mean "unusually decorated in absolute terms", so a decorative culture read as composed almost entirely of elites. That breaks Simulation Honesty directly, and the fix follows the tag's semantics: elite means unusually rich <em>for this culture</em>, so the threshold has to come from this culture's own distribution.</p>
+
+  <h3>Whose distribution?</h3>
+  <p>A population claim means nothing until you say whose. Four populations could anchor it:</p>
+  <ul>
+    <li><strong>Every artefact in the world:</strong> reproduces the measured failure; decorative cultures become aristocracies wholesale.</li>
+    <li><strong>The profession's published corpus:</strong> ground truth would depend on what happens to have been excavated, and the pipeline guarantees ground truth is lens-independent.</li>
+    <li><strong>The player's personal finds:</strong> the same problem, with a smaller and stranger sample.</li>
+    <li><strong>The producing culture-phase's own output:</strong> the anchoring that matches what the word means. Unusually rich for the people who made it.</li>
+  </ul>
+  <p>Archaeologists reason the same way when they read a grave as rich against the local burial record rather than against Tutankhamun.</p>
+
+  <h3>The baseline is sampled, never authored</h3>
+  <p>The engine generates 400 artefacts through stages 4–7 for the culture-phase, builds percentile ladders over nine sampled features and scores the real artefact against those. There's no bootstrap circularity, because nothing upstream of classification reads a tag. Sampling also keeps the baseline honest across change: a culture's norm is whatever its own generator actually produces, so retuning any upstream weight moves every relative threshold with it at the next sampling, where an authored baseline would silently drift the first time the grammar changed.</p>
+  <pre><code class="lang-ts">// baselines.ts
+export const BASELINE_SAMPLE_SIZE = 400; // the measured knee (doc 11 §2.9)
+export const SAMPLED_FEATURES: readonly BaselineFeature[] = [
+  'decorativeLayerCount', 'decorativeComplexity', 'techniqueComplexity',
+  'appliedElementCount',  'decorativePerPart',    'partCount',
+  'attachmentDiversity',  'edgeCount',            'meanDecorativeGrade',
+];
+// a relative rule then asks the context, via ClassificationContext.exceeds,
+// whether this artefact clears a sampled rung for one of those features</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="How a relative tag gets its threshold">
+    <rect class="soft" x="8" y="30" width="140" height="34" rx="6"/><text x="78" y="46" text-anchor="middle">culture-phase</text><text class="lab" x="78" y="58" text-anchor="middle">profile + geology</text>
+    <rect class="box" x="188" y="30" width="150" height="34" rx="6"/><text x="263" y="46" text-anchor="middle">400 artefacts</text><text class="lab" x="263" y="58" text-anchor="middle">stages 4–7, no tags</text>
+    <rect class="box" x="378" y="30" width="150" height="34" rx="6"/><text x="453" y="46" text-anchor="middle">percentile ladder</text><text class="lab" x="453" y="58" text-anchor="middle">per sampled feature</text>
+    <rect class="gold" x="568" y="30" width="144" height="34" rx="6"/><text x="640" y="46" text-anchor="middle">exceeds p75?</text><text class="lab" x="640" y="58" text-anchor="middle">award the relative tag</text>
+    <path class="arrow" d="M 148 47 h 34"/><path class="arrow" d="M 176 44 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 338 47 h 34"/><path class="arrow" d="M 366 44 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 528 47 h 34"/><path class="arrow" d="M 556 44 l 6 3 l -6 3"/>
+    <text class="lab" x="8" y="100">the real artefact is scored against its own culture's ladder, so "elite" always means "elite here"</text>
+  </svg>
+  <figcaption class="diagcap">Baseline sampling. The sample runs the same pipeline as real artefacts, which is what keeps the norm current.</figcaption></figure>
+
+  <h2>Thresholds come from samples</h2>
+  <h3>Measured, then pinned</h3>
+  <p>The spec's illustrative thresholds (<code>decorativeComplexity &gt; 2</code> and friends) were authored before any decoration pipeline existed. Once one did, sampling 1200 real artefacts showed those thresholds firing on 87–99% of output; under a plain-sum fold, a rule that fires on nearly everything adds a constant to every score and discriminates nothing. The shipped thresholds are pinned to measured percentiles instead, and the doc carries the distribution table:</p>
+  <table>
+    <tr><th>Feature</th><th>p50</th><th>p75</th><th>p90</th></tr>
+    <tr><td><code>decorativeLayerCount</code></td><td>6</td><td>10</td><td>13</td></tr>
+    <tr><td><code>decorativeComplexity</code></td><td>11.2</td><td>16.3</td><td>22.3</td></tr>
+    <tr><td><code>techniqueComplexity</code></td><td></td><td></td><td>9</td></tr>
+    <tr><td><code>decorativeComplexity / partCount</code></td><td></td><td>4.05</td><td></td></tr>
+  </table>
+  <p>Against those measured medians, the spec's <code>&gt; 2</code> was firing on essentially everything the real pipeline produces.</p>
+
+  <h3>The sample itself was wrong once</h3>
+  <p>A later re-measurement found the original 1200-artefact sample skewed: the mock geology modelled only 4 of 16 materials, so the other twelve passed an "unmodelled means obtainable" lenience at full weight, and silver came out the world's second commonest material. Re-sampling 7200 artefacts across six fully modelled fixture worlds corrected the material mix and, usefully, proved the elite inflation (steady at ~90% presence in every world) had never been material-driven in the first place.</p>
+
+  <h3>Ties inflate fire rates</h3>
+  <p>Sampled features are coarse integers with heavy tie-mass, and the comparison is ≥, so a p75 threshold landing on a tie point admits the whole tie and fires at nearly double the implied rate. Each migrated rule records the realised fire rate it was checked against rather than trusting the rung's name.</p>
+
+  <h3>Where the migration stands</h3>
+  <ul>
+    <li>35 of the 44 rules award relative tags, per the split pinned in the test suite.</li>
+    <li>Nine of those had numeric conditions a percentile could replace, and all nine are migrated.</li>
+    <li>The other 25 read categorical bands (wall thickness, base type, mass band and kin) and stay absolute pending a design spike; what "relative" means for a categorical value is still undecided, and the code declines to guess.</li>
+    <li>One tag, <code>currency</code>, has no rule at all: no grammar signal exists to key on, and it stays absent rather than force-fitted.</li>
+  </ul>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     <code>src/lib/engine/generation/classification.ts</code> (extractFeatures, classifyArtefact) · rules: <code>src/lib/data/classification.ts</code> · baselines: <code>engine/generation/baselines.ts</code> · vocabularies: <code>src/lib/types/tags.ts</code> · Spec: doc 05 §9
@@ -457,22 +789,69 @@ footer{
 <!-- ================= 08 DESCRIPTION ================= -->
 <section class="page" id="page-description">
 <article class="wrap">
-  <div class="kicker">08 · Stage 9</div>
+  <div class="kicker">Stage 9 · Description generation</div>
   <h1>The Engine Never Says &ldquo;Dagger&rdquo;</h1>
-  <p class="lede">Stage 9 is the only stage the player ever reads, and it runs fresh on every inspection because the reader has changed since last time. Everything upstream was about building an honest object; this stage is about presenting it without ever handing over the answer key.</p>
+  <p class="lede">Stage 9 is the only stage the player ever reads, and it runs fresh on every inspection because the reader has changed since last time. Upstream stages build an honest object; this one presents it without handing over the answer key.</p>
 
   <h2>Neutral by construction</h2>
   <p>Every artefact carries a <code>physicalLabel</code> generated from observable properties alone: "short bronze elongated form with engraved disc-form attachment". The word "dagger" appears nowhere, because "dagger" is an interpretation and interpretive naming is the player's job. The occluded <code>groundTruthTags</code> exist solely so the engine can later judge claims against reality; no agent's interpretive model, player or NPC, ever reads them.</p>
 
   <h2>Registers: same facts, different foregrounding</h2>
-  <p>Descriptions are filtered through registers, which shape framing without touching truth. The spec's worked example describes one wear pattern five ways: neutrally, "marks are visible along the edge"; functionally, "repeated use-wear consistent with cutting or scraping"; aesthetically, as a patina of handling; ritually, as possible deliberate decommissioning of the blade; technically, as deformation from contact with something harder than the blade. All five are true. Each forecloses different follow-up questions, which is precisely why acquiring a register matters to the player. MVP ships three registers (observational, interpretive, technical); the five-register acquisition system with per-domain proficiency is designed and explicitly deferred.</p>
-  <p>One authoring constraint deserves its own line: a relative tag must never be described as an intrinsic property. A template rendering <code>elite</code> as "an object of obvious wealth" misrepresents what the score measured, which was standing against the producing culture's own norms. The constraint is written into the template contract, so the prose layer can't quietly undo page 07's careful semantics.</p>
+  <p>Descriptions are filtered through registers, which shape framing without touching truth. The spec's worked example runs one wear pattern through all five:</p>
+  <ul>
+    <li><strong>Neutral:</strong> "marks are visible along the edge".</li>
+    <li><strong>Functional:</strong> "repeated use-wear consistent with cutting or scraping".</li>
+    <li><strong>Aesthetic:</strong> a patina of handling that complements the surface finish.</li>
+    <li><strong>Ritual:</strong> marks possibly indicating deliberate decommissioning of the blade.</li>
+    <li><strong>Technical:</strong> deformation from contact with material harder than the blade.</li>
+  </ul>
+  <p>They differ in the follow-up questions they invite. MVP ships three registers (observational, interpretive, technical); the five-register acquisition system with per-domain proficiency is designed and explicitly deferred.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 160" role="img" aria-label="One fact, three framings">
+    <rect class="soft" x="8" y="58" width="170" height="44" rx="6"/><text x="93" y="76" text-anchor="middle">raw data:</text><text x="93" y="90" text-anchor="middle">marks along the edge</text>
+    <rect class="box" x="260" y="14" width="452" height="30" rx="6"/><text x="272" y="33">neutral: "marks are visible along the edge"</text>
+    <rect class="box" x="260" y="64" width="452" height="30" rx="6"/><text x="272" y="83">functional: "use-wear consistent with cutting or scraping"</text>
+    <rect class="box" x="260" y="114" width="452" height="30" rx="6"/><text x="272" y="133">technical: "deformation from contact with harder material"</text>
+    <path class="arrow" d="M 178 70 L 250 30"/><path class="arrow" d="M 244 30 l 8 -1 l -4 7"/>
+    <path class="arrow" d="M 178 80 h 72"/><path class="arrow" d="M 244 77 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 178 92 L 250 128"/><path class="arrow" d="M 243 126 l 8 2 l -5 6"/>
+    <text class="lab" x="8" y="130">rawData stays one</text>
+    <text class="lab" x="8" y="142">drill-down away</text>
+  </svg>
+  <figcaption class="diagcap">Registers select framing over one set of facts. Nothing is added, nothing hidden; the follow-up question changes.</figcaption></figure>
+
+  <p>The modelling claim behind registers: expertise changes what a description affords rather than what is there. The functional reading points at use, the technical reading at manufacture, the ritual reading at intention, and each one licenses a different next action, which is the currency the game actually trades in.</p>
+  <p>Registers also explain how the lens stays legal. The pipeline guarantees forbid touching facts, so the only lever a belief system can pull is which true framing arrives first; registers are that lever, typed.</p>
+  <h3>Registers run in both directions</h3>
+  <p>When the player publishes, they choose a register too, and the choice trades credibility against reach:</p>
+  <ul>
+    <li><strong>Academic:</strong> formal and evidenced; weight with peers, few readers.</li>
+    <li><strong>Curatorial:</strong> descriptive and contextualised; moderate on both counts.</li>
+    <li><strong>Popular:</strong> reaches everyone, and can spawn simplified versions of the claim that circulate on their own.</li>
+    <li><strong>Field-notes:</strong> raw and provisional; minimal credibility, but establishes priority.</li>
+  </ul>
+  <p>The same mechanism that frames what the player reads frames what the profession hears from them.</p>
+  <p>One authoring constraint: a relative tag must never be described as an intrinsic property. A template rendering <code>elite</code> as "an object of obvious wealth" misrepresents what the score measured, which was standing against the producing culture's own norms. The constraint is written into the template contract, so the prose layer can't quietly undo the relative-tag semantics the classification page set out.</p>
 
   <h2>The lens sits on top</h2>
-  <p>The interpretive lens (the game's core mechanic, specced in its own document) selects which template variants surface and how observations are ordered: high-salience observations up front, the rest behind investigation, suggested tags nudged by the player's published claims. The presentation type keeps the honest raw data one drill-down away at all times, and the lens's hard limits repeat from page 01: reorder, reframe, de-emphasise, nothing else. A player who has published "Culture A was a warrior society" will find blades foregrounded and weaving tools easy to scroll past. The engine isn't lying to them; it's agreeing with them, which is worse.</p>
+  <p>The interpretive lens (the game's core mechanic, specced in its own document) selects which template variants surface and how observations are ordered: high-salience observations up front, the rest behind investigation, suggested tags nudged by the player's published claims. The presentation type keeps the honest raw data one drill-down away at all times, and the lens&#39;s hard limits repeat from the overview: reorder, reframe, de-emphasise, nothing else. A player who has published "Culture A was a warrior society" will find blades foregrounded and weaving tools easy to scroll past. The engine isn't lying to them; it's agreeing with them, which is worse.</p>
 
   <h2>What exists today</h2>
-  <p>The observational register is real: authored templates per primitive, an expander for <code>#slot#</code> placeholders with article handling, and deliberate drop-on-none semantics (a sentence referencing an absent or none-valued parameter is dropped whole rather than rendered with a hole; where "none" is itself observable, like a sealed vessel's opening, a dedicated variant handles it). The renderer is shared by the CLI samplers and the Explorer's structure viewer, one implementation on both surfaces, so the dev tooling's voice and the eventual description engine's observational voice cannot drift apart. Variant selection currently gates on parameter values only; register filtering, lens alignment and material-aware gating are the full description engine's job, a scheduled roadmap task that supersedes the minimal renderer.</p>
+  <p>The observational register is real, in four pieces:</p>
+  <ul>
+    <li><strong>Authored templates per primitive</strong>, in <code>data/descriptions/observational/</code>, one file per geometric form.</li>
+    <li><strong>A slot expander</strong> for <code>#slot#</code> placeholders, with article handling (<code>#point.a#</code> renders "a sharp point" or "an oval cross-section" correctly).</li>
+    <li><strong>Drop-on-none semantics:</strong> a sentence referencing an absent or none-valued parameter is dropped whole rather than rendered with a hole; where "none" is itself observable, like a sealed vessel's opening, a dedicated slot-free variant handles it.</li>
+    <li><strong>One renderer on both surfaces:</strong> the CLI samplers and the Explorer's structure viewer share it, so the dev tooling's voice and the eventual description engine's observational voice cannot drift apart.</li>
+  </ul>
+  <p>Variant selection currently gates on parameter values only; register filtering, lens alignment and material-aware gating are the full description engine's job, a scheduled roadmap task that supersedes the minimal renderer.</p>
+  <pre><code class="lang-ts">// prose.ts: the slot convention the observational templates use
+export const SLOT_PATTERN = /#([a-zA-Z][\w-]*?)(\.a)?#/g;
+// "#taper# taper toward #point.a# point"
+//   → "gradual taper toward a sharp point"
+// any slot absent, or valued 'none' → the whole sentence is dropped,
+// never rendered with a hole; observable 'none' values get their own
+// slot-free variant instead</code></pre>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     <code>src/lib/engine/generation/prose.ts</code> (interim renderer) · templates: <code>src/lib/data/descriptions/observational/</code> · Spec: doc 05 §12–13, doc 04 (lens) · Full engine: roadmap 2GN.38–39
@@ -482,23 +861,65 @@ footer{
 <!-- ================= 09 WORLD ================= -->
 <section class="page" id="page-world">
 <article class="wrap">
-  <div class="kicker">09 · Stages 1–3</div>
+  <div class="kicker">Stages 2–3 · World generation</div>
   <h1>The World Is Still a Fixture</h1>
-  <p class="lede">The pipeline's first three stages produce the world the other six consume: chronology, cultures, geology and a simulated body of scholarship. They are specified in detail and not yet built. The engine currently runs against four preset cultures and six named fixture worlds, and the seams where the real thing will bolt on are marked in the code.</p>
+  <p class="lede">The pipeline's second and third stages produce the world everything downstream consumes: chronology, cultures, geology and a simulated body of scholarship. Both are specified in detail and not yet built (stage 1's seed machinery shipped long ago; the determinism page covers it). The engine currently runs against four preset cultures and six named fixture worlds, and the seams where the real thing will bolt on are marked in the code.</p>
 
   <h2>Chronology without a shared timeline</h2>
-  <p>There is no monolithic world timeline. Each culture has its own periodisation, and interactions are defined by temporal overlap rather than shared phase labels; Culture A's "Expansion" might overlap Culture B's "Settlement" and the player has to work the alignment out from stratigraphy. An artefact's true age is the gap between the world's present year and its production year, and that number is hidden. Relative dating comes free from stratigraphy; approximate frameworks come from the corpus (and may be wrong); commissioning independent radiocarbon or thermoluminescence dating is a career-gated action that takes time, may consume part of the artefact and can overturn the received framework. "The accepted chronology for Site X is wrong" is a publishable, high-scrutiny claim.</p>
+  <p>There is no monolithic world timeline. Each culture has its own periodisation, and interactions are defined by temporal overlap rather than shared phase labels; Culture A's "Expansion" might overlap Culture B's "Settlement" and the player has to work the alignment out from stratigraphy.</p>
+  <p>The design mirrors how the discipline works. Archaeologists build local sequences first (this pottery style precedes that one, at this site) and argue about cross-dating second; whole regional chronologies have floated by centuries until an anchor turned up. The engine reproduces that epistemic situation: every culture gets its own phase sequence with its own labels, overlap is a fact about years, and years are hidden. Synchronising two cultures' sequences is publishable work because the world never states the alignment anywhere the player can read.</p>
+  <p>An artefact's true age is the gap between the world's present year and its production year, and that number is hidden too. Dating arrives on three rungs of increasing cost:</p>
+  <ul>
+    <li><strong>Relative dating</strong> comes free from stratigraphy: this layer sits below that one, so it's older, and finds in one layer are roughly contemporaneous.</li>
+    <li><strong>Approximate frameworks</strong> come from the corpus's received chronologies, presented as established fact, and possibly wrong: the original dating may have been flawed, or extrapolated past its evidence.</li>
+    <li><strong>Independent dating</strong> (radiocarbon, thermoluminescence) is career-gated, takes time, may consume part of the artefact and can overturn the received framework. "The accepted chronology for Site X is wrong" is a publishable, high-scrutiny claim.</li>
+  </ul>
 
-  <h2>Relationships are windows, never verdicts</h2>
-  <p>Culture relationships are sequences of dated phases, each carrying simultaneous trade, conflict, exchange and political dynamics; two cultures can trade in one window and raid in another, or both at once. Material flows ride on those windows, which is what stage 6's trade-only rescue and stage 7's borrowed motifs consume. The design intent is that a foreign material or motif never has a unique explanation, because the relationship data genuinely supports several.</p>
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Two culture timelines with overlapping phases">
+    <text class="lab" x="8" y="34">Culture A</text>
+    <rect class="box" x="110" y="20" width="180" height="24" rx="5"/><text x="200" y="36" text-anchor="middle">Expansion</text>
+    <rect class="box" x="290" y="20" width="220" height="24" rx="5"/><text x="400" y="36" text-anchor="middle">Settlement</text>
+    <rect class="box" x="510" y="20" width="150" height="24" rx="5"/><text x="585" y="36" text-anchor="middle">Fragmentation</text>
+    <text class="lab" x="8" y="76">Culture B</text>
+    <rect class="gold" x="180" y="62" width="250" height="24" rx="5"/><text x="305" y="78" text-anchor="middle">Settlement</text>
+    <rect class="gold" x="430" y="62" width="230" height="24" rx="5"/><text x="545" y="78" text-anchor="middle">Consolidation</text>
+    <text class="lab" x="8" y="118">relationship</text>
+    <rect class="warn" x="240" y="104" width="200" height="24" rx="5"/><text x="340" y="120" text-anchor="middle">trade + raiding window</text>
+    <rect class="soft" x="440" y="104" width="160" height="24" rx="5"/><text x="520" y="120" text-anchor="middle">tributary window</text>
+    <text class="lab" x="8" y="146">the year axis exists in the data and is never shown to the player; overlap is theirs to establish</text>
+  </svg>
+  <figcaption class="diagcap">Same years, different periodisations. "A's Expansion overlaps B's Settlement" is a discovery, never a given.</figcaption></figure>
+
+  <h2>Relationships are dated windows</h2>
+  <p>Culture relationships are sequences of dated phases, and inside one window the four dynamics run simultaneously: the same pair of cultures can be trading bronze, raiding each other's borders, swapping motifs and sitting in a tributary arrangement in the same decade. Material flows ride on those windows, which is what stage 6's trade-only rescue and stage 7's borrowed motifs consume.</p>
+  <pre><code class="lang-ts">interface RelationshipDynamics {
+  trade:            { volume: number; materialFlow: MaterialFlow[]; /* … */ };
+  conflict:         { intensity: number; type: 'raiding' | 'territorial' | 'conquest' | 'none' };
+  culturalExchange: { intensity: number; domains: ('motifs'|'techniques'|'materials'|'forms')[] };
+  political:        { type: 'independent'|'tributary'|'alliance'|'vassal'|'colonial' };
+}</code></pre>
+  <p>Several of those mechanisms move the same evidence: a Culture B ingot in a Culture A hoard is consistent with commerce, tribute, plunder and gift, and the window data can support all four at once. The underdetermination is manufactured deliberately, window by window; a world where every foreign object had one explanation would make the player's judgement decorative.</p>
 
   <h2>A profession that predates the player</h2>
-  <p>Stage 3 is the strangest and best idea in the world design: before the player exists, the engine simulates decades of scholarship. NPC scholars are generated with specialisations, site preferences and career stages, each carrying an <code>InterpretiveModel</code>, the same agent-generic interface the player uses. They "excavate" sites biased by their interests, publish through the same document structures the player will use and aggregate into a professional corpus: reference works, active debates, bibliographies and conspicuous absences a careful player can notice. Coverage is deliberately unequal (burials before middens, prominent cultures before modest ones) and the gaps are the player's opportunity space.</p>
+  <p>Before the player exists, the engine simulates decades of scholarship. NPC scholars are generated with specialisations, site preferences and career stages, each carrying an <code>InterpretiveModel</code>, the same agent-generic interface the player uses. They "excavate" sites biased by their interests, publish through the same document structures the player will use and aggregate into a professional corpus. The player meets that corpus as:</p>
+  <ul>
+    <li><strong>Reference works</strong> summarising what "everyone knows", presented as established fact.</li>
+    <li><strong>Active debates</strong> where NPCs disagree and the player can eventually weigh in.</li>
+    <li><strong>Bibliographies</strong> attached to claims, so how well-supported a claim is can be assessed.</li>
+    <li><strong>Conspicuous absences</strong> a careful player notices: nobody has published on Culture B's burials, or every paper on a region comes from one institution.</li>
+  </ul>
+  <p>The simulation exists because the game's subject is being wrong in company. A lone player against raw ground truth would have nothing to inherit, nothing to cite and nobody to argue with. The agent-generic principle carries the load: because NPC scholars run the same <code>InterpretiveModel</code> as the player, their errors are beliefs held for reasons, reachable by the same evidence the player uses, and overturning one is an argument with a position. Coverage is deliberately unequal in archaeologically authentic ways (monumental cultures over modest ones, burials before rubbish heaps), and the resulting corpus is confidently thorough in some places and silent in others without ever saying which is which.</p>
   <div class="callout"><span class="tag">Calibrated wrongness</span>
-  The corpus targets roughly 70% broadly correct, 30% interestingly wrong: right about common materials and forms for well-studied cultures, wrong through biased site selection ("a warrior society", concluded from only digging fortifications), false absence claims, bad rarity assessments and missed contacts. NPC errors are real claims in real interpretive models diverging from occluded ground truth, never ad-hoc "wrong" flags. The player's own publications are later measured against this baseline, from safe confirmation up to maximum-scrutiny novelty, which is what makes parroting consensus a career plateau by mechanism rather than by authorial punishment.</div>
+  The corpus targets roughly 70% broadly correct, 30% interestingly wrong: right about common materials and forms for well-studied cultures, wrong through biased site selection ("a warrior society", concluded from only digging fortifications), false absence claims, bad rarity assessments and missed contacts. NPC errors are real claims in real interpretive models diverging from occluded ground truth, never ad-hoc "wrong" flags. The player's own publications are later measured against this baseline, from safe confirmation up to maximum-scrutiny novelty; a player who parrots consensus publishes confirmations and plateaus, by mechanism.</div>
 
   <h2>What stands in meanwhile</h2>
-  <p>Four authored Explorer culture presets (Thalassar is the one with a taste for clay and gilded glass) and six named regional fixture worlds that model availability for all sixteen materials. That last detail matters: an earlier mock world modelled only four materials, and everything unmodelled passed an "unmodelled means obtainable" lenience at full weight, which skewed a 1200-artefact calibration sample badly enough that silver ranked as the world's second commonest material. Fixtures are world design too; an unrepresentative fixture calibrates the system to a world that will never exist. MVP scale for the real thing: two cultures with 3–4 phases each, one relationship with two temporal windows, three to four NPC researchers, six to eight simulated campaigns, fifteen to twenty baseline publications.</p>
+  <p>Four authored Explorer culture presets (Thalassar is the one with a taste for precious metal) and six named regional fixture worlds that model availability for all sixteen materials. A fixture is a small authored world, and every measurement run against it inherits its assumptions. The earlier mock world modelled only four materials; everything unmodelled passed an "unmodelled means obtainable" lenience at full weight, so the other twelve were free everywhere, and a 1200-artefact calibration sample duly ranked silver the world's second commonest material. Nothing in that sample was computed wrongly. The world it measured was wrong, and no assertion inside the run could have noticed. Fixtures are world design too.</p>
+  <p>The seams for the real stages are typed and waiting:</p>
+  <ul>
+    <li>The baseline sampler takes a structural parameter bag rather than a concrete <code>CulturePhase</code>, so real culture generation slots in without changing it.</li>
+    <li>The material module documents which of its answers are region-agnostic pending real geology, each with the task id that retires the shortcut.</li>
+    <li>MVP scale for the real thing: two cultures with 3–4 phases each, one relationship with two temporal windows, three to four NPC researchers, six to eight simulated campaigns, fifteen to twenty baseline publications.</li>
+  </ul>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     Spec: doc 05 §2–4 · Types (built): <code>src/lib/types/world.ts</code>, <code>corpus.ts</code>, <code>scholars.ts</code> · Stand-ins: <code>src/lib/data/explorer-cultures.ts</code>, <code>tests/fixtures/</code> · Builders land in Milestone 3 (roadmap 3WS.*)
@@ -509,38 +930,168 @@ footer{
 <!-- ================= 10 METHOD ================= -->
 <section class="page" id="page-method">
 <article class="wrap">
-  <div class="kicker">10 · Working Practices</div>
-  <h1>The Spec Argues Back</h1>
-  <p class="lede">The pipeline is one artefact of a working method, and for a developer arriving cold the method may be the most transferable thing in the repository: a spec that accumulates its own corrections, constants that get measured before they're believed, and generation you can watch.</p>
-
-  <h2>Docs that carry their own errata</h2>
-  <p>The design spec is fourteen numbered documents, and doc 05, the generation architecture, is written in an unusual discipline: when implementation contradicts the spec, the spec keeps its original text and gains a dated implementation note explaining what shipped instead and why. The gilding correction sits inline where the wrong sentence used to be. The decoration depth table stays in the doc with a note proving its middle corners unsatisfiable. You can read the document as an argument the project had with itself, with timestamps. Two companion structures keep it coherent: a propagation register (doc 12) logs every change that ripples across documents until the ripple is applied, and design spikes get standalone write-ups holding the reasoning while the ruling propagates to the reference docs. Every task has a stable id (2GN.84, 3WS.7) that code comments, docs and the roadmap all cite, so provenance survives across all three.</p>
+  <div class="kicker">Practice · Measurement culture</div>
+  <h1>Every Constant Is on Probation</h1>
+  <p class="lede">Numbers in this codebase have a lifecycle: authored as provisional, exposed to observation, measured against samples, then pinned or replaced. This page covers the lifecycle and the boundary that makes it possible; the Explorer page covers the tooling, and the document-suite page covers the paper trail.</p>
 
   <h2>Constants are measured before they're believed</h2>
-  <p>The recurring loop, visible on pages 05 through 07: author a provisional constant, mark it MVP-provisional with the precedent it follows, build the observability to sample real output, measure, then either pin the constant with a calibration test or replace it with a measured value and record the distribution table in the doc. The classification thresholds went through the full loop twice (the second pass caught the fixture skew). The scarcity weights kept their authored values but gained a test that pins the ratios between rungs, which is the honest version of "these numbers are right": nobody claims 0.25 is correct, only that scarce reading meaningfully rarer than available is now load-bearing and protected.</p>
-  <div class="callout"><span class="tag">Why this matters more here than in most software</span>
-  A procgen system fails statistically. Every individual artefact can look fine while the population is absurd (nine in ten objects "elite", a metal-free culture leading the world in wirework; both real, both caught by sampling). Unit tests assert properties of instances; this project's calibration suites assert properties of distributions, and that's the difference between testing the generator and testing its outputs one at a time.</div>
+  <p>The recurring loop, visible on the materials, decoration and classification pages: author a provisional constant, mark it MVP-provisional with the precedent it follows, build the observability to sample real output, measure, then either pin the constant with a calibration test or replace it with a measured value and record the distribution table in the doc. The classification thresholds went through the full loop twice (the second pass caught the fixture skew). The scarcity weights kept their authored values but gained a test that pins the ratios between rungs, which is the honest version of "these numbers are right": nobody claims 0.25 is correct, only that scarce reading meaningfully rarer than available is now load-bearing and protected.</p>
+  <pre><code class="lang-ts">// the convention, condensed from materials.ts
+// MVP-provisional (2GN.25 precedent): doc 05 names the drivers but supplies
+// no numbers, so these are authored priors, expected to be retuned once
+// generation is observable in the Explorer.
+// Values pinned by materials.calibration.test.ts (2GN.84): what the pin
+// makes load-bearing is the RATIO between rungs, not any absolute figure.</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 160" role="img" aria-label="The constant lifecycle">
+    <rect class="soft" x="8" y="24" width="160" height="34" rx="6"/><text x="88" y="41" text-anchor="middle">author provisional</text><text class="lab" x="88" y="52" text-anchor="middle">marked, with precedent</text>
+    <rect class="box" x="208" y="24" width="150" height="34" rx="6"/><text x="283" y="41" text-anchor="middle">make observable</text><text class="lab" x="283" y="52" text-anchor="middle">panel or sampler</text>
+    <rect class="box" x="398" y="24" width="140" height="34" rx="6"/><text x="468" y="41" text-anchor="middle">measure</text><text class="lab" x="468" y="52" text-anchor="middle">1200–7200 artefacts</text>
+    <rect class="gold" x="578" y="24" width="134" height="34" rx="6"/><text x="645" y="41" text-anchor="middle">pin or replace</text><text class="lab" x="645" y="52" text-anchor="middle">test + doc table</text>
+    <path class="arrow" d="M 168 41 h 34"/><path class="arrow" d="M 196 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 358 41 h 34"/><path class="arrow" d="M 386 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 538 41 h 34"/><path class="arrow" d="M 566 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 645 58 v 40 h -557 v -34"/><path class="arrow" d="M 84 70 l 4 -6 l 4 6"/>
+    <text class="lab" x="240" y="112">re-enters probation whenever upstream stages change the population</text>
+  </svg>
+  <figcaption class="diagcap">The lifecycle. The classification thresholds have been around it twice.</figcaption></figure>
+
+  <div class="callout"><span class="tag">Procgen fails statistically</span>
+  Every individual artefact can look fine while the population is absurd: nine in ten objects "elite", a metal-free culture leading the world in wirework. Both happened. Unit tests assert properties of instances; the calibration suites here assert properties of distributions.</div>
 
   <h2>The engine boundary</h2>
-  <p>Everything under <code>engine/</code> is pure TypeScript: no Svelte, no browser, no ambient randomness, PRNG injected. The UI layer is a consumer. This is what makes the same pipeline runnable headless in tests, from CLI samplers and inside the browser workbench with identical output, and it's enforced socially by module JSDoc and structurally by the import graph.</p>
-
-  <h2>Generation you can watch</h2>
-  <p>Two observability surfaces grow with the pipeline. The Project Explorer (dev builds only) is a nine-panel browser workbench: PRNG output, a live type index with dependency graphs, structure viewer, plausibility panel, material viewer, decoration inspector, tag inspector and rule calibration. The CLI samplers (<code>deno task sample:artefact</code>, <code>:materials</code>, <code>:decoration</code>, <code>:features</code>, <code>:classification</code>) print one pipeline stage each, with per-value provenance in the classifier reading. The roadmap treats observability as a deliverable of every phase rather than tooling debt, and the calibration stories on earlier pages are the payoff: most of the interesting bugs were found by looking at output distributions, and you can only look at what you've made visible.</p>
-
-  <h2>Reading order, if you go to the source</h2>
-  <p>Start with doc 02 (six design pillars; Simulation Honesty and Error Is the Engine explain most decisions on these pages), then doc 03 (the systems map), then doc 05 with these pages beside it. For code, <code>engine/prng.ts</code> then <code>engine/generation/grammar.ts</code> top to bottom; the module JSDoc blocks are the real documentation, and they're written to be read.</p>
+  <p>Everything under <code>engine/</code> is pure TypeScript: no Svelte, no browser, no ambient randomness, PRNG injected. The UI layer is a consumer. The same pipeline runs headless in tests, from CLI samplers and inside the browser workbench, with identical output; the boundary is enforced socially by module JSDoc and structurally by the import graph. The measurement culture depends on this: sampling 7200 artefacts is only cheap because the pipeline runs anywhere, and a sample is only meaningful because determinism makes it reproducible.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
-    Docs: <code>docs/00</code>–<code>13</code> · Roadmap: <code>docs/roadmaps/mvp.md</code> (projection of <code>.claude/roadmaps.json</code>) · Explorer: <code>src/routes/dev/explorer/</code> · Samplers: <code>scripts/dev/</code>
+    Calibration suites: <code>src/lib/data/*.calibration.test.ts</code>, <code>classification.test.ts</code> · Boundary: <code>src/lib/engine/</code> (module JSDoc) · Distribution tables: doc 12 §§2.24, 2.31, 2.33
+  </div>
+</article>
+</section>
+
+<!-- ================= 11 EXPLORER ================= -->
+<section class="page" id="page-explorer">
+<article class="wrap">
+  <div class="kicker">Practice · The Project Explorer</div>
+  <h1>Generation You Can Watch</h1>
+  <p class="lede">Two observability surfaces grow with the pipeline: a nine-panel browser workbench compiled into dev builds at <code>/dev/explorer</code>, and a CLI sampler suite for the terminal. The roadmap treats both as deliverables of every phase, alongside the features they expose.</p>
+
+  <h2>The nine panels</h2>
+  <p>Each panel answers one question about a seed:</p>
+  <ul>
+    <li><strong>Overview</strong> orients, and <strong>PRNG</strong> shows the raw draw stream.</li>
+    <li><strong>Type index</strong> renders the type system live, with dependency and reference graphs, so the roughly 160 interfaces stay navigable.</li>
+    <li><strong>Structure viewer</strong> draws the expanded component tree in the shared observational prose.</li>
+    <li><strong>Plausibility</strong> shows which rules passed and failed for a given expansion.</li>
+    <li><strong>Material viewer</strong> shows each part's pick with the weights behind it.</li>
+    <li><strong>Decoration inspector</strong> nests the layers per component.</li>
+    <li><strong>Tag inspector</strong> shows the scored map with per-rule contributions, and <strong>rule calibration</strong> samples fire rates across settings; these two are where the measured-threshold work on the classification page actually happened.</li>
+  </ul>
+
+  <figure class="diag"><svg viewBox="0 0 720 170" role="img" aria-label="Panels tap the pipeline between stages">
+    <rect class="box" x="8"   y="30" width="120" height="28" rx="6"/><text x="68"  y="48" text-anchor="middle">4 · grammar</text>
+    <rect class="box" x="152" y="30" width="130" height="28" rx="6"/><text x="217" y="48" text-anchor="middle">5 · plausibility</text>
+    <rect class="box" x="306" y="30" width="120" height="28" rx="6"/><text x="366" y="48" text-anchor="middle">6 · materials</text>
+    <rect class="box" x="450" y="30" width="124" height="28" rx="6"/><text x="512" y="48" text-anchor="middle">7 · decoration</text>
+    <rect class="box" x="598" y="30" width="114" height="28" rx="6"/><text x="655" y="48" text-anchor="middle">8 · tags</text>
+    <rect class="gold" x="8"   y="106" width="120" height="28" rx="6"/><text x="68"  y="124" text-anchor="middle">structure</text>
+    <rect class="gold" x="152" y="106" width="130" height="28" rx="6"/><text x="217" y="124" text-anchor="middle">plausibility</text>
+    <rect class="gold" x="306" y="106" width="120" height="28" rx="6"/><text x="366" y="124" text-anchor="middle">materials</text>
+    <rect class="gold" x="450" y="106" width="124" height="28" rx="6"/><text x="512" y="124" text-anchor="middle">decoration</text>
+    <rect class="gold" x="598" y="106" width="114" height="28" rx="6"/><text x="655" y="124" text-anchor="middle">tags · calibration</text>
+    <path class="arrow" d="M 68 58 v 40"/><path class="arrow" d="M 64 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 217 58 v 40"/><path class="arrow" d="M 213 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 366 58 v 40"/><path class="arrow" d="M 362 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 512 58 v 40"/><path class="arrow" d="M 508 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 655 58 v 40"/><path class="arrow" d="M 651 90 l 4 6 l 4 -6"/>
+    <text class="lab" x="8" y="18">pipeline stages</text>
+    <text class="lab" x="8" y="158">panels and samplers, one per stage (plus overview, PRNG and the type index)</text>
+  </svg>
+  <figcaption class="diagcap">Every stage boundary has a window on it. A defect visible at stage 7 but absent at stage 6 has already told you where it lives.</figcaption></figure>
+
+  <h2>The samplers</h2>
+  <p>The CLI suite prints one pipeline stage each, for eyeballing output ahead of a panel landing, or for piping with <code>--json</code>:</p>
+  <pre><code>deno task sample                  # gum menu over the samplers below
+deno task sample:artefact         # anatomy tree + plausibility verdict
+deno task sample:materials        # anatomy tree with each part's material pick
+deno task sample:decoration       # decorative layers nested per part
+deno task sample:features         # annotated classifier reading, per-value provenance
+deno task sample:classification   # scored tag map with per-rule contributions</code></pre>
+  <p>The features sampler carries per-value provenance: each extracted value names the component and policy that produced it, which is how collapse-policy behaviour (the dominant-blade and dominant-container decisions on the classification page) gets checked by hand. The samplers and the Explorer's structure viewer share the same prose renderer, so what the terminal says and what the panel says never drift.</p>
+
+  <h2>Defects live in populations</h2>
+  <p>Procgen defects are population properties, and a population is invisible without tooling. The wire-wrapping gate defect surfaced in a sampling pass; the elite inflation surfaced in fire-rate measurement; the fixture skew surfaced when a re-measurement disagreed with the original sample. None of them could have been seen in a unit test or a code review, because every individual artefact involved was fine. Determinism closes the loop: anything odd in a panel arrives with the seed that produced it, so every observation is a reproducible test case by construction.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Panels: <code>src/routes/dev/explorer/</code> · Samplers: <code>scripts/dev/</code> (see its README) · Shared renderer: <code>src/lib/engine/generation/prose.ts</code>
+  </div>
+</article>
+</section>
+
+<!-- ================= 12 DOCS ================= -->
+<section class="page" id="page-docs">
+<article class="wrap">
+  <div class="kicker">Practice · The document suite</div>
+  <h1>The Spec Argues Back</h1>
+  <p class="lede">Fourteen numbered documents specify the design. The machinery between them does the governing: a convention for recording being wrong, a register that tracks corrections across documents and stable ids that tie code, docs and roadmap together.</p>
+
+  <h2>The map</h2>
+  <table>
+    <tr><th>Docs</th><th>Role</th></tr>
+    <tr><td><strong>00–03</strong></td><td>Orientation: the index, a project audit snapshot, the six design pillars, the systems map. Doc 02 is where Simulation Honesty and Error Is the Engine live; most decisions on these pages trace to one of the six.</td></tr>
+    <tr><td><strong>04–10</strong></td><td>Specifications, one system each: the interpretive lens, generation (doc 05, the one these pages lean on most), knowledge and contradiction, career and social systems, technical architecture, the implementation roadmap's phase logic, the document tradition system.</td></tr>
+    <tr><td><strong>11–13</strong></td><td>Governance: locked decisions (11), the propagation register (12), post-MVP deferrals (13). Plus <code>docs/spikes/</code> for standalone design-spike write-ups and <code>docs/roadmaps/mvp.md</code>, the task-level execution plan projected from <code>.claude/roadmaps.json</code>.</td></tr>
+  </table>
+  <pre><code>docs/
+├── 00-project-overview.md            # index + reading orders
+├── 02-design-pillars.md              # the six non-negotiables
+├── 05-generation-architecture.md     # these pages' main source
+├── 11-deferred-design-questions.md   # locked decisions
+├── 12-propagation-register.md        # cross-document correction ledger
+├── roadmaps/mvp.md                   # task-level plan (projection of roadmaps.json)
+└── spikes/                           # one write-up per design spike, named by task id</code></pre>
+
+  <h2>What happens when the spec is wrong</h2>
+  <p>Specs usually meet implementation in one of two ways: the spec quietly rots while the code moves on, or somebody rewrites it and the reasoning behind the first version disappears. This suite does a third thing. When implementation contradicts doc 05, the original text stays put, and a dated implementation note lands directly beneath it recording what shipped instead, why, and which task made the change.</p>
+  <p>A concrete run of it, from this year:</p>
+  <ol>
+    <li>Section 8.2 of doc 05 ends a paragraph with "you don't gild wood".</li>
+    <li>Someone checks. Gilded wood over gesso is the commonest gilding in the historical record; the sentence is wrong, and so is the substrate test built on it.</li>
+    <li>The sentence is removed. A note dated 2026-08-07 lands where it stood, saying what was wrong, citing the task (2GN.101) that re-gated the test on rigidity.</li>
+    <li>Anyone who learned the old rule finds the correction exactly where their memory points; anyone arriving fresh reads the current rule and the fossil of the old one in the same screenful.</li>
+  </ol>
+  <div class="callout"><span class="tag">Why keep the wrong text nearby</span>
+  The cost is a longer document. What it buys: the note names the evidence and the reasoning, so a future reader can re-litigate the decision; the spec doubles as a decision log without a separate ADR system to maintain; and a contradiction between doc and code is always one of two known states (note pending, or defect) rather than the usual third state of "who knows which is current". The decoration depth table is the pattern at full stretch: it stays in the doc even though its two middle corners were proven unsatisfiable, with the note explaining the volume/grade split that shipped instead.</div>
+
+  <h2>The register, the spikes, the ids</h2>
+  <p>Three mechanisms keep fourteen documents from contradicting each other:</p>
+  <ul>
+    <li><strong>The propagation register</strong> (doc 12). Corrections ripple: a ruling that changes doc 05 usually obliges edits in other documents, and the register is the ledger that tracks each ripple from logged to applied. Sixteen entries had completed at the time of writing, none pending.</li>
+    <li><strong>Design spikes</strong> get standalone write-ups in <code>docs/spikes/</code> holding the full argument (measurements, alternatives rejected and why), while doc 11 holds only the ruling; the reasoning and the law live at different addresses, and each spike names where its ruling landed.</li>
+    <li><strong>Stable task ids</strong> stitch it all to the code. A comment reading <code>2GN.84</code> resolves to the same task in the roadmap, the same doc 12 entry and the same spike, so provenance survives in all directions; several passages on these pages were written by following one id across all three.</li>
+  </ul>
+
+  <figure class="diag"><svg viewBox="0 0 720 170" role="img" aria-label="The suite's moving parts">
+    <rect class="soft" x="8" y="24" width="180" height="110" rx="8"/><text x="98" y="44" text-anchor="middle">orientation</text><text class="lab" x="98" y="60" text-anchor="middle">00 index · 01 audit</text><text class="lab" x="98" y="74" text-anchor="middle">02 pillars · 03 map</text>
+    <rect class="box" x="238" y="24" width="200" height="110" rx="8"/><text x="338" y="44" text-anchor="middle">specifications</text><text class="lab" x="338" y="60" text-anchor="middle">04 lens · 05 generation</text><text class="lab" x="338" y="74" text-anchor="middle">06 knowledge · 07 career</text><text class="lab" x="338" y="88" text-anchor="middle">08 technical · 09 phases</text><text class="lab" x="338" y="102" text-anchor="middle">10 documents</text>
+    <rect class="gold" x="488" y="24" width="224" height="110" rx="8"/><text x="600" y="44" text-anchor="middle">governance</text><text class="lab" x="600" y="60" text-anchor="middle">11 locked decisions</text><text class="lab" x="600" y="74" text-anchor="middle">12 propagation register</text><text class="lab" x="600" y="88" text-anchor="middle">13 deferrals · spikes/</text><text class="lab" x="600" y="102" text-anchor="middle">roadmaps.json → mvp.md</text>
+    <path class="arrow" d="M 188 79 h 44"/><path class="arrow" d="M 226 76 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 438 79 h 44"/><path class="arrow" d="M 476 76 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 600 134 v 16 h -262 v -10"/><path class="arrow" d="M 334 146 l 4 -6 l 4 6"/>
+    <text class="lab" x="380" y="162">rulings propagate back into the specs as dated notes</text>
+  </svg>
+  <figcaption class="diagcap">Orientation feeds specification; governance corrects it; the corrections land back inside the specs, dated.</figcaption></figure>
+
+  <h2>Reading order, if you go to the source</h2>
+  <p>Start with doc 02 (the six pillars), then doc 03 (the systems map), then doc 05 with these pages beside it; doc 00 carries reading orders for other purposes (implementing, reviewing, catching up on decisions). For code, <code>engine/prng.ts</code> then <code>engine/generation/grammar.ts</code> top to bottom. Start each module at its JSDoc block: the contracts live there, several run longer than the code beneath them, and the doc-12 cross-references inside them are load-bearing rather than decorative.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/00</code>–<code>13</code> · Spikes: <code>docs/spikes/</code> · Roadmap: <code>docs/roadmaps/mvp.md</code> (projection of <code>.claude/roadmaps.json</code>) · Agent guide: <code>.claude/CLAUDE.md</code>
   </div>
 </article>
 </section>
 </main>
 
-<div class="pagenav" id="pagenav" hidden>
-  <a href="#/" id="nav-prev"><span class="dir">Previous</span><span id="nav-prev-t"></span></a>
-  <a href="#/" id="nav-next" class="next"><span class="dir">Next</span><span id="nav-next-t"></span></a>
-</div>
+<div class="pagenav pn-bottom" hidden></div>
 
 <footer>
   Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
@@ -548,41 +1099,53 @@ footer{
 
 <script>
 const PAGES = [
-  {id:'overview',      n:'01', badge:'partial',  title:'Nine Stages, Three Cadences',            desc:'The whole pipeline at a glance: what runs once per world, per artefact and per inspection, and what exists today.'},
-  {id:'determinism',   n:'02', badge:'shipped',  title:'Every Draw Is Accounted For',            desc:'One seed string drives everything. Why the PRNG is a contract, and how draw ordering becomes an API.'},
-  {id:'structure',     n:'03', badge:'shipped',  title:'The Grammar Doesn’t Know What a Sword Is', desc:'Eight geometric primitives, four production rules and a hard ban on generating by intent.'},
-  {id:'plausibility',  n:'04', badge:'shipped',  title:'Nonsense Is Rejected, Never Patched',    desc:'Normalisation, physical plausibility rules and the case for throwing instead of shipping a fallback.'},
-  {id:'materials',     n:'05', badge:'shipped',  title:'Fake Relics Obey Real Geology',          desc:'Sixteen materials, a five-rung availability ladder and a weighting product that tells trade stories.'},
-  {id:'decoration',    n:'06', badge:'shipped',  title:'Every Layer Is an Act of Craft',         desc:'Sixteen techniques, substrate physics, borrowed motifs and the split between how much and how well.'},
-  {id:'classification',n:'07', badge:'shipped',  title:'Tags Are Evidence Tallies',              desc:'Feature extraction, 43 scoring rules and baselines sampled from a culture’s own output.'},
-  {id:'description',   n:'08', badge:'partial',  title:'The Engine Never Says “Dagger”',        desc:'Registers, templates and the lens: how ground truth becomes prose without leaking.'},
-  {id:'world',         n:'09', badge:'designed', title:'The World Is Still a Fixture',           desc:'Chronology, cultures, geology and a pre-faked scholarly corpus: designed in depth, not yet built.'},
-  {id:'method',        n:'10', badge:'partial',  title:'The Spec Argues Back',                   desc:'Docs that carry their own corrections, constants that are measured before they’re believed, and the tooling that makes generation observable.'}
+  {id:'overview',      stage:'Stages 1–9', group:'Start here',    badge:'partial',  topic:'Pipeline overview',            title:'Nine Stages, Three Cadences',              desc:'The whole pipeline at a glance: what runs once per world, per artefact and per inspection, and what exists today.'},
+  {id:'determinism',   stage:'Foundation', group:'Start here',    badge:'shipped',  topic:'Seeding & determinism',        title:'Every Draw Is Accounted For',              desc:'One seed string drives everything. Why the PRNG is a contract, and how draw ordering becomes an API.'},
+  {id:'structure',     stage:'Stage 4',    group:'The pipeline',  badge:'shipped',  topic:'Structural grammar',           title:'The Grammar Doesn’t Know What a Sword Is', desc:'Eight geometric primitives, four production rules and a hard ban on generating by intent.'},
+  {id:'plausibility',  stage:'Stage 5',    group:'The pipeline',  badge:'shipped',  topic:'Normalisation & plausibility', title:'Exhaustion Throws',                        desc:'Flattening the grammar tree, physical plausibility rules and the case for throwing instead of shipping a fallback.'},
+  {id:'materials',     stage:'Stage 6',    group:'The pipeline',  badge:'shipped',  topic:'Material assignment',          title:'Fake Relics Obey Real Geology',            desc:'Sixteen materials, a five-rung availability ladder and a weighting product that keeps trade materials rare.'},
+  {id:'decoration',    stage:'Stage 7',    group:'The pipeline',  badge:'shipped',  topic:'Decorative grammar',           title:'Every Layer Is an Act of Craft',           desc:'Sixteen techniques, substrate physics, borrowed motifs and the split between how much and how well.'},
+  {id:'classification',stage:'Stage 8',    group:'The pipeline',  badge:'shipped',  topic:'Features & classification',    title:'Tags Are Evidence Tallies',                desc:'Feature extraction, 44 scoring rules and baselines sampled from a culture’s own output.'},
+  {id:'description',   stage:'Stage 9',    group:'The pipeline',  badge:'partial',  topic:'Description generation',       title:'The Engine Never Says ‘Dagger’',           desc:'Registers, templates and the lens: how ground truth becomes prose without leaking.'},
+  {id:'world',         stage:'Stages 2–3', group:'The world',     badge:'designed', topic:'World generation',             title:'The World Is Still a Fixture',             desc:'Chronology, cultures, geology and a pre-faked scholarly corpus: designed in depth, not yet built.'},
+  {id:'method',        stage:'Practice',   group:'Working practice', badge:'partial', topic:'Measurement culture',        title:'Every Constant Is on Probation',           desc:'Provisional constants, calibration tests that pin ratios and suites that assert distributions.'},
+  {id:'explorer',      stage:'Practice',   group:'Working practice', badge:'shipped', topic:'The Project Explorer',       title:'Generation You Can Watch',                 desc:'The nine-panel workbench and the CLI samplers: every stage observable, every observation reproducible from a seed.'},
+  {id:'docs',          stage:'Practice',   group:'Working practice', badge:'shipped', topic:'The document suite',         title:'The Spec Argues Back',                     desc:'Fourteen documents, dated corrections kept in place, a propagation register and where to start reading.'}
 ];
 const BADGE_LABEL = {shipped:'Shipped', partial:'Partial', designed:'Designed'};
+const GROUPS = ['Start here','The pipeline','The world','Working practice'];
+const GROUP_LABEL = {'Start here':'Start here','The pipeline':'The pipeline, stage by stage','The world':'The world it runs in','Working practice':'Working practice'};
 
-// hub cards
-document.getElementById('cardgrid').innerHTML = PAGES.map(p =>
-  `<a class="card" href="#/${p.id}">
-     <span class="num">${p.n}</span>
-     <span class="t">${p.title}</span>
-     <span class="d">${p.desc}</span>
-     <span class="badge ${p.badge}">${BADGE_LABEL[p.badge]}</span>
-   </a>`).join('');
+// hub cards, grouped into collapsible blocks ("Start here" open by default)
+document.getElementById('cardgrid').innerHTML = GROUPS.map(g => {
+  const pages = PAGES.filter(p => p.group === g);
+  const cards = pages.map(p =>
+    `<a class="card" href="#/${p.id}">
+       <span class="num">${p.stage}</span>
+       <span class="topic">${p.topic}</span>
+       <span class="t">${p.title}</span>
+       <span class="d">${p.desc}</span>
+       <span class="badge ${p.badge}">${BADGE_LABEL[p.badge]}</span>
+     </a>`).join('');
+  return `<details class="cardgroup"${g === 'Start here' ? ' open' : ''}>
+    <summary>${GROUP_LABEL[g]}<span class="gcount">${pages.length} page${pages.length === 1 ? '' : 's'}</span></summary>
+    <div class="cards">${cards}</div>
+  </details>`;
+}).join('');
 
 // pipeline strip
 (function(){
   const stages=[
-    ['Seed','once'],['Chronology\n& cultures','once'],['Initial\ncorpus','once'],
-    ['Structural\ngrammar','per artefact'],['Normalise +\nplausibility','per artefact'],
-    ['Materials','per artefact'],['Decoration','per artefact'],['Features\n+ tags','per artefact'],
-    ['Description','per inspection']
+    ['1 · Seed','once'],['2 · Chronology\n& cultures','once'],['3 · Initial\ncorpus','once'],
+    ['4 · Structural\ngrammar','per artefact'],['5 · Normalise +\nplausibility','per artefact'],
+    ['6 · Materials','per artefact'],['7 · Decoration','per artefact'],['8 · Features\n+ tags','per artefact'],
+    ['9 · Description','per inspection']
   ];
   const g=document.getElementById('pipe');
   let x=6; const w=92, gap=12, y=30, h=44;
   let out='';
   stages.forEach((s,i)=>{
-    const built = i>=3 && i<=7;
+    const built = i===0 || (i>=3 && i<=7);
     const partial = i===8;
     const fill = built ? 'rgba(47,106,92,.13)' : partial ? 'rgba(138,109,59,.14)' : 'rgba(113,98,77,.10)';
     const stroke = built ? '#2f6a5c' : partial ? '#8a6d3b' : '#a3947c';
@@ -597,10 +1160,24 @@ document.getElementById('cardgrid').innerHTML = PAGES.map(p =>
     }
     x+=w+gap;
   });
-  out+=`<text class="cad" x="6" y="14">stages 1–3: not yet built (mock fixtures)</text>`;
+  out+=`<text class="cad" x="214" y="14" text-anchor="middle">stages 2–3: not yet built (mock fixtures)</text>`;
   out+=`<text class="cad" x="628" y="14" text-anchor="middle">stages 4–8: shipped</text>`;
   out+=`<text class="cad" x="934" y="14" text-anchor="end">stage 9: partial</text>`;
   g.innerHTML=out;
+})();
+
+// syntax highlighting for TS blocks
+(function(){
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const RE = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")|\b(interface|type|function|return|const|let|readonly|export|extends|throws?|new|typeof|keyof|in|of|if|else)\b|\b(\d+(?:\.\d+)?)\b|\b([A-Z][A-Za-z0-9]+)\b/g;
+  document.querySelectorAll('pre code.lang-ts').forEach(el=>{
+    el.innerHTML = esc(el.textContent).replace(RE,(m,c,s,k,n,t)=>
+      c ? `<span class="c">${c}</span>` :
+      s ? `<span class="s">${s}</span>` :
+      k ? `<span class="k">${k}</span>` :
+      n ? `<span class="n">${n}</span>` :
+          `<span class="t">${t}</span>`);
+  });
 })();
 
 // router
@@ -610,19 +1187,21 @@ function route(){
   const id = ORDER.includes(raw) ? raw : 'hub';
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('active', s.id==='page-'+id));
   const crumb=document.getElementById('crumb');
-  const nav=document.getElementById('pagenav');
-  if(id==='hub'){ crumb.textContent=''; nav.hidden=true; }
+  const navs=document.querySelectorAll('.pagenav');
+  if(id==='hub'){ crumb.textContent=''; navs.forEach(n=>n.hidden=true); }
   else{
     const i=ORDER.indexOf(id), p=PAGES[i];
-    crumb.textContent=p.n+' · '+p.title;
-    nav.hidden=false;
+    crumb.textContent=p.stage+' · '+p.topic;
     const prev = i>0 ? PAGES[i-1] : null;
     const next = i<PAGES.length-1 ? PAGES[i+1] : null;
-    const pa=document.getElementById('nav-prev'), na=document.getElementById('nav-next');
-    pa.href = prev ? '#/'+prev.id : '#/';
-    document.getElementById('nav-prev-t').textContent = prev ? prev.title : 'Hub';
-    na.href = next ? '#/'+next.id : '#/';
-    document.getElementById('nav-next-t').textContent = next ? next.title : 'Hub';
+    const label = q => q ? q.topic : 'Hub';
+    const href  = q => q ? '#/'+q.id : '#/';
+    navs.forEach(n=>{
+      n.hidden=false;
+      n.innerHTML =
+        `<a href="${href(prev)}"><span class="dir">Previous</span>${label(prev)}</a>`+
+        `<a href="${href(next)}" class="next"><span class="dir">Next</span>${label(next)}</a>`;
+    });
   }
   window.scrollTo(0,0);
 }
