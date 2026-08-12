@@ -665,7 +665,7 @@ const SCARCITY_WEIGHT: Record&lt;string, number&gt; = {
 <article class="wrap">
   <div class="kicker">Stage 8 · Features &amp; classification</div>
   <h1>Tags Are Evidence Tallies</h1>
-  <p class="lede">Stage 8 is where the pipeline reads its own output back. A single extraction pass turns the finished object into a feature set; 44 scoring rules turn features into tag scores. The scores are the game's occluded ground truth: the player's claims are eventually judged against them, and the player never sees them.</p>
+  <p class="lede">Stage 8 is where the pipeline reads its own output back. A single extraction pass turns the finished object into a feature set; 43 scoring rules turn features into tag scores. The scores are the game's occluded ground truth: the player's claims are eventually judged against them, and the player never sees them.</p>
 
   <h2>Extraction: one pass, one value per question</h2>
   <p><code>extractFeatures</code> runs once across components, attachments and decorative layers together, and it's pure and PRNG-free: same artefact in, same features out. An artefact can have three edged components. Which one is "the blade"? Every multi-component collision resolves to one value through a documented collapse policy:</p>
@@ -686,7 +686,7 @@ const SCARCITY_WEIGHT: Record&lt;string, number&gt; = {
   No classification rule may read <code>portability</code> or <code>inspectionDepth</code>. Both derive from the same dimensions as the physical <code>massBand</code> and <code>sizeBand</code>, but they are mechanical facts about player handling, and letting classification consume them would smuggle game mechanics into world semantics. Rules read the physical bands instead, and a boundary guard test fails the suite if any rule ever touches the mechanical pair.</div>
 
   <h2>Scoring: a plain sum, on purpose</h2>
-  <p><code>classifyArtefact</code> runs all 44 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The JSDoc pins what the numbers mean: "evidence tallies, not confidences". Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
+  <p><code>classifyArtefact</code> runs all 43 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The JSDoc pins what the numbers mean: "evidence tallies, not confidences". Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
   <pre><code class="lang-ts">// the rule shape (shipped rules live in data/classification.ts; weights here illustrative)
 interface ClassificationRule {
   condition: (features: ExtractedFeatures, context: ClassificationContext) =&gt; boolean;
@@ -774,7 +774,7 @@ export const SAMPLED_FEATURES: readonly BaselineFeature[] = [
 
   <h3>Where the migration stands</h3>
   <ul>
-    <li>35 of the 44 rules award relative tags, per the split pinned in the test suite.</li>
+    <li>34 of the 43 rules award relative tags, per the split pinned in the test suite.</li>
     <li>Nine of those had numeric conditions a percentile could replace, and all nine are migrated.</li>
     <li>The other 25 read categorical bands (wall thickness, base type, mass band and kin) and stay absolute pending a design spike; what "relative" means for a categorical value is still undecided, and the code declines to guess.</li>
     <li>One tag, <code>currency</code>, has no rule at all: no grammar signal exists to key on, and it stays absent rather than force-fitted.</li>
@@ -1105,7 +1105,7 @@ const PAGES = [
   {id:'plausibility',  stage:'Stage 5',    group:'The pipeline',  badge:'shipped',  topic:'Normalisation & plausibility', title:'Exhaustion Throws',                        desc:'Flattening the grammar tree, physical plausibility rules and the case for throwing instead of shipping a fallback.'},
   {id:'materials',     stage:'Stage 6',    group:'The pipeline',  badge:'shipped',  topic:'Material assignment',          title:'Fake Relics Obey Real Geology',            desc:'Sixteen materials, a five-rung availability ladder and a weighting product that keeps trade materials rare.'},
   {id:'decoration',    stage:'Stage 7',    group:'The pipeline',  badge:'shipped',  topic:'Decorative grammar',           title:'Every Layer Is an Act of Craft',           desc:'Sixteen techniques, substrate physics, borrowed motifs and the split between how much and how well.'},
-  {id:'classification',stage:'Stage 8',    group:'The pipeline',  badge:'shipped',  topic:'Features & classification',    title:'Tags Are Evidence Tallies',                desc:'Feature extraction, 44 scoring rules and baselines sampled from a culture’s own output.'},
+  {id:'classification',stage:'Stage 8',    group:'The pipeline',  badge:'shipped',  topic:'Features & classification',    title:'Tags Are Evidence Tallies',                desc:'Feature extraction, 43 scoring rules and baselines sampled from a culture’s own output.'},
   {id:'description',   stage:'Stage 9',    group:'The pipeline',  badge:'partial',  topic:'Description generation',       title:'The Engine Never Says ‘Dagger’',           desc:'Registers, templates and the lens: how ground truth becomes prose without leaking.'},
   {id:'world',         stage:'Stages 2–3', group:'The world',     badge:'designed', topic:'World generation',             title:'The World Is Still a Fixture',             desc:'Chronology, cultures, geology and a pre-faked scholarly corpus: designed in depth, not yet built.'},
   {id:'method',        stage:'Practice',   group:'Working practice', badge:'partial', topic:'Measurement culture',        title:'Every Constant Is on Probation',           desc:'Provisional constants, calibration tests that pin ratios and suites that assert distributions.'},
