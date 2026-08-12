@@ -131,9 +131,14 @@ export interface TagCalibration {
 
 	/**
 	 * The rule contributing the most total weight to this tag across the sample, if any. This is
-	 * what turns "elite is everywhere" into "because R31 fires on 85% of artefacts".
+	 * what turns "elite is everywhere" into "because `applied-elements-above-p75` fires on 85% of
+	 * artefacts".
+	 *
+	 * Carries `ruleId` alongside the positional `label` for the same reason `RuleCalibration` does
+	 * (roadmap 2GN.113): this is the field a reader chases when a tag looks wrong, so it is the one
+	 * that most needs to survive a deletion.
 	 */
-	topContributor?: { label: string; ruleIndex: number; firePercent: number };
+	topContributor?: { label: string; ruleId: string; ruleIndex: number; firePercent: number };
 }
 
 /** A full calibration run. */
@@ -287,6 +292,7 @@ export function calibrateRules(
 				}
 				topContributor = {
 					label: ruleDisplayLabelAt(bestIndex),
+					ruleId: CLASSIFICATION_RULES[bestIndex].id,
 					ruleIndex: bestIndex,
 					firePercent: percent(fireCounts[bestIndex]),
 				};

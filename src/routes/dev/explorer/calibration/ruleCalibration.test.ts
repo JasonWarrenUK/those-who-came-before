@@ -4,9 +4,10 @@ import { calibrateRules, SATURATION_CEILING } from './ruleCalibration.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 import { CLASSIFICATION_RULES } from '../../../../lib/data/classification.ts';
 
-// Tarpan explicitly, not EXPLORER_CULTURES[0]: preset order isn't a contract, and the R30/R31
-// verdict assertions below depend on this specific culture's decorativeEmphasis (0.4) keeping
-// firePercent on the correct side of SATURATION_CEILING.
+// Tarpan explicitly, not EXPLORER_CULTURES[0]: preset order isn't a contract, and the
+// `applied-elements-above-p75` / `decoration-present-ornament` verdict assertions below depend on
+// this specific culture's decorativeEmphasis (0.4) keeping firePercent on the correct side of
+// SATURATION_CEILING.
 const culture = EXPLORER_CULTURES.find((c) => c.id === 'tarpan');
 if (culture === undefined) throw new Error("explorer culture 'tarpan' not found");
 
@@ -81,10 +82,14 @@ Deno.test('calibrateRules: saturated and dormant lists agree with the per-rule v
 /**
  * The panel exists to surface exactly this: the any-decoration nudge is documented as deliberately
  * universal (doc 12 §2.24), so it should read `saturated` and be visible as such rather than hidden.
+ *
+ * Found by `ruleId`, not by `label`: the label is positional, so a deletion anywhere above this rule
+ * repoints it at a neighbour and the assertion then reports a verdict mismatch on the wrong rule
+ * (roadmap 2GN.113). These two assertions were themselves hand-renumbered when 2GN.87 deleted R4.
  */
 Deno.test('calibrateRules: the deliberately-universal nudge shows up as saturated', () => {
 	const report = calibrateRules('universal', culture, 100);
-	const anyDecoration = report.rules.find((rule) => rule.label === 'R31');
+	const anyDecoration = report.rules.find((rule) => rule.ruleId === 'decoration-present-ornament');
 
 	assert(anyDecoration !== undefined);
 	assertEquals(anyDecoration.verdict, 'saturated');
@@ -93,7 +98,7 @@ Deno.test('calibrateRules: the deliberately-universal nudge shows up as saturate
 /** The 2GN.79 retune, guarded from the panel's side: the applied-element rule must not saturate. */
 Deno.test('calibrateRules: the retuned applied-element rule reads as discriminating', () => {
 	const report = calibrateRules('applied', culture, 150);
-	const applied = report.rules.find((rule) => rule.label === 'R30');
+	const applied = report.rules.find((rule) => rule.ruleId === 'applied-elements-above-p75');
 
 	assert(applied !== undefined);
 	assertEquals(applied.verdict, 'discriminating');
