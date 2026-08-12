@@ -291,8 +291,8 @@ export type MaterialName = (typeof MATERIAL_NAMES)[number];
  * scores — structural, decorative and cross-layer rules all contribute to the same map, which is
  * how a single artefact can score on multiple, overlapping tags at once.
  *
- * A rule may award tags from both scoring bases at once, and many do: R11 awards `container`
- * (absolute) alongside `votive` and `funerary` (relative) from one sealed-container condition.
+ * A rule may award tags from both scoring bases at once, and many do: `container-sealed-deposition`
+ * awards `container` (absolute) alongside `votive` and `funerary` (relative) from one condition.
  * The basis is a property of each awarded tag, not of the rule, so a rule awarding any
  * `RelativeTag` needs culture-phase baselines even when its condition reads purely physical
  * features (doc 11 §2.9 — this is what catches the thin-walled-container and pedestal-base rules).
@@ -303,6 +303,19 @@ export type MaterialName = (typeof MATERIAL_NAMES)[number];
  * parameter; TypeScript accepts a narrower-arity function wherever this wider signature is expected.
  */
 export interface ClassificationRule {
+	/**
+	 * Stable identity, independent of position in `CLASSIFICATION_RULES` (roadmap 2GN.113).
+	 *
+	 * A kebab-case slug naming what the rule reads and what it concludes
+	 * (`edge-short-sharp-dagger`), unique across the array and pinned by test. **Cite this in prose,
+	 * comments and docs, never the display number.** `R{index + 1}` is a rendering of a rule's
+	 * current position, so deleting one silently renumbers every rule below it: 2GN.87's deletion of
+	 * the old R4 turned every later reference stale in one commit, and four follow-up commits were
+	 * still chasing the leftovers. An id survives deletion, insertion and reordering, and a
+	 * reference to a retired one fails a lookup instead of quietly resolving to its neighbour.
+	 */
+	id: string;
+
 	/** Predicate over the artefact's unified extracted features and its culture-phase baselines. */
 	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 
