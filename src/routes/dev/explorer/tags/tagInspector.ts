@@ -54,7 +54,7 @@ export interface Contribution {
 	/** The rule's stable id (roadmap 2GN.113), which survives deletion and reordering. */
 	ruleId: string;
 
-	/** The rule's index in `CLASSIFICATION_RULES`, the only runtime identity a rule has. */
+	/** The rule's index in `CLASSIFICATION_RULES`, its position in the shipped array. */
 	ruleIndex: number;
 
 	/** The weight this rule adds to the tag. */
