@@ -185,7 +185,7 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			linen: 'scarce',
 			leather: 'abundant',
 		}),
-		trade: [{ materialTag: 'metal', direction: 'bidirectional', volume: 0.4 }],
+		trade: [{ includes: [{ tag: 'metal' }], direction: 'bidirectional', volume: 0.4 }],
 	},
 	{
 		id: 'thalassar',
@@ -272,23 +272,24 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'available',
 		}),
 		trade: [
-			// Was keyed on `precious-metal` (roadmap 2GN.78). Re-keyed to the class tag with an explicit
-			// material list naming what the flow is *for*. Note this does not narrow it:
-			// `flowSuppliesMaterial` ORs the tag arm with `specificMaterials`, so this flow reaches all
-			// four metals, exactly as a bare `metal` flow would. The list widens, never restricts.
-			// Availability is unchanged from before the re-key, measured across all four presets and all
-			// six regional worlds, because bronze and iron are reachable here by geology anyway. Whether
-			// `specificMaterials` *should* narrow is filed as roadmap 2GN.112.
+			// Was keyed on `precious-metal` until roadmap 2GN.78 retired that tag, then briefly on
+			// `metal` + `specificMaterials`, which could not restrict the class it named (2GN.112).
+			// Now says what it always meant: the high-volume route carries gold and silver only.
 			{
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ id: 'gold' }, { id: 'silver' }],
 				direction: 'bidirectional',
 				volume: 0.8,
 			},
-			{ materialTag: 'metal', direction: 'bidirectional', volume: 0.6 },
+			// The separate, lower-volume route carries metals generally — so bronze and iron do reach
+			// Thalassar, by this flow rather than by the one above. Two flows, two authored intents.
+			{ includes: [{ tag: 'metal' }], direction: 'bidirectional', volume: 0.6 },
+			// The obsidian route. ⚠️ This is the one flow whose *reach* 2GN.112 changed: it was
+			// `stone` + `specificMaterials: ['obsidian']`, and the OR meant its tag arm also imported
+			// Thalassar's `trade-only` jade. Nobody authored "and jade" — that reach was the accident
+			// the ruling removes — so jade is no longer obtainable here, deliberately. The rest of the
+			// preset set is unchanged (measured against `origin/main`).
 			{
-				materialTag: 'stone',
-				specificMaterials: ['obsidian'],
+				includes: [{ id: 'obsidian' }],
 				direction: 'a-to-b',
 				volume: 0.5,
 			},
@@ -374,15 +375,14 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'scarce',
 		}),
 		trade: [
-			// Re-keyed from `precious-metal` (roadmap 2GN.78). `specificMaterials` does not preserve the
-			// tag's exact gold/silver reach — it cannot, since `flowSuppliesMaterial` ORs the two arms, so
-			// this flow nominally reaches bronze and iron too (roadmap 2GN.112).
-			// Xoconahtl is unaffected, but by geology rather than by this flow: it marks `bronze: 'absent'`
-			// and `iron: 'absent'`, and `isAvailable` rejects `absent` before trade is consulted. Move
-			// either to `trade-only` and this flow will import it.
+			// Was keyed on `precious-metal` (roadmap 2GN.78), then on `metal` + `specificMaterials`,
+			// which reached the whole class rather than restricting it (2GN.112). Xoconahtl's single
+			// low-volume flow carries gold and silver and nothing else, which is now what it says.
+			// Note the culture header's claim that bronze and iron "simply do not arrive" is true
+			// twice over: this flow excludes them *and* the geology marks both `absent`, which
+			// `isAvailable` rejects before trade is consulted.
 			{
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ id: 'gold' }, { id: 'silver' }],
 				direction: 'a-to-b',
 				volume: 0.3,
 			},
@@ -468,18 +468,15 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			leather: 'available',
 		}),
 		trade: [
-			// Re-keyed from `precious-stone` (roadmap 2GN.78). Jade was that tag's only carrier, but it is
-			// not `stone`'s: this flow also reaches obsidian, flint and granite, since
-			// `flowSuppliesMaterial` ORs the tag arm with `specificMaterials` (roadmap 2GN.112). Harmless
-			// for Khaltiris, whose geology already reaches all three locally, so availability is unchanged
-			// — but this is not the jade-only flow the tag gave it.
+			// Was keyed on `precious-stone` (roadmap 2GN.78), whose only carrier was jade, then on
+			// `stone` + `specificMaterials`, which reached obsidian, flint and granite as well
+			// (2GN.112). The jade-only flow the original tag described is now stated directly.
 			{
-				materialTag: 'stone',
-				specificMaterials: ['jade'],
+				includes: [{ id: 'jade' }],
 				direction: 'bidirectional',
 				volume: 0.5,
 			},
-			{ materialTag: 'glass', direction: 'a-to-b', volume: 0.4 },
+			{ includes: [{ tag: 'glass' }], direction: 'a-to-b', volume: 0.4 },
 		],
 	},
 ];

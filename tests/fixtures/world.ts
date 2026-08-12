@@ -16,6 +16,7 @@ import type {
 	RegionalAvailability,
 	WorldSeed,
 } from '../../src/lib/types/world.ts';
+import type { MaterialName } from '../../src/lib/types/tags.ts';
 
 /**
  * Builds a mock `WorldSeed`: a raw seed string plus its deterministic PRNG (doc 05 §2).
@@ -41,7 +42,7 @@ export function mockWorldSeed(raw = 'test-seed'): WorldSeed {
 export function mockGeologicalContext(
 	overrides: Partial<GeologicalContext> = {},
 ): GeologicalContext {
-	function regional(materialId: string, level: AvailabilityLevel): RegionalAvailability {
+	function regional(materialId: MaterialName, level: AvailabilityLevel): RegionalAvailability {
 		return { materialId, regions: new Map([['test-region', level]]) };
 	}
 
@@ -65,7 +66,7 @@ export function mockGeologicalContext(
  */
 export function mockMaterialFlow(overrides: Partial<MaterialFlow> = {}): MaterialFlow {
 	const defaults: MaterialFlow = {
-		materialTag: 'metal',
+		includes: [{ tag: 'metal' }],
 		direction: 'bidirectional',
 		volume: 0.5,
 	};
@@ -109,7 +110,7 @@ export interface MockRegionalWorld {
 }
 
 /** Every material id in the shipped catalogue, read from the catalogue itself. */
-const CATALOGUE_MATERIAL_IDS: readonly string[] = MATERIALS.map((material) => material.id);
+const CATALOGUE_MATERIAL_IDS: readonly MaterialName[] = MATERIALS.map((material) => material.id);
 
 /**
  * Builds a `GeologicalContext` from a level→material-ids mapping, in one named region. Throws if
@@ -119,12 +120,12 @@ const CATALOGUE_MATERIAL_IDS: readonly string[] = MATERIALS.map((material) => ma
  */
 function regionalGeology(
 	regionName: string,
-	byLevel: Partial<Record<AvailabilityLevel, readonly string[]>>,
+	byLevel: Partial<Record<AvailabilityLevel, readonly MaterialName[]>>,
 ): GeologicalContext {
-	const materialAvailability = new Map<string, RegionalAvailability>();
+	const materialAvailability = new Map<MaterialName, RegionalAvailability>();
 
 	for (const [level, materialIds] of Object.entries(byLevel)) {
-		for (const materialId of materialIds ?? []) {
+		for (const materialId of (materialIds ?? []) as readonly MaterialName[]) {
 			if (materialAvailability.has(materialId)) {
 				throw new Error(`${regionName}: ${materialId} listed at more than one level`);
 			}
@@ -168,18 +169,16 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 			'trade-only': ['bronze', 'iron', 'silver', 'gold', 'jade', 'glass'],
 		}),
 		trade: [
-			mockMaterialFlow({ materialTag: 'metal' }),
+			mockMaterialFlow({ includes: [{ tag: 'metal' }] }),
 			mockMaterialFlow({
-				materialTag: 'metal',
-				specificMaterials: ['gold'],
+				includes: [{ tag: 'metal' }, { id: 'gold' }],
 				volume: 0.3,
 			}),
 			mockMaterialFlow({
-				materialTag: 'stone',
-				specificMaterials: ['jade'],
+				includes: [{ tag: 'stone' }, { id: 'jade' }],
 				volume: 0.3,
 			}),
-			mockMaterialFlow({ materialTag: 'glass', volume: 0.3 }),
+			mockMaterialFlow({ includes: [{ tag: 'glass' }], volume: 0.3 }),
 		],
 	},
 
@@ -199,16 +198,14 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 		}),
 		trade: [
 			mockMaterialFlow({
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ tag: 'metal' }, { id: 'gold' }, { id: 'silver' }],
 				volume: 0.4,
 			}),
 			mockMaterialFlow({
-				materialTag: 'stone',
-				specificMaterials: ['jade'],
+				includes: [{ tag: 'stone' }, { id: 'jade' }],
 				volume: 0.3,
 			}),
-			mockMaterialFlow({ materialTag: 'glass', volume: 0.3 }),
+			mockMaterialFlow({ includes: [{ tag: 'glass' }], volume: 0.3 }),
 		],
 	},
 
@@ -227,15 +224,14 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 			'trade-only': ['bronze', 'iron', 'silver', 'gold', 'obsidian', 'jade', 'glass'],
 		}),
 		trade: [
-			mockMaterialFlow({ materialTag: 'metal', volume: 0.8 }),
+			mockMaterialFlow({ includes: [{ tag: 'metal' }], volume: 0.8 }),
 			mockMaterialFlow({
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ tag: 'metal' }, { id: 'gold' }, { id: 'silver' }],
 				volume: 0.6,
 			}),
-			mockMaterialFlow({ materialTag: 'stone', volume: 0.6 }),
-			mockMaterialFlow({ materialTag: 'stone', specificMaterials: ['jade'], volume: 0.5 }),
-			mockMaterialFlow({ materialTag: 'glass', volume: 0.5 }),
+			mockMaterialFlow({ includes: [{ tag: 'stone' }], volume: 0.6 }),
+			mockMaterialFlow({ includes: [{ tag: 'stone' }, { id: 'jade' }], volume: 0.5 }),
+			mockMaterialFlow({ includes: [{ tag: 'glass' }], volume: 0.5 }),
 		],
 	},
 
@@ -275,13 +271,11 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 		}),
 		trade: [
 			mockMaterialFlow({
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ tag: 'metal' }, { id: 'gold' }, { id: 'silver' }],
 				volume: 0.4,
 			}),
 			mockMaterialFlow({
-				materialTag: 'stone',
-				specificMaterials: ['jade'],
+				includes: [{ tag: 'stone' }, { id: 'jade' }],
 				volume: 0.3,
 			}),
 		],
@@ -302,10 +296,9 @@ const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 			'trade-only': ['bronze', 'iron', 'silver', 'gold', 'jade', 'glass'],
 		}),
 		trade: [
-			mockMaterialFlow({ materialTag: 'metal', volume: 0.3 }),
+			mockMaterialFlow({ includes: [{ tag: 'metal' }], volume: 0.3 }),
 			mockMaterialFlow({
-				materialTag: 'metal',
-				specificMaterials: ['gold', 'silver'],
+				includes: [{ tag: 'metal' }, { id: 'gold' }, { id: 'silver' }],
 				volume: 0.2,
 			}),
 		],
