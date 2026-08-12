@@ -60,7 +60,8 @@ export { SATURATION_CEILING };
  * How a rule's fire rate reads.
  *
  * Three verdicts, each mapping to an action: `dormant` (fires on nothing — investigate, since a
- * rule can be unreachable rather than merely rare, as R4 is and R27 was before roadmap 2GN.86),
+ * rule can be unreachable rather than merely rare, as R26 was before roadmap 2GN.86 made its
+ * `very-heavy` band reachable, and as the deleted R4 was permanently, roadmap 2GN.87),
  * `saturated` (above `SATURATION_CEILING` — check the stated intent against the behaviour), and
  * `discriminating` (working). A fourth `rare` band below 1% was measured and dropped: it flagged
  * the decoration rules on low-decoration cultures, where they are behaving correctly, so it

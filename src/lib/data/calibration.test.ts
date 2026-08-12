@@ -340,9 +340,9 @@ function measureFireRates(): {
 	let sampleSize = 0;
 
 	let edgedCount = 0;
-	let edgedFireR35 = 0;
+	let edgedFireR34 = 0;
 	let containerCount = 0;
-	let containerFireR36 = 0;
+	let containerFireR35 = 0;
 
 	// Per-cell fire counts for the migrated nine, keyed by rule index — feeds the spread guard.
 	const cellFires = new Map<number, number[]>(
@@ -406,13 +406,13 @@ function measureFireRates(): {
 				if (extracted.hasEdge) {
 					edgedCount++;
 					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R34].condition(extracted, context)) {
-						edgedFireR35++;
+						edgedFireR34++;
 					}
 				}
 				if (extracted.hasContainer) {
 					containerCount++;
 					if (CLASSIFICATION_RULES[MIGRATED_RULE_INDICES.R35].condition(extracted, context)) {
-						containerFireR36++;
+						containerFireR35++;
 					}
 				}
 
@@ -449,8 +449,8 @@ function measureFireRates(): {
 		rates: fires.map((count) => (count / sampleSize) * 100),
 		sampleSize,
 		gatedRates: {
-			R34: edgedCount === 0 ? 0 : (edgedFireR35 / edgedCount) * 100,
-			R35: containerCount === 0 ? 0 : (containerFireR36 / containerCount) * 100,
+			R34: edgedCount === 0 ? 0 : (edgedFireR34 / edgedCount) * 100,
+			R35: containerCount === 0 ? 0 : (containerFireR35 / containerCount) * 100,
 		},
 		cellRates: cellFires,
 		thresholdsByEmphasis,
