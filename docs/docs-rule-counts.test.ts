@@ -13,6 +13,13 @@ import { RELATIVE_TAGS } from '../src/lib/types/tags.ts';
  * the code sweeps missed `docs/artefacts/`. Every one of those was found by a human reading the
  * page. This is the check that should have found them.
  *
+ * **Why the walk is repo-wide.** It was rooted at `docs/` until the pipeline explainer moved to
+ * `index.html` for GitHub Pages. Re-rooting rather than adding a second root for the new location
+ * is deliberate: a per-location list has to be remembered every time prose lands somewhere new, and
+ * the failure mode when someone forgets is silent — the guard keeps passing while covering less,
+ * the exact defect this file exists to close. This test file itself stays under `docs/` even though
+ * it now walks the whole repo; only the walk root moved, not the file.
+ *
  * **Why it reads the filesystem.** Prose is the artefact being checked, so there is nothing to
  * import. This is the only test in the suite that touches disk, which is why `deno task test`
  * carries `--allow-read`.
@@ -45,8 +52,34 @@ import { RELATIVE_TAGS } from '../src/lib/types/tags.ts';
  * for the reasons given at its own definition.
  */
 
-/** Docs whose prose is checked. Every `.md`/`.html` under `docs/`, walked rather than listed. */
-const DOCS_ROOT = new URL('.', import.meta.url);
+/** Docs whose prose is checked. Every `.md`/`.html` in the repo, walked rather than listed. */
+const REPO_ROOT = new URL('../', import.meta.url);
+
+/**
+ * Directories the walk never enters.
+ *
+ * `node_modules` is third-party prose that is not ours to correct and would dominate the walk's
+ * cost. `build`/`.output`/`.svelte-kit`/`.deno-deploy` are generated projections of files already
+ * checked at their source. `_to_delete` is staged for removal, so its claims are not claims the
+ * project is making. Deliberately **not** listed: `src/`, `scripts/`, `tests/`, `static/` — those
+ * are exactly the sweeps 2GN.87 missed, and excluding source trees here would reopen that gap.
+ */
+const IGNORED_DIRS: ReadonlySet<string> = new Set([
+	'node_modules',
+	'.git',
+	'.svelte-kit',
+	'.deno-deploy',
+	'build',
+	'.output',
+	'_to_delete',
+]);
+
+/** Files the walk must reach, or it has silently narrowed. See the test that asserts this. */
+const REQUIRED_COVERAGE: readonly string[] = [
+	'index.html',
+	'README.md',
+	'docs/12-propagation-register.md',
+];
 
 /** Skips a single count mention: the log entry it sits above was true when written. */
 const HISTORICAL_MARKER = 'rule-count: historical';
@@ -73,9 +106,9 @@ const RELATIVE_COUNT = CLASSIFICATION_RULES.filter((rule) => {
  * **The verb form is matched, though, and the bare noun phrase is the only exclusion.** "runs 43
  * rules" names the whole set by construction: something that *runs* or *evaluates* N rules is
  * describing the evaluated set, where a bare "all N rules" can be scoping a subset introduced
- * earlier in the sentence. The distinction is not cosmetic — `how-an-artefact-gets-made.html`'s
- * "`classifyArtefact` runs all 43 rules" read 44 for two commits, was caught by eye rather than by
- * this guard, and is exactly the sentence this file exists to catch (roadmap 2GN.113).
+ * earlier in the sentence. The distinction is not cosmetic — `index.html`'s "`classifyArtefact` runs
+ * all 43 rules" read 44 for two commits, was caught by eye rather than by this guard, and is exactly
+ * the sentence this file exists to catch (roadmap 2GN.113).
  */
 const TOTAL_PATTERNS: readonly RegExp[] = [
 	/\ball (\d+) (?:classification|scoring|shipped) rules\b/g,
@@ -93,10 +126,12 @@ interface Mention {
 	problem: string;
 }
 
-/** Every `.md`/`.html` file under `docs/`, so a new doc is covered without editing this list. */
+/** Every `.md`/`.html` file in the repo, outside `IGNORED_DIRS`, so a new doc needs no list edit. */
 async function docFiles(dir: URL): Promise<URL[]> {
 	const found: URL[] = [];
 	for await (const entry of Deno.readDir(dir)) {
+		if (entry.isDirectory && IGNORED_DIRS.has(entry.name)) continue;
+
 		const child = new URL(entry.name + (entry.isDirectory ? '/' : ''), dir);
 		if (entry.isDirectory) {
 			found.push(...await docFiles(child));
@@ -138,10 +173,10 @@ function isHistorical(lines: readonly string[], index: number): boolean {
  * hits two files where editing falsifies a dated measurement and marking is impossible.
  *
  * Exempting the data island rather than the file is what keeps the rest of those pages honest, and
- * the `type` attribute is load-bearing: `how-an-artefact-gets-made.html` states "43 scoring rules"
- * inside a plain `<script>` block of page JS (line 557), which is a live claim and stays checked.
- * The source of truth for these strings is `.claude/roadmaps.json`, reviewed as prose in its own
- * right; what is skipped here is a projection of it, not an independent assertion.
+ * the `type` attribute is load-bearing: `index.html` states "43 scoring rules" inside a plain
+ * `<script>` block of page JS, which is a live claim and stays checked. The source of truth for
+ * these strings is `.claude/roadmaps.json`, reviewed as prose in its own right; what is skipped
+ * here is a projection of it, not an independent assertion.
  */
 function isEmbeddedData(line: string): boolean {
 	return /<script[^>]*\btype\s*=\s*["']application\/json["']/i.test(line);
@@ -194,9 +229,9 @@ function scan(path: string, source: string): Mention[] {
 /**
  * The data-island skip is scoped by `type`, and that boundary is the whole point of it.
  *
- * A skip written as "any `<script>`" would read as the same fix and silently drop
- * `how-an-artefact-gets-made.html`'s live "43 scoring rules" claim, which sits in a plain page-JS
- * block. This pins both sides so the narrowing cannot be lost to a later tidy-up.
+ * A skip written as "any `<script>`" would read as the same fix and silently drop `index.html`'s
+ * live "43 scoring rules" claim, which sits in a plain page-JS block. This pins both sides so the
+ * narrowing cannot be lost to a later tidy-up.
  */
 Deno.test('scan: skips embedded JSON data islands, still reads plain script blocks', () => {
 	const stale = String(RULE_COUNT + 1);
@@ -215,12 +250,22 @@ Deno.test('scan: skips embedded JSON data islands, still reads plain script bloc
 });
 
 Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.87)', async () => {
-	const files = await docFiles(DOCS_ROOT);
-	assert(files.length > 0, `no docs found under ${DOCS_ROOT.pathname} — the walk is misconfigured`);
+	const files = await docFiles(REPO_ROOT);
+	assert(files.length > 0, `no docs found under ${REPO_ROOT.pathname} — the walk is misconfigured`);
+
+	const reached = new Set(
+		files.map((file) => decodeURIComponent(file.href.slice(REPO_ROOT.href.length))),
+	);
+	for (const required of REQUIRED_COVERAGE) {
+		assert(
+			reached.has(required),
+			`${required} was not reached by the walk — coverage has regressed`,
+		);
+	}
 
 	const stale: Mention[] = [];
-	for (const file of files) {
-		const path = `docs/${decodeURIComponent(file.href.slice(DOCS_ROOT.href.length))}`;
+	for (const path of reached) {
+		const file = new URL(path, REPO_ROOT);
 		stale.push(...scan(path, await Deno.readTextFile(file)));
 	}
 
