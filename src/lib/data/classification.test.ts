@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
-import { assert, assertEquals, assertFalse } from '@std/assert';
-import { CLASSIFICATION_RULES } from './classification.ts';
+import { assert, assertEquals, assertFalse, assertThrows } from '@std/assert';
+import { CLASSIFICATION_RULES, requireRuleById, ruleDisplayLabel } from './classification.ts';
 import {
 	emptyClassificationContext,
 	neutralExtractedFeatures as features,
@@ -147,6 +147,61 @@ Deno.test('ruling: 34 of the 43 rules award at least one RelativeTag', () => {
 	assertEquals(needsBaseline.length, 34);
 });
 
+/**
+ * Pins the id contract every other test in this file now depends on (roadmap 2GN.113).
+ *
+ * The 43 per-rule identity guards this file used to carry (each asserting that
+ * `CLASSIFICATION_RULES[n]` still had an expected weight signature) are gone: rules are fetched by
+ * `requireRuleById`, which throws on a retired or misspelled id, so a renumber can no longer
+ * silently repoint a test at its neighbour. That moves the burden here, onto the properties the
+ * lookup itself relies on.
+ */
+Deno.test('rule ids: every rule carries a unique, non-empty, kebab-case id (roadmap 2GN.113)', () => {
+	const ids = CLASSIFICATION_RULES.map((rule) => rule.id);
+
+	for (const id of ids) {
+		assert(id.length > 0, 'every rule must carry a non-empty id');
+		assert(
+			/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id),
+			`rule id '${id}' must be kebab-case: lowercase alphanumerics separated by single hyphens`,
+		);
+	}
+
+	assertEquals(
+		new Set(ids).size,
+		ids.length,
+		'rule ids must be unique — `ruleById` cannot resolve a duplicate to one rule',
+	);
+});
+
+Deno.test('rule ids: requireRuleById round-trips every shipped rule, and rejects a retired id', () => {
+	for (const rule of CLASSIFICATION_RULES) {
+		assertEquals(requireRuleById(rule.id), rule, `requireRuleById('${rule.id}') must return it`);
+	}
+
+	// The failure mode this whole mechanism exists to catch: a reference to a rule that no longer
+	// exists must fail loudly rather than resolve to whatever now sits at its old index.
+	assertThrows(
+		() => requireRuleById('edge-short-body-non-short-blade'), // the rule 2GN.87 deleted
+		Error,
+		'no rule with id',
+	);
+});
+
+Deno.test('rule ids: the display label is positional, and separate from identity', () => {
+	// `R{n}` is a rendering of current position: the first rule is R1 and the last is R43 today, and
+	// both would shift under a deletion. That is precisely why prose cites `rule.id` instead.
+	assertEquals(ruleDisplayLabel(CLASSIFICATION_RULES[0]!), 'R1');
+	assertEquals(ruleDisplayLabel(CLASSIFICATION_RULES[42]!), 'R43');
+	assertEquals(ruleDisplayLabel(requireRuleById('execution-quality-above-p90')), 'R43');
+
+	// A rule that is not in the shipped array has no position, so no label.
+	assertEquals(
+		ruleDisplayLabel({ id: 'not-shipped', condition: () => false, tags: new Map() }),
+		undefined,
+	);
+});
+
 Deno.test('ruling: the remaining rules award only AbsoluteTags', () => {
 	const relative = new Set<string>(ALL_RELATIVE_TAGS);
 	const absoluteOnly = CLASSIFICATION_RULES.filter((rule) =>
@@ -264,7 +319,7 @@ Deno.test('rules: conditions are pure — repeat calls agree and inputs are neve
 
 // --- R1: long edge → weapon/tool -------------------------------------------------------------------
 
-const R1 = CLASSIFICATION_RULES[0];
+const R1 = requireRuleById('edge-long-body-weapon');
 if (!R1.tags.has('weapon')) throw new Error('CLASSIFICATION_RULES[0] must be the long-edge rule');
 
 Deno.test('R1: an edge on a medium-or-long body fires', () => {
@@ -284,7 +339,7 @@ Deno.test('R1: fires with the exact weapon/tool weights', () => {
 
 // --- R2: short sharp edge → dagger-family ---------------------------------------------------------
 
-const R2 = CLASSIFICATION_RULES[1];
+const R2 = requireRuleById('edge-short-sharp-dagger');
 if (!R2.tags.has('personal')) {
 	throw new Error('CLASSIFICATION_RULES[1] must be the dagger-family rule');
 }
@@ -321,7 +376,7 @@ Deno.test('R2: fires with the exact dagger-family weights', () => {
 
 // --- R3: short non-sharp edge → utility knife family ------------------------------------------------
 
-const R3 = CLASSIFICATION_RULES[2];
+const R3 = requireRuleById('edge-short-blunt-utility-knife');
 if (!R3.tags.has('domestic')) {
 	throw new Error('CLASSIFICATION_RULES[2] must be the utility-knife rule');
 }
@@ -398,7 +453,7 @@ Deno.test('edge family: every reachable edged artefact fires at least one edge r
 
 // --- R4: multi-edge --------------------------------------------------------------------------------
 
-const R4 = CLASSIFICATION_RULES[3];
+const R4 = requireRuleById('edge-multiple-composite');
 if (!R4.tags.has('tool') || R4.tags.size !== 2) {
 	throw new Error('CLASSIFICATION_RULES[3] must be the multi-edge rule');
 }
@@ -410,7 +465,7 @@ Deno.test('R4: two or more edges fires; fewer does not', () => {
 
 // --- R5: sharp point without edge → piercing tool/weapon --------------------------------------------
 
-const R5 = CLASSIFICATION_RULES[4];
+const R5 = requireRuleById('point-sharp-piercing');
 if (!R5.tags.has('fastener')) {
 	throw new Error('CLASSIFICATION_RULES[4] must be the sharp-point rule');
 }
@@ -426,7 +481,7 @@ Deno.test('R5: an edge present, or a blunt point, does not fire', () => {
 
 // --- R6: blunt point without edge → craft tool -------------------------------------------------------
 
-const R6 = CLASSIFICATION_RULES[5];
+const R6 = requireRuleById('point-blunt-craft-tool');
 if (!R6.tags.has('artisanal')) {
 	throw new Error('CLASSIFICATION_RULES[5] must be the blunt-point rule');
 }
@@ -441,22 +496,10 @@ Deno.test('R6: a sharp point does not fire (R5 owns that case)', () => {
 
 // --- R7-R10: opening-graded container set ---------------------------------------------------------
 
-const R7 = CLASSIFICATION_RULES[6];
-const R8 = CLASSIFICATION_RULES[7];
-const R9 = CLASSIFICATION_RULES[8];
-const R10 = CLASSIFICATION_RULES[9];
-if (R7.tags.get('everyday') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[6] must be the wide-opening rule');
-}
-if (R8.tags.get('container') !== 0.7) {
-	throw new Error('CLASSIFICATION_RULES[7] must be the narrow-opening rule');
-}
-if (R9.tags.get('votive') !== 0.4 || R9.tags.size !== 2) {
-	throw new Error('CLASSIFICATION_RULES[8] must be the slit-opening rule');
-}
-if (R10.tags.get('funerary') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[9] must be the sealed rule');
-}
+const R7 = requireRuleById('container-open-domestic');
+const R8 = requireRuleById('container-restricted-domestic');
+const R9 = requireRuleById('container-slit-votive');
+const R10 = requireRuleById('container-sealed-deposition');
 
 Deno.test('R7: a wide or open container fires; a non-container does not', () => {
 	assert(R7.condition(features({ hasContainer: true, openingType: 'wide' }), ctx));
@@ -504,26 +547,11 @@ Deno.test('R7-R10: opening bands are mutually exclusive over the container famil
 
 // --- R11-R15: vessel refinement ---------------------------------------------------------------------
 
-const R11 = CLASSIFICATION_RULES[10];
-const R12 = CLASSIFICATION_RULES[11];
-const R13 = CLASSIFICATION_RULES[12];
-const R14 = CLASSIFICATION_RULES[13];
-const R15 = CLASSIFICATION_RULES[14];
-if (R11.tags.get('ceremonial') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[10] must be the thin-wall rule');
-}
-if (R12.tags.get('utilitarian') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[11] must be the thick-wall rule');
-}
-if (R13.tags.get('container') !== 0.5) {
-	throw new Error('CLASSIFICATION_RULES[12] must be the deep-curvature rule');
-}
-if (R14.tags.get('ceremonial') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[13] must be the pedestal-base rule');
-}
-if (R15.tags.get('maritime') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[14] must be the pointed-base rule');
-}
+const R11 = requireRuleById('vessel-thin-walled-fine-ware');
+const R12 = requireRuleById('vessel-thick-walled-utilitarian');
+const R13 = requireRuleById('curvature-deep-holds-contents');
+const R14 = requireRuleById('base-pedestal-display');
+const R15 = requireRuleById('base-pointed-amphora');
 
 Deno.test('R11: a thin-walled container fires; a thick-walled one does not', () => {
 	assert(R11.condition(features({ hasContainer: true, wallThickness: 'thin' }), ctx));
@@ -552,22 +580,10 @@ Deno.test('R15: a pointed base fires; other bases do not', () => {
 
 // --- R16-R19: perforation (central, off-centre, single, multiple) -----------------------------------
 
-const R16 = CLASSIFICATION_RULES[15];
-const R17 = CLASSIFICATION_RULES[16];
-const R18 = CLASSIFICATION_RULES[17];
-const R19 = CLASSIFICATION_RULES[18];
-if (R16.tags.get('artisanal') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[15] must be the central-perforation rule');
-}
-if (R17.tags.get('ornament') !== 0.4 || !R17.tags.has('personal')) {
-	throw new Error('CLASSIFICATION_RULES[16] must be the off-centre-perforation rule');
-}
-if (R18.tags.get('ornament') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[17] must be the single-perforation rule');
-}
-if (R19.tags.get('fastener') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[18] must be the multiple-perforation rule');
-}
+const R16 = requireRuleById('perforation-central-rotation');
+const R17 = requireRuleById('perforation-off-centre-suspension');
+const R18 = requireRuleById('perforation-single-pendant');
+const R19 = requireRuleById('perforation-multiple-fitting');
 
 Deno.test('R16: a central perforation fires; other perforation bands do not', () => {
 	assert(R16.condition(features({ perforation: 'central' }), ctx));
@@ -604,14 +620,8 @@ Deno.test('perforation family: every non-none band fires exactly one rule', () =
 
 // --- R20-R21: ring / fastener -------------------------------------------------------------------------
 
-const R20 = CLASSIFICATION_RULES[19];
-const R21 = CLASSIFICATION_RULES[20];
-if (R20.tags.get('ornament') !== 0.5) {
-	throw new Error('CLASSIFICATION_RULES[19] must be the closed-ring rule');
-}
-if (R21.tags.get('fastener') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[20] must be the open-ring rule');
-}
+const R20 = requireRuleById('ring-closed-worn');
+const R21 = requireRuleById('ring-open-fastener');
 
 Deno.test('R20: a closed ring gap fires; open/overlapping do not', () => {
 	assert(R20.condition(features({ ringGap: 'closed' }), ctx));
@@ -626,14 +636,8 @@ Deno.test('R21: an open or overlapping ring gap fires; closed does not', () => {
 
 // --- R22-R23: sheet -----------------------------------------------------------------------------------
 
-const R22 = CLASSIFICATION_RULES[21];
-const R23 = CLASSIFICATION_RULES[22];
-if (R22.tags.get('military') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[21] must be the rigid-sheet rule');
-}
-if (R23.tags.get('ornament') !== 0.2 || !R23.tags.has('personal')) {
-	throw new Error('CLASSIFICATION_RULES[22] must be the flexible-sheet rule');
-}
+const R22 = requireRuleById('sheet-rigid-structural');
+const R23 = requireRuleById('sheet-flexible-covering');
 
 Deno.test('R22: a rigid sheet fires; a flexible one does not', () => {
 	assert(R22.condition(features({ sheetFlexibility: 'rigid' }), ctx));
@@ -647,18 +651,9 @@ Deno.test('R23: a flexible sheet fires; a rigid one does not', () => {
 
 // --- R24-R26: mass ------------------------------------------------------------------------------------
 
-const R24 = CLASSIFICATION_RULES[23];
-const R25 = CLASSIFICATION_RULES[24];
-const R26 = CLASSIFICATION_RULES[25];
-if (R24.tags.get('agricultural') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[23] must be the heavy-edge rule');
-}
-if (R25.tags.get('utilitarian') !== 0.4 || R25.tags.get('domestic') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[24] must be the heavy-container rule');
-}
-if (R26.tags.get('communal') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[25] must be the very-heavy rule');
-}
+const R24 = requireRuleById('mass-heavy-edge-labour-tool');
+const R25 = requireRuleById('mass-heavy-container-storage');
+const R26 = requireRuleById('mass-very-heavy-communal');
 
 Deno.test('R24: a heavy or very-heavy edge fires; a light edge does not', () => {
 	assert(R24.condition(features({ hasEdge: true, massBand: 'heavy' }), ctx));
@@ -678,10 +673,7 @@ Deno.test('R26: a very-heavy object fires regardless of edge/container; a merely
 
 // --- R27: size ---------------------------------------------------------------------------------------
 
-const R27 = CLASSIFICATION_RULES[26];
-if (R27.tags.get('personal') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[26] must be the small-size rule');
-}
+const R27 = requireRuleById('size-small-personal');
 
 Deno.test('R27: a small sizeBand fires; medium/large do not', () => {
 	assert(R27.condition(features({ sizeBand: 'small' }), ctx));
@@ -691,10 +683,7 @@ Deno.test('R27: a small sizeBand fires; medium/large do not', () => {
 
 // --- R28: structural complexity -----------------------------------------------------------------------
 
-const R28 = CLASSIFICATION_RULES[27];
-if (R28.tags.get('artisanal') !== 0.3 || !R28.tags.has('tool')) {
-	throw new Error('CLASSIFICATION_RULES[27] must be the composite-complexity rule');
-}
+const R28 = requireRuleById('attachment-diversity-composite');
 
 /** A context with a p90 `attachmentDiversity` threshold of 3, matching the rule's shipped rung. */
 const R28_CONTEXT = relativeContext({ attachmentDiversity: { 0.9: 3 } });
@@ -728,18 +717,9 @@ Deno.test('R28: returns false under an empty context, rather than falling back t
 
 // --- R29-R31: decoration (real signals) ---------------------------------------------------------------
 
-const R29 = CLASSIFICATION_RULES[28];
-const R30 = CLASSIFICATION_RULES[29];
-const R31 = CLASSIFICATION_RULES[30];
-if (R29.tags.get('elite') !== 0.4 || R29.tags.get('ceremonial') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[28] must be the heavy-decoration rule');
-}
-if (R30.tags.get('elite') !== 0.4 || R30.tags.size !== 2) {
-	throw new Error('CLASSIFICATION_RULES[29] must be the applied-element rule');
-}
-if (R31.tags.size !== 1 || R31.tags.get('ornament') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[30] must be the any-decoration rule');
-}
+const R29 = requireRuleById('decorative-layers-above-p75');
+const R30 = requireRuleById('applied-elements-above-p75');
+const R31 = requireRuleById('decoration-present-ornament');
 
 /** A context with p75 thresholds of 10 (layers) and 4 (applied elements) — the rules' shipped rungs. */
 const R29_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 10 } });
@@ -786,14 +766,8 @@ Deno.test('R31: any decorative layer fires; zero layers does not', () => {
 
 // --- R32-R33: decoration (dormant — motif/precious-material fields have no producer yet) ---------------
 
-const R32 = CLASSIFICATION_RULES[31];
-const R33 = CLASSIFICATION_RULES[32];
-if (R32.tags.get('elite') !== 0.5 || !R32.tags.has('votive')) {
-	throw new Error('CLASSIFICATION_RULES[31] must be the precious-materials rule (dormant)');
-}
-if (R33.tags.get('trade-good') !== 0.4) {
-	throw new Error('CLASSIFICATION_RULES[32] must be the cross-cultural-motif rule (dormant)');
-}
+const R32 = requireRuleById('precious-materials-in-decoration');
+const R33 = requireRuleById('motif-multiple-origins');
 
 Deno.test('R32 (dormant): fires on a hand-built feature set with precious materials in decoration', () => {
 	assert(R32.condition(features({ preciousMaterialsInDecoration: true }), ctx));
@@ -820,14 +794,8 @@ Deno.test('R33 (dormant): fires on a hand-built feature set with cross-cultural 
 
 // --- R34-R35: cross-layer -------------------------------------------------------------------------------
 
-const R34 = CLASSIFICATION_RULES[33];
-const R35 = CLASSIFICATION_RULES[34];
-if (R34.tags.get('ritual') !== 0.5) {
-	throw new Error('CLASSIFICATION_RULES[33] must be the edged-decorated rule');
-}
-if (R35.tags.get('votive') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[34] must be the decorated-container rule');
-}
+const R34 = requireRuleById('edged-and-decorated-above-p75');
+const R35 = requireRuleById('container-and-decorated-above-p75');
 
 /** A context with a p75 `decorativeLayerCount` threshold of 6, shared by R34 and R35's gates. */
 const R34_R35_CONTEXT = relativeContext({ decorativeLayerCount: { 0.75: 6 } });
@@ -858,18 +826,9 @@ Deno.test('R35: returns false under an empty context even when hasContainer is t
 
 // --- R36-R38: structural presence flags --------------------------------------------------------------
 
-const R36 = CLASSIFICATION_RULES[35];
-const R37 = CLASSIFICATION_RULES[36];
-const R38 = CLASSIFICATION_RULES[37];
-if (R36.tags.get('fastener') !== 0.5) {
-	throw new Error('CLASSIFICATION_RULES[35] must be the fastening-mechanism rule');
-}
-if (R37.tags.get('tool') !== 0.4 || R37.tags.get('weapon') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[36] must be the impact-surface rule');
-}
-if (R38.tags.get('ornament') !== 0.3 || !R38.tags.has('personal')) {
-	throw new Error('CLASSIFICATION_RULES[37] must be the wearable rule');
-}
+const R36 = requireRuleById('fastening-mechanism-fastener');
+const R37 = requireRuleById('impact-surface-percussion');
+const R38 = requireRuleById('wearable-adornment');
 
 Deno.test('R36: a fastening mechanism fires fastener; absent does not', () => {
 	assert(R36.condition(features({ hasFasteningMechanism: true }), ctx));
@@ -888,22 +847,10 @@ Deno.test('R38: a wearable object fires ornament/personal; not-wearable does not
 
 // --- R39-R42: decorative intensity (complexity-graded — roadmap 2GN.34) --------------------------
 
-const R39 = CLASSIFICATION_RULES[38];
-const R40 = CLASSIFICATION_RULES[39];
-const R41 = CLASSIFICATION_RULES[40];
-const R42 = CLASSIFICATION_RULES[41];
-if (R39.tags.get('elite') !== 0.4 || !R39.tags.has('ceremonial')) {
-	throw new Error('CLASSIFICATION_RULES[38] must be the high-decorative-complexity rule');
-}
-if (R40.tags.get('elite') !== 0.5 || !R40.tags.has('ritual')) {
-	throw new Error('CLASSIFICATION_RULES[39] must be the exceptional-decorative-complexity rule');
-}
-if (R41.tags.get('elite') !== 0.3 || R41.tags.get('ornament') !== 0.3) {
-	throw new Error('CLASSIFICATION_RULES[40] must be the decoration-per-part rule');
-}
-if (R42.tags.get('artisanal') !== 0.4 || R42.tags.get('elite') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[41] must be the technique-breadth rule');
-}
+const R39 = requireRuleById('decorative-complexity-above-p75');
+const R40 = requireRuleById('decorative-complexity-above-p95');
+const R41 = requireRuleById('decorative-per-part-above-p75');
+const R42 = requireRuleById('technique-complexity-above-p90');
 
 /**
  * A context carrying every rung these four rules read, at the same values doc 12 §2.31 records:
@@ -994,10 +941,7 @@ Deno.test('R40: the same artefact reads exceptionally lavish in one culture-phas
 
 // --- R43: execution quality (roadmap 2GN.98, doc 11 §1.5) ------------------------------------------
 
-const R43 = CLASSIFICATION_RULES[42];
-if (R43.tags.get('artisanal') !== 0.4 || R43.tags.get('elite') !== 0.2) {
-	throw new Error('CLASSIFICATION_RULES[42] must be the execution-quality rule');
-}
+const R43 = requireRuleById('execution-quality-above-p90');
 
 /** A context carrying `meanDecorativeGrade` at a hand-set p90 threshold, mirroring `R39_R42_CONTEXT` above. */
 const R43_CONTEXT = relativeContext({ meanDecorativeGrade: { 0.9: 0.72 } });
