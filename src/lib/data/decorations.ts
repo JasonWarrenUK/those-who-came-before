@@ -138,7 +138,11 @@ export const DECORATIVE_TECHNIQUES: readonly DecorativeTechniqueDefinition[] = [
 
 	// applied-element (doc 05 §8.2): <applied-element> ::= inlay(<material>, <motif>) |
 	// overlay(<material>, <coverage>) | studs(<material>, <pattern>) |
-	// wire-wrapping(<material>, <pattern>) | gilding(<precious-metal>)
+	// wire-wrapping(<material>, <pattern>) | gilding(<material>)
+	// Doc 05 §8.2 writes gilding's argument as `<precious-metal>`, naming a `MaterialTag` roadmap
+	// 2GN.78 retired. Its pool is now resolved physically by `isGildingMaterial`
+	// (`engine/generation/decoration.ts`) — metallurgy, formable enough to beat to leaf, and
+	// non-tarnishing — which admits gold and silver and nothing else, exactly the retired tag's reach.
 	{
 		technique: 'inlay',
 		category: 'applied-element',
