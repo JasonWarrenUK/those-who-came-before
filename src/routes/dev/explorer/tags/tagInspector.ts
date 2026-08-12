@@ -278,7 +278,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	);
 	// Materials assigned and layers re-graded before `extractFeatures`, matching `sampleBaselines`
 	// (`engine/generation/baselines.ts`) and `ruleCalibration.ts`'s `calibrateRules` — otherwise
-	// `meanDecorativeGrade` (R44) here is the provisional technique-only grade compared against a
+	// `meanDecorativeGrade` (R43) here is the provisional technique-only grade compared against a
 	// baseline sampled from material-aware grades, the same scale mismatch fixed in those two
 	// callers (roadmap 2GN.103, doc 12 §2.36). Also makes the grades shown in this panel's own
 	// `TagInspection.layers` honest, since they render directly.

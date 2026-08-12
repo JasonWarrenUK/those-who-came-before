@@ -8,7 +8,7 @@
  * `gradeDecorativeLayers` → `extractFeatures`) and stopping before classification (stage 8) —
  * nothing upstream reads a tag, so there is no bootstrap circularity. Materials are assigned and
  * layers re-graded before `extractFeatures` runs, not skipped: `expandDecoration`'s `grade` is only
- * the provisional technique-only value (its own JSDoc), and `meanDecorativeGrade` (R44,
+ * the provisional technique-only value (its own JSDoc), and `meanDecorativeGrade` (R43,
  * `data/classification.ts`) must be sampled from the same material-aware grade real artefacts are
  * classified against, or its baseline is measuring a different quantity than the value it gates.
  *
