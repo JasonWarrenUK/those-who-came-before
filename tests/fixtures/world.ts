@@ -153,6 +153,20 @@ function regionalGeology(
 /**
  * The six worlds, keyed by region. Built eagerly at module load so the `regionalGeology` catalogue
  * completeness check fails loudly on import rather than at first use.
+ *
+ * ⚠️ **Several flows pair a class arm with `{ id }` arms that class already selects** — for example
+ * `[{ tag: 'metal' }, { id: 'gold' }, { id: 'silver' }]`, where the tag reaches both metals on its
+ * own. Those id arms are no-ops, and read as narrowing to anyone applying `MaterialFlow`'s
+ * include/exclude semantics (`types/world.ts`), which is the exact misreading roadmap 2GN.112
+ * existed to remove. **They are deliberate.** These flows were keyed on `precious-metal` /
+ * `precious-stone` until 2GN.78 retired those tags; widening each to its class tag while keeping the
+ * specific ids alongside reproduces the pre-retirement reach exactly, so all six worlds' availability
+ * stays bit-identical across both migrations and every downstream calibration pin holds.
+ *
+ * Contrast `data/explorer-cultures.ts`, where the shipped presets were re-authored to say what they
+ * meant and one flow's reach changed deliberately as a result. These fixtures are pinned reference
+ * points rather than authored intent, so they hold their reach instead. **Narrow one of these flows
+ * to what its comment appears to say and you are changing fixture reach, not clarifying it.**
  */
 const REGIONAL_WORLDS: Record<MockWorldRegion, MockRegionalWorld> = {
 	/**
