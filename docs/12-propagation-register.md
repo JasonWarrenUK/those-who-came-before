@@ -2583,5 +2583,63 @@ specific it is.** Specificity was never the problem; universality was.
 
 ---
 
+### 2.46 Per-State Values on `rigidity` Alone; Two Axes Were Authored Against the Wrong State (2026-08-13)
+
+**Origin:** 2GN.111 design spike **Source of truth:**
+`docs/spikes/2GN.111-per-state-physical-properties.md`; decision locked in doc 11 §2.14
+
+**§2.38 recorded the inconsistency and deferred the fix; this rules the shape, and it is narrower
+than the deferral assumed.** 2GN.105 was filed presupposing per-state values on every axis ("at
+minimum worked vs finished"). Measuring first found that **exactly one axis needs them**.
+
+**Three axes vary strongly by state, but that is not what decides the shape — the consumers are.**
+`fragility` (glass 7 cold, ~1 hot; fired clay 6 fired, ~1 wet), `rigidity` and `formability` all move
+with state; `hardness` moves marginally; `grainFineness`, `porosity` and `combustibility` do not move
+at all. What matters is which state each *reader* needs: `relief` (`formability >= 3`) and
+wire-drawing (`formability >= 5`) ask working-state questions, the three `rigidity >= 3` gates on
+`inlay`/`wrapping` ask a finished-state one, and `computeLayerGrade` reads its six difficulty axes in
+the working state because difficulty is incurred while working.
+
+**Bronze decides it.** Whether bronze can be forged into a raised form, and whether the finished
+object still holds wire wrapped round it, are both true and are different numbers. No single
+convention serves both: pinning to working breaks the rigidity gates, pinning to finished breaks
+`relief`. ⚠️ `relief`'s own predicate family already mixes conventions — it gates on working-state
+`formability` while its siblings gate on finished-state `rigidity`, which is §2.38's inconsistency
+with the tripping consumer now identified. **Only `rigidity` is asked in both states by different
+consumers, so only `rigidity` becomes `{ worked, finished }`.**
+
+**A blanket per-state model was rejected on authoring cost and on precision.** 16 materials × 7 axes
+× 3 states = 336 values to capture variation in four axes, 48 of them three identical numbers.
+**General lesson: a uniform shape invites false precision** — an author given three boxes fills all
+three, inventing distinctions that do not exist, the same failure as authoring a rule against a
+combination nobody established was reachable (§2.39). `raw` was rejected for the matching reason: no
+consumer asks about an unworked material, so the rung would author 16 values nothing reads.
+
+**⚠️ Two axes turn out to be authored against the wrong state, which is a live defect.** `fragility`
+and `hardness` feed `computeLayerGrade` and nothing else, so working state is the only correct
+reading — yet both are authored finished-state. Glass carries `fragility: 7` (cold) while being
+decorated hot; fired clay carries `6` (fired) while being decorated wet. **Both inflate execution
+difficulty for materials worked in a far more forgiving state.** The correction is independent of the
+shape change and moves `meanDecorativeGrade` for those materials, so the 2GN.79 guard will flag it.
+
+**General lesson: a new axis is a probe.** The six axes were authored against the finished object *by
+default rather than by decision* — the question was never posed, so each author answered it
+implicitly, consistently enough that nothing looked wrong, and only `fired-clay`'s data-file comment
+ever named the choice. 2GN.102 exposed it by adding an axis that could not be authored without
+asking. **The question a new axis forces is often one its siblings silently answered differently** —
+and here, two of the six answered it wrongly for the only consumer that reads them.
+
+| §   | Propagation                                                                                                | Date       |
+| --- | ------------------------------------------------------------------------------------------------------------ | ---------- |
+| —   | `docs/spikes/2GN.111-per-state-physical-properties.md`: new spike write-up                                     | 2026-08-13 |
+| —   | Doc 11 §2.14: locked decision (per-state on `rigidity` alone; the pinning table)                               | 2026-08-13 |
+| ⏳  | Doc 05 §7: the property model's state conventions — with 2GN.105                                               | 2026-08-13 |
+| ⏳  | `types/artefact.ts`: `rigidity` becomes `{ worked, finished }`; the preamble's deferral discharged              | 2026-08-13 |
+| ⏳  | `data/materials.ts`: `fragility`/`hardness` re-authored to working state across 16 materials                   | 2026-08-13 |
+| ⏳  | Calibration: `meanDecorativeGrade` moves for glass and fired clay; re-record with the drift annotated          | 2026-08-13 |
+| —   | Roadmap: 2GN.111 closed; 2GN.105 rescoped from "per-state on every axis" to the specific audit list             | 2026-08-13 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._

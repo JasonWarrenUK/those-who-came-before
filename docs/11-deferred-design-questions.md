@@ -703,5 +703,54 @@ detail: `docs/spikes/2GN.110-per-material-affinities.md`.
 
 ---
 
+### 2.14 Per-State Physical Properties (roadmap 2GN.111)
+
+**Decision:** `physicalProperties` carries per-state values on **`rigidity` alone**
+(`{ worked, finished }`). Every other axis stays scalar, each pinned to a documented state. Two
+states, not three.
+
+| Axis | Convention |
+| ---- | ---------- |
+| `rigidity` | **per-state** — `{ worked, finished }` |
+| `formability` | working (already correct, 2GN.102) |
+| `fragility` | working — ⚠️ currently authored finished, corrected |
+| `hardness` | working — ⚠️ currently authored finished, corrected |
+| `grainFineness`, `porosity`, `combustibility` | state-independent, documented as such |
+
+**The consumers are the fault line, not the physics.** Three axes vary strongly by state and one
+marginally, but what decides the shape is which state each *reader* needs. `relief`
+(`formability >= 3`) and wire-drawing (`formability >= 5`) ask working-state questions; the three
+`rigidity >= 3` gates on `inlay` and `wrapping` ask a finished-state question (will the object hold
+the decoration); `computeLayerGrade` reads its six difficulty axes in the working state, because
+difficulty is incurred while working.
+
+**Bronze is the case that decides it.** Whether bronze can be forged into a raised form and whether
+the finished object still holds wire wrapped round it are both true statements, they are different
+numbers, and no single convention serves both — pinning to working state breaks the rigidity gates,
+pinning to finished breaks `relief`. Only `rigidity` is asked in both states by different consumers,
+so only `rigidity` gets the extra shape.
+
+**A blanket per-state model was rejected** as authoring 16 × 7 × 3 = 336 values to capture variation
+in four axes, with the three state-independent axes carrying three identical numbers each. ⚠️ It also
+invites false precision: an author given three boxes fills all three, inventing distinctions that do
+not exist — the failure mode 2GN.87 punished on the classification side. `raw` was rejected for the
+same reason: no consumer asks a question about an unworked material.
+
+⚠️ **`fragility` and `hardness` are a live defect, not a modelling preference.** Both feed
+`computeLayerGrade` and nothing else, so working state is the only correct reading, yet both are
+authored finished-state today: glass carries `fragility: 7` (cold) while being decorated hot, and
+fired clay `6` (fired) while being decorated wet. Both inflate execution difficulty for materials
+worked in a far more forgiving state. The correction lands regardless of the shape change, and
+⚠️ **shifts `meanDecorativeGrade`** for those materials, so the 2GN.79 calibration guard will flag it
+— sequence the sweep with the other recalibration-bearing work.
+
+**Affects:** doc 05 §7 (the property model's state conventions), doc 12 (§2.46 records the
+measurements). Roadmap: 2GN.111 ruled; 2GN.105 **rescoped** — it was filed presupposing per-state
+values on every axis and now audits a specific list (add the second `rigidity` value, re-author
+`fragility` and `hardness` to working state, document the pinning on the remaining four). Full
+detail: `docs/spikes/2GN.111-per-state-physical-properties.md`.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._
