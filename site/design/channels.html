@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five Channels of Filtering · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">02 · Five Channels of Filtering</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">02 · The interpretive lens</div>
+  <h1>Misleading Without Ever Lying</h1>
+  <p class="lede">Doc 04 states one constraint before it states anything else: the lens never fabricates. Every fact it shows a player is true. The manipulation lives entirely in what gets noticed first, what gets suggested, what gets compared to what, how it gets worded, and what quietly slides out of view. Five channels, each auditable on its own.</p>
+
+  <div class="callout"><span class="tag">Needs</span> <a href="/design/two-readings.html">Two Readings of the Same Sword</a> for the worked case; nothing else.</div>
+
+  <h2>Channel 1: observation salience</h2>
+  <p>An inspection produces an ordered list of properties, and order does most of the work. A property's <code>finalWeight</code> is its <code>baseWeight</code> plus the sum of every hypothesis's individual adjustment, clamped to [0.1, 3.0]; anything below a threshold drops into a collapsed &ldquo;on closer inspection&rdquo; section that costs an extra click. Nothing is removed from the list. A player who believes this culture traded by sea sees the ray skin first; a player who believes it fought sees the use-wear first. The wear marks are on the object either way.</p>
+  <p>Every adjustment carries a <code>reason</code> string naming the hypothesis that caused it. That field does no computation; it exists purely so the effect can be audited after the fact, which is the shape all five channels share.</p>
+
+  <h2>Channel 2: classification suggestions</h2>
+  <p>When a player is asked what kind of thing an artefact is, the suggestion list is real plausibility (<code>basePlausibility</code>) multiplied by hypothesis alignment (<code>1 + lensBoost</code>). A player can type any classification they like, including one absent from the list; the gravity is entirely in which options are offered first and how confident they look. A doc 11 ruling (§2.9) sharpens this further: a suggestion scored against a culture-relative baseline is scored against whichever culture the <em>lens</em> currently attributes the artefact to, not the artefact's true producing culture. Two players holding different provenance beliefs see genuinely different suggestion weights for the identical object, and that divergence is the mechanic working, not a defect in it.</p>
+
+  <h2>Channel 3: cross-reference priming</h2>
+  <p>Studying twelve prior artefacts builds a pool of comparisons, and the pool a new artefact draws from is biased the same way: <code>finalRelevance</code> is <code>baseRelevance * (1 + lensRelevance)</code>, where the boost comes from hypothesis alignment rather than genuine similarity. A player convinced this culture lived by a river gets pointed at every prior river find as a match, including one that actually belongs to a different culture entirely. The type carries a <code>potentiallyMisleading</code> flag for exactly this case: the comparison is truthful (both objects did come from riverbeds) and it still steers the reading toward a false cluster.</p>
+
+  <h2>Channel 4: descriptive framing</h2>
+  <p>The same blade edge supports three complete, equally true descriptions. The shipped registers are observational (what can be measured: notching depth, abrasion pattern), interpretive (what it might have been for: combat wear, deliberate dulling) and technical (how it was made: bevel angle, reworking). All three exist for every property simultaneously; the lens picks <code>selectedRegister</code> and, within it, <code>selectedVariant</code>, based on which framing aligns with the player's current beliefs. Nothing is invented for the occasion: the interpretive register describing combat damage and the interpretive register describing ritual dulling are both pre-authored variants of the same underlying fact, and the lens is choosing between existing options, not generating a new one to fit.</p>
+
+  <h2>Channel 5: omission blindness</h2>
+  <p>The inverse of channel 1. A property that contradicts a player's existing belief isn't hidden, but its <code>adjustedVisibility</code> is <code>baseVisibility * (1 - suppressionLevel * 0.6)</code>, and that <code>0.6</code> is doing real work: it's a hard ceiling, not a tunable constant reached for convenience. Iron rivets on an artefact from a culture the player believes never worked iron can slip into the detail view unremarked. A full iron sword from that same culture cannot be suppressed past the cap; it still surfaces as something worth noticing. The cap is the honesty mechanism made numeric: strong enough evidence always breaks through, however committed the player's prior belief.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 260" role="img" aria-label="One observation passing through five channels to two divergent inspection panels">
+    <rect class="soft" x="290" y="8" width="140" height="34" rx="6"/><text x="360" y="30" text-anchor="middle">one true observation</text>
+    <path class="arrow" d="M 320 42 L 100 78"/><path class="arrow" d="M 112 74 l -18 6 l 6 -18"/>
+    <path class="arrow" d="M 340 42 L 230 78"/><path class="arrow" d="M 236 72 l -12 8 l 2 -20"/>
+    <path class="arrow" d="M 380 42 L 360 78"/><path class="arrow" d="M 356 68 l 6 12 l 10 -8"/>
+    <path class="arrow" d="M 400 42 L 490 78"/><path class="arrow" d="M 480 72 l 14 4 l -6 12"/>
+    <path class="arrow" d="M 420 42 L 620 78"/><path class="arrow" d="M 608 76 l 14 0 l -8 12"/>
+    <rect class="box" x="30" y="80" width="140" height="34" rx="6"/><text x="100" y="102" text-anchor="middle">1 salience</text>
+    <rect class="box" x="180" y="80" width="140" height="34" rx="6"/><text x="250" y="102" text-anchor="middle">2 suggestion</text>
+    <rect class="box" x="330" y="80" width="140" height="34" rx="6"/><text x="400" y="102" text-anchor="middle">3 cross-ref</text>
+    <rect class="box" x="480" y="80" width="140" height="34" rx="6"/><text x="550" y="102" text-anchor="middle">4 framing</text>
+    <rect class="warn" x="630" y="80" width="70" height="34" rx="6"/><text x="665" y="102" text-anchor="middle">5 omit</text>
+    <path class="arrow" d="M 200 114 L 240 160"/><path class="arrow" d="M 228 152 l 14 8 l -22 6"/>
+    <path class="arrow" d="M 500 114 L 460 160"/><path class="arrow" d="M 470 150 l -12 10 l 22 2"/>
+    <rect class="gold" x="60" y="162" width="290" height="46" rx="6"/><text x="205" y="182" text-anchor="middle">Player A&rsquo;s panel</text>
+    <text class="lab" x="205" y="198" text-anchor="middle">ray skin foregrounded, iron unremarked if any</text>
+    <rect class="gold" x="370" y="162" width="290" height="46" rx="6"/><text x="515" y="182" text-anchor="middle">Player B&rsquo;s panel</text>
+    <text class="lab" x="515" y="198" text-anchor="middle">use-wear foregrounded, ray skin reads as &ldquo;grip&rdquo;</text>
+    <text class="lab" x="360" y="232" text-anchor="middle">same five channels, same true data, same object: different priors in, different panel out</text>
+  </svg>
+  <figcaption class="diagcap">Five independently auditable channels acting on the same observation. Channel 5 is drawn narrower because <code>suppressionLevel</code> is capped: it can dampen a weak signal, never erase a strong one.</figcaption></figure>
+
+  <div class="callout warn"><span class="tag">Where the spec runs ahead of the type</span>
+  Doc 04 §4 describes six graduated dissemination values feeding lens strength: private, circulated, presented, submitted, published, collected. The shipped <code>LensStrength.factors.dissemination</code> JSDoc still documents that six-value scale, but <code>DisseminationState</code> itself (the type dissemination is actually tracked in) ships only four: <code>private</code>, <code>circulated</code>, <code>submitted</code>, <code>published</code>. <code>presented</code> and <code>collected</code> are deferred to post-MVP and documented as deferred at the type's own definition. A strength calculation reaching for a dissemination state the type doesn't yet carry is a gap the lens engine will have to close when it lands, not a contradiction anyone has silently resolved.</div>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/04-interpretive-lens.md</code> §3&ndash;4 · Types: <code>src/lib/types/lens.ts</code> (all five channel interfaces, <code>LensStrength</code>) · Related: <code>src/lib/types/documents.ts</code> (<code>DisseminationState</code>)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/design/two-readings.html"><span class="dir">Previous</span>Two Readings of the Same Sword</a>
+    <a href="/design/classification.html" class="next"><span class="dir">Next</span>Relative vs Absolute Classification</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/04-interpretive-lens.md</code>, <code>src/lib/types/lens.ts</code>, <code>src/lib/types/documents.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>
