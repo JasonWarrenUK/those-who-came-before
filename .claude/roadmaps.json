@@ -388,7 +388,7 @@
 					{
 						"id": "2GN.10",
 						"description": "`engine/generation/grammar.ts` — `allowedMaterialTags` derivation per component from primitive type + properties compatibility",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.118"
@@ -488,7 +488,7 @@
 					{
 						"id": "2GN.21",
 						"description": "`engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.118"
@@ -1420,7 +1420,7 @@
 					{
 						"id": "2GN.109",
 						"description": "`src/lib/data/classification.ts` — replacement edge-family rule for the short-bodied non-blade edge, framed morphologically rather than as a truth-table cell. The deleted R4 (roadmap 2GN.87) failed because its condition described a combination of feature *bands* rather than a shape: whatever signal this rule reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather than authoring a rule for a form the game does not produce. Adding it shifts `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`, `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts` and the Explorer panel's label lookups all need updating together",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.108",
 							"2GN.118"
@@ -1512,9 +1512,9 @@
 					{
 						"id": "2GN.118",
 						"description": "design spike — are the primitive grammar's categorical parameter value-sets rational and justified? `PRIMITIVE_PARAMETERS` (`data/grammars/primitives.ts`) reproduces doc 05 §5.3 verbatim, so this audits the spec's own vocabularies rather than any code drift. Surfaced by 2GN.97 2026-08-13 while stress-testing whether `baseType` is a genuine categorical: it is, but the value-sets around it are not obviously deliberate. Three measured instances, all of the same shape — two primitives expressing the same concept with disjoint vocabularies, so a value is unreachable by primitive type rather than by design. (a) `base`: `cylindrical` rolls `['flat','rounded','pointed']`, `hollow-enclosed` rolls `['flat','rounded','pedestal']`, making a pedestalled bowl and a pointed cylinder both unreachable — and capping `base-pedestal-display`'s population at hollow-enclosed containers. (b) `opening`: `cylindrical` rolls `['open','restricted','closed']` while `hollow-enclosed` rolls `['wide','narrow','slit','none']` — different vocabularies AND different arities for one concept, leaving `slit` (read by `container-slit-votive`) unreachable on cylinders. (c) `perforation`: `flat-broad` rolls `['none','single','multiple']`, `disc-form` rolls `['none','central','off-centre']` — disjoint, so `perforation-central-rotation` can only ever fire on discs and `perforation-single-pendant` only on flat-broads. Rule for each parameter whether the split is deliberate morphological modelling or an artefact of authoring the BNF primitive-by-primitive; where deliberate, record why; where not, rule the corrected vocabulary. Same shape as 2GN.87's reachability finding, applied to the grammar's inputs rather than a rule's condition",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [],
-						"notes": "Filed 2026-08-13 from the 2GN.97 spike session, which reached it by stress-testing whether `baseType` is a genuine categorical (it is — unlike `wallThickness`, there is no crushed continuous quantity beneath it). The audit question is one level up: whether the value-sets themselves were designed or accreted. ⚠️ Ruling here may change which values exist, so anything authoring rules against them or deriving from them waits: 2GN.10 (`allowedMaterialTags` from primitive type + properties), 2GN.21 (`physicalLabel` from these observable values), 2GN.109 (replacement edge-family rule) and 2GN.117 (re-bands `bladeLengthBand` off `elongated.length`). 2GN.97 is NOT a dependent — it surfaced the defect rather than consuming the vocabulary.",
+						"notes": "Filed 2026-08-13 from the 2GN.97 spike session, which reached it by stress-testing whether `baseType` is a genuine categorical (it is — unlike `wallThickness`, there is no crushed continuous quantity beneath it). The audit question is one level up: whether the value-sets themselves were designed or accreted. ⚠️ Ruling here may change which values exist, so anything authoring rules against them or deriving from them waits: 2GN.10 (`allowedMaterialTags` from primitive type + properties), 2GN.21 (`physicalLabel` from these observable values), 2GN.109 (replacement edge-family rule) and 2GN.117 (re-bands `bladeLengthBand` off `elongated.length`). 2GN.97 is NOT a dependent — it surfaced the defect rather than consuming the vocabulary. **Ruled 2026-08-13 — see docs/spikes/2GN.118-primitive-parameter-value-sets.md.** Seven disjoint shared-name pairs found, not the three filed. `base` unions to `[flat, rounded, pointed, pedestal]` on both primitives (the split made `base-pointed-amphora` unfireable on anything amphora-shaped, since `dominantContainer` always prefers `hollow-enclosed`); `diameter` unifies to `small/medium/large` with derivation owned by 2GN.120; `crossSection`, `shape` and `taper` stay as authored, being genuine per-primitive geometry; `opening` and `perforation` are deferred whole to 2GN.122, each being two axes crushed into one field rather than a vocabulary split. The two base rules keep their weights (authored in cb3e517 before EXPECTED_FIRE_RATES existed, so never fitted to observed rates); only the fire rates move. Ships no src/ change: each ruling lands in its own task so EXPECTED_FIRE_RATES re-records once. Per-culture base weighting filed as 2GN.121; taper reversal constraint recorded on 2GN.115.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1542,6 +1542,16 @@
 							"2GN.118"
 						],
 						"notes": "Filed 2026-08-13 from the 2GN.118 spike session, cases (b) `opening` and (c) `perforation`. The full cross-tabulation of `PRIMITIVE_PARAMETERS` found seven disjoint shared-name pairs, not the three originally filed: `base`, `opening`, `perforation` (all unioned into `ExtractedFeatures` and read by rules) plus `crossSection`, `diameter`, `shape`, `taper` (read by no rule, so no live consequence). 2GN.118 ruled on `base` and on the four unread pairs; `opening` and `perforation` were split out here because they outgrew a vocabulary fix. `opening` is the worst of the three splits — zero shared values between the two primitives AND different arities (3 vs 4) for one concept — but the fix is not a union: Jason ruled the two-axis reading, and then raised multiplicity, which neither vocabulary can express at any arity. Subsumption is this spike's open question and was deliberately not ruled in 2GN.118 for want of measurement: if `opening` and `perforation` are one aperture axis, ruling `opening` first and merging `perforation` later means recalibrating `EXPECTED_FIRE_RATES` twice. Scoped as one spike rather than two on that basis. Renaming was considered and rejected as a separate concern: splitting the axes makes the intuitive vocabulary fall out (`closed`/`none` → count, `open` → `wide`, `restricted` → `narrow`), so no new words are needed for the values that survive.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.123",
+						"description": "`types/world.ts` + `engine/generation/materials.ts` + `engine/generation/decoration.ts` — re-key `CulturalProfile.materialAffinities` from `Map<MaterialTag, number>` to the `MaterialSelector` tagged union 2GN.112 built for `MaterialFlow`, resolved **most-specific-wins**. 2GN.110 ruled this on 2026-08-13 and nothing has carried it: the type is still tag-keyed at `types/world.ts:220`, and `data/explorer-cultures.ts` still holds the comment recording Thalassar’s dropped `precious-metal: 1.2` as an open design question. A bare `MaterialTag | MaterialName` union cannot work because `bone`, `glass` and `leather` each name both a class and a material, which is exactly why the flow side needed the tagged form. `includes`/`excludes` does NOT transfer: membership needs subtraction, affinities are weights with nothing to subtract. Deliverable: the re-keyed type, `culturalAffinityWeight` (`materials.ts`) and `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins resolution, the four Explorer presets migrated, and Thalassar’s authored intent restored as `{id:'gold'}: 1.2, {id:'silver'}: 1.2` with no `metal` entry. ⚠️ closes the unruled `max` reduction flagged in `culturalAffinityWeight`’s JSDoc: 2GN.84 measured max discarding authored values whenever the class tag scored higher (3 of 5 dead), so under max a specific entry could only ever raise a material, never lower it — most-specific-wins is what makes `{id:'gold'}: 0.8` under `{tag:'metal'}: 1.5` mean what it reads as. ⚠️ moves material-selection distributions, so `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.110"
+						],
+						"notes": "Filed 2026-08-13 during PR #61 review. 2GN.110 was marked done on the strength of its ruling, but no task carried the implementation: `2GN.27`, `2GN.68`, `2GN.114` and `3WS.3` all depend on 2GN.110 while consuming or fixture-building around affinities rather than re-keying them, so the ruling had no destination. Surfaced by a review comment on `site/design/classification.html`, which described the new shape as shipped when the type had not moved; the page now describes it as a ruled contract, and this task is what makes it true. Product-of-deviations was rejected in the ruling (1.5 × 0.8 = 1.2, so a below-neutral authored value would yield an above-neutral weight). A specific entry with no class entry is well-formed and is the case that recovers Thalassar exactly.",
 						"assignee": "Jason Warren"
 					}
 				]
