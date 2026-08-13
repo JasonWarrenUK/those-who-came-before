@@ -50,6 +50,8 @@ import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.t
 import { assignMaterials } from '../engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
 import { MATERIALS } from './materials.ts';
+import { EXPLORER_CULTURES } from './explorer-cultures.ts';
+import type { MaterialAffinity } from '../types/world.ts';
 import { mockCulturalProfile, mockPhaseCharacteristics } from '../../../tests/fixtures/culture.ts';
 import { MOCK_WORLD_REGIONS, mockRegionalWorld } from '../../../tests/fixtures/world.ts';
 import type { MockWorldRegion } from '../../../tests/fixtures/world.ts';
@@ -254,6 +256,21 @@ const SPREAD_FLOOR_MIN_TAGS = 7;
 
 /** Every primary tag in the catalogue, derived from `PRIMARY_TAG` rather than hand-written, so a new material's tag is covered automatically. */
 const ALL_PRIMARY_TAGS: readonly string[] = [...new Set(Object.values(PRIMARY_TAG))];
+
+/**
+ * Artefacts sampled per affinity configuration in the preset guard below. Smaller than
+ * `SAMPLES_PER_REGION` because that guard compares three runs over an *identical* seed sequence:
+ * the paired design cancels sampling noise rather than averaging it away, so the run size only has
+ * to be large enough to accumulate a stable count of metal assignments.
+ */
+const PRESET_AFFINITY_SAMPLES = 600;
+
+/**
+ * The minimum share shift a per-material affinity must produce to count as overriding its class
+ * entry. Sits well below the measured signal while staying far above paired-seed variation — and
+ * under a `max` reduction the shift is 0pp by construction, since the class entry wins outright.
+ */
+const PRESET_AFFINITY_MIN_SHIFT = 8;
 
 interface RegionMeasurement {
 	tagShares: Record<string, number>;
@@ -487,5 +504,125 @@ Deno.test('materials calibration: geology still discriminates across regions', (
 			`cross-region spread (need ${SPREAD_FLOOR_MIN_TAGS}):\n${
 				collapsed.map(([tag, spread]) => `  ${tag}: ${spread.toFixed(1)}pp`).join('\n')
 			}\n\ngeology may have stopped discriminating between regions.`,
+	);
+});
+
+/**
+ * Per-material affinity reaches material selection, measured on the shipped Explorer presets
+ * (roadmap 2GN.123).
+ *
+ * **This closes a real coverage gap rather than adding a redundant pin.** Every other guard in this
+ * file — and every pin in `calibration.test.ts` — samples `mockCulturalProfile()` against
+ * `mockRegionalWorld` cells. None of them reads `EXPLORER_CULTURES` at all, so the four shipped
+ * presets' authored affinities were entirely unmeasured: restoring Thalassar's gold and silver
+ * entries moved its gold share from 24.9% to 26.1% of metal and its silver from 34.3% to 37.7%, and
+ * the whole suite stayed green. The one existing test that does read the presets asserts only that
+ * each produces a non-empty report.
+ *
+ * **Paired seeds, not a pinned share.** The obvious guard — record Thalassar's gold+silver share and
+ * assert it holds — was measured and rejected: across five seed salts at n=400 the restored culture
+ * reads 58.2–66.1% and the unrestored one 51.0–60.6%, ranges that overlap. A single pinned number
+ * could not tell the two apart without a tolerance so tight it would flake. Holding the seed
+ * sequence fixed and varying only the affinity entries removes that noise entirely, because every
+ * other draw is identical between the three runs.
+ *
+ * What this pins is the *mechanism and its direction*, which is what the 2GN.110 ruling actually
+ * claims: a specific entry moves selection, and moves it both ways. The absolute shares stay
+ * deliberately unpinned — they are a function of geology, scarcity and grammar as much as affinity,
+ * and this file's other guards already cover those.
+ */
+Deno.test('materials calibration: a per-material affinity moves selection on a shipped preset', () => {
+	const thalassar = EXPLORER_CULTURES.find((preset) => preset.id === 'thalassar');
+	if (thalassar === undefined) throw new Error("explorer preset 'thalassar' not found");
+
+	/** Gold and silver as a percentage of all metal assigned, over a fixed seed sequence. */
+	const prizedShareOfMetal = (affinities: readonly MaterialAffinity[]): number => {
+		const profile = { ...thalassar.profile, materialAffinities: affinities };
+		let prized = 0;
+		let metal = 0;
+
+		for (let index = 0; index < PRESET_AFFINITY_SAMPLES; index++) {
+			const seed = `preset-affinity-${index}`;
+			const artefact = normaliseArtefact(
+				expandGrammar(CORE_GRAMMAR_RULES, profile, thalassar.phase, createPrng(seed)),
+				seed,
+			);
+			const assignments = assignMaterials(
+				artefact,
+				profile,
+				thalassar.phase,
+				thalassar.geology,
+				thalassar.trade,
+				createPrng(`${seed}-material`),
+				MATERIALS,
+			);
+
+			for (const assignment of assignments) {
+				if (PRIMARY_TAG[assignment.materialId] !== 'metal') continue;
+				metal++;
+				if (assignment.materialId === 'gold' || assignment.materialId === 'silver') prized++;
+			}
+		}
+
+		assert(metal > 0, 'no metal was assigned at all — the preset or geology fixtures moved');
+		return 100 * prized / metal;
+	};
+
+	// The preset as shipped, its class entries alone, and the same culture actively suppressing the
+	// two materials. Only the affinity entries differ; the seed sequence is identical throughout.
+	//
+	// ⚠️ The suppression case carries a `{ tag: 'metal' }: 1.5` entry the shipped preset deliberately
+	// omits, and that is load-bearing rather than incidental. Thalassar names gold and silver with no
+	// covering class entry, so each material matches exactly one entry — and a `max` reduction over a
+	// single match returns that same value. Without a class entry to compete against, most-
+	// specific-wins and the retired `max` are indistinguishable, and this guard passes against a
+	// resolver rebuilt from `max` (verified by mutation). The exception only means something when
+	// there is a rule for it to be an exception *to*.
+	const classOnly = thalassar.profile.materialAffinities.filter(
+		(entry) => entry.selector.id === undefined,
+	);
+	const shipped = prizedShareOfMetal(thalassar.profile.materialAffinities);
+	const neutral = prizedShareOfMetal(classOnly);
+	const suppressed = prizedShareOfMetal([
+		...classOnly,
+		{ selector: { tag: 'metal' }, weight: 1.5 },
+		{ selector: { id: 'gold' }, weight: 0.5 },
+		{ selector: { id: 'silver' }, weight: 0.5 },
+	]);
+	// The same culture with only the class entry, so the suppression comparison isolates the specific
+	// entries rather than reading the `metal: 1.5` lift as well.
+	const classLifted = prizedShareOfMetal([
+		...classOnly,
+		{ selector: { tag: 'metal' }, weight: 1.5 },
+	]);
+
+	// Thalassar's authored intent: gold and silver at 1.2 with no `metal` entry, so the two rise
+	// above their classmates rather than dragging bronze and iron up with them.
+	assert(
+		shipped > neutral,
+		`the shipped { id: 'gold' }/{ id: 'silver' } entries must raise their share: ` +
+			`${shipped.toFixed(1)}% shipped vs ${neutral.toFixed(1)}% with class entries alone`,
+	);
+
+	// The direction `max` could not express (2GN.84), and the case that actually discriminates
+	// between the two reductions: gold and silver at 0.5 *underneath* a `metal: 1.5` class entry.
+	// Most-specific-wins reads them at 0.5; `max` reads them at 1.5 and the suppression vanishes.
+	assert(
+		suppressed < classLifted,
+		`a below-neutral specific entry must lower the share even under a higher class entry: ` +
+			`${suppressed.toFixed(1)}% suppressed vs ${
+				classLifted.toFixed(1)
+			}% with the class entry alone`,
+	);
+
+	// A margin well above the paired-seed noise floor, and far below what the suppression case
+	// actually moves — this fails on a broken resolver, not on ordinary sampling variation. Under a
+	// `max` reduction the shift is 0pp by construction, since the class entry wins outright.
+	assert(
+		classLifted - suppressed > PRESET_AFFINITY_MIN_SHIFT,
+		`suppressing gold and silver beneath a higher class entry moved their share by only ` +
+			`${(classLifted - suppressed).toFixed(1)}pp (expected more than ` +
+			`${PRESET_AFFINITY_MIN_SHIFT}pp) — the specific entry is not overriding the class entry, ` +
+			`which is what most-specific-wins exists to do (roadmap 2GN.110)`,
 	);
 });
