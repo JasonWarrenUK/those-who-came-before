@@ -196,13 +196,13 @@ culture say it works metal generally but holds gold cheap. An entry naming one m
 covering class entry is well-formed: that material departs from neutral and its classmates stay at
 `1`.
 
-A per-material affinity is legitimate because it is *that culture's* judgement, recorded in
+A per-material affinity is legitimate because it is _that culture's_ judgement, recorded in
 `CulturalProfile`. The retired `precious-*` material tags were different in kind — they lived on the
 material itself and stamped one judgement onto every culture in every world. The test is where the
 statement lives, not how specific it is.
 
-⚠️ The tag-versus-tag tie is deliberately unruled: a material carrying two class tags would match two
-entries with no tiebreak. No shipped material does, and the engine's test suite pins that.
+⚠️ The tag-versus-tag tie is deliberately unruled: a material carrying two class tags would match
+two entries with no tiebreak. No shipped material does, and the engine's test suite pins that.
 
 `techniqueAffinities` (roadmap 2GN.29) is a separate signal from both `materialAffinities` and
 `motifVocabulary` (§8.5): a culture's preference for _which decorative techniques_ it uses is

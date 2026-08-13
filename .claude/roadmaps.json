@@ -1547,7 +1547,7 @@
 					{
 						"id": "2GN.123",
 						"description": "`types/world.ts` + `engine/generation/materials.ts` + `engine/generation/decoration.ts` — re-key `CulturalProfile.materialAffinities` from `Map<MaterialTag, number>` to the `MaterialSelector` tagged union 2GN.112 built for `MaterialFlow`, resolved **most-specific-wins**. 2GN.110 ruled this on 2026-08-13 and nothing has carried it: the type is still tag-keyed at `types/world.ts:220`, and `data/explorer-cultures.ts` still holds the comment recording Thalassar’s dropped `precious-metal: 1.2` as an open design question. A bare `MaterialTag | MaterialName` union cannot work because `bone`, `glass` and `leather` each name both a class and a material, which is exactly why the flow side needed the tagged form. `includes`/`excludes` does NOT transfer: membership needs subtraction, affinities are weights with nothing to subtract. Deliverable: the re-keyed type, `culturalAffinityWeight` (`materials.ts`) and `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins resolution, the four Explorer presets migrated, and Thalassar’s authored intent restored as `{id:'gold'}: 1.2, {id:'silver'}: 1.2` with no `metal` entry. ⚠️ closes the unruled `max` reduction flagged in `culturalAffinityWeight`’s JSDoc: 2GN.84 measured max discarding authored values whenever the class tag scored higher (3 of 5 dead), so under max a specific entry could only ever raise a material, never lower it — most-specific-wins is what makes `{id:'gold'}: 0.8` under `{tag:'metal'}: 1.5` mean what it reads as. ⚠️ moves material-selection distributions, so `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.110"
 						],

@@ -2574,15 +2574,15 @@ retired tags lived in `data/materials.ts` as a property of the material itself, 
 judgement onto every culture in every world. **The test is where the statement lives, not how
 specific it is.** Specificity was never the problem; universality was.
 
-| §  | Propagation                                                                                         | Date       |
-| -- | --------------------------------------------------------------------------------------------------- | ---------- |
-| —  | `docs/spikes/2GN.110-per-material-affinities.md`: new spike write-up                                | 2026-08-13 |
-| —  | Doc 11 §2.13: locked decision (selector keying, most-specific-wins, the where-it-lives boundary)    | 2026-08-13 |
-| —  | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule                                    | 2026-08-13 |
-| —  | `types/world.ts`: `materialAffinities` re-keyed to `readonly MaterialAffinity[]` (see §2.47)        | 2026-08-13 |
-| —  | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together            | 2026-08-13 |
-| ⏳ | `data/explorer-cultures.ts`: Thalassar's dropped gold/silver intent re-authored as specific entries | 2026-08-13 |
-| —  | Roadmap: 2GN.110 closed; the tag-versus-tag tie recorded as explicitly unruled                      | 2026-08-13 |
+| § | Propagation                                                                                         | Date       |
+| - | --------------------------------------------------------------------------------------------------- | ---------- |
+| — | `docs/spikes/2GN.110-per-material-affinities.md`: new spike write-up                                | 2026-08-13 |
+| — | Doc 11 §2.13: locked decision (selector keying, most-specific-wins, the where-it-lives boundary)    | 2026-08-13 |
+| — | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule                                    | 2026-08-13 |
+| — | `types/world.ts`: `materialAffinities` re-keyed to `readonly MaterialAffinity[]` (see §2.47)        | 2026-08-13 |
+| — | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together            | 2026-08-13 |
+| — | `data/explorer-cultures.ts`: Thalassar's dropped gold/silver intent re-authored as specific entries | 2026-08-13 |
+| — | Roadmap: 2GN.110 closed; the tag-versus-tag tie recorded as explicitly unruled                      | 2026-08-13 |
 
 ---
 
@@ -2647,11 +2647,11 @@ and here, two of the six answered it wrongly for the only consumer that reads th
 
 ### 2.47 A Ruling Named a Container It Could Not Have: `MaterialSelector` Keys Need an Array (2026-08-13)
 
-2GN.110 ruled that `CulturalProfile.materialAffinities` is "keyed by `MaterialSelector`", and 2GN.123
-was filed to carry it. The implementation could not take that shape literally. **A JavaScript `Map`
-matches object keys by reference**, so `new Map([[{ tag: 'metal' }, 1.5]])` cannot be read back by
-`.get({ tag: 'metal' })` — the lookup builds a different object and misses. Every read site in the
-ruling's own consumer list did exactly that lookup.
+2GN.110 ruled that `CulturalProfile.materialAffinities` is "keyed by `MaterialSelector`", and
+2GN.123 was filed to carry it. The implementation could not take that shape literally. **A
+JavaScript `Map` matches object keys by reference**, so `new Map([[{ tag: 'metal' }, 1.5]])` cannot
+be read back by `.get({ tag: 'metal' })` — the lookup builds a different object and misses. Every
+read site in the ruling's own consumer list did exactly that lookup.
 
 The field is therefore `readonly MaterialAffinity[]`, an array of `{ selector, weight }` entries.
 Nothing in the ruling's semantics changes: most-specific-wins resolution, the neutral `1` default,
@@ -2672,18 +2672,61 @@ moved.
 **A ruling can name an implementation that does not exist.** 2GN.110 reasoned carefully about
 semantics and reached the right answer, then reached for the nearest familiar container without
 checking that it could hold those keys — and the spike's consumer table listed three `Map.get` call
-sites without anything flagging that two of them were about to become impossible. The generalisation:
-**when a ruling changes what a key *is*, the container is part of the ruling, not an implementation
-detail left to the task that carries it.**
+sites without anything flagging that two of them were about to become impossible. The
+generalisation: **when a ruling changes what a key _is_, the container is part of the ruling, not an
+implementation detail left to the task that carries it.**
+
+| § | Propagation                                                                                      | Date       |
+| - | ------------------------------------------------------------------------------------------------ | ---------- |
+| — | `types/world.ts`: `MaterialAffinity` added; field typed `readonly MaterialAffinity[]`            | 2026-08-13 |
+| — | Doc 05 §3.3: the interface and resolution rule published in the array shape                      | 2026-08-13 |
+| — | `grammar.ts` + doc 05 §5.4: class-entry scan replaces `Map.get`; stage-4 blindness documented    | 2026-08-13 |
+| — | `types/grammar.ts`: `culturalModifiers`' "key type matches `materialAffinities`" claim corrected | 2026-08-13 |
+| — | `materials.test.ts`: seven resolver tests — the reduction's first coverage in any form           | 2026-08-13 |
+| — | Thalassar's gold/silver restored; preset-level affinity guard added (§2.48)                      | 2026-08-13 |
+
+---
+
+### 2.48 The Shipped Presets Were Never Calibrated Against; a Guard That Passed Its Own Mutant (2026-08-13)
+
+Restoring Thalassar's `{ id: 'gold' }: 1.2, { id: 'silver' }: 1.2` (2GN.123) was expected to move
+material distributions and force an `EXPECTED_FIRE_RATES` re-record. **It moved distributions and no
+pin noticed.** Measured on the preset: gold 24.9% → 26.1% of assigned metal, silver 34.3% → 37.7%,
+with bronze and iron absorbing the loss. The full suite stayed green.
+
+The reason is a coverage gap, not a tolerance. `calibration.test.ts` builds its cultures from
+`mockCulturalProfile()` against `mockRegionalWorld` cells; `materials.calibration.test.ts` does the
+same. **Neither reads `EXPLORER_CULTURES` at all**, so the four shipped presets' authored affinities
+were entirely unmeasured — while `materials.calibration.test.ts`'s own failure message names
+`materialAffinities` as a suspect it can only ever see the fixture's copy of. The one test that does
+read the presets asserts only that each produces a non-empty report.
+
+**Two attempts at the guard, and the first one was worthless.** The obvious shape — pin Thalassar's
+gold+silver share — was measured across five seed salts at n=400 and rejected: restored reads
+58.2–66.1%, unrestored 51.0–60.6%. The ranges overlap, so no single pinned number distinguishes them
+without a tolerance tight enough to flake. Paired seeds fixed that: hold the seed sequence identical
+and vary only the affinity entries, and every other draw cancels.
+
+The second attempt passed a mutation test it should have failed. A resolver rebuilt from the retired
+`max` reduction still satisfied it, because **Thalassar names gold and silver with no covering
+`metal` entry** — each material matches exactly one entry, and `max` over a single match returns
+that same value. Most-specific-wins and `max` are indistinguishable on the shipped preset. The guard
+now carries a `{ tag: 'metal' }: 1.5` entry in its suppression case specifically so the specific
+entry has a class entry to override, and it kills the mutant with a diagnostic reading
+`56.7% suppressed vs
+56.7%`.
+
+**A guard written against the data you have can be untestable by construction.** The preset that
+motivated the feature was the one case that could not demonstrate it: an exception rule needs a rule
+to be an exception _to_, and Thalassar's authored intent is deliberately exception-only. Mutation
+testing is what surfaced it — the guard was green, reviewed, and measuring nothing. Related: §2.47's
+lesson on dormant paths, of which this is the testing-side twin.
 
 | §  | Propagation                                                                                       | Date       |
-| -- | --------------------------------------------------------------------------------------------------- | ---------- |
-| —  | `types/world.ts`: `MaterialAffinity` added; field typed `readonly MaterialAffinity[]`             | 2026-08-13 |
-| —  | Doc 05 §3.3: the interface and resolution rule published in the array shape                       | 2026-08-13 |
-| —  | `grammar.ts` + doc 05 §5.4: class-entry scan replaces `Map.get`; stage-4 blindness documented     | 2026-08-13 |
-| —  | `types/grammar.ts`: `culturalModifiers`' "key type matches `materialAffinities`" claim corrected  | 2026-08-13 |
-| —  | `materials.test.ts`: seven resolver tests — the reduction's first coverage in any form            | 2026-08-13 |
-| ⏳ | Thalassar's gold/silver restoration + `EXPECTED_FIRE_RATES` re-record — 2GN.123 second branch     | 2026-08-13 |
+| -- | ------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `data/explorer-cultures.ts`: Thalassar's gold/silver restored per 2GN.110 ruling point 4          | 2026-08-13 |
+| —  | `materials.calibration.test.ts`: first preset-level affinity guard, paired-seed and mutant-killed | 2026-08-13 |
+| ⏳ | A preset-level share pin for the other three presets — needs a sample size that holds steady      | 2026-08-13 |
 
 ---
 
