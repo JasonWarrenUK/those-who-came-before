@@ -2578,9 +2578,9 @@ specific it is.** Specificity was never the problem; universality was.
 | -- | --------------------------------------------------------------------------------------------------- | ---------- |
 | —  | `docs/spikes/2GN.110-per-material-affinities.md`: new spike write-up                                | 2026-08-13 |
 | —  | Doc 11 §2.13: locked decision (selector keying, most-specific-wins, the where-it-lives boundary)    | 2026-08-13 |
-| ⏳ | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule — with the implementation          | 2026-08-13 |
-| ⏳ | `types/world.ts`: `materialAffinities` re-keyed to `Map<MaterialSelector, number>`                  | 2026-08-13 |
-| ⏳ | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together            | 2026-08-13 |
+| —  | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule                                    | 2026-08-13 |
+| —  | `types/world.ts`: `materialAffinities` re-keyed to `readonly MaterialAffinity[]` (see §2.47)        | 2026-08-13 |
+| —  | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together            | 2026-08-13 |
 | ⏳ | `data/explorer-cultures.ts`: Thalassar's dropped gold/silver intent re-authored as specific entries | 2026-08-13 |
 | —  | Roadmap: 2GN.110 closed; the tag-versus-tag tie recorded as explicitly unruled                      | 2026-08-13 |
 
@@ -2642,6 +2642,48 @@ and here, two of the six answered it wrongly for the only consumer that reads th
 | ⏳ | `data/materials.ts`: `fragility`/`hardness` re-authored to working state across 16 materials          | 2026-08-13 |
 | ⏳ | Calibration: `meanDecorativeGrade` moves for glass and fired clay; re-record with the drift annotated | 2026-08-13 |
 | —  | Roadmap: 2GN.111 closed; 2GN.105 rescoped from "per-state on every axis" to the specific audit list   | 2026-08-13 |
+
+---
+
+### 2.47 A Ruling Named a Container It Could Not Have: `MaterialSelector` Keys Need an Array (2026-08-13)
+
+2GN.110 ruled that `CulturalProfile.materialAffinities` is "keyed by `MaterialSelector`", and 2GN.123
+was filed to carry it. The implementation could not take that shape literally. **A JavaScript `Map`
+matches object keys by reference**, so `new Map([[{ tag: 'metal' }, 1.5]])` cannot be read back by
+`.get({ tag: 'metal' })` — the lookup builds a different object and misses. Every read site in the
+ruling's own consumer list did exactly that lookup.
+
+The field is therefore `readonly MaterialAffinity[]`, an array of `{ selector, weight }` entries.
+Nothing in the ruling's semantics changes: most-specific-wins resolution, the neutral `1` default,
+bidirectionality and the unruled tag-versus-tag tie all hold as written. What changed is the
+container, and only because the named one cannot express the named keys.
+
+The ruling's rejected alternatives were not revisited — in particular the "second parallel map"
+(`specificMaterialAffinities` alongside `materialAffinities`), which would have sidestepped the
+identity problem while reintroducing exactly the two-fields-one-selector shape 2GN.112 removed from
+`MaterialFlow`. The array satisfies the ruling; the parallel map would have satisfied the compiler.
+
+⚠️ `effectiveOptionWeight` (`grammar.ts`) could not be left untouched despite Finding 3 ruling it a
+non-participant: it performed a `Map.get` on this field. It now scans for a class (`{ tag }`) entry
+and still ignores `{ id }` entries entirely, preserving both its stage-4 blindness to per-material
+judgements and its deliberate `?? 0` default. The behaviour is unchanged; only the lookup mechanism
+moved.
+
+**A ruling can name an implementation that does not exist.** 2GN.110 reasoned carefully about
+semantics and reached the right answer, then reached for the nearest familiar container without
+checking that it could hold those keys — and the spike's consumer table listed three `Map.get` call
+sites without anything flagging that two of them were about to become impossible. The generalisation:
+**when a ruling changes what a key *is*, the container is part of the ruling, not an implementation
+detail left to the task that carries it.**
+
+| §  | Propagation                                                                                       | Date       |
+| -- | --------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `types/world.ts`: `MaterialAffinity` added; field typed `readonly MaterialAffinity[]`             | 2026-08-13 |
+| —  | Doc 05 §3.3: the interface and resolution rule published in the array shape                       | 2026-08-13 |
+| —  | `grammar.ts` + doc 05 §5.4: class-entry scan replaces `Map.get`; stage-4 blindness documented     | 2026-08-13 |
+| —  | `types/grammar.ts`: `culturalModifiers`' "key type matches `materialAffinities`" claim corrected  | 2026-08-13 |
+| —  | `materials.test.ts`: seven resolver tests — the reduction's first coverage in any form            | 2026-08-13 |
+| ⏳ | Thalassar's gold/silver restoration + `EXPECTED_FIRE_RATES` re-record — 2GN.123 second branch     | 2026-08-13 |
 
 ---
 

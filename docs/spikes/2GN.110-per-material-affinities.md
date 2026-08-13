@@ -89,6 +89,12 @@ fact, not an inconsistency to be reconciled later.
 tagged union is required rather than stylistic: `bone`, `glass` and `leather` name both a tag and a
 material.
 
+> ⚠️ **Amended at implementation (2GN.123, doc 12 §2.47).** This ruling said `Map<MaterialSelector,
+> number>`; the field shipped as `readonly MaterialAffinity[]` (entries of `{ selector, weight }`). A
+> JS `Map` matches object keys by reference, so `.get({ tag: 'metal' })` can never hit an entry
+> authored as a different literal — the container named here cannot hold the keys ruled here. Every
+> semantic below is unaffected and shipped as written.
+
 **2. Resolution is most-specific-wins.** A class entry sets a default; a specific entry is an
 exception to it. `{ tag: 'metal' }: 1.5` with `{ id: 'gold' }: 0.8` reads as **"all metals are 1.5,
 except gold, which is 0.8"**.

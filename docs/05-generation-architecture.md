@@ -161,10 +161,15 @@ interface Culture {
 }
 
 interface CulturalProfile {
-	materialAffinities: Map<MaterialTag, number>;
+	materialAffinities: readonly MaterialAffinity[];
 	techniqueAffinities: Map<DecorativeTechnique, number>;
 	motifVocabulary: MotifSet;
 	craftInvestment: CraftInvestmentProfile;
+}
+
+interface MaterialAffinity {
+	selector: MaterialSelector; // { tag } for a class, { id } for one material
+	weight: number; // 1 is neutral
 }
 
 interface CraftInvestmentProfile {
@@ -181,6 +186,23 @@ The `CulturalProfile` captures stable tendencies that persist across phases. The
 `PhaseCharacteristics` capture how those tendencies manifest in a specific period. A culture might
 always favour stone (`materialAffinities`), but their stone-working capability
 (`technology.stoneWorking`) varies by phase.
+
+`materialAffinities` entries are keyed by `MaterialSelector` (§3.4) and resolved
+**most-specific-wins** (roadmap 2GN.110): a `{ id }` entry beats any `{ tag }` entry covering the
+same material, a `{ tag }` entry supplies the class default, and a material matched by neither reads
+a neutral `1`. So `{ tag: 'metal' }: 1.5` alongside `{ id: 'gold' }: 0.8` reads as "all metals are
+1.5, except gold, which is 0.8". A specific entry may lower as well as raise, which is what lets a
+culture say it works metal generally but holds gold cheap. An entry naming one material with no
+covering class entry is well-formed: that material departs from neutral and its classmates stay at
+`1`.
+
+A per-material affinity is legitimate because it is *that culture's* judgement, recorded in
+`CulturalProfile`. The retired `precious-*` material tags were different in kind — they lived on the
+material itself and stamped one judgement onto every culture in every world. The test is where the
+statement lives, not how specific it is.
+
+⚠️ The tag-versus-tag tie is deliberately unruled: a material carrying two class tags would match two
+entries with no tiebreak. No shipped material does, and the engine's test suite pins that.
 
 `techniqueAffinities` (roadmap 2GN.29) is a separate signal from both `materialAffinities` and
 `motifVocabulary` (§8.5): a culture's preference for _which decorative techniques_ it uses is
@@ -700,9 +722,12 @@ function selectGrammarOption(
 ): GrammarOption {
 	const weighted = rule.options.map((option) => {
 		let weight = option.baseWeight;
-		// Cultural profile shifts
+		// Cultural profile shifts. Reads class entries only: this runs at stage 4 and materials
+		// are not assigned until stage 6, so there is no material against which a per-material
+		// `{ id }` entry could be resolved (roadmap 2GN.110).
 		for (const [key, mod] of option.culturalModifiers) {
-			weight += (culture.materialAffinities.get(key) ?? 0) * mod;
+			const classEntry = culture.materialAffinities.find((e) => e.selector.tag === key);
+			weight += (classEntry?.weight ?? 0) * mod;
 		}
 		// Phase characteristic shifts
 		weight *= phaseInfluence(option, phase);
