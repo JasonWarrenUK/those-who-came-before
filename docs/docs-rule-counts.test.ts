@@ -492,7 +492,7 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 	// "No pending items remain" describes a different, unrelated task list; doc 12's own change-log
 	// quotes its *own past* "no pending items" claim as the thing §1 corrected) — neither is a claim
 	// about the register's live entry count, so a looser pattern flagged both as stale (2GN.115 audit).
-	const REGISTER_DONE = new RegExp(`\\b(${NUMBER_WORD}) entries had completed\\b`, 'i');
+	const REGISTER_DONE = new RegExp(`\\b(${NUMBER_WORD}|\\d+) entries had completed\\b`, 'i');
 	const REGISTER_PENDING = new RegExp(`\\b(${NUMBER_WORD}|no) pending on\\b`, 'i');
 
 	const registerText = await Deno.readTextFile(
