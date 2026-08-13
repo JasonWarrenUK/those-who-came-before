@@ -20,7 +20,7 @@ import {
 import { mockGeologicalContext, mockMaterialFlow } from '../../../../tests/fixtures/world.ts';
 import type { DecorativeLayer, DecorativeTechnique } from '../../types/decoration.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
-import type { GeologicalContext } from '../../types/world.ts';
+import type { GeologicalContext, MaterialAffinity } from '../../types/world.ts';
 import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped technique definition by name; throws if the catalogue ever drops it. */
@@ -155,10 +155,10 @@ Deno.test("computeTechniqueWeight: culture's techniqueAffinities biases selectio
 });
 
 Deno.test('computeTechniqueWeight: material gate — a culture with no plausible engravable material is suppressed even with high engraving affinity', () => {
-	// No material affinity above neutral (1), so bestMaterialAffinity(...) > 1 never holds — the
+	// No material affinity above neutral (1), so culturalAffinityWeight(...) > 1 never holds — the
 	// culture "never uses" any material at better than indifferent, regardless of geology.
 	const noMaterialLeaning = mockCulturalProfile({
-		materialAffinities: new Map(),
+		materialAffinities: [],
 		techniqueAffinities: new Map([['engraving', 10]]),
 	});
 	const geology = mockGeologicalContext();
@@ -174,7 +174,7 @@ Deno.test('computeTechniqueWeight: material gate — a culture with no plausible
 
 	// A culture that DOES favour an engravable material, same high affinity, for comparison.
 	const withMaterialLeaning = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 2]]),
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 2 }],
 		techniqueAffinities: new Map([['engraving', 10]]),
 	});
 	const ungated = computeTechniqueWeight(
@@ -195,7 +195,7 @@ Deno.test('computeTechniqueWeight: material gate is one-directional — favourin
 	// Favours metal (engravable, e.g. bronze) but has zero techniqueAffinities — material use alone
 	// must not manufacture a technique preference the culture never declared.
 	const culture = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 3]]),
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 3 }],
 		techniqueAffinities: new Map(),
 	});
 	const geology = mockGeologicalContext();
@@ -222,7 +222,7 @@ Deno.test('computeTechniqueWeight: material gate is one-directional — favourin
 Deno.test('computeTechniqueWeight: form-substrate and none-substrate techniques are never material-gated', () => {
 	// No material affinity above neutral at all — would gate every 'material' substrate technique,
 	// but 'form' (wire-wrapping) and 'none' (polish) substrates must be unaffected.
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
 	const phase = mockPhaseCharacteristics();
 
@@ -1056,7 +1056,7 @@ Deno.test("assignDecorativeDetails: every introduced material conforms to its te
 });
 
 Deno.test('assignDecorativeDetails: distribution — cultural material affinity shifts introduced-material selection', () => {
-	const metalShare = (affinities: Map<MaterialTag, number>) => {
+	const metalShare = (affinities: MaterialAffinity[]) => {
 		let metal = 0;
 		for (let i = 0; i < 200; i++) {
 			const [resolved] = assignDecorativeDetails(
@@ -1076,8 +1076,8 @@ Deno.test('assignDecorativeDetails: distribution — cultural material affinity 
 		return metal;
 	};
 
-	const metalLeaning = metalShare(new Map([['metal', 3]]));
-	const stoneLeaning = metalShare(new Map([['stone', 3]]));
+	const metalLeaning = metalShare([{ selector: { tag: 'metal' }, weight: 3 }]);
+	const stoneLeaning = metalShare([{ selector: { tag: 'stone' }, weight: 3 }]);
 
 	assert(
 		metalLeaning > stoneLeaning,

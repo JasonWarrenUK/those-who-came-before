@@ -1,6 +1,18 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals } from '@std/assert';
 import { mockCulturalProfile, mockCulture, mockPhaseCharacteristics } from './culture.ts';
+import { culturalAffinityWeight } from '../../src/lib/engine/generation/materials.ts';
+import { MATERIALS } from '../../src/lib/data/materials.ts';
+import type { CulturalProfile } from '../../src/lib/types/world.ts';
+import type { MaterialName } from '../../src/lib/types/tags.ts';
+
+/** The weight `id` draws from `culture`, resolved exactly as the engine resolves it. */
+function affinityFor(id: MaterialName, culture: CulturalProfile): number {
+	const definition = MATERIALS.find((m) => m.id === id);
+	if (!definition) throw new Error(`unknown material: ${id}`);
+
+	return culturalAffinityWeight(definition, culture);
+}
 
 Deno.test('mockCulture: id and timeline.cultureId are consistent by default', () => {
 	const culture = mockCulture();
@@ -8,11 +20,11 @@ Deno.test('mockCulture: id and timeline.cultureId are consistent by default', ()
 	assertEquals(culture.timeline.cultureId, culture.id);
 });
 
-Deno.test('mockCulture: materialAffinities is a populated Map', () => {
+Deno.test('mockCulture: materialAffinities is a populated entry array', () => {
 	const culture = mockCulture();
 
-	assert(culture.baseProfile.materialAffinities instanceof Map);
-	assert(culture.baseProfile.materialAffinities.size > 0);
+	assert(Array.isArray(culture.baseProfile.materialAffinities));
+	assert(culture.baseProfile.materialAffinities.length > 0);
 });
 
 Deno.test('mockCulture: craftInvestment weights are populated Maps', () => {
@@ -68,8 +80,10 @@ Deno.test('mockPhaseCharacteristics: a nested override changes only the targeted
 Deno.test('mockCulturalProfile: defaults carry metal-leaning affinities and populated branches', () => {
 	const profile = mockCulturalProfile();
 
-	assertEquals(profile.materialAffinities.get('metal'), 1.5);
-	assertEquals(profile.materialAffinities.get('stone'), 1.0);
+	// Asserted through the resolver rather than by indexing the entries, so these pin the weight a
+	// material actually draws at — the fixture's internal ordering is free to change beneath them.
+	assertEquals(affinityFor('bronze', profile), 1.5);
+	assertEquals(affinityFor('granite', profile), 1.0);
 	assert(profile.techniqueAffinities.size > 0);
 	assertEquals(profile.techniqueAffinities.get('engraving'), 1.5);
 	assert(profile.motifVocabulary.motifs.length > 0);
@@ -77,9 +91,10 @@ Deno.test('mockCulturalProfile: defaults carry metal-leaning affinities and popu
 });
 
 Deno.test('mockCulturalProfile: overrides replace whole branches', () => {
-	const profile = mockCulturalProfile({ materialAffinities: new Map() });
+	const profile = mockCulturalProfile({ materialAffinities: [] });
 
-	assertEquals(profile.materialAffinities.size, 0);
+	assertEquals(profile.materialAffinities.length, 0);
+	assertEquals(affinityFor('bronze', profile), 1); // Neutral, not 1.5.
 	assert(profile.techniqueAffinities.size > 0); // Independent branch, untouched by the override.
 	assert(profile.motifVocabulary.motifs.length > 0);
 });
@@ -90,7 +105,7 @@ Deno.test('mockCulturalProfile: techniqueAffinities overrides independently of m
 	const profile = mockCulturalProfile({ techniqueAffinities: new Map() });
 
 	assertEquals(profile.techniqueAffinities.size, 0);
-	assertEquals(profile.materialAffinities.get('metal'), 1.5); // Untouched by the override.
+	assertEquals(affinityFor('bronze', profile), 1.5); // Untouched.
 });
 
 Deno.test('mockCulturalProfile: mockCulture keeps delegating with a consistent motif origin', () => {

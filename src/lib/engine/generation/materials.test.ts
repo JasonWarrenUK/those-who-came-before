@@ -5,6 +5,7 @@ import {
 	assignMaterials,
 	assignMaterialWithProvenance,
 	computeMaterialWeight,
+	culturalAffinityWeight,
 	deriveMaterialProvenance,
 	explainMaterialWeight,
 	isAvailable,
@@ -23,6 +24,7 @@ import {
 	mockRegionalWorld,
 } from '../../../../tests/fixtures/world.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
+import type { MaterialAffinity } from '../../types/world.ts';
 import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped material by id; throws if the fixture data ever drops it. */
@@ -185,13 +187,170 @@ Deno.test('isAvailable: a material with no geology entry is obtainable (M2 lenie
 	assertEquals(isAvailable(material('jade'), geology, []), true);
 });
 
+// --- culturalAffinityWeight ------------------------------------------------------------------------
+//
+// Most-specific-wins resolution (roadmap 2GN.110, implemented 2GN.123). None of this was reachable
+// before the `MaterialSelector` re-key: every material carries one tag, so the `max` reduction this
+// replaced never had two values to choose between and was never exercised by a test.
+
+Deno.test('culturalAffinityWeight: a specific entry beats the class entry covering it', () => {
+	const culture = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+			{ selector: { id: 'gold' }, weight: 0.8 },
+		],
+	});
+
+	assertEquals(culturalAffinityWeight(material('gold'), culture), 0.8);
+	// The class default still covers every metal that authored no exception of its own.
+	assertEquals(culturalAffinityWeight(material('bronze'), culture), 1.5);
+	assertEquals(culturalAffinityWeight(material('iron'), culture), 1.5);
+});
+
+Deno.test('culturalAffinityWeight: a specific entry lowers as well as raises', () => {
+	// The property `max` lacked, and the ruling's central justification: under the old reduction a
+	// specific entry could only ever raise a material, so "we work metal, but not gold" was
+	// inexpressible — the class value simply won. 2GN.84 measured 3 of 5 authored entries dead this
+	// way. Both directions must now hold.
+	const disfavoursGold = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+			{ selector: { id: 'gold' }, weight: 0.8 },
+		],
+	});
+	const favoursGold = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+			{ selector: { id: 'gold' }, weight: 2.5 },
+		],
+	});
+
+	assert(
+		culturalAffinityWeight(material('gold'), disfavoursGold) < 1.5,
+		'specific entry must lower',
+	);
+	assert(culturalAffinityWeight(material('gold'), favoursGold) > 1.5, 'specific entry must raise');
+});
+
+Deno.test('culturalAffinityWeight: a specific entry with no class entry is well-formed', () => {
+	// Ruling point 4, and the shape that recovers Thalassar's dropped intent: name two materials and
+	// nothing else. Their classmates stay neutral rather than inheriting anything.
+	const culture = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { id: 'gold' }, weight: 1.2 },
+			{ selector: { id: 'silver' }, weight: 1.2 },
+		],
+	});
+
+	assertEquals(culturalAffinityWeight(material('gold'), culture), 1.2);
+	assertEquals(culturalAffinityWeight(material('silver'), culture), 1.2);
+	assertEquals(culturalAffinityWeight(material('bronze'), culture), 1);
+	assertEquals(culturalAffinityWeight(material('iron'), culture), 1);
+});
+
+Deno.test('culturalAffinityWeight: an unmatched material reads neutral', () => {
+	const culture = mockCulturalProfile({
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 1.5 }],
+	});
+
+	assertEquals(culturalAffinityWeight(material('granite'), culture), 1);
+	assertEquals(culturalAffinityWeight(material('oak'), culture), 1);
+	assertEquals(
+		culturalAffinityWeight(
+			material('bronze'),
+			mockCulturalProfile({
+				materialAffinities: [],
+			}),
+		),
+		1,
+	);
+});
+
+Deno.test('culturalAffinityWeight: the tag arm and id arm of a colliding name resolve differently', () => {
+	// `bone`, `glass` and `leather` each name both a MaterialTag and a MaterialName — the collision
+	// `MaterialSelector`'s tagged arms exist to keep apart. `{ tag: 'bone' }` must reach antler;
+	// `{ id: 'bone' }` must not. Mirrors the `MaterialFlow` selector test above.
+	const byClass = mockCulturalProfile({
+		materialAffinities: [{ selector: { tag: 'bone' }, weight: 1.7 }],
+	});
+	const byMaterial = mockCulturalProfile({
+		materialAffinities: [{ selector: { id: 'bone' }, weight: 1.7 }],
+	});
+
+	assertEquals(culturalAffinityWeight(material('antler'), byClass), 1.7);
+	assertEquals(culturalAffinityWeight(material('antler'), byMaterial), 1);
+	assertEquals(culturalAffinityWeight(material('bone'), byClass), 1.7);
+	assertEquals(culturalAffinityWeight(material('bone'), byMaterial), 1.7);
+});
+
+Deno.test('culturalAffinityWeight: specificity wins regardless of authoring order', () => {
+	// Array order carries no meaning across specificity levels — only the tag-versus-tag tie is
+	// order-dependent, and that shape is unreachable (see the one-tag invariant above).
+	const specificFirst = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { id: 'gold' }, weight: 0.8 },
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+		],
+	});
+	const classFirst = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+			{ selector: { id: 'gold' }, weight: 0.8 },
+		],
+	});
+
+	assertEquals(culturalAffinityWeight(material('gold'), specificFirst), 0.8);
+	assertEquals(culturalAffinityWeight(material('gold'), classFirst), 0.8);
+});
+
+Deno.test('culturalAffinityWeight: a per-material entry reaches material selection end to end', () => {
+	// The resolver is only worth having if the weight it returns actually moves a draw. Two cultures
+	// identical but for a single `{ id: 'gold' }` exception should select gold at different rates.
+	const geology = mockGeologicalContext({ materialAvailability: new Map() }); // scarcity-neutral
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+
+	const metalOnly = component(['metal']);
+
+	const goldShare = (affinities: MaterialAffinity[]) => {
+		const culture = mockCulturalProfile({ materialAffinities: affinities });
+		let gold = 0;
+		for (let i = 0; i < 400; i++) {
+			const picked = assignMaterial(
+				metalOnly,
+				culture,
+				phase,
+				geology,
+				[],
+				createPrng(`gold-affinity-${i}`),
+			);
+			if (picked.id === 'gold') gold++;
+		}
+		return gold;
+	};
+
+	const flat = goldShare([{ selector: { tag: 'metal' }, weight: 1.5 }]);
+	const goldPrized = goldShare([
+		{ selector: { tag: 'metal' }, weight: 1.5 },
+		{ selector: { id: 'gold' }, weight: 6 },
+	]);
+	const goldShunned = goldShare([
+		{ selector: { tag: 'metal' }, weight: 1.5 },
+		{ selector: { id: 'gold' }, weight: 0.2 },
+	]);
+
+	assert(goldPrized > flat, `prizing gold must raise its share (${goldPrized} vs ${flat})`);
+	assert(goldShunned < flat, `shunning gold must lower its share (${goldShunned} vs ${flat})`);
+});
+
 // --- computeMaterialWeight -------------------------------------------------------------------------
 
 Deno.test('computeMaterialWeight: higher cultural affinity increases weight', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() }); // scarcity-neutral
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
-	const indifferent = mockCulturalProfile({ materialAffinities: new Map() });
-	const metalLeaning = mockCulturalProfile({ materialAffinities: new Map([['metal', 2]]) });
+	const indifferent = mockCulturalProfile({ materialAffinities: [] });
+	const metalLeaning = mockCulturalProfile({
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 2 }],
+	});
 
 	const baseline = computeMaterialWeight(material('bronze'), indifferent, phase, geology);
 	const boosted = computeMaterialWeight(material('bronze'), metalLeaning, phase, geology);
@@ -201,11 +360,14 @@ Deno.test('computeMaterialWeight: higher cultural affinity increases weight', ()
 
 Deno.test('materials: every shipped material carries exactly one MaterialTag (roadmap 2GN.78)', () => {
 	// This replaced a test pinning `culturalAffinityWeight`'s max-across-tags reduction on gold
-	// (`metal` + `precious-metal`). With the precious tags retired there is no multi-tag material
-	// left to exercise it, so the reduction is unreachable rather than merely untested — and the
-	// honest thing to pin is the invariant that makes it so. If this ever fails, a genuine multi-tag
-	// material has been authored and the reduction (max / most-specific-wins / product) needs the
-	// ruling it has never had: see `culturalAffinityWeight`'s JSDoc.
+	// (`metal` + `precious-metal`), unreachable once the precious tags were retired.
+	//
+	// ⚠️ Its premise has since narrowed (roadmap 2GN.110 Finding 2, 2GN.123). The multi-value case
+	// the old reduction was waiting on arrived through the *selector* — gold now matches both
+	// `{ tag: 'metal' }` and `{ id: 'gold' }` — and most-specific-wins resolves it, tested below.
+	// What stays unruled is narrower: the tag-versus-tag tie, where one material carries two class
+	// tags and there is no tiebreak between them (ruling point 6). This test is what keeps that
+	// shape unreachable, so a failure here means that specific ruling has come due.
 	for (const definition of MATERIALS) {
 		assertEquals(
 			definition.tags.length,
@@ -219,7 +381,10 @@ Deno.test('computeMaterialWeight: a favoured material outweighs an unfavoured pe
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1, stoneWorking: 1 } });
 	const metalLeaning = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 3], ['stone', 1]]),
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 3 },
+			{ selector: { tag: 'stone' }, weight: 1 },
+		],
 	});
 
 	const favoured = computeMaterialWeight(material('bronze'), metalLeaning, phase, geology);
@@ -233,7 +398,7 @@ Deno.test('computeMaterialWeight: a favoured material outweighs an unfavoured pe
 
 Deno.test('computeMaterialWeight: low phase technology suppresses but does not zero the weight', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 
 	const noTech = computeMaterialWeight(
 		material('bronze'),
@@ -253,7 +418,7 @@ Deno.test('computeMaterialWeight: low phase technology suppresses but does not z
 });
 
 Deno.test('computeMaterialWeight: scarcer materials weight lower than abundant ones', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1, stoneWorking: 1 } });
 	const geology = mockGeologicalContext(); // bronze abundant, iron scarce
 
@@ -269,7 +434,7 @@ Deno.test('computeMaterialWeight: a material absent from geology ranks at the `a
 	// one nobody made a claim about, not the most plentiful thing in the region; scoring it above
 	// every honestly-modelled peer let a fixture gap silently promote a material (doc 12 §2.25's
 	// silver/jade defect, from before the six exhaustive `MOCK_WORLD_REGIONS` existed).
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
 	const noEntry = mockGeologicalContext({ materialAvailability: new Map() });
 	const availableEntry = mockGeologicalContext({
@@ -301,7 +466,7 @@ Deno.test('computeMaterialWeight: a material absent from geology ranks at the `a
 Deno.test('computeMaterialWeight: scarcity rungs form a strict descending order', () => {
 	// Only one adjacent pair (abundant/scarce) was previously spot-checked, so a rung reordering
 	// that didn't cross that pair would pass silently. This checks the whole ladder.
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
 	const geologyAt = (level: 'abundant' | 'available' | 'scarce' | 'trade-only') =>
 		mockGeologicalContext({
@@ -328,7 +493,9 @@ Deno.test('computeMaterialWeight: scarcity rungs form a strict descending order'
 // --- explainMaterialWeight ---------------------------------------------------------------------------
 
 Deno.test('explainMaterialWeight: factors multiply back to computeMaterialWeight exactly', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map([['metal', 1.5]]) });
+	const culture = mockCulturalProfile({
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 1.5 }],
+	});
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 0.7 } });
 
 	// Covers all four mockGeologicalContext cases: bronze abundant, iron scarce, gold trade-only
@@ -364,7 +531,7 @@ Deno.test('explainMaterialWeight: factors multiply back to computeMaterialWeight
  * exercise every rung including `trade-only` both rescued and unrescued.
  */
 Deno.test('explainMaterialWeight: available agrees with isAvailable everywhere', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: {} });
 
 	for (const region of MOCK_WORLD_REGIONS) {
@@ -380,7 +547,7 @@ Deno.test('explainMaterialWeight: available agrees with isAvailable everywhere',
 });
 
 Deno.test('explainMaterialWeight: reports region-agnostic availability and level', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
 	const geology = mockGeologicalContext();
 
@@ -396,7 +563,7 @@ Deno.test('explainMaterialWeight: reports region-agnostic availability and level
 });
 
 Deno.test('explainMaterialWeight: tradeRescued is true only when a flow reaches a trade-only material', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
 	const geology = mockGeologicalContext(); // gold is trade-only
 
@@ -418,7 +585,7 @@ Deno.test('explainMaterialWeight: tradeRescued is true only when a flow reaches 
 });
 
 Deno.test('explainMaterialWeight: an unmodelled material reads level undefined but scarcity at the available rung', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { stoneWorking: 1 } });
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
 
@@ -448,7 +615,7 @@ Deno.test('explainMaterialWeight: an unmodelled material reads level undefined b
 
 Deno.test('assignMaterial: only returns materials compatible with allowedMaterialTags', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const woodOnly = component(['wood']);
 	const prng = createPrng('compat-seed');
@@ -461,7 +628,7 @@ Deno.test('assignMaterial: only returns materials compatible with allowedMateria
 
 Deno.test('assignMaterial: empty allowedMaterialTags treats every material as a candidate (2GN.10 stub)', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const unconstrained = component([]);
 	const prng = createPrng('unconstrained-seed');
@@ -479,7 +646,7 @@ Deno.test('assignMaterial: availability excluding every compatible material fall
 			) => [m.id, { materialId: m.id, regions: new Map([['r', 'absent' as const]]) }]),
 		),
 	});
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const woodOnly = component(['wood']);
 	const prng = createPrng('fallback-seed');
@@ -493,7 +660,7 @@ Deno.test('assignMaterial: availability excluding every compatible material fall
 
 Deno.test('assignMaterial: defaults to the shipped MATERIALS catalogue', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const allTags = [...new Set(MATERIALS.flatMap((m) => m.tags))] as MaterialTag[];
 	const anyTag = component(allTags);
@@ -596,9 +763,12 @@ Deno.test('assignMaterial: distribution — a metal-affine culture selects metal
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1, stoneWorking: 1 } });
 	const subject = component(['metal', 'stone']);
 
-	const indifferent = mockCulturalProfile({ materialAffinities: new Map() });
+	const indifferent = mockCulturalProfile({ materialAffinities: [] });
 	const metalLeaning = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 4], ['stone', 1]]),
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 4 },
+			{ selector: { tag: 'stone' }, weight: 1 },
+		],
 	});
 
 	const draws = 1000;
@@ -623,7 +793,10 @@ Deno.test('assignMaterial: distribution — a metal-affine culture selects metal
 Deno.test('assignMaterial: distribution — low metallurgy technology suppresses metal selection', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
 	const culture = mockCulturalProfile({
-		materialAffinities: new Map([['metal', 1], ['stone', 1]]),
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1 },
+			{ selector: { tag: 'stone' }, weight: 1 },
+		],
 	});
 	const subject = component(['metal', 'stone']);
 	const draws = 1000;
@@ -660,7 +833,7 @@ Deno.test('assignMaterial: distribution — low metallurgy technology suppresses
 });
 
 Deno.test('assignMaterial: distribution — a scarce material is drawn less than an abundant compatible peer', () => {
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
 	const geology = mockGeologicalContext(); // bronze abundant, iron scarce, both metal
 	const subject = component(['metal']);
@@ -832,7 +1005,7 @@ Deno.test('assignMaterials: one MaterialAssignment per component, in artefact.co
 
 Deno.test("assignMaterials: each assignment respects its own component's allowedMaterialTags", () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const artefact = mockNormalisedArtefact({
 		components: [
@@ -965,7 +1138,7 @@ Deno.test('assignMaterials: an artefact with no components returns an empty arra
 
 Deno.test('assignMaterials: defaults to the shipped MATERIALS catalogue', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();
 	const allTags = [...new Set(MATERIALS.flatMap((m) => m.tags))] as MaterialTag[];
 	const artefact = mockNormalisedArtefact({

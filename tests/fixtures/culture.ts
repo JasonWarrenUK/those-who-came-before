@@ -16,7 +16,6 @@ import type {
 	MotifSet,
 	PhaseCharacteristics,
 } from '../../src/lib/types/world.ts';
-import type { MaterialTag } from '../../src/lib/types/tags.ts';
 import type { DecorativeTechnique } from '../../src/lib/types/decoration.ts';
 
 /**
@@ -121,20 +120,22 @@ function mockCraftInvestment(): CraftInvestmentProfile {
  * `techniqueAffinities` (engraving/inlay/gilding), a single-motif vocabulary and a populated
  * craft-investment profile.
  *
- * Overrides merge shallowly per the `mockCulture` convention — `materialAffinities` and
- * `techniqueAffinities` are `Map`s, so callers wanting different affinities pass a whole
- * replacement `Map` (e.g. `{ materialAffinities: new Map() }` for a culture with no leanings at
- * all, or `{ techniqueAffinities: new Map() }` to isolate technique selection from motif/material
- * signals when exercising the four-quadrant independence roadmap 2GN.29 requires).
+ * Overrides merge shallowly per the `mockCulture` convention, so callers wanting different affinities
+ * pass a whole replacement branch: `{ materialAffinities: [] }` for a culture with no material
+ * leanings at all, or `{ techniqueAffinities: new Map() }` to isolate technique selection from
+ * motif/material signals when exercising the four-quadrant independence roadmap 2GN.29 requires.
+ *
+ * ⚠️ The two branches no longer share a shape (roadmap 2GN.123): `materialAffinities` is an array of
+ * `{ selector, weight }` entries resolved most-specific-wins, `techniqueAffinities` is still a `Map`.
  *
  * @param overrides - Partial `CulturalProfile` merged shallowly over the defaults.
  */
 export function mockCulturalProfile(overrides: Partial<CulturalProfile> = {}): CulturalProfile {
 	const defaults: CulturalProfile = {
-		materialAffinities: new Map<MaterialTag, number>([
-			['metal', 1.5],
-			['stone', 1.0],
-		]),
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 1.5 },
+			{ selector: { tag: 'stone' }, weight: 1.0 },
+		],
 		techniqueAffinities: mockTechniqueAffinities(),
 		motifVocabulary: mockMotifVocabulary('test-culture'),
 		craftInvestment: mockCraftInvestment(),
