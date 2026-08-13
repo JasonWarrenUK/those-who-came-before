@@ -277,7 +277,7 @@ function hasIntroducedMaterialAccess(
  *    `'form'` prerequisites are geometric, not material, and are resolved against a specific
  *    component by 2GN.30, not at the culture level this function operates on. "Plausibly has
  *    access" for a material substrate means: at least one material in `materials` both (a) the
- *    culture favours at better than neutral affinity (`bestMaterialAffinity(...) > 1`) and (b) can
+ *    culture favours at better than neutral affinity (`culturalAffinityWeight(...) > 1`) and (b) can
  *    actually obtain (`isAvailable`), and (c) satisfies the technique's `substrate.test`.
  * 2. **Introduced material** (roadmap 2GN.84). A technique can have a *non*-material substrate
  *    (`wire-wrapping`'s is `'form'`) while still introducing a material (`INTRODUCED_MATERIAL_TAGS`)

@@ -207,19 +207,19 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Thalassar',
 		description: 'Maritime-trade palace culture — moderate specialisation, clay and gilded glass.',
 		profile: {
-			// A `precious-metal: 1.2` entry sat here until roadmap 2GN.78 retired the tag. It was the
-			// only *live* precious affinity across the four presets (the others lost to a higher
-			// class-tag value under the max reduction), so dropping it lost real authored intent:
-			// Thalassar meant "we favour gold and silver", and the tag-keyed map had no way to say
-			// that about two specific materials. 2GN.110 ruled that gap closed and 2GN.123 re-keyed
-			// this map, so the shape to restore it now exists — `{ id: 'gold' }: 1.2, { id: 'silver'
-			// }: 1.2`, with no `metal` entry. ⏳ Deliberately NOT restored here: it moves material
-			// selection distributions, and this branch holds them still so the calibration guards
-			// stay green and prove the re-key was behaviour-neutral. The restoration and the
-			// `EXPECTED_FIRE_RATES` re-record land together in 2GN.123's second branch.
+			// Gold and silver restored (roadmap 2GN.123). A `precious-metal: 1.2` entry sat here until
+			// 2GN.78 retired that tag — the only *live* precious affinity across the four presets, so
+			// dropping it lost real authored intent. Thalassar means "we favour gold and silver", and
+			// the tag-keyed map had no way to say that about two specific materials: `metal: 1.2`
+			// would have newly favoured the bronze and iron this culture was never authored to prefer.
+			// Most-specific-wins (2GN.110) is what makes the naming exact — two `{ id }` entries and
+			// deliberately no `metal` entry, so every other metal reads the neutral 1 rather than
+			// inheriting anything.
 			materialAffinities: materialAffinities([
 				['clay', 1.7],
 				['glass', 1.1],
+				[{ id: 'gold' }, 1.2],
+				[{ id: 'silver' }, 1.2],
 			]),
 			techniqueAffinities: new Map([
 				['painting', 1.6],
