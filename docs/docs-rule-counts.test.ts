@@ -183,6 +183,7 @@ const SPELLED: Readonly<Record<string, number>> = {
 	'forty-two': 42,
 	'forty-three': 43,
 	'forty-four': 44,
+	'forty-five': 45,
 };
 const NUMBER_WORD = Object.keys(SPELLED).sort((a, b) => b.length - a.length).join('|');
 
