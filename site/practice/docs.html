@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The document suite · Those Who Came Before</title>
-<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
 
 <nav id="topbar">
   <div class="inner">
-    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand practice">Practice</span>
     <span class="here">Practice · The document suite</span>
   </div>
@@ -42,13 +42,13 @@
   <p>Specs usually meet implementation in one of two ways: the spec quietly rots while the code moves on, or somebody rewrites it and the reasoning behind the first version disappears. This suite does a third thing. When implementation contradicts doc 05, the original text stays put, and a dated implementation note lands directly beneath it recording what shipped instead, why, and which task made the change.</p>
   <p>A concrete run of it, from this year:</p>
   <ol>
-    <li>Section 8.2 of doc 05 ends a paragraph with "you don't gild wood".</li>
-    <li>Someone checks. Gilded wood over gesso is the commonest gilding in the historical record; the sentence is wrong, and so is the substrate test built on it.</li>
-    <li>The sentence is removed. A note dated 2026-08-07 lands where it stood, saying what was wrong, citing the task (2GN.101) that re-gated the test on rigidity.</li>
-    <li>Anyone who learned the old rule finds the correction exactly where their memory points; anyone arriving fresh reads the current rule and the fossil of the old one in the same screenful.</li>
+    <li>Doc 05 §8.3 describes decoration recursion depth as a single table keyed on craft specialisation and decorative emphasis, with two middle corners reading "technically refined" and "simple techniques".</li>
+    <li>Someone builds against it. The two middle corners turn out unsatisfiable by any single volume scalar: they differ by kind, not magnitude, which the table's own wording already says but a shared fill-probability term can't express.</li>
+    <li>The table stays exactly as written. A note dated 2026-08-06 lands directly beneath it, explaining the volume/grade split that shipped instead and citing the task (2GN.98) that made the call.</li>
+    <li>Anyone who learned the table finds the correction exactly where their memory points; anyone arriving fresh reads the shipped mechanism and the table it replaced in the same screenful.</li>
   </ol>
   <div class="callout"><span class="tag">Why keep the wrong text nearby</span>
-  The cost is a longer document. What it buys: the note names the evidence and the reasoning, so a future reader can re-litigate the decision; the spec doubles as a decision log without a separate ADR system to maintain; and a contradiction between doc and code is always one of two known states (note pending, or defect) rather than the usual third state of "who knows which is current". The decoration depth table is the pattern at full stretch: it stays in the doc even though its two middle corners were proven unsatisfiable, with the note explaining the volume/grade split that shipped instead.</div>
+  The cost is a longer document. What it buys: the note names the evidence and the reasoning, so a future reader can re-litigate the decision; the spec doubles as a decision log without a separate ADR system to maintain; and a contradiction between doc and code is always one of two known states (note pending, or defect) rather than the usual third state of "who knows which is current". Not every correction works this way: doc 05 §8.2's "you don't gild wood" was a flat factual error (gilded wood over gesso is the commonest gilding in the historical record) with nothing to preserve, so that one was deleted outright and replaced by the correction alone. The decoration depth table is the harder case, kept nearby because the table's own reasoning stays worth reading even though its conclusion doesn't hold.</div>
 
   <h2>The register, the spikes, the ids</h2>
   <p>Three mechanisms keep fourteen documents from contradicting each other:</p>
@@ -70,7 +70,7 @@
   <figcaption class="diagcap">Orientation feeds specification; governance corrects it; the corrections land back inside the specs, dated.</figcaption></figure>
 
   <h2>Reading order, if you go to the source</h2>
-  <p>Start with doc 02 (the six pillars), then doc 03 (the systems map), then doc 05 with these pages beside it; doc 00 carries reading orders for other purposes (implementing, reviewing, catching up on decisions). For code, <code>engine/prng.ts</code> then <code>engine/generation/grammar.ts</code> top to bottom. Start each module at its JSDoc block: the contracts live there, several run longer than the code beneath them, and the doc-12 cross-references inside them are load-bearing rather than decorative.</p>
+  <p>Start with doc 02 (the six pillars), then doc 03 (the systems map), then doc 05 with these pages beside it; doc 00 carries reading orders for other purposes (implementing, reviewing, catching up on decisions). For code, <code>src/lib/engine/prng.ts</code> then <code>src/lib/engine/generation/grammar.ts</code> top to bottom. Start each module at its JSDoc block: the contracts live there, several run longer than the code beneath them, and the doc-12 cross-references inside them are load-bearing rather than decorative.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
     Docs: <code>docs/00</code>–<code>13</code> · Spikes: <code>docs/spikes/</code> · Roadmap: <code>docs/roadmaps/mvp.md</code> (projection of <code>.claude/roadmaps.json</code>) · Agent guide: <code>.claude/CLAUDE.md</code>
@@ -79,12 +79,12 @@
 </main>
 
 <div class="pagenav">
-    <a href="/practice/explorer.html"><span class="dir">Previous</span>The Project Explorer</a>
+    <a href="explorer.html"><span class="dir">Previous</span>The Project Explorer</a>
 </div>
 
 <footer>
   Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
 </footer>
-<script src="/assets/highlight.js"></script>
+<script src="../assets/highlight.js"></script>
 </body>
 </html>
