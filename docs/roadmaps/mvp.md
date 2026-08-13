@@ -1436,7 +1436,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       rejecting it spends re-expansion budget enforcing probabilistically what construction can
       guarantee. ⚠️ blocks implementation rather than 2GN.108's ruling: reversal cannot be
       implemented for edged forms and retrofitted to a different general convention without
-      repeating the sweep
+      repeating the sweep. ⚠️ **constraint added 2026-08-13 by 2GN.118 (Finding 6):** `bar-form`'s
+      `taper: ['none','single-end','both-ends']` encodes _which end_, and `single-end` is not
+      reversal-invariant — reverse the component and it still reads "one end" while which end has
+      silently changed, with no data recording which it was. `none` and `both-ends` are symmetric
+      and survive reversal untouched; `single-end` is the sole asymmetric value in the parameter. No
+      production code reads it today (`hasImpactSurfaceIn` tests `bar-form`'s taper only for
+      `'none'`; `bladeProfile` reads `elongated`'s symmetric taper instead), so nothing breaks now —
+      but this spike must either make `single-end` a claim about the oriented axis or accept that
+      reversal silently corrupts it
 - [ ] **2GN.116** — design spike — should component roles (grip-system, head-system and whatever
       else the vocabulary needs) become first-class grammar output? _(unblocked)_ — filed 2026-08-13
       from the 2GN.108 spike session. All three rules in `data/plausibility.ts` are explicitly
