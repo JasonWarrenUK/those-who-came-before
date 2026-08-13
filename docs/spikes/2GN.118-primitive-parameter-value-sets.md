@@ -131,9 +131,20 @@ A reversal flips which end is which. `single-end` is not reversal-invariant: rev
 and it still says "one end", but _which_ end has silently changed, and no data records which it was.
 `none` and `both-ends` are symmetric and survive reversal untouched — `single-end` is the sole
 asymmetric value in the parameter. (`elongated`'s `taper`, the same name on a different primitive,
-is `['none','gradual','abrupt']`: a _how sharply_ axis, symmetric and unaffected.) Nothing reads
-`taper` today, so nothing breaks now. The moment 2GN.115's convention lands, `single-end` becomes
-either meaningless or a claim about the oriented axis.
+is `['none','gradual','abrupt']`: a _how sharply_ axis, symmetric and unaffected.)
+
+No classification rule reads `taper`, but the description layer does:
+`data/descriptions/observational/bar-form.ts:43` interpolates it into "The form narrows with a
+`#taper#` taper.", asserted at `prose.test.ts:123`. So `single-end` already reaches player-facing
+prose. That raises the stakes rather than lowering them: a reversal would leave a description
+asserting which end tapers while no data records which end it was, which is doc 02 pillar 3
+(Simulation Honesty) rather than a dormant-parameter problem. The moment 2GN.115's convention lands,
+`single-end` becomes either meaningless or a claim about the oriented axis.
+
+Method note: the first pass of this finding said nothing read `taper`, because it searched for
+`prop(component, 'taper')` and found only the classification readers. Templates reach parameters by
+`#name#` interpolation, so a symbol search misses them entirely. That is this spike's own Wider
+Lesson landing on the spike: a search shape finds only what it is shaped to find.
 
 Filed as a constraint on 2GN.115 rather than a task of its own — it constrains that ruling rather
 than standing alone.
