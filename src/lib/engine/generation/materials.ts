@@ -198,6 +198,16 @@ export function isAvailable(
  * `find` below therefore takes first-match by array order — **an implementation detail, not a
  * ruling.** Do not read array order as a decision; the ruling comes due if that test ever fails.
  *
+ * ⚠️ Two duplicate entries with the *same* selector hit that first-match rule too, and unlike the
+ * tag tie nothing prevents authoring them: `[{ id: 'gold' }: 0.5, { id: 'gold' }: 2.0]` resolves to
+ * 0.5. The `Map` this replaced would have kept the last such entry, so the shape change reversed
+ * which duplicate wins. Neither is ruled and no authored data duplicates a selector; if that ever
+ * matters, it wants a validation pass at authoring time rather than a tiebreak here.
+ *
+ * Weights are not validated. A negative weight resolves through unchanged and reaches
+ * `computeMaterialWeight`, where `weightedSelect`'s `Math.max(0, …)` clamps it to zero — defined
+ * behaviour rather than a crash, but the type permits a value the semantics have no reading for.
+ *
  * Exported so `decoration.ts` can share it rather than inline a second copy, which is what the two
  * previously-divergent JSDoc blocks were apologising for.
  *

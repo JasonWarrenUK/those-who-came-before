@@ -303,6 +303,56 @@ Deno.test('culturalAffinityWeight: specificity wins regardless of authoring orde
 	assertEquals(culturalAffinityWeight(material('gold'), classFirst), 0.8);
 });
 
+Deno.test('culturalAffinityWeight: duplicate selectors resolve first-match, not last', () => {
+	// Documented in the resolver's JSDoc and pinned here so the claim is checked rather than
+	// asserted. Nothing prevents authoring the same selector twice, and the array reversed which
+	// duplicate wins: the `Map` this replaced kept the last entry, `find` takes the first. Neither
+	// is ruled — this test exists to make a change to that behaviour deliberate rather than silent.
+	const duplicated = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { id: 'gold' }, weight: 0.5 },
+			{ selector: { id: 'gold' }, weight: 2 },
+		],
+	});
+
+	assertEquals(culturalAffinityWeight(material('gold'), duplicated), 0.5);
+
+	// Same rule one level up, where two class entries cover the same material.
+	const duplicatedClass = mockCulturalProfile({
+		materialAffinities: [
+			{ selector: { tag: 'metal' }, weight: 0.5 },
+			{ selector: { tag: 'metal' }, weight: 2 },
+		],
+	});
+
+	assertEquals(culturalAffinityWeight(material('bronze'), duplicatedClass), 0.5);
+});
+
+Deno.test('culturalAffinityWeight: a negative weight is clamped downstream, not here', () => {
+	// The resolver does not validate, so a negative weight resolves through unchanged. It reaches
+	// `weightedSelect`, whose `Math.max(0, …)` clamps it — defined behaviour rather than a crash,
+	// and worth pinning because the clamp lives two modules away from the value that needs it.
+	const negative = mockCulturalProfile({
+		materialAffinities: [{ selector: { id: 'gold' }, weight: -1 }],
+	});
+
+	assertEquals(culturalAffinityWeight(material('gold'), negative), -1);
+
+	// Selection still terminates and still returns a legal material.
+	const geology = mockGeologicalContext({ materialAvailability: new Map() });
+	const phase = mockPhaseCharacteristics({ technology: { metallurgy: 1 } });
+	const picked = assignMaterial(
+		component(['metal']),
+		negative,
+		phase,
+		geology,
+		[],
+		createPrng('negative-affinity'),
+	);
+
+	assert(MATERIALS.some((m) => m.id === picked.id), 'selection must return a shipped material');
+});
+
 Deno.test('culturalAffinityWeight: a per-material entry reaches material selection end to end', () => {
 	// The resolver is only worth having if the weight it returns actually moves a draw. Two cultures
 	// identical but for a single `{ id: 'gold' }` exception should select gold at different rates.
