@@ -1347,7 +1347,7 @@
 					{
 						"id": "2GN.93",
 						"description": "`engine/generation/description.ts` — variant selection honours `condition`: filter candidates by the component's assigned material (via the `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.91",
 							"2GN.111"
@@ -1377,18 +1377,18 @@
 					},
 					{
 						"id": "2GN.105",
-						"description": "`engine/generation/materials.ts` + `types/artefact.ts` + `data/materials.ts` — let a material carry per-state property values (at minimum worked vs finished) rather than one silently-finished-state set, and re-audit the six pre-2GN.102 `physicalProperties` axes (`hardness`, `fragility`, `rigidity`, `grainFineness`, `porosity`, `combustibility`) against the working-state convention 2GN.102 established for `formability` but did not apply to them",
-						"status": "blocked",
+						"description": "`engine/generation/materials.ts` + `types/artefact.ts` + `data/materials.ts` — apply 2GN.111's ruling to the property model: give `rigidity` per-state values (`{worked, finished}`), re-author `fragility` and `hardness` to the **working** state across all 16 materials (they feed `computeLayerGrade` and nothing else, so the current finished-state authoring is wrong — glass `fragility: 7` cold while decorated hot, fired clay `6` fired while decorated wet), and document the pinned state on `formability` (working) and the state-independence of `grainFineness`, `porosity` and `combustibility`. ⚠️ re-authoring `fragility`/`hardness` shifts `meanDecorativeGrade` for glass and fired clay, so the 2GN.79 calibration guard will flag it and `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.111"
 						],
-						"notes": "Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ.",
+						"notes": "Rescoped 2026-08-13 by the 2GN.111 ruling. Was filed presupposing per-state values on every axis ('at minimum worked vs finished'); the spike measured that exactly one axis needs them, so this task now audits a specific list rather than performing a general reconciliation. Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.106",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — add `formability` to `MaterialDifficultyAxis`, an `AXIS_NORMALISATION` entry, and per-technique `TECHNIQUE_MATERIAL_SENSITIVITY` weights, with re-measured grade distributions and 2GN.103's regional pins re-verified",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.102",
 							"2GN.111"
@@ -1399,7 +1399,7 @@
 					{
 						"id": "2GN.107",
 						"description": "`data/decorations.ts` — sweep every `kind: 'material'` substrate test for exclusions that are artefacts of a proxy axis rather than attested practice, the way `relief`'s leather exclusion was",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.102",
 							"2GN.111"
@@ -1440,11 +1440,12 @@
 					{
 						"id": "2GN.111",
 						"description": "design spike — should `MaterialDefinition.physicalProperties` carry per-state values at all, and if so which states? 2GN.102 established a working-state convention for `formability` alone and named the inconsistency in `types/artefact.ts`'s preamble without resolving it (doc 12 §2.38); 2GN.105 was then filed presupposing the answer (\"at minimum worked vs finished\"). Rule the shape before the re-audit: whether a per-state model is warranted or the six pre-2GN.102 axes should instead be pinned to one documented state, how many states (`worked`/`finished`, or a third for `raw`), whether every axis needs every state or only those where the states genuinely differ, and what that does to the authoring burden across 16 materials × 7 axes. `glass`, `iron`, `fired-clay` and `leather` are the known-affected entries. 2GN.105 re-pointed to depend on this rather than on 2GN.102 directly, so the audit follows the ruling instead of assuming it",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.102"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "Ruled 2026-08-13 — see docs/spikes/2GN.111-per-state-physical-properties.md, doc 11 §2.14 and doc 12 §2.46. **Per-state on `rigidity` alone** (`{worked, finished}`); every other axis stays scalar with a documented state. Two states, not three. **The consumers are the fault line, not the physics**: three axes vary strongly by state and one marginally, but what decides the shape is which state each reader needs. `relief` (`formability >= 3`) and wire-drawing (`formability >= 5`) ask working-state questions; the three `rigidity >= 3` gates on inlay/wrapping ask a finished-state one; `computeLayerGrade` reads its six difficulty axes in the working state, since difficulty is incurred while working. Bronze is the deciding case — whether it can be forged into a raised form and whether the finished object holds wire wrapped round it are both true and are different numbers, so no single convention serves both. Only `rigidity` is asked in both states by different consumers. Pinning: `formability` working (already correct), `fragility` working, `hardness` working, `grainFineness`/`porosity`/`combustibility` state-independent. Blanket per-state rejected — 16×7×3 = 336 values to capture variation in four axes, and a uniform shape invites false precision (an author given three boxes fills all three). `raw` rejected: no consumer asks about an unworked material. ⚠️ **`fragility` and `hardness` are a live defect**: both feed `computeLayerGrade` and nothing else, so working state is the only correct reading, yet both are authored finished-state — glass carries `fragility: 7` (cold) while decorated hot, fired clay `6` (fired) while decorated wet, both inflating difficulty. The correction is independent of the shape change and ⚠️ **shifts `meanDecorativeGrade`** for those materials, so the 2GN.79 guard will flag it — sequence with the other recalibration-bearing work. Rescoped 2GN.105."
 					},
 					{
 						"id": "2GN.112",
