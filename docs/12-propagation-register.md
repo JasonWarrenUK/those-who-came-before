@@ -2397,5 +2397,253 @@ can sit.
 
 ---
 
+### 2.43 Short-Bodied Edged Tools Ruled In; `position` Is Not the Oriented Axis It Documents (2026-08-13)
+
+**Origin:** 2GN.108 design spike **Source of truth:**
+`docs/spikes/2GN.108-short-bodied-edged-tools.md`; decision locked in doc 11 §2.11
+
+**2GN.87 left the generation question open and this spike closes it: the form is ruled in.** Whether
+the generator should produce a short-bodied edged tool that is not a formed blade (scraper, chisel,
+small adze) was deliberately not inherited from the deleted R4, which was a truth-table patch with
+an archaeological reading attached afterwards. Ruled in on grounds that are **not** archaeological
+completeness.
+
+**The missing shapes are not uniformly distributed across the tag space.** They occupy the working/
+craft/domestic region, so their absence removes one region rather than thinning the corpus evenly,
+leaving edged artefacts skewed towards blade-family readings because a long-axis edged form is the
+only edged form reachable. That skew propagates into culture tag profiles, and the lens feeds on tag
+co-occurrence (doc 04), so it surfaces as **repetition in the core mechanic**. ⚠️ §2.9's
+culture-relative baselines cannot compensate: they sample the same narrowed distribution, so
+relativity cannot restore variety that was never generated. **General lesson: a content gap upstream
+of a variety mechanism is not fixed by that mechanism.**
+
+**All three mechanisms carried over from 2GN.87 treat symptoms.** A shorter `elongated.length` rung,
+decoupling `bladeLengthBand` from the shared cm table, and de-`Math.max`-ing `primaryExtent` each
+address one arm of the coupling. The actual defect is that **`bladeLengthBand` bands the wrong
+quantity**: absolute length cannot separate a scraper (edge-dominant, short) from a dagger
+(edge-dominant, long) from a hafted adze (long body, short edge). The distinction is proportional —
+the span from the edged component to where a hand would hold it. The strict `(axis, blade)` triangle
+2GN.87 measured is a symptom of measuring the wrong thing.
+
+**Grip-to-edge is derivable today; no role vocabulary is needed.** `data/plausibility.ts` states the
+model "needs a component-role vocabulary this project doesn't have yet", and all three of its rules
+are proxies accordingly. But `NormalisedArtefact.attachments` is a populated typed from/to graph and
+`NormalisedComponent` carries `position` plus derivable extents, so the span is a traversal over
+structure that already exists — **the proxies never used the graph they had.** Two scoping claims
+made during the spike were wrong and are corrected here: doc 05's `arrangementGroup` is repetition
+structure (`symmetric`/`radial`/`linear-array`), unrelated to role; and the
+`'grip-system'`/`'head-system'` strings in `types/interpretation.ts` are JSDoc illustration, not a
+defined type. A role vocabulary would be genuinely new, which is why it is ruled separately
+(2GN.116) rather than assumed.
+
+**The root cause: `position` is documented as an oriented axis and is not one.** Doc 05 §6.1 calls
+it "Ordering along the primary axis", intended to carry a shared direction across artefacts —
+working end at one pole. `grammar.ts` mints it as a depth-first traversal index reflecting grammar
+expansion order, so a blade can land at position 0 with its haft after it and nothing corrects it.
+Normalisation must **orient**, not merely flatten. **General lesson, extending §2.39's corollary: a
+field's documented intent is not a claim about what its derivation enforces.** Three plausibility
+proxies were authored to work around an absence no measurement had named.
+
+**Orientation is by reversal, not rejection.** A mirrored artefact carries no information — it is
+the same artefact described backwards — so rejecting it spends re-expansion budget (2GN.16)
+enforcing probabilistically what construction can guarantee, and would discard roughly half of
+otherwise-valid two-part edged forms. The general working-end definition is deferred to 2GN.115,
+which ⚠️ blocks **implementation** rather than this ruling: reversal cannot be implemented for edged
+forms and retrofitted to a different general convention without repeating the recalibration sweep.
+
+| §  | Propagation                                                                                                   | Date       |
+| -- | ------------------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `docs/spikes/2GN.108-short-bodied-edged-tools.md`: new spike write-up, findings and rejected alternatives     | 2026-08-13 |
+| —  | Doc 11 §2.11: locked decision (form ruled in, proportional banding, orientation by reversal)                  | 2026-08-13 |
+| ⏳ | Doc 05 §6.1: `position` gains an orientation contract; `bladeLengthBand`'s derivation restated — with 2GN.117 | 2026-08-13 |
+| —  | Roadmap: 2GN.108 closed; 2GN.115 and 2GN.116 filed; 2GN.117 filed as the implementation placeholder           | 2026-08-13 |
+| —  | Roadmap: 2GN.13 and 2GN.14 gain a `dependsOn` edge to 2GN.116, moving both `todo` → `blocked`                 | 2026-08-13 |
+| ⏳ | 2GN.109 confirmed live (it was void only if the form had been ruled out) — authored with the sweep            | 2026-08-13 |
+| ⏳ | Set-wide recalibration shared with 2GN.67, 2GN.69, 2GN.109 and 2GN.117: sequence once, re-record fire rates   | 2026-08-13 |
+
+---
+
+### 2.44 The Categorical Rules Wanted Conditions, Not Baselines; 10 of 24 Read One Property (2026-08-13)
+
+**Origin:** 2GN.97 design spike **Source of truth:**
+`docs/spikes/2GN.97-categorical-relative-award-rules.md`; decision locked in doc 11 §2.12
+
+**The brief was rejected, not answered.** §2.31 split this task out of 2GN.82 as "what does relative
+mean for a categorical band", offering a prevalence baseline, a `stratification` gate or
+weight-scaling. Measuring the rules first found that four of the five groups they fall into do not
+want a baseline at all, and the largest finding was invisible from inside the question as posed.
+**General lesson: a brief encodes the understanding available when it was filed.** §2.39 recorded
+the converse for rules — a condition can outlive the intent that authored it — and this records it
+for tasks. Where a brief names a solution shape, the first measurement should test whether that
+shape fits, not how to build it.
+
+**Count corrected: 24, not 25.** The roadmap figure predated §2.39's deletion of R4. Measured
+against the current array: 34 rules award at least one `RelativeTag`, 10 carry a migrated `exceeds`
+call.
+
+**Group A2 is not fixable by weighting, because accumulation is additive.** `classifyArtefact` sums
+`tag → weight` with no suppression, competition or normalisation, so awarding two readings at half
+weight is indistinguishable downstream from two confident unrelated rules contributing the same
+scores — an ambiguous artefact reads as weakly-everything rather than strongly-uncertain. Splitting
+weights was rejected on that basis before the ambiguity was reframed (below).
+
+**The wall rules are unrelativisable.** `wallThickness` is `wall: ['thin','medium','thick']` rolled
+by the grammar with no continuous value anywhere beneath it. Prevalence counts band frequency, which
+says nothing about actual thickness: a culture whose walls are all 3mm and one whose walls are all
+30mm both read "100% thin" depending only on where the global cut falls, so **one culture's thick
+may be physically thinner than another's thin and no baseline recovers it.** Fourth instance of the
+band-computed-from-an-absolute-table family after §2.26 (mass), §2.39 (blade) and §2.43 (axis).
+Filed 2GN.120; the two rules stay absolute and blocked-with-reason meanwhile.
+
+**The base rules are under-conditioned, and `baseType` is innocent.** Stress-tested against the wall
+case it passes both tests — no crushed quantity (a pedestal is not "very flat"), and prevalence
+would be a real comparable number. It is still the wrong answer: **a base is a relation between the
+base and what it supports.** A pedestal under a statue and one under a hat-stand read oppositely
+from an identical `baseType`, and the difference is not cultural, so no relativisation separates
+them.
+
+**The finding that outgrew the brief.** Across all 43 rules: **10 of the 24 condition on exactly one
+property** (`f.x === 'value'` and nothing else); 7 more read two properties of the same component
+(the container rules pair `hasContainer`, a presence flag, with a feature extracted off the dominant
+container); **exactly one is genuinely relational** (`motif-multiple-origins`). `attachments` and
+`position` are populated and read by no rule — the same unused-graph finding as §2.43, reached from
+the classification side. ⚠️ The defect crosses doc 11 §2.9's boundary:
+`perforation-central-rotation` awards `tool`, an `AbsoluteTag`, and is under-conditioned
+identically, so it is **a property of how conditions are written, not of which vocabulary they award
+from**. Filed 2GN.119, scoped to all 43.
+
+| §  | Propagation                                                                                                | Date       |
+| -- | ---------------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `docs/spikes/2GN.97-categorical-relative-award-rules.md`: new spike write-up                               | 2026-08-13 |
+| —  | Doc 11 §2.12: locked decision (baselines are not the answer; five groups)                                  | 2026-08-13 |
+| —  | Roadmap: 2GN.97 closed, unblocking 2GN.72 (per-component feature provenance)                               | 2026-08-13 |
+| —  | Roadmap: 2GN.119 (relational conditioning, all 43 rules) and 2GN.120 (derived wall thickness) filed        | 2026-08-13 |
+| —  | Roadmap: 2GN.118 (primitive value-set audit) filed, blocking 2GN.10, 2GN.21, 2GN.109, 2GN.117              | 2026-08-13 |
+| ⏳ | `data/classification.ts`: the two wall rules annotated absolute-with-reason — with 2GN.120                 | 2026-08-13 |
+| ⏳ | `precious-materials-in-decoration` recorded dormant, not unmigrated — feature stubbed `false` since 2GN.78 | 2026-08-13 |
+
+---
+
+### 2.45 Affinities Take the Flow Selector; Most-Specific-Wins Retires the `max` Reduction (2026-08-13)
+
+**Origin:** 2GN.110 design spike **Source of truth:**
+`docs/spikes/2GN.110-per-material-affinities.md`; decision locked in doc 11 §2.13
+
+**The expressive loss §2.40 accepted is recovered, by reusing §2.41's selector.** Retiring the
+`precious-*` tags left `materialAffinities` keyed by `MaterialTag` alone, so a culture could say "we
+prize metal" but not "we prize gold". Thalassar's authored `precious-metal: 1.2` — the only _live_
+precious affinity across the four Explorer presets — was dropped rather than re-expressed as
+`metal: 1.2`, which would newly favour bronze and iron it was never authored to prefer. The map is
+now keyed by `MaterialSelector`, the tagged union 2GN.112 built for `MaterialFlow`, and for the
+identical reason: `bone`, `glass` and `leather` each name both a tag and a material, so a bare union
+cannot distinguish them and precedence would make three of sixteen materials unselectable by one of
+their readings.
+
+**Only half the flow pattern transfers.** `MaterialFlow` pairs `includes` with `excludes` because
+membership needs subtraction ("all metals except gold"). Affinities are weights, so there is nothing
+to subtract; the exception case is carried by the resolution rule instead.
+
+**Adopting the selector forced a ruling that had been deferred indefinitely.**
+`culturalAffinityWeight`'s `max` across a material's tags is inert today — every shipped material
+carries exactly one tag — and its own JSDoc flagged the reduction as unruled "if a genuine multi-tag
+material is ever authored". Per-material entries make the multi-value case arrive immediately, via
+the selector rather than via a multi-tag material: gold carries both `{ tag: 'metal' }` and
+`{ id: 'gold' }`. **General lesson: a dormant code path accumulates no evidence about itself.** The
+reduction survived §2.40 and 2GN.84 because it never fired, so nothing tested it and no measurement
+contradicted it. When a shape change makes a dormant path live, the ruling it was always waiting for
+comes due in the same change, not afterwards.
+
+**Resolution is most-specific-wins, and `max` is already known wrong.** 2GN.84 measured the max
+_discarding_ authored `precious-*` values whenever the class tag scored higher (3 of 5 dead that
+way), so ⚠️ a specific entry could only ever raise a material, never lower it — the one-directional
+behaviour that was itself evidence the precious tags encoded a judgement rather than a class.
+Most-specific-wins is bidirectional and keeps authored value and computed weight identical, where
+product-of-deviations does not: `metal: 1.5` × `gold: 0.8` yields 1.2, so a below-neutral authored
+value produces an above-neutral result, reading as mild favour when disfavour was meant.
+
+**Two consumers move together, one cannot participate.** `culturalAffinityWeight` (`materials.ts`)
+and `bestMaterialAffinity` (`decoration.ts`) inline the same reduction, as that JSDoc already
+required. ⚠️ `effectiveOptionWeight` (`grammar.ts`) reads affinities by tag with a deliberate `?? 0`
+default and **cannot consult a per-material entry even in principle**: it weights grammar options by
+`culturalModifiers` at stage 4, and materials are not assigned until stage 6, so it never sees a
+material. A stage-ordering fact, recorded so it is not later "fixed" into consistency.
+
+**The boundary, stated as the brief asked.** A per-material affinity is a culture's judgement about
+a material, legitimate under §2.28's ruling precisely because it is _that culture's_ opinion. The
+retired tags lived in `data/materials.ts` as a property of the material itself, stamping one
+judgement onto every culture in every world. **The test is where the statement lives, not how
+specific it is.** Specificity was never the problem; universality was.
+
+| §  | Propagation                                                                                         | Date       |
+| -- | --------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `docs/spikes/2GN.110-per-material-affinities.md`: new spike write-up                                | 2026-08-13 |
+| —  | Doc 11 §2.13: locked decision (selector keying, most-specific-wins, the where-it-lives boundary)    | 2026-08-13 |
+| ⏳ | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule — with the implementation          | 2026-08-13 |
+| ⏳ | `types/world.ts`: `materialAffinities` re-keyed to `Map<MaterialSelector, number>`                  | 2026-08-13 |
+| ⏳ | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together            | 2026-08-13 |
+| ⏳ | `data/explorer-cultures.ts`: Thalassar's dropped gold/silver intent re-authored as specific entries | 2026-08-13 |
+| —  | Roadmap: 2GN.110 closed; the tag-versus-tag tie recorded as explicitly unruled                      | 2026-08-13 |
+
+---
+
+### 2.46 Per-State Values on `rigidity` Alone; Two Axes Were Authored Against the Wrong State (2026-08-13)
+
+**Origin:** 2GN.111 design spike **Source of truth:**
+`docs/spikes/2GN.111-per-state-physical-properties.md`; decision locked in doc 11 §2.14
+
+**§2.38 recorded the inconsistency and deferred the fix; this rules the shape, and it is narrower
+than the deferral assumed.** 2GN.105 was filed presupposing per-state values on every axis ("at
+minimum worked vs finished"). Measuring first found that **exactly one axis needs them**.
+
+**Three axes vary strongly by state, but that is not what decides the shape — the consumers are.**
+`fragility` (glass 7 cold, ~1 hot; fired clay 6 fired, ~1 wet), `rigidity` and `formability` all
+move with state; `hardness` moves marginally; `grainFineness`, `porosity` and `combustibility` do
+not move at all. What matters is which state each _reader_ needs: `relief` (`formability >= 3`) and
+wire-drawing (`formability >= 5`) ask working-state questions, the three `rigidity >= 3` gates on
+`overlay`/`studs`/`gilding` ask a finished-state one, and `computeLayerGrade` reads its six
+difficulty axes in the working state because difficulty is incurred while working.
+
+**Bronze decides it.** Whether bronze can be forged into a raised form, and whether the finished
+object still holds applied leaf, are both true and are different numbers. No single convention
+serves both: pinning to working breaks the rigidity gates, pinning to finished breaks `relief`. ⚠️
+`relief`'s own predicate family already mixes conventions — it gates on working-state `formability`
+while its siblings gate on finished-state `rigidity`, which is §2.38's inconsistency with the
+tripping consumer now identified. **Only `rigidity` is asked in both states by different consumers,
+so only `rigidity` becomes `{ worked, finished }`.**
+
+**A blanket per-state model was rejected on authoring cost and on precision.** 16 materials × 7 axes
+× 3 states = 336 values to capture variation in four axes, 48 of them three identical numbers.
+**General lesson: a uniform shape invites false precision** — an author given three boxes fills all
+three, inventing distinctions that do not exist, the same failure as authoring a rule against a
+combination nobody established was reachable (§2.39). `raw` was rejected for the matching reason: no
+consumer asks about an unworked material, so the rung would author 16 values nothing reads.
+
+**⚠️ Two axes turn out to be authored against the wrong state, which is a live defect.** `fragility`
+and `hardness` feed `computeLayerGrade` and nothing else, so working state is the only correct
+reading — yet both are authored finished-state. Glass carries `fragility: 7` (cold) while being
+decorated hot; fired clay carries `6` (fired) while being decorated wet. **Both inflate execution
+difficulty for materials worked in a far more forgiving state.** The correction is independent of
+the shape change and moves `meanDecorativeGrade` for those materials, so the 2GN.79 guard will flag
+it.
+
+**General lesson: a new axis is a probe.** The six axes were authored against the finished object
+_by default rather than by decision_ — the question was never posed, so each author answered it
+implicitly, consistently enough that nothing looked wrong, and only `fired-clay`'s data-file comment
+ever named the choice. 2GN.102 exposed it by adding an axis that could not be authored without
+asking. **The question a new axis forces is often one its siblings silently answered differently** —
+and here, two of the six answered it wrongly for the only consumer that reads them.
+
+| §  | Propagation                                                                                           | Date       |
+| -- | ----------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `docs/spikes/2GN.111-per-state-physical-properties.md`: new spike write-up                            | 2026-08-13 |
+| —  | Doc 11 §2.14: locked decision (per-state on `rigidity` alone; the pinning table)                      | 2026-08-13 |
+| ⏳ | Doc 05 §7: the property model's state conventions — with 2GN.105                                      | 2026-08-13 |
+| ⏳ | `types/artefact.ts`: `rigidity` becomes `{ worked, finished }`; the preamble's deferral discharged    | 2026-08-13 |
+| ⏳ | `data/materials.ts`: `fragility`/`hardness` re-authored to working state across 16 materials          | 2026-08-13 |
+| ⏳ | Calibration: `meanDecorativeGrade` moves for glass and fired clay; re-record with the drift annotated | 2026-08-13 |
+| —  | Roadmap: 2GN.111 closed; 2GN.105 rescoped from "per-state on every axis" to the specific audit list   | 2026-08-13 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
