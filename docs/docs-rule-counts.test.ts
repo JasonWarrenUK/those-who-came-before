@@ -2,6 +2,10 @@
 import { assert } from '@std/assert';
 import { CLASSIFICATION_RULES } from '../src/lib/data/classification.ts';
 import { RELATIVE_TAGS } from '../src/lib/types/tags.ts';
+import { MATERIALS } from '../src/lib/data/materials.ts';
+import { DECORATIVE_TECHNIQUES } from '../src/lib/data/decorations.ts';
+import { PRIMITIVE_TYPES } from '../src/lib/data/grammars/primitives.ts';
+import { CORE_GRAMMAR_RULES } from '../src/lib/data/grammars/core.ts';
 
 /**
  * Fails when prose states a classification-rule count that no longer matches the shipped array.
@@ -121,6 +125,113 @@ const TOTAL_PATTERNS: readonly RegExp[] = [
 /** Prose asserting the relative/total split, e.g. "34 of the 43 rules". */
 const SPLIT_PATTERN = /\b(\d+) of the (\d+) (?:shipped )?rules\b/g;
 
+/**
+ * The site's prose almost never writes counts as digits. Doc 05's register and the pipeline
+ * explainer's both spell them out — "Sixteen materials", not "16 materials" — so the classification
+ * guard's `\d+`-only patterns are structurally blind to most of the claims on the page. This map is
+ * what makes those claims matchable at all; keep it exactly as wide as English attestable numbers
+ * for the quantities this repo actually uses (materials, primitives, techniques, rules, docs), not
+ * a general-purpose number-word parser.
+ */
+const SPELLED: Readonly<Record<string, number>> = {
+	one: 1,
+	two: 2,
+	three: 3,
+	four: 4,
+	five: 5,
+	six: 6,
+	seven: 7,
+	eight: 8,
+	nine: 9,
+	ten: 10,
+	eleven: 11,
+	twelve: 12,
+	thirteen: 13,
+	fourteen: 14,
+	fifteen: 15,
+	sixteen: 16,
+	seventeen: 17,
+	eighteen: 18,
+	nineteen: 19,
+	twenty: 20,
+	forty: 40,
+	'forty-two': 42,
+};
+const NUMBER_WORD = Object.keys(SPELLED).sort((a, b) => b.length - a.length).join('|');
+
+/**
+ * A claim of shape "{spelled-or-digit number} {noun phrase}", checked against a value derived from
+ * shipped source — never hand-typed here, so this table can't itself drift the way the prose it
+ * guards did.
+ *
+ * Each pattern requires a whole-catalogue qualifier — "all", "the catalogue of", or the number
+ * opening its own clause followed by ", each" / "cover the MVP" (the shape every live claim this
+ * extension found actually uses: "Sixteen materials, each a definition…", "Four production rules
+ * cover the MVP") — for the same reason `TOTAL_PATTERNS` above requires "all N rules" rather than a
+ * bare "N rules": an unqualified match catches subset references like "the other five techniques"
+ * or "the three form-substrate techniques", which this extension's first draft did, loudly, against
+ * doc 12 and doc 01's historical prose (roadmap 2GN.115 audit). Add an entry here only for a claim
+ * that has actually gone stale once, or that this extension's own audit found live in `site/` — not
+ * speculatively for every number in the codebase.
+ */
+interface KeyedClaim {
+	/** Matches a leading number word or digit run, captured as group 1, in a fixed noun phrase. */
+	pattern: RegExp;
+	expected: number;
+	label: string;
+}
+/** One entry per matched shape, so each regex has exactly one capture group. */
+const KEYED_CLAIMS: readonly KeyedClaim[] = [
+	{
+		pattern: new RegExp(`\\ball (${NUMBER_WORD}|\\d+) materials\\b`, 'gi'),
+		expected: MATERIALS.length,
+		label: 'materials.ts MATERIALS',
+	},
+	{
+		pattern: new RegExp(`(?:^|>)(${NUMBER_WORD}|\\d+) materials, each\\b`, 'gim'),
+		expected: MATERIALS.length,
+		label: 'materials.ts MATERIALS',
+	},
+	{
+		pattern: new RegExp(`\\b(?:all )?(${NUMBER_WORD}|\\d+) geometric primitives\\b`, 'gi'),
+		expected: PRIMITIVE_TYPES.length,
+		label: 'grammars/primitives.ts PRIMITIVE_TYPES',
+	},
+	{
+		pattern: new RegExp(
+			`\\b(${NUMBER_WORD}|\\d+) production rules (?:cover the MVP|exist)\\b`,
+			'gi',
+		),
+		expected: CORE_GRAMMAR_RULES.length,
+		label: 'grammars/core.ts CORE_GRAMMAR_RULES',
+	},
+	{
+		pattern: new RegExp(`\\ball (${NUMBER_WORD}|\\d+) (?:decorative )?techniques\\b`, 'gi'),
+		expected: DECORATIVE_TECHNIQUES.length,
+		label: 'decorations.ts DECORATIVE_TECHNIQUES',
+	},
+	{
+		pattern: new RegExp(`(?:^|>)(${NUMBER_WORD}|\\d+) techniques, three families\\b`, 'gim'),
+		expected: DECORATIVE_TECHNIQUES.length,
+		label: 'decorations.ts DECORATIVE_TECHNIQUES',
+	},
+];
+
+/**
+ * "Fourteen documents," / "fourteen documents from" — docs/NN-*.md, doc 00 through 13. Qualified to
+ * those two shapes, not a bare "N documents" (which also matches the pipeline explainer's SVG label
+ * "10 documents", short for "docs 04–10", a section range rather than a count). Built by
+ * `docCountClaim()` rather than a literal here, so adding or retiring a numbered doc doesn't require
+ * remembering to update a second count that lives in this file.
+ */
+function docCountClaim(count: number): KeyedClaim {
+	return {
+		pattern: new RegExp(`\\b(${NUMBER_WORD}|\\d+) documents(?:,| from)\\b`, 'gi'),
+		expected: count,
+		label: 'docs/NN-*.md count',
+	};
+}
+
 interface Mention {
 	file: string;
 	line: number;
@@ -187,7 +298,17 @@ function isEmbeddedData(line: string): boolean {
 	return /<script[^>]*\btype\s*=\s*["']application\/json["']/i.test(line);
 }
 
-function scan(path: string, source: string): Mention[] {
+/** Resolves a captured number-word-or-digit token to its integer value. */
+function parseCount(token: string): number {
+	const lower = token.toLowerCase();
+	return lower in SPELLED ? SPELLED[lower] : Number(token);
+}
+
+function scan(
+	path: string,
+	source: string,
+	keyedClaims: readonly KeyedClaim[] = KEYED_CLAIMS,
+): Mention[] {
 	const lines = source.split('\n');
 	const mentions: Mention[] = [];
 
@@ -224,6 +345,20 @@ function scan(path: string, source: string): Mention[] {
 					problem:
 						`states ${statedRelative} of ${statedTotal}; the array ships ${RELATIVE_COUNT} of ${RULE_COUNT}`,
 				});
+			}
+		}
+
+		for (const claim of keyedClaims) {
+			for (const match of line.matchAll(claim.pattern)) {
+				const stated = parseCount(match[1]);
+				if (stated !== claim.expected) {
+					mentions.push({
+						file: path,
+						line: index + 1,
+						text: match[0],
+						problem: `states ${stated}; ${claim.label} has ${claim.expected}`,
+					});
+				}
 			}
 		}
 	});
@@ -270,19 +405,137 @@ Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.
 		);
 	}
 
+	// Numbered design docs only (docs/00-*.md .. docs/13-*.md), not every .md the walk finds —
+	// archive/, dev/, spikes/ and reports/ carry their own prose and aren't "the fourteen documents".
+	const numberedDocCount = [...reached].filter((path) => /^docs\/\d{2}-.*\.md$/.test(path)).length;
+	const keyedClaims = [...KEYED_CLAIMS, docCountClaim(numberedDocCount)];
+
 	const stale: Mention[] = [];
 	for (const path of reached) {
 		const file = new URL(path, REPO_ROOT);
-		stale.push(...scan(path, await Deno.readTextFile(file)));
+		stale.push(...scan(path, await Deno.readTextFile(file), keyedClaims));
 	}
 
 	assert(
 		stale.length === 0,
-		`${stale.length} prose rule-count claim(s) no longer match the shipped array:\n` +
+		`${stale.length} prose claim(s) no longer match their shipped source:\n` +
 			stale.map((m) => `  ${m.file}:${m.line}  "${m.text}" — ${m.problem}`).join('\n') +
-			`\n\nThe array ships ${RULE_COUNT} rules, ${RELATIVE_COUNT} awarding a RelativeTag. ` +
-			`If a claim describes the set as it is now, update the number. If it is a dated record ` +
-			`of what was true when it was written — doc 12's entries usually are — leave the text ` +
-			`alone and put an HTML comment reading "${HISTORICAL_MARKER}" on the line above it.`,
+			`\n\nThe classification array ships ${RULE_COUNT} rules, ${RELATIVE_COUNT} awarding a ` +
+			`RelativeTag; ${numberedDocCount} numbered docs exist. If a claim describes the set as ` +
+			`it is now, update the number. If it is a dated record of what was true when it was ` +
+			`written — doc 12's entries usually are — leave the text alone and put an HTML comment ` +
+			`reading "${HISTORICAL_MARKER}" on the line above it.`,
+	);
+});
+
+Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)', async () => {
+	const roadmap: {
+		milestones: { id: string; tasks: { status: string }[] }[];
+	}[] = JSON.parse(await Deno.readTextFile(new URL('../.claude/roadmaps.json', import.meta.url)));
+	const phase = roadmap[0];
+	const total = phase.milestones.reduce((n, m) => n + m.tasks.length, 0);
+	const done = phase.milestones.reduce(
+		(n, m) => n + m.tasks.filter((t) => t.status === 'done').length,
+		0,
+	);
+	const m2 = phase.milestones.find((m) => m.id === 'M2');
+	if (!m2) throw new Error('Milestone 2 not found in .claude/roadmaps.json — has the id changed?');
+	const m2Total = m2.tasks.length;
+	const m2Done = m2.tasks.filter((t) => t.status === 'done').length;
+
+	// "…rebuilt against a 328-task MVP roadmap; 95 tasks were done…Milestone 2…at 55 of 110 tasks."
+	const ROADMAP_TOTAL = /\b(\d+)-task MVP roadmap\b/;
+	const ROADMAP_DONE = /\b(\d+) tasks were done\b/;
+	const M2_SPLIT = /\bat (\d+) of (\d+) tasks\b/;
+	// "Forty-two entries had completed…, two pending on unbuilt…" — the one sentence in site/ that
+	// states the propagation register's own counts. Anchored to "entries had completed" / "pending
+	// on" specifically: a bare "N pending" or "no pending" also matches unrelated checklists (doc 00's
+	// "No pending items remain" describes a different, unrelated task list; doc 12's own change-log
+	// quotes its *own past* "no pending items" claim as the thing §1 corrected) — neither is a claim
+	// about the register's live entry count, so a looser pattern flagged both as stale (2GN.115 audit).
+	const REGISTER_DONE = new RegExp(`\\b(${NUMBER_WORD}) entries had completed\\b`, 'i');
+	const REGISTER_PENDING = new RegExp(`\\b(${NUMBER_WORD}|no) pending on\\b`, 'i');
+
+	const registerText = await Deno.readTextFile(
+		new URL('../docs/12-propagation-register.md', import.meta.url),
+	);
+	const registerDone = [...registerText.matchAll(/^### 2\.\d+ /gm)].length;
+	// Scoped to §1 only (between its heading and §2's) — a bare `/^- \*\*/gm` over the whole file
+	// also counts bold-led bullets inside §2's completed-entry prose, over-reporting by an order of
+	// magnitude (roadmap 2GN.115 audit: this bug shipped as 23 pending against a true count of 2).
+	const pendingSection = registerText.match(
+		/^## 1\. Pending Propagation\n([\s\S]*?)\n## 2\. Completed Propagation/m,
+	);
+	if (!pendingSection) {
+		throw new Error(
+			'§1 Pending Propagation heading not found in doc 12 — has it moved or been retitled?',
+		);
+	}
+	const registerPending = [...pendingSection[1].matchAll(/^- \*\*/gm)].length;
+
+	const files = await docFiles(REPO_ROOT);
+	const stale: Mention[] = [];
+	for (const file of files) {
+		const path = decodeURIComponent(file.href.slice(REPO_ROOT.href.length));
+		const lines = (await Deno.readTextFile(file)).split('\n');
+		lines.forEach((line, index) => {
+			if (isHistorical(lines, index)) return;
+			const total_m = line.match(ROADMAP_TOTAL);
+			if (total_m && Number(total_m[1]) !== total) {
+				stale.push({
+					file: path,
+					line: index + 1,
+					text: total_m[0],
+					problem: `states ${total_m[1]}-task roadmap; roadmaps.json has ${total} tasks`,
+				});
+			}
+			const done_m = line.match(ROADMAP_DONE);
+			if (done_m && Number(done_m[1]) !== done) {
+				stale.push({
+					file: path,
+					line: index + 1,
+					text: done_m[0],
+					problem: `states ${done_m[1]} done; roadmaps.json has ${done} done`,
+				});
+			}
+			const split_m = line.match(M2_SPLIT);
+			if (split_m && (Number(split_m[1]) !== m2Done || Number(split_m[2]) !== m2Total)) {
+				stale.push({
+					file: path,
+					line: index + 1,
+					text: split_m[0],
+					problem: `states ${split_m[1]} of ${split_m[2]}; Milestone 2 has ${m2Done} of ${m2Total}`,
+				});
+			}
+			const regDone_m = line.match(REGISTER_DONE);
+			if (regDone_m && parseCount(regDone_m[1]) !== registerDone) {
+				stale.push({
+					file: path,
+					line: index + 1,
+					text: regDone_m[0],
+					problem: `states ${regDone_m[1]} completed entries; doc 12 §2 has ${registerDone}`,
+				});
+			}
+			const regPending_m = line.match(REGISTER_PENDING);
+			if (regPending_m) {
+				const stated = regPending_m[1].toLowerCase() === 'no' ? 0 : parseCount(regPending_m[1]);
+				if (stated !== registerPending) {
+					stale.push({
+						file: path,
+						line: index + 1,
+						text: regPending_m[0],
+						problem: `states ${stated} pending; doc 12 §1 has ${registerPending}`,
+					});
+				}
+			}
+		});
+	}
+
+	assert(
+		stale.length === 0,
+		`${stale.length} prose claim(s) about the roadmap or propagation register are stale:\n` +
+			stale.map((m) => `  ${m.file}:${m.line}  "${m.text}" — ${m.problem}`).join('\n') +
+			`\n\nCurrent state: ${total} roadmap tasks (${done} done), Milestone 2 at ${m2Done} of ` +
+			`${m2Total}, propagation register at ${registerDone} completed / ${registerPending} pending.`,
 	);
 });
