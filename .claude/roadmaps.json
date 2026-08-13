@@ -1448,6 +1448,17 @@
 						],
 						"assignee": "claude",
 						"notes": "Delivered: `id` on `ClassificationRule` (`types/tags.ts`) with the rationale inline; 43 authored slugs in `data/classification.ts`, each verified against its own condition rather than assigned by position; `RULES_BY_ID` built at module load, throwing on a duplicate id; `ruleById`, `requireRuleById` and `ruleDisplayLabel` exported. `classification.test.ts`'s 43 index constants now call `requireRuleById`, and its 37 weight-signature identity guards are deleted as redundant (the lookup is the guard). Three id-contract tests added: uniqueness plus kebab-case shape, round-trip over every shipped rule plus rejection of the retired `edge-short-body-non-short-blade`, and display-label positionality (`R1`/`R43`, `undefined` for an unshipped rule). Explorer `tagInspector.ts` and `ruleCalibration.ts` carry `ruleId` alongside `label`; `scripts/dev/sample-classification.ts` reads `ruleDisplayLabel`. Doc 05 §9.2's `ClassificationRule` block documents the field per that doc's dated-note convention. Fixture rules in `engine/generation/classification.test.ts` synthesise `fixture-rule-N` ids. Three already-stale live references corrected in passing. Guard verified by deleting a rule: the suite fails with `no rule with id 'edge-multiple-composite'` rather than silently repointing. `deno test`: 581 passed, 0 failed."
+					},
+					{
+						"id": "2GN.114",
+						"description": "`tests/fixtures/culture.ts` — extend `mockCulturalProfile`/`mockPhaseCharacteristics` with a high-craft/elite preset (`craftSpecialisation`, `decorativeEmphasis`, `motifComplexity` pushed toward 1.0), so elite/ceremonial-grade artefacts are reachable through ordinary sampling and Explorer calibration runs rather than only via hand-built overrides",
+						"status": "todo",
+						"dependsOn": [],
+						"softDependsOn": [
+							"2GN.98"
+						],
+						"notes": "Filed from a real-world-find coverage spike (2026-08-13): ran the full M2 chain (expandGrammar → normaliseArtefact → expandDecoration → assignMaterials → gradeDecorativeLayers → extractFeatures → classifyArtefact) against 18 common real-world archaeological find types across 3000 sampled artefacts (6 mock regions × 500). Coverage (18/18) and frequency ordering (dominant > common > occasional > rare, unranked) both held with no tuning aimed at the outcome. The one gap: `meanDecorativeGrade` capped at ~0.494 across every region under the flat-neutral-0.5 `mockPhaseCharacteristics`/`mockCulturalProfile` fixtures, making elite/ceremonial signatures (gold-lunula-style ornament, ceremonial mace-head) invisible to any default-fixture test or Explorer run — confirmed reachable (70/1000 and 392/1000 respectively) only after hand-pushing `craftSpecialisation`/`decorativeEmphasis`/`motifComplexity` to 1.0 for the spike. Not a pipeline defect; a fixture coverage gap with no reusable preset today.",
+						"assignee": "Jason Warren"
 					}
 				]
 			},
