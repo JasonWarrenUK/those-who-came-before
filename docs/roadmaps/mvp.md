@@ -1533,6 +1533,24 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       (axis). Deliverable: a derived thickness quantity with its inputs ruled, and bands cut
       per-culture rather than globally. ⚠️ overlaps 2GN.118 — if that spike rules the three-value
       `wall` vocabulary out, this task's shape changes with it
+- [ ] **2GN.122** — design spike — is there one aperture model, and does it subsume `perforation`?
+      _(unblocked; soft-depends on 2GN.118)_ — filed 2026-08-13 from the 2GN.118 spike session,
+      cases (b) `opening` and (c) `perforation`. 2GN.118 ruled that `opening` is not one axis but at
+      least two crushed into one field: **presence/count** (`closed` and `none` are the same
+      physical fact, scored identically at 0 by `OPENNESS_BY_OPENING`) and **aperture size**
+      (`wide`/`narrow`/`slit`). It also ruled the two primitives' vocabularies commensurable —
+      `OPENNESS_BY_OPENING` already ranks all seven values on one 0–1 scale, and three shipped rules
+      pair the cylinder and vessel labels as synonyms by hand, which is the rule layer compensating
+      for a split that should not exist. Two questions this spike owns. **(1) Multiplicity:** a
+      through-void has two mouths (bead, socketed axe, tube) and a two-mouthed vase has two separate
+      apertures — different facts, neither expressible today. **(2) Subsumption:** a hole through a
+      disc (`perforation`) and a hole through a cylinder wall (`opening`) are plausibly one concept
+      split across two parameter names by primitive-by-primitive BNF authoring, the same defect as
+      `base` one level up. If they are one axis, `perforation`'s count/position split resolves
+      inside this model instead. Rule the axis set (count, size, through/blind, position), which
+      parameters survive, and what `ExtractedFeatures` carries. ⚠️ 8 shipped rules read
+      `openingType` or `perforation`; `EXPECTED_FIRE_RATES` re-records once at implementation, which
+      is why this is ruled before 2GN.118's vocabulary changes are implemented rather than after
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
