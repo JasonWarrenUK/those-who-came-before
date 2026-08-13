@@ -417,18 +417,20 @@
 					{
 						"id": "2GN.13",
 						"description": "`engine/generation/plausibility.ts` — physical viability rules (structural integrity, load paths, cantilever limits)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.12"
+							"2GN.12",
+							"2GN.116"
 						],
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.14",
 						"description": "`engine/generation/plausibility.ts` — ergonomic rules (grip length for edged forms, handleability)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.12"
+							"2GN.12",
+							"2GN.116"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -927,7 +929,7 @@
 					{
 						"id": "2GN.67",
 						"description": "`engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.108"
@@ -1096,7 +1098,7 @@
 					{
 						"id": "2GN.69",
 						"description": "`engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.108"
@@ -1406,16 +1408,17 @@
 					{
 						"id": "2GN.108",
 						"description": "design spike — should the artefact vocabulary express a short-bodied edged tool that is not a formed blade (scraper, chisel, small adze)? Today it cannot: `primaryAxisLength` bands `dimensions.primaryExtent`, a `Math.max` over every component's major axis drawn from the same `SHORT_MEDIUM_LONG_CM` table `bladeLengthBand` reads, so a non-short blade always lifts the artefact's axis above `short` and the blade band can never exceed the axis band. Measured over 8000 artefacts (2GN.87): only 6 of 12 `(axis, blade)` pairs occur, in a strict triangle, and `axis === 'short'` carried `blade === 'short'` in all 84 cases. These are among the commonest real assemblage finds, so the absence is a genuine content gap — but 2GN.87 ruled that the deleted R4 never encoded a decision to model them (it was authored in PR #37 review to plug a truth-table cell, with the scraper/chisel reading attached afterwards), so the question is open rather than inherited. If ruled yes, this spike also rules the mechanism: a shorter `elongated.length` rung below `short` / decoupling `bladeLengthBand` from the shared cm table so it bands the component's own proportion rather than absolute size / changing `deriveDimensions` so `primaryExtent` is not a plain `Math.max` (the 2GN.86 fix applied to a second symptom of the same cause). Each shifts fire rates set-wide and needs a recalibration sweep costed before it is chosen. A spike, not an implementation task — same shape as 2GN.80/2GN.77",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.87"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "Ruled 2026-08-13 — see docs/spikes/2GN.108-short-bodied-edged-tools.md (full spike), doc 11 §2.11 (locked decision) and doc 12 §2.43 (propagation). **The form is ruled in, on tag-space variety grounds rather than archaeological completeness**: short-bodied edged tools occupy the working/craft/domestic region, so their absence removes one region of the tag space rather than thinning the corpus evenly, leaving edged artefacts skewed to blade-family readings — which propagates into culture tag profiles and surfaces as repetition in the lens, the core mechanic. §2.9's culture-relative baselines cannot compensate, since they sample the same narrowed distribution. **All three candidate mechanisms were rejected as symptom-level.** The real defect is that `bladeLengthBand` bands the wrong quantity: absolute length cannot separate a scraper (edge-dominant, short) from a dagger (edge-dominant, long) from a hafted adze (long body, short edge) — the distinction is the grip-to-edge proportion. Re-based accordingly. **Grip-to-edge needs no role vocabulary**: `attachments` is a populated typed graph and `position` plus per-component extents already exist, so the span is a traversal the three plausibility proxies never used. **Root cause: `position` is documented as an oriented axis but minted as a depth-first traversal index**, so a blade can land at position 0 with its haft after it. Normalisation must orient, by **reversal** rather than rejection — a mirrored artefact carries no information, so rejecting it spends re-expansion budget enforcing probabilistically what construction can guarantee. Deferred: the general working-end definition (2GN.115), which blocks implementation rather than this ruling. Filed: 2GN.115, 2GN.116 (component roles, now blocking 2GN.13/2GN.14), 2GN.117 (implementation). ⚠️ 2GN.109 is live — it was contingent, void only if the form had been ruled out. Recalibration is set-wide and shared with 2GN.67, 2GN.69 and 2GN.109; sequence the sweep once."
 					},
 					{
 						"id": "2GN.109",
 						"description": "`src/lib/data/classification.ts` — replacement edge-family rule for the short-bodied non-blade edge, framed morphologically rather than as a truth-table cell. The deleted R4 (roadmap 2GN.87) failed because its condition described a combination of feature *bands* rather than a shape: whatever signal this rule reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather than authoring a rule for a form the game does not produce. Adding it shifts `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`, `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts` and the Explorer panel's label lookups all need updating together",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.108"
 						],
@@ -1470,6 +1473,34 @@
 							"2GN.98"
 						],
 						"notes": "Filed from a real-world-find coverage spike (2026-08-13): ran the full M2 chain (expandGrammar → normaliseArtefact → expandDecoration → assignMaterials → gradeDecorativeLayers → extractFeatures → classifyArtefact) against 18 common real-world archaeological find types across 3000 sampled artefacts (6 mock regions × 500). Coverage (18/18) and frequency ordering (dominant > common > occasional > rare, unranked) both held with no tuning aimed at the outcome. The one gap: `meanDecorativeGrade` capped at ~0.494 across every region under the flat-neutral-0.5 `mockPhaseCharacteristics`/`mockCulturalProfile` fixtures, making elite/ceremonial signatures (gold-lunula-style ornament, ceremonial mace-head) invisible to any default-fixture test or Explorer run — confirmed reachable (70/1000 and 392/1000 respectively) only after hand-pushing `craftSpecialisation`/`decorativeEmphasis`/`motifComplexity` to 1.0 for the spike. Not a pipeline defect; a fixture coverage gap with no reusable preset today.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.115",
+						"description": "design spike — what defines an artefact's working end in general, for artefacts with no edge? 2GN.108 ruled that normalisation must orient the artefact (working end at a shared pole across all artefacts sharing a dimensional axis) and that orientation is achieved by reversal rather than rejection, but ruled the general pole definition out of its own scope. For edged forms the working end is the edge; for a hafted head it is the head; for a vessel, disc, ring or pin there may be no functional pole at all. Rule whether orientation is total (every artefact oriented, which needs a pole rule for shapes that have no working end) or partial by design (only artefacts with a distinguishable functional pole are oriented, the rest left unoriented as `bladeLengthBand` already reports `'none'` for edgeless forms). ⚠️ this blocks implementation rather than 2GN.108's ruling: reversal cannot be implemented for edged forms and retrofitted to a different general convention without repeating the recalibration sweep",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.108"
+						],
+						"notes": "Split out of 2GN.108 during the 2026-08-13 spike session. 2GN.108 established that `position` is intended as an oriented shared axis but is minted in `grammar.ts` as a depth-first traversal index (primary-before-attachments), so the invariant is unenforced — a blade can land at position 0 with its haft after it, and nothing rejects or reverses it. The three existing plausibility proxies (`hasGrippableSecondComponent`, `hasAdequateGripLength`, `hasRigidShaft`) each guess around this absence. Reversal was chosen over rejection because a mirrored artefact carries no information (it is the same artefact described backwards), so rejecting it spends re-expansion budget to enforce something probabilistically rather than by construction — but reversal only works if orientation is definable wherever it is applied, which is this spike's question.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.116",
+						"description": "design spike — should component roles (grip-system, head-system and whatever else the vocabulary needs) become first-class grammar output? All three rules in `data/plausibility.ts` are explicitly proxies standing in for an absent role concept: `hasGrippableSecondComponent` merely counts components, `hasAdequateGripLength` looks for some other medium/long `bar-form` or `elongated` component anywhere on the artefact (its own comment conceding a `disc-form` elsewhere \"says nothing about grip length\"), and `hasRigidShaft` accepts any rigid `sheet-form`/`bar-form` regardless of whether it bears the load. `types/plausibility.ts` names the same hole: the model cannot express a property-level concept like \"a grippable component\". Rule whether roles are authored into the grammar, derived from the attachment graph, or left as proxies for MVP — and if authored, what the role vocabulary is and what it costs across the primitive registry",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-13 from the 2GN.108 spike session. Scoped deliberately narrow: 2GN.108 established that grip-to-edge span is derivable from existing structure (`attachments` graph + `position` + per-component extents) without any role vocabulary, so roles are NOT a prerequisite for oriented normalisation or for a proportional `bladeLengthBand`. What roles would serve is the remaining proxy work in 2GN.13 and 2GN.14, which is why both now depend on this. Note that the `'grip-system'`/`'head-system'` strings in `types/interpretation.ts` are JSDoc illustration, not a defined type, and doc 05's `arrangementGroup` is repetition structure (symmetric/radial/linear-array), unrelated to role — so this vocabulary would be genuinely new rather than a specified-but-unwired concept.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.117",
+						"description": "`engine/generation/grammar.ts` + `engine/generation/classification.ts` — implement oriented normalisation and re-express `bladeLengthBand` as grip-to-edge proportion rather than absolute cm, with the full recalibration sweep",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.115"
+						],
+						"notes": "Placeholder filed 2026-08-13 alongside the 2GN.108 ruling, so the implementation the spike unlocks exists in the graph rather than only in the spike doc. Depends on 2GN.115 alone: the 2GN.108 edge is reached transitively through it, so drawing it directly would be redundant. Carries two changes that must land together: normalisation orients the artefact by reversal (canonical working-end pole) instead of emitting a raw depth-first `position`, and `bladeLengthBand` bands the grip-to-edge span traversed over the `attachments` graph instead of reading absolute cm off `SHORT_MEDIUM_LONG_CM`. ⚠️ shifts fire rates set-wide — the 2GN.79 calibration guard will flag every moved rule, and `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated. Downstream of 2GN.108 alongside 2GN.67, 2GN.69 and 2GN.109, so sequence the sweep once rather than per-task.",
 						"assignee": "Jason Warren"
 					}
 				]

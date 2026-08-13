@@ -364,9 +364,16 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       rules, an empty rule set, and purity/determinism via repeat calls plus a `structuredClone`
       snapshot)
 - [ ] **2GN.13** — `engine/generation/plausibility.ts` — physical viability rules (structural
-      integrity, load paths, cantilever limits) _(depends on 2GN.12 — unblocked)_
+      integrity, load paths, cantilever limits) _(blocked — depends on 2GN.116; 2GN.12 done)_ —
+      2GN.116 edge added by the 2GN.108 spike session 2026-08-13: `hasRigidShaft` is a proxy that
+      accepts any rigid `sheet-form`/`bar-form` regardless of whether it bears the load, and load
+      paths cannot be expressed without knowing which component carries what. Authoring these rules
+      against the proxy is work 2GN.116 may invalidate
 - [ ] **2GN.14** — `engine/generation/plausibility.ts` — ergonomic rules (grip length for edged
-      forms, handleability) _(depends on 2GN.12 — unblocked)_
+      forms, handleability) _(blocked — depends on 2GN.116; 2GN.12 done)_ — 2GN.116 edge added by
+      the 2GN.108 spike session 2026-08-13: both existing grip proxies
+      (`hasGrippableSecondComponent`, `hasAdequateGripLength`) stand in for the absent role concept
+      this spike rules on, so real ergonomics waits on the ruling
 - [ ] **2GN.15** — `engine/generation/plausibility.ts` — material-structural compatibility (material
       tags constrain joins/forms) _(blocked — depends on 2GN.12, 2GN.10, 2GN.111)_ — 2GN.10 edge added by
       dependency review 2026-07-30: these rules key off per-component `allowedMaterialTags`, which
@@ -1159,24 +1166,29 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       renumber), the latter two deliberately dormant — so the real hole was that a recorded `0.0`
       **passed**: added `DORMANT_RULE_INDICES` plus two guards, so an unexplained zero now fails and
       a declared-dormant rule that wakes up fails too _(depended on 2GN.79 — done)_
-- [ ] **2GN.108** — design spike — should the artefact vocabulary express a short-bodied edged tool
-      that is not a formed blade (scraper, chisel, small adze)? _(depends on 2GN.87 — done;
-      unblocked)_ — filed 2026-08-11 by the 2GN.87 ruling. Today it cannot: `primaryAxisLength`
-      bands a `Math.max` over every component's major axis drawn from the same
-      `SHORT_MEDIUM_LONG_CM` table `bladeLengthBand` reads, so the blade band can never exceed the
-      axis band (measured: 6 of 12 `(axis, blade)` pairs occur, a strict triangle;
-      `axis === 'short'` carried `blade === 'short'` in all 84 cases). These are among the commonest
-      real assemblage finds, so the absence is a genuine content gap — but the deleted R4 never
-      encoded a decision to model them, so the question is open rather than inherited. If ruled yes,
-      this spike also rules the mechanism: a shorter `elongated.length` rung / decoupling
-      `bladeLengthBand` from the shared cm table so it bands the component's own proportion /
-      changing `deriveDimensions` so `primaryExtent` is not a plain `Math.max` (the 2GN.86 fix
-      applied to a second symptom of the same cause). Each shifts fire rates set-wide and needs a
-      recalibration sweep costed before it is chosen. A spike, not an implementation task — same
-      shape as 2GN.80/2GN.77
+- [x] **2GN.108** — design spike — should the artefact vocabulary express a short-bodied edged tool
+      that is not a formed blade (scraper, chisel, small adze)? **Ruled 2026-08-13: yes.** See
+      `docs/spikes/2GN.108-short-bodied-edged-tools.md`, doc 11 §2.11 (locked decision), doc 12
+      §2.43 (propagation). Ruled in on **tag-space variety** grounds, not archaeological
+      completeness: these tools occupy the working/craft/domestic region, so their absence removes
+      one region of the tag space rather than thinning the corpus evenly, leaving edged artefacts
+      skewed to blade-family readings — which propagates into culture tag profiles and surfaces as
+      repetition in the lens, the core mechanic. §2.9's culture-relative baselines cannot compensate,
+      since they sample the same narrowed distribution. **All three candidate mechanisms rejected as
+      symptom-level**: the real defect is that `bladeLengthBand` bands the wrong quantity — absolute
+      length cannot separate a scraper (edge-dominant, short) from a dagger (edge-dominant, long)
+      from a hafted adze (long body, short edge), a distinction that is proportional. Re-based on
+      **grip-to-edge span**, which needs no role vocabulary: `attachments` is a populated typed graph
+      and `position` plus per-component extents already exist, so the span is a traversal the three
+      plausibility proxies never used. **Root cause**: `position` is documented as an oriented axis
+      but minted as a depth-first traversal index, so a blade can land at position 0 with its haft
+      after it — normalisation must orient, by **reversal** rather than rejection (a mirrored
+      artefact carries no information). Deferred the general working-end definition to 2GN.115.
+      Filed 2GN.115, 2GN.116, 2GN.117. ⚠️ 2GN.109 is **live** — it was void only if the form had
+      been ruled out; recalibration is set-wide across 2GN.67/2GN.69/2GN.109/2GN.117, sequence once
 - [ ] **2GN.109** — `src/lib/data/classification.ts` — replacement edge-family rule for the
       short-bodied non-blade edge, framed morphologically rather than as a truth-table cell
-      _(blocked — depends on 2GN.108)_ — the deleted R4 failed because its condition described a
+      _(depends on 2GN.108 — ruled 2026-08-13, form ruled IN so this rule is live; unblocked)_ — the deleted R4 failed because its condition described a
       combination of feature _bands_ rather than a shape, so whatever signal this rule reads must be
       one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP
       scope** — file the closure rather than authoring a rule for a form the game does not produce.
@@ -1362,6 +1374,55 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       mace-head) invisible to any default-fixture test or Explorer run — confirmed reachable
       (70/1000 and 392/1000 respectively) only after hand-pushing the three attributes to 1.0 for
       the spike. Not a pipeline defect; a fixture coverage gap with no reusable preset today
+- [ ] **2GN.115** — design spike — what defines an artefact's working end in general, for artefacts
+      with no edge? _(depends on 2GN.108 — done; unblocked)_ — split out of 2GN.108 during the 2026-08-13
+      spike session. 2GN.108 ruled that normalisation must orient the artefact (working end at a
+      shared pole across all artefacts sharing a dimensional axis) and that orientation is achieved
+      by **reversal** rather than rejection, but ruled the general pole definition out of its own
+      scope. For edged forms the working end is the edge; for a hafted head it is the head; for a
+      vessel, disc, ring or pin there may be no functional pole at all. Rule whether orientation is
+      **total** (every artefact oriented, needing a pole rule for shapes with no working end) or
+      **partial by design** (only artefacts with a distinguishable functional pole are oriented, the
+      rest left unoriented as `bladeLengthBand` already reports `'none'` for edgeless forms).
+      Background: `position` is intended as an oriented shared axis but `grammar.ts` mints it as a
+      depth-first traversal index, so a blade can land at position 0 with its haft after it and
+      nothing rejects or reverses it. Reversal beat rejection because a mirrored artefact carries no
+      information — it is the same artefact described backwards — so rejecting it spends
+      re-expansion budget enforcing probabilistically what construction can guarantee.
+      ⚠️ blocks implementation rather than 2GN.108's ruling: reversal cannot be implemented for
+      edged forms and retrofitted to a different general convention without repeating the sweep
+- [ ] **2GN.116** — design spike — should component roles (grip-system, head-system and whatever
+      else the vocabulary needs) become first-class grammar output? _(unblocked)_ — filed 2026-08-13
+      from the 2GN.108 spike session. All three rules in `data/plausibility.ts` are explicitly
+      proxies standing in for an absent role concept: `hasGrippableSecondComponent` merely counts
+      components, `hasAdequateGripLength` looks for some other medium/long `bar-form`/`elongated`
+      component anywhere on the artefact (its own comment conceding a `disc-form` elsewhere "says
+      nothing about grip length"), and `hasRigidShaft` accepts any rigid `sheet-form`/`bar-form`
+      regardless of whether it bears the load. `types/plausibility.ts` names the same hole: the
+      model cannot express a property-level concept like "a grippable component". Rule whether roles
+      are authored into the grammar, derived from the attachment graph, or left as proxies for MVP —
+      and if authored, the role vocabulary and its cost across the primitive registry.
+      Scoped deliberately narrow: 2GN.108 established that grip-to-edge span is derivable from
+      existing structure (`attachments` + `position` + per-component extents) with no role
+      vocabulary, so roles are **not** a prerequisite for oriented normalisation or a proportional
+      `bladeLengthBand` — what they serve is the remaining proxy work in 2GN.13/2GN.14, which is why
+      both now depend on this. Note the `'grip-system'`/`'head-system'` strings in
+      `types/interpretation.ts` are JSDoc illustration, not a defined type, and doc 05's
+      `arrangementGroup` is repetition structure (symmetric/radial/linear-array) unrelated to role —
+      so this vocabulary would be genuinely new, not specified-but-unwired
+- [ ] **2GN.117** — `engine/generation/grammar.ts` + `engine/generation/classification.ts` —
+      implement oriented normalisation and re-express `bladeLengthBand` as grip-to-edge proportion
+      rather than absolute cm, with the full recalibration sweep _(blocked — depends on 2GN.115,
+      which depends on 2GN.108)_ — placeholder filed 2026-08-13 alongside the 2GN.108 ruling so the
+      implementation the spike unlocks exists in the graph rather than only in the spike doc. The
+      2GN.108 edge is left implicit through 2GN.115 rather than drawn directly, since a direct edge
+      would be transitively redundant. Two changes that must
+      land together: normalisation orients by reversal (canonical working-end pole) instead of
+      emitting a raw depth-first `position`, and `bladeLengthBand` bands the grip-to-edge span
+      traversed over the `attachments` graph instead of reading absolute cm off
+      `SHORT_MEDIUM_LONG_CM`. ⚠️ shifts fire rates set-wide — the 2GN.79 calibration guard will flag
+      every moved rule and `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated.
+      Downstream of 2GN.108 alongside 2GN.67, 2GN.69 and 2GN.109, so sequence the sweep once
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
@@ -1526,7 +1587,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2GN.6, cheap to apply again here), leaving pattern _assignment_ as the open question this task
       owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw
       sequence; nothing consumes the field yet, so this task is currently childless in the graph
-      _(blocked — depends on 2GN.108; 2GN.8 done)_
+      _(depends on 2GN.108, 2GN.8 — both done; unblocked)_
       _(depends on 2GN.8 — done)_
 - [ ] **2GN.56** — `engine/generation/pipeline.ts` —
       `runGenerationPipeline(culture, period, geology, trade, corpus, prng): ClassifiedArtefact` —
@@ -1542,7 +1603,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray
       component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll
       multiple independent groups with no signal for whether that's a designed assemblage or an
-      accidental artefact of complexity-budget rolls _(blocked — depends on 2GN.108; 2GN.8 done)_
+      accidental artefact of complexity-budget rolls _(depends on 2GN.108, 2GN.8 — both done; unblocked)_
 - [ ] **2GN.70** — `engine/generation/materials.ts` + `engine/generation/decoration.ts` —
       whole-object coherence pass: check material and decorative choices are coherent across an
       artefact's components as a set (not necessarily mono-material) rather than validating each
@@ -2379,8 +2440,6 @@ graph LR
 	2GN.9["2GN.9: `engine/generation/grammar.ts` — `derive…"]
 	2GN.10["2GN.10: `engine/generation/grammar.ts` — `allow…"]
 	2GN.12["2GN.12: `engine/generation/plausibility.ts` — `…"]
-	2GN.13["2GN.13: `engine/generation/plausibility.ts` — p…"]
-	2GN.14["2GN.14: `engine/generation/plausibility.ts` — e…"]
 	2GN.16["2GN.16: `engine/generation/plausibility.ts` — r…"]
 	2GN.17["2GN.17: `src/lib/data/classification.ts` — clas…"]
 	2GN.19["2GN.19: `engine/generation/classification.ts` —…"]
@@ -2441,6 +2500,11 @@ graph LR
 	2GN.112["2GN.112: design spike — **RULED 2026-08-12 (PR…"]
 	2GN.113["2GN.113: **RULED 2026-08-12 (PR #57 review), im…"]
 	2GN.114["2GN.114: `tests/fixtures/culture.ts` — extend `…"]
+	2GN.115["2GN.115: design spike — what defines an artefac…"]
+	2GN.116["2GN.116: design spike — should component roles…"]
+	2GN.13["2GN.13: `engine/generation/plausibility.ts` — p…"]
+	2GN.14["2GN.14: `engine/generation/plausibility.ts` — e…"]
+	2GN.117["2GN.117: `engine/generation/grammar.ts` + `engi…"]
 	M2["M2: Generation Pipeline"]:::mile
 	M3["M3: World State & Integration"]:::mile
 	M4["M4: Player Interface"]:::mile
@@ -2764,16 +2828,14 @@ graph LR
 	2GN.9 --> M2
 	2GN.10 --> 2GN.104
 	2GN.10 --> 2GN.15
-	2GN.12 --> 2GN.13
-	2GN.12 --> 2GN.14
 	2GN.12 --> 2GN.16
 	2GN.12 --> 2GN.17
 	2GN.12 --> 2GN.19
 	2GN.12 --> 2GN.23
 	2GN.12 --> 2GN.58
 	2GN.12 --> 2GN.15
-	2GN.13 --> M2
-	2GN.14 --> M2
+	2GN.12 --> 2GN.13
+	2GN.12 --> 2GN.14
 	2GN.16 --> 2GN.56
 	2GN.17 --> 2GN.20
 	2GN.19 --> 2GN.20
@@ -2865,6 +2927,7 @@ graph LR
 	2GN.108 --> 2GN.67
 	2GN.108 --> 2GN.69
 	2GN.108 --> 2GN.109
+	2GN.108 --> 2GN.115
 	2GN.67 --> M2
 	2GN.69 --> 2GN.71
 	2GN.109 --> M2
@@ -2885,6 +2948,12 @@ graph LR
 	2GN.112 --> M2
 	2GN.113 --> M2
 	2GN.114 --> M2
+	2GN.115 --> 2GN.117
+	2GN.116 --> 2GN.13
+	2GN.116 --> 2GN.14
+	2GN.13 --> M2
+	2GN.14 --> M2
+	2GN.117 --> M2
 	M2 --> 3WS.1
 	M3 --> 4UI.1
 	M4 --> 5KN.1
@@ -3223,9 +3292,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.108,2GN.110,2GN.111,2GN.13,2GN.14,2GN.16,2GN.21,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.76,2GN.92,2GN.97 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.67,2GN.68,2GN.69,2GN.70,2GN.71,2GN.72,2GN.73,2GN.93,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.11,2GN.112,2GN.113,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.98,2GN.99 done
+	class 2GN.10,2GN.109,2GN.110,2GN.111,2GN.115,2GN.116,2GN.16,2GN.21,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.76,2GN.92,2GN.97 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.105,2GN.106,2GN.107,2GN.114,2GN.117,2GN.13,2GN.14,2GN.15,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.72,2GN.73,2GN.93,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.112,2GN.113,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.98,2GN.99 done
 ```
 
 ## Links
