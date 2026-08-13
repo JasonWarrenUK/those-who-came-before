@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Immutable Documents · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">06 · Immutable Documents</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">06 · Documents</div>
+  <h1>Retraction Is a Social Act, Not a Delete</h1>
+  <p class="lede">A document freezes the moment it stops being private, not the moment it's saved. Revising it afterwards doesn't edit it; it creates a new document linked back to the old one. The old one keeps existing, keeps its own audience, and keeps being wrong if it was wrong. This page is about what that buys, and what it costs the author who has to live with it.</p>
+
+  <div class="callout"><span class="tag">Standalone</span> Needs nothing else on this strand, though it pairs naturally with the two pages that follow it.</div>
+
+  <h2>Mutable until it's seen</h2>
+  <p><code>DocumentNode.mutable</code> is computed, not authored: it's true exactly when <code>dissemination === 'private'</code>. A private document is a working draft, edited freely in place. The instant it circulates, gets submitted, or gets published, that door closes. The trigger is social exposure, not persistence to disk: a document can sit written and saved for terms without ever locking, as long as nobody else has read it yet.</p>
+  <p>Once locked, a revision is a new node. <code>DocumentLineage</code> records the edge back to the parent, tagged with a <code>derivationType</code>: <code>revision</code>, <code>extraction</code>, <code>synthesis</code>, <code>response</code>, <code>translation</code>, or <code>collection</code>. A single document can carry several of these simultaneously, a revision of one parent and a response to a different one at once, because the type is a property of the relationship, not of the document as a whole.</p>
+
+  <h2>Dropping a claim doesn't retract it</h2>
+  <p>This is the sharpest edge in the model, and it's stated directly in <code>DerivationEvent</code>'s own documentation: when a new document derives from an old one and the author quietly drops a commitment along the way, that doesn't retract the claim from the parent. If the parent is circulated or published, the dropped assertion is still standing in the world, under the author's name, whether or not the author still believes it. The new document and the old one can now assert incompatible things, and nothing in the system reconciles that automatically.</p>
+  <p><code>DerivationEvent</code> tracks the derivation honestly rather than papering over it: <code>inheritedCommitments</code> carried forward unchanged, <code>modifiedCommitments</code> carried forward with a reason for the change, and <code>droppedCommitments</code>, claims present in the parent that simply didn't make it into the child. A reviewer, or a rival scholar, or the player's own later self, can read that gap and ask what changed and why.</p>
+
+  <h2>What retracting a document actually does</h2>
+  <p>Retraction doesn't delete anything. The node persists, flagged, its content still readable; the design doc states this outright: retraction is a social act performed on a document, not an edit. What retraction triggers is a cascade through the lineage graph: every descendant that inherited a now-retracted commitment gets flagged as <code>tainted</code>.</p>
+  <p>Not every tainted descendant is tainted equally, and this is where the shipped type is honestly narrower than the design doc's fuller picture. Doc 10 §7.1 describes three distinct outcomes for a descendant: one that independently dropped the retracted claim during its own derivation is clean; one that carried the claim forward but backed it with genuinely independent evidence is defensible; one that inherited the claim without review and has nothing else supporting it is fully tainted. The shipped <code>TaintedLineage</code> carries the mechanics that let a reader work that distinction out (<code>pathFromRetracted</code>, the lineage chain back to the retraction; <code>affectedCommitments</code>, which specific claims are at stake) but doesn't carry a degree field naming clean, defensible or fully-tainted directly. The doc's degree-of-taint judgement is real design intent; nothing in the shipped types computes it yet.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 260" role="img" aria-label="A lineage DAG with one retracted node tainting its descendants unevenly">
+    <rect class="warn" x="300" y="16" width="140" height="36" rx="6"/><text x="370" y="38" text-anchor="middle">retracted document</text>
+    <path class="arrow" d="M 340 54 L 200 96"/><path class="arrow" d="M 214 90 l -16 8 l 4 -18"/>
+    <path class="arrow" d="M 400 54 L 540 96"/><path class="arrow" d="M 526 90 l 16 8 l -4 -18"/>
+    <rect class="box" x="110" y="98" width="180" height="50" rx="6"/><text x="200" y="118" text-anchor="middle">child A: revision</text>
+    <text class="lab" x="200" y="134" text-anchor="middle">dropped the claim already</text>
+    <text class="lab" x="200" y="146" text-anchor="middle">&rarr; clean</text>
+    <rect class="soft" x="450" y="98" width="180" height="50" rx="6"/><text x="540" y="118" text-anchor="middle">child B: synthesis</text>
+    <text class="lab" x="540" y="134" text-anchor="middle">inherited claim, no independent</text>
+    <text class="lab" x="540" y="146" text-anchor="middle">support &rarr; fully tainted</text>
+    <path class="arrow" d="M 540 150 L 540 184"/><path class="arrow" d="M 532 176 l 8 12 l 8 -12"/>
+    <rect class="soft" x="450" y="186" width="180" height="42" rx="6"/><text x="540" y="204" text-anchor="middle">grandchild of B</text>
+    <text class="lab" x="540" y="218" text-anchor="middle">also flagged, deeper path</text>
+    <text class="lab" x="360" y="248" text-anchor="middle">the retracted node itself is never deleted; only descendants get the taint flag</text>
+  </svg>
+  <figcaption class="diagcap">Retraction cascades forward through <code>pathFromRetracted</code>. Two children of the same retracted parent can end up clean or tainted depending on what each independently carried forward.</figcaption></figure>
+
+  <h2>Retraction has a price, scaled to how far the claim travelled</h2>
+  <p>The design doc ties retraction cost to four factors: dissemination state at the time, the venue's prestige, how many citations the document has picked up, and how many terms it's been standing. The intuition is straightforward once stated: retracting a private note nobody read costs nothing, because nobody built on it. Retracting a published, well-cited, long-standing claim at a prestigious venue costs real reputation, because other people's work now stands on ground that just moved. The cost model is specified at the design level (doc 10 §7.2) rather than shipped as a type yet; it is the natural next piece once retraction itself lands as engine behaviour.</p>
+
+  <div class="callout warn"><span class="tag">Where the shipped type is narrower than the spec</span>
+  Doc 10 §7's own sketch of <code>Retraction</code> carries a <code>scope: 'full' | 'partial'</code> field and a <code>publicAwareness</code> number that the shipped <code>Retraction</code> interface doesn't have; the shipped version keeps <code>documentId</code>, <code>reason</code>, a timestamp and <code>taintedDescendants</code>, and folds the rest into future work. Similarly, doc 10's sketched <code>TaintedLineage</code> carries a <code>playerAware</code>/<code>resolved</code> pair the shipped type doesn't. Neither is a contradiction between doc and code: the shipped shapes are an authored subset, narrowed against what the type actually needs to support today, not a drifted copy of what the doc specifies.</div>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/10-document-tradition-system.md</code> §1&ndash;2, §7 · Types: <code>src/lib/types/documents.ts</code> (<code>DocumentNode</code>, <code>DocumentLineage</code>, <code>DerivationEvent</code>, <code>Retraction</code>, <code>TaintedLineage</code>)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/design/contradiction.html"><span class="dir">Previous</span>Contradictions Are Revealed by Consequences</a>
+    <a href="/design/ratchet.html" class="next"><span class="dir">Next</span>The Commitment Ratchet</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/10-document-tradition-system.md</code>, <code>src/lib/types/documents.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>
