@@ -216,8 +216,34 @@ export interface CraftInvestmentProfile {
  * name across files but nothing else.
  */
 export interface CulturalProfile {
-	/** Per-material-tag affinity weight, read by `GrammarOption.culturalModifiers` (grammar.ts). */
-	materialAffinities: Map<MaterialTag, number>;
+	/**
+	 * What this culture makes of each material, as `MaterialSelector`-keyed weights (doc 05 §3.3,
+	 * roadmap 2GN.110/2GN.123). Read by `culturalAffinityWeight` (`engine/generation/materials.ts`),
+	 * which resolves it and is the only function that should.
+	 *
+	 * **Resolution is most-specific-wins**: a `{ id }` entry beats any `{ tag }` entry matching the
+	 * same material, a `{ tag }` entry supplies the class default, and a material matched by neither
+	 * reads a neutral `1`. So `{ tag: 'metal' }: 1.5` alongside `{ id: 'gold' }: 0.8` reads as "all
+	 * metals are 1.5, except gold, which is 0.8" — the specific entry may **lower** as well as raise,
+	 * which is precisely what the `max` reduction this replaced could not do (2GN.84 measured it
+	 * discarding authored values one-directionally). A `{ id }` entry with no covering `{ tag }` entry
+	 * is well-formed: that material departs from neutral and its classmates stay at `1`.
+	 *
+	 * An array rather than a `Map` because the key is an object: `Map` matches keys by reference, so
+	 * `.get({ tag: 'metal' })` could never hit an entry authored as a different object literal.
+	 *
+	 * ⚠️ The **tag-versus-tag tie is explicitly unruled** (2GN.110 ruling point 6). No shipped material
+	 * carries two `MaterialTag`s — `materials.test.ts` pins that — so a material matching two class
+	 * entries is unreachable today, and authoring a tiebreak for a shape that does not exist is the
+	 * mistake 2GN.87 punished.
+	 *
+	 * ⚠️ Not the same signal as `GrammarOption.culturalModifiers` (`types/grammar.ts`), despite the
+	 * former JSDoc here implying so. That map stays tag-keyed and cannot consult a per-material entry
+	 * **even in principle**: it weights grammar options at stage 4, and materials are not assigned
+	 * until stage 6, so it never has a material in hand. A stage-ordering fact, not a divergence to
+	 * reconcile later.
+	 */
+	materialAffinities: readonly MaterialAffinity[];
 
 	/**
 	 * Per-technique decorative preference, read by the decorative grammar
@@ -226,8 +252,10 @@ export interface CulturalProfile {
 	 * can express a culture's stable preference for *which techniques* it uses independent of what
 	 * motifs it carries or what materials it works: a culture can favour engraving as a technique
 	 * while never depicting beasts, or depict beasts exclusively through painting rather than
-	 * engraving, and vice versa in every combination. This map is that missing signal, mirroring
-	 * `materialAffinities`' shape. A technique absent from the map reads as neutral (`1`).
+	 * engraving, and vice versa in every combination. This map is that missing signal. A technique
+	 * absent from the map reads as neutral (`1`), the same convention `materialAffinities` uses for an
+	 * unmatched material — though the two no longer share a shape, since techniques have no
+	 * class-versus-specific axis to resolve and so stay a plain tag-keyed `Map`.
 	 *
 	 * Selection also enforces a one-directional material-access gate (`decoration.ts`): a culture
 	 * that never favours-and-can-obtain a material satisfying a technique's substrate gets that
@@ -275,6 +303,21 @@ export interface Culture {
 export type MaterialSelector =
 	| { tag: MaterialTag; id?: never }
 	| { id: MaterialName; tag?: never };
+
+/**
+ * One entry in a culture's `materialAffinities`: what that culture makes of the material or class
+ * `selector` names (doc 05 §3.3, roadmap 2GN.110). `1` is neutral, above favours, below disfavours.
+ *
+ * See `CulturalProfile.materialAffinities` for the most-specific-wins resolution these entries carry,
+ * and why they are an array rather than a `Map`.
+ */
+export interface MaterialAffinity {
+	/** The material or class this weight applies to. */
+	selector: MaterialSelector;
+
+	/** Multiplicative weight; `1` is neutral. */
+	weight: number;
+}
 
 /**
  * A directional flow of materials between the two cultures in a `CultureRelationship` (doc 05
