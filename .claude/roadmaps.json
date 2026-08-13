@@ -556,7 +556,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation: materials **the producing culture treats as precious** boost elite/ceremonial, derived from the material's situation rather than a catalogue fact. ⚠️ **Reframed 2026-08-11 by 2GN.78**: the original title read \"precious metals → elite/ceremonial boosts\", which presumed a static precious-material class that no longer exists — `MaterialTag`'s `precious-*` members are retired (doc 11 §2.9, doc 12 §2.40). Standing comes from availability × cultural affinity × provenance × stratification. `explainMaterialWeight` (2GN.74) supplies the first two (`level`, `culturalAffinity`, `tradeRescued`); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`; stratification from `PhaseCharacteristics.society.stratification`, unread today. Blocked on 2GN.110 for the same reason as 2GN.68: whether `materialAffinities` can express a per-material judgement determines how precisely \"this culture values this material\" can be read",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
@@ -725,7 +725,7 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins` from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer material's **situation in the producing culture**). ⚠️ **Rescoped 2026-08-11 by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read \"`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup\", which is exactly the static catalogue read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired. Populate the field from availability × cultural affinity × provenance instead: Doc 11 §2.9's formula has four terms sourced from three places: `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a material/culture pair (availability and cultural affinity); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`, since `tradeRescued` is a reachability boolean rather than a provenance substitute; and stratification from `PhaseCharacteristics.society.stratification`, which §2.9 makes live and nothing reads yet. The threshold over them is this task's to rule and has not been set. Blocked on 2GN.110 because the affinity term's keyspace (per-tag only, or per-material too) changes what \"this culture prizes it\" can even mean",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20",
@@ -1430,11 +1430,12 @@
 					{
 						"id": "2GN.110",
 						"description": "design spike — should `CulturalProfile.materialAffinities` support per-material entries alongside per-tag ones? Surfaced by 2GN.78 (doc 11 §2.9, doc 12 §2.40) as an accepted expressive loss: the map is keyed by `MaterialTag`, so with the `precious-*` members retired a culture can say \"we prize metal\" but no longer \"we prize gold specifically\". Thalassar's authored `precious-metal: 1.2` was the one live instance across the four Explorer presets and was dropped rather than re-expressed as `metal: 1.2`, which would newly favour bronze and iron that culture was never authored to prefer. Rule whether that granularity is worth carrying — and if so whether it belongs in `materialAffinities` as a second keyspace, or is better derived from the material's situation the way 2GN.77 ruled preciousness itself must be. Note the tension: a per-material affinity entry is a culture-authored judgement about one material, which is legitimate (it is *that culture's* opinion, not Earth's) but sits close enough to the retired tags that the boundary wants stating explicitly",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.78"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "Ruled 2026-08-13 — see docs/spikes/2GN.110-per-material-affinities.md, doc 11 §2.13 and doc 12 §2.45. **Yes: `materialAffinities` is re-keyed by `MaterialSelector`**, the same tagged union 2GN.112 built for `MaterialFlow`, and for the identical reason — `bone`, `glass` and `leather` each name both a `MaterialTag` and a `MaterialName`, so a bare union cannot distinguish them and precedence would make 3 of 16 materials unselectable by one of their readings. Only half the flow pattern transfers: `includes`/`excludes` exists because membership needs subtraction, and affinities are weights with nothing to subtract. **Resolution is most-specific-wins**: a class entry sets a default, a specific entry is an exception to it — `{tag:'metal'}: 1.5` with `{id:'gold'}: 0.8` reads 'all metals are 1.5, except gold, which is 0.8'. A specific entry with no class entry is well-formed and is what recovers Thalassar's dropped intent exactly (`{id:'gold'}: 1.2, {id:'silver'}: 1.2`, no `metal` entry). **This closes the unruled `max` reduction** flagged in `culturalAffinityWeight`'s JSDoc: per-material entries make the multi-value case arrive via the selector rather than via a multi-tag material, and 2GN.84 already measured max discarding authored values whenever the class tag scored higher (3 of 5 dead), so a specific entry could only ever raise a material, never lower it. Product-of-deviations rejected: 1.5 × 0.8 = 1.2, so a below-neutral authored value yields an above-neutral weight. `materials.ts`'s `culturalAffinityWeight` and `decoration.ts`'s `bestMaterialAffinity` move together. ⚠️ `effectiveOptionWeight` (`grammar.ts`) does NOT participate and this is not an inconsistency to reconcile: it weights grammar options by tag-keyed `culturalModifiers` at stage 4, before materials are assigned at stage 6, so it never sees a material; its `?? 0` default differs deliberately. ⚠️ **The tag-versus-tag tie stays explicitly unruled** — no shipped material carries two class tags, and authoring a rule for a shape that does not exist is the defect 2GN.87 punished. Boundary the brief asked for: a per-material affinity is legitimate because it lives in `CulturalProfile` (that culture's opinion), where the retired `precious-*` tags lived in `MaterialDefinition` (Earth's judgement, applied universally) — the test is where the statement lives, not how specific it is."
 					},
 					{
 						"id": "2GN.111",
@@ -1468,7 +1469,7 @@
 					{
 						"id": "2GN.114",
 						"description": "`tests/fixtures/culture.ts` — extend `mockCulturalProfile`/`mockPhaseCharacteristics` with a high-craft/elite preset (`craftSpecialisation`, `decorativeEmphasis`, `motifComplexity` pushed toward 1.0), so elite/ceremonial-grade artefacts are reachable through ordinary sampling and Explorer calibration runs rather than only via hand-built overrides",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.110"
 						],

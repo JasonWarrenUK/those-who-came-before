@@ -1319,19 +1319,34 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `metal: 0.9` was getting the precious term at all. With that corrected the whole retirement is
       behaviour-neutral: no calibration pin re-recorded. One expressive loss accepted and filed as
       **2GN.110** _(depended on 2GN.77 — done)_
-- [ ] **2GN.110** — design spike — should `CulturalProfile.materialAffinities` support per-material
-      entries alongside per-tag ones? _(depends on 2GN.78 — done; unblocked)_ — filed 2026-08-11 as
-      2GN.78's one accepted expressive loss (doc 11 §2.9, doc 12 §2.40). The map is keyed by
-      `MaterialTag`, so with the `precious-*` members retired a culture can say "we prize metal" but
-      no longer "we prize gold specifically". Thalassar's authored `precious-metal: 1.2` was the one
-      live instance across the four Explorer presets and was dropped rather than re-expressed as
-      `metal: 1.2`, which would newly favour bronze and iron it was never authored to prefer. Rule
-      whether that granularity is worth carrying — and if so whether it belongs in
-      `materialAffinities` as a second keyspace, or is better derived from the material's situation
-      the way 2GN.77 ruled preciousness itself must be. Note the tension the ruling must state
-      explicitly: a per-material affinity entry _is_ a culture-authored judgement about one
-      material, which is legitimate (it is that culture's opinion, not Earth's) but sits close
-      enough to the retired tags that the boundary wants drawing rather than assuming
+- [x] **2GN.110** — design spike — should `CulturalProfile.materialAffinities` support per-material
+      entries alongside per-tag ones? **Ruled 2026-08-13: yes, via `MaterialSelector`.** See
+      `docs/spikes/2GN.110-per-material-affinities.md`, doc 11 §2.13, doc 12 §2.45. The map is
+      re-keyed by the same tagged union 2GN.112 built for `MaterialFlow`, and for the identical
+      reason: `bone`, `glass` and `leather` each name both a `MaterialTag` and a `MaterialName`, so a
+      bare union cannot distinguish them and precedence would make 3 of 16 materials unselectable by
+      one of their two readings. Only half the flow pattern transfers — `includes`/`excludes` exists
+      because membership needs subtraction, and affinities are weights with nothing to subtract.
+      **Resolution is most-specific-wins**: a class entry sets a default, a specific entry is an
+      exception to it, so `{tag:'metal'}: 1.5` with `{id:'gold'}: 0.8` reads "all metals are 1.5,
+      except gold, which is 0.8". A specific entry with no class entry is well-formed, and is what
+      recovers Thalassar's dropped intent exactly (`{id:'gold'}: 1.2, {id:'silver'}: 1.2`, no `metal`
+      entry). **Closes the unruled `max` reduction** flagged in `culturalAffinityWeight`'s JSDoc:
+      per-material entries make the multi-value case arrive through the selector rather than through
+      a multi-tag material, and 2GN.84 already measured max discarding authored values whenever the
+      class tag scored higher (3 of 5 dead), so a specific entry could only ever raise a material,
+      never lower it. Product-of-deviations rejected — 1.5 × 0.8 = 1.2, so a below-neutral authored
+      value yields an above-neutral weight. `materials.ts` and `decoration.ts` move together.
+      ⚠️ `effectiveOptionWeight` (`grammar.ts`) does **not** participate and this is not an
+      inconsistency to reconcile: it weights options by tag-keyed `culturalModifiers` at stage 4,
+      before materials are assigned at stage 6, so it never sees a material. ⚠️ the tag-versus-tag
+      tie stays **explicitly unruled** — no shipped material carries two class tags, and authoring
+      against a shape that does not exist is the defect 2GN.87 punished. Boundary the brief asked
+      for: a per-material affinity is legitimate because it lives in `CulturalProfile` (that
+      culture's opinion) where the retired tags lived in `MaterialDefinition` (Earth's judgement,
+      applied universally) — the test is **where the statement lives, not how specific it is**.
+      Unblocked 2GN.27, 2GN.68 and 2GN.114; ⚠️ 2GN.114 re-authors the same Explorer presets this
+      ruling re-keys, so sequence them together
 - [x] **2GN.112** — design spike — should `MaterialFlow.specificMaterials` narrow a flow, or widen
       it? _(depended on 2GN.78 — done)_ — filed and **ruled 2026-08-12** from PR #57 review, then
       implemented on the same branch. **Neither: the field is gone.** `MaterialFlow` now selects via
@@ -3379,9 +3394,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.110,2GN.111,2GN.115,2GN.116,2GN.118,2GN.119,2GN.120,2GN.16,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.69,2GN.72,2GN.76,2GN.92 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.10,2GN.104,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.117,2GN.13,2GN.14,2GN.15,2GN.21,2GN.27,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.68,2GN.70,2GN.71,2GN.73,2GN.93,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.112,2GN.113,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
+	class 2GN.111,2GN.114,2GN.115,2GN.116,2GN.118,2GN.119,2GN.120,2GN.16,2GN.27,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.10,2GN.104,2GN.105,2GN.106,2GN.107,2GN.109,2GN.117,2GN.13,2GN.14,2GN.15,2GN.21,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.93,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.112,2GN.113,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
 
 ## Links
