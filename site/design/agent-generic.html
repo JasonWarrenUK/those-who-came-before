@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Engine Doesn&rsquo;t Know Whose Beliefs These Are · Those Who Came Before</title>
-<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
 
 <nav id="topbar">
   <div class="inner">
-    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand design">Design</span>
     <span class="here">04 · The Engine Doesn&rsquo;t Know Whose Beliefs These Are</span>
   </div>
@@ -22,7 +22,7 @@
   <h1>One Interface, Player and NPC</h1>
   <p class="lede">The instinct here is a <code>PlayerState</code> and a separate <code>NPCState</code>, with NPC wrongness tracked as a list of flagged mistakes. This project ruled that out directly. An NPC's error isn't metadata attached to a scholar. It's just claims, in the identical container the player's beliefs live in, that happen to diverge from ground truth.</p>
 
-  <div class="callout"><span class="tag">Needs</span> <a href="/design/channels.html">Five Channels of Filtering</a>, since the lens is the clearest place to watch this constraint in action.</div>
+  <div class="callout"><span class="tag">Needs</span> <a href="channels.html">Five Channels of Filtering</a>, since the lens is the clearest place to watch this constraint in action.</div>
 
   <h2>The rejected shape, and what it cost</h2>
   <p><code>MinimalScholar</code>'s own type comment records what it replaced: NPC errors used to live in a <code>corpusErrors</code> field, a list of wrong-answer flags sitting beside the scholar's other data. That design works, in the narrow sense that it compiles and renders. What it can't do is let an NPC's mistake behave like a mistake: it can't be argued with, cited approvingly by a different NPC who happens to share it, revised when new evidence surfaces, or contradicted by the player's own later find. It's a label, not a belief.</p>
@@ -74,8 +74,8 @@
 </main>
 
 <div class="pagenav">
-    <a href="/design/classification.html"><span class="dir">Previous</span>Relative vs Absolute Classification</a>
-    <a href="/design/contradiction.html" class="next"><span class="dir">Next</span>Contradictions Are Revealed by Consequences</a>
+    <a href="classification.html"><span class="dir">Previous</span>Relative vs Absolute Classification</a>
+    <a href="contradiction.html" class="next"><span class="dir">Next</span>Contradictions Are Revealed by Consequences</a>
 </div>
 
 <footer>
