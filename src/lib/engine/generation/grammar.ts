@@ -77,6 +77,16 @@ export function phaseInfluence(option: GrammarOption, phase: PhaseCharacteristic
  * against the culture's material affinities (a missing affinity reads as 0), scaled by
  * `phaseInfluence`, floored at 0.01. The floor ensures nothing is completely impossible — even a
  * deeply pacifist culture occasionally produces a blade. Because archaeology.
+ *
+ * ⚠️ Reads **only class (`{ tag }`) entries**, deliberately, and does not use
+ * `culturalAffinityWeight`'s most-specific-wins resolution (roadmap 2GN.110 Finding 3). This runs at
+ * stage 4 and materials are not assigned until stage 6, so there is no material in hand against which
+ * a `{ id }` entry could be resolved — the lookup runs tag→weight, the reverse of the resolver's
+ * material→weight. A culture's per-material judgements therefore reach material *selection* without
+ * reaching grammar-option weighting, which is a stage-ordering fact rather than an inconsistency.
+ *
+ * The `?? 0` default is also deliberately not the resolver's neutral `1`: an unmentioned tag
+ * contributes no adjustment to an additive weight, where `1` would silently shift every option.
  */
 function effectiveOptionWeight(
 	option: GrammarOption,
@@ -86,7 +96,8 @@ function effectiveOptionWeight(
 	let weight = option.baseWeight;
 
 	for (const [tag, modifier] of option.culturalModifiers) {
-		weight += (culture.materialAffinities.get(tag) ?? 0) * modifier;
+		const classEntry = culture.materialAffinities.find((entry) => entry.selector.tag === tag);
+		weight += (classEntry?.weight ?? 0) * modifier;
 	}
 
 	weight *= phaseInfluence(option, phase);
