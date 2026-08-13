@@ -652,5 +652,56 @@ half (2GN.77), reading the keyspace 2GN.110 rules.
 
 ---
 
+### 2.13 Per-Material Cultural Affinities (roadmap 2GN.110)
+
+**Decision:** `CulturalProfile.materialAffinities` is keyed by **`MaterialSelector`**, the same
+tagged union `MaterialFlow` uses (2GN.112), so a culture may state an affinity for a whole material
+class or for one named material. Where both apply, **most-specific-wins**: a class entry sets a
+default and a specific entry is an exception to it.
+
+`{ tag: 'metal' }: 1.5` with `{ id: 'gold' }: 0.8` reads as **"all metals are 1.5, except gold, which
+is 0.8"**. A specific entry with no class entry is well-formed: `{ id: 'gold' }: 1.2` alone reads gold
+at 1.2 and every other metal at the neutral `1` — the shape that recovers the intent 2GN.78 dropped
+from Thalassar, which meant "we favour gold and silver" and had no way to say it.
+
+**Why the tagged union rather than a bare string.** `bone`, `glass` and `leather` each name both a
+`MaterialTag` and a `MaterialName`, so a `MaterialTag | MaterialName` union cannot distinguish the
+class from the material, and resolving by precedence would make three of sixteen materials
+unselectable by one of their two readings. Same reason as §2.9's material half, same solution as the
+flows.
+
+**This closes an open reduction question.** `culturalAffinityWeight` reduces across a material's tags
+with `max`, and its JSDoc flagged the reduction as unruled pending a genuine multi-tag material.
+Per-material entries make the multi-value case arrive immediately (gold carries both `{ tag: 'metal'
+}` and `{ id: 'gold' }`), and `max` is already known wrong for it: 2GN.84 measured the max
+*discarding* authored values whenever the class tag scored higher, so ⚠️ **a specific entry could only
+ever raise a material, never lower it** — the one-directional behaviour that helped retire the
+`precious-*` tags in the first place. `decoration.ts`'s `bestMaterialAffinity` inlines the same
+reduction and moves with it.
+
+⚠️ **The tag-versus-tag tie stays unruled.** If a material ever carries two *class* tags,
+most-specific-wins has no tiebreak. No shipped material does, and authoring a rule for a shape that
+does not exist is the defect 2GN.87 punished.
+
+⚠️ **`effectiveOptionWeight` (`grammar.ts`) does not participate**, and this is not an inconsistency
+to reconcile later. It weights grammar options by `culturalModifiers`, which are keyed by tag, and it
+runs at stage 4 — materials are not assigned until stage 6, so it never sees a material. Its `?? 0`
+default also differs deliberately from the other consumers' `?? 1`.
+
+**The boundary the loss raised.** A per-material affinity is a culture's judgement about a material,
+which is legitimate under §2.9's material half precisely because it is *that culture's* opinion. The
+retired `precious-*` tags were different in kind: they lived in `data/materials.ts` as a property of
+the material itself, stamping one judgement onto every culture in every world. **The test is where
+the statement lives, not how specific it is** — `CulturalProfile` may name a single material freely;
+`MaterialDefinition` may not encode standing at all. Specificity was never the problem; universality
+was.
+
+**Affects:** doc 05 §3.3 (`materialAffinities`' shape and the resolution rule), doc 12 (§2.45 records
+the reasoning). Roadmap: 2GN.110 ruled; implementation re-keys the map, replaces the `max` reduction
+in `materials.ts` and `decoration.ts` together, and re-authors the four Explorer presets. Full
+detail: `docs/spikes/2GN.110-per-material-affinities.md`.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._

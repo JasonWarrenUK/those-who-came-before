@@ -2521,5 +2521,67 @@ conditions are written, not of which vocabulary they award from**. Filed 2GN.119
 
 ---
 
+### 2.45 Affinities Take the Flow Selector; Most-Specific-Wins Retires the `max` Reduction (2026-08-13)
+
+**Origin:** 2GN.110 design spike **Source of truth:**
+`docs/spikes/2GN.110-per-material-affinities.md`; decision locked in doc 11 §2.13
+
+**The expressive loss §2.40 accepted is recovered, by reusing §2.41's selector.** Retiring the
+`precious-*` tags left `materialAffinities` keyed by `MaterialTag` alone, so a culture could say "we
+prize metal" but not "we prize gold". Thalassar's authored `precious-metal: 1.2` — the only *live*
+precious affinity across the four Explorer presets — was dropped rather than re-expressed as
+`metal: 1.2`, which would newly favour bronze and iron it was never authored to prefer. The map is
+now keyed by `MaterialSelector`, the tagged union 2GN.112 built for `MaterialFlow`, and for the
+identical reason: `bone`, `glass` and `leather` each name both a tag and a material, so a bare union
+cannot distinguish them and precedence would make three of sixteen materials unselectable by one of
+their readings.
+
+**Only half the flow pattern transfers.** `MaterialFlow` pairs `includes` with `excludes` because
+membership needs subtraction ("all metals except gold"). Affinities are weights, so there is nothing
+to subtract; the exception case is carried by the resolution rule instead.
+
+**Adopting the selector forced a ruling that had been deferred indefinitely.**
+`culturalAffinityWeight`'s `max` across a material's tags is inert today — every shipped material
+carries exactly one tag — and its own JSDoc flagged the reduction as unruled "if a genuine multi-tag
+material is ever authored". Per-material entries make the multi-value case arrive immediately, via
+the selector rather than via a multi-tag material: gold carries both `{ tag: 'metal' }` and
+`{ id: 'gold' }`. **General lesson: a dormant code path accumulates no evidence about itself.** The
+reduction survived §2.40 and 2GN.84 because it never fired, so nothing tested it and no measurement
+contradicted it. When a shape change makes a dormant path live, the ruling it was always waiting for
+comes due in the same change, not afterwards.
+
+**Resolution is most-specific-wins, and `max` is already known wrong.** 2GN.84 measured the max
+*discarding* authored `precious-*` values whenever the class tag scored higher (3 of 5 dead that
+way), so ⚠️ a specific entry could only ever raise a material, never lower it — the one-directional
+behaviour that was itself evidence the precious tags encoded a judgement rather than a class.
+Most-specific-wins is bidirectional and keeps authored value and computed weight identical, where
+product-of-deviations does not: `metal: 1.5` × `gold: 0.8` yields 1.2, so a below-neutral authored
+value produces an above-neutral result, reading as mild favour when disfavour was meant.
+
+**Two consumers move together, one cannot participate.** `culturalAffinityWeight` (`materials.ts`)
+and `bestMaterialAffinity` (`decoration.ts`) inline the same reduction, as that JSDoc already
+required. ⚠️ `effectiveOptionWeight` (`grammar.ts`) reads affinities by tag with a deliberate `?? 0`
+default and **cannot consult a per-material entry even in principle**: it weights grammar options by
+`culturalModifiers` at stage 4, and materials are not assigned until stage 6, so it never sees a
+material. A stage-ordering fact, recorded so it is not later "fixed" into consistency.
+
+**The boundary, stated as the brief asked.** A per-material affinity is a culture's judgement about a
+material, legitimate under §2.28's ruling precisely because it is *that culture's* opinion. The
+retired tags lived in `data/materials.ts` as a property of the material itself, stamping one
+judgement onto every culture in every world. **The test is where the statement lives, not how
+specific it is.** Specificity was never the problem; universality was.
+
+| §   | Propagation                                                                                                  | Date       |
+| --- | ------------------------------------------------------------------------------------------------------------ | ---------- |
+| —   | `docs/spikes/2GN.110-per-material-affinities.md`: new spike write-up                                           | 2026-08-13 |
+| —   | Doc 11 §2.13: locked decision (selector keying, most-specific-wins, the where-it-lives boundary)                | 2026-08-13 |
+| ⏳  | Doc 05 §3.3: `materialAffinities`' shape and the resolution rule — with the implementation                     | 2026-08-13 |
+| ⏳  | `types/world.ts`: `materialAffinities` re-keyed to `Map<MaterialSelector, number>`                             | 2026-08-13 |
+| ⏳  | `materials.ts` + `decoration.ts`: `max` replaced by most-specific-wins in both, together                       | 2026-08-13 |
+| ⏳  | `data/explorer-cultures.ts`: Thalassar's dropped gold/silver intent re-authored as specific entries             | 2026-08-13 |
+| —   | Roadmap: 2GN.110 closed; the tag-versus-tag tie recorded as explicitly unruled                                 | 2026-08-13 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
