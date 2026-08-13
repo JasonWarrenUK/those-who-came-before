@@ -317,15 +317,33 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Xoconahtl',
 		description: 'Jungle religious/monumental culture — stone and relief-heavy, votive deposition.',
 		profile: {
-			// `precious-stone: 1.4` removed with the tag (roadmap 2GN.78). It was already dead data:
-			// jade carried both tags and `culturalAffinityWeight` then took the max, so `stone: 1.8`
-			// always won and the authored 1.4 never affected a draw. That max is gone (2GN.123), and
-			// under most-specific-wins the intent would now be expressible as `{ id: 'jade' }: 1.4`
-			// — left unauthored rather than revived, since nobody has ruled that Xoconahtl values
-			// jade *less* than stone generally, which is what the old numbers literally said.
+			// Jade restored as a raise, not the literal 1.4 (roadmap 2GN.123). The retired
+			// `precious-stone: 1.4` sat *below* `stone: 1.8`, which reads as "values jade less than
+			// granite" — but it never meant that. Doc 12 §2.34 measured the map as one-directional by
+			// construction: under the `max` reduction a lower number could not lower anything, so the
+			// author was reaching for a second axis (a precious *tier* alongside the class) rather
+			// than authoring suppression. With `precious-stone` retired as a global concept (2GN.77:
+			// standing is a culture's judgement, not a property of the rock), that tier is gone and
+			// the intent belongs here: "they use a lot of stone, and quite a lot of jade".
+			//
+			// Above `stone` rather than below it, because jade is *local* here — `available`, not
+			// imported like Khaltiris's — and a monumental culture at `religiousEmphasis` 0.85 with
+			// jade underfoot prizes it over ordinary granite.
 			materialAffinities: materialAffinities([
 				['stone', 1.8],
+				// Explicitly neutral, not an oversight: this culture works clay in quantity (fired-clay
+				// is `abundant` and 12% of its output) without favouring it. Resolves identically to
+				// omitting the entry — kept because "considered and indifferent" is worth distinguishing
+				// from "never considered", a distinction the type cannot carry (roadmap 2GN.127).
 				['clay', 1.0],
+				[{ id: 'jade' }, 2.2],
+				// Below neutral, and the first authored disfavour in any preset. Distinct from the
+				// capability floor already suppressing leather here (`leatherWorking: 0.30`, lowest in
+				// the set; geology `scarce`): those say this culture *cannot* work hide well. This says
+				// it would choose otherwise given the hide — a humid climate makes tanning a poor
+				// investment beside the stone it builds in. 0.7 rather than 0.5 because the authored
+				// case is climate and opportunity cost, not distaste.
+				['leather', 0.7],
 			]),
 			techniqueAffinities: new Map([
 				['relief', 1.7],
