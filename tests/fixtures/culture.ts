@@ -167,9 +167,10 @@ function mockTimeline(cultureId: string): CultureTimeline {
  * default so a fixture read alone still makes sense.
  *
  * Overrides replace whole top-level branches (`baseProfile`, `timeline`) rather than deep-merging
- * — `materialAffinities`/`contextWeights`/`siteTypeWeights` are `Map`s and `PhaseCharacteristics`
- * nests two levels deep, so a shallow spread on either would silently drop sibling entries.
- * Callers wanting a tweaked phase or affinity map should pass the full replacement branch.
+ * — `contextWeights`/`siteTypeWeights` are `Map`s, `materialAffinities` is a `MaterialAffinity[]`
+ * (roadmap 2GN.123) and `PhaseCharacteristics` nests two levels deep, so a shallow spread on any of
+ * them would silently drop sibling entries. Callers wanting a tweaked phase or different affinities
+ * should pass the full replacement branch.
  *
  * @param overrides - Partial `Culture` merged shallowly over the defaults.
  */
