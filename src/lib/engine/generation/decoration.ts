@@ -95,7 +95,7 @@ import {
 	TECHNIQUE_MATERIAL_SENSITIVITY,
 } from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
-import { computeMaterialWeight, isAvailable } from './materials.ts';
+import { computeMaterialWeight, culturalAffinityWeight, isAvailable } from './materials.ts';
 import { resolvePhaseAttribute } from './phase.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -249,28 +249,6 @@ function isGildingMaterial(material: MaterialDefinition): boolean {
 }
 
 /**
- * A culture's affinity for a material, read as neutral (`1`) when unauthored — the same reduction
- * `materials.ts`'s `culturalAffinityWeight` performs, inlined here since that helper isn't exported.
- *
- * The max across tags is vestigial since roadmap 2GN.78 retired the precious tags: every shipped
- * material now carries exactly one `MaterialTag`, so there is only ever one affinity to read and the
- * reduction cannot discard anything. It is kept rather than simplified to a single lookup because
- * `MaterialDefinition.tags` is still a list, and a future multi-tag material should degrade to a
- * defined reading rather than an arbitrary one. **The choice of `max` is not load-bearing today and
- * was never ruled** — 2GN.84 measured it silently discarding authored `precious-*` affinities, which
- * is part of why those tags were retired. If a genuine multi-tag material is ever authored, the
- * reduction needs a ruling before it carries weight again.
- */
-function bestMaterialAffinity(material: MaterialDefinition, culture: CulturalProfile): number {
-	let best = -Infinity;
-	for (const tag of material.tags) {
-		const affinity = culture.materialAffinities.get(tag) ?? 1;
-		if (affinity > best) best = affinity;
-	}
-	return best === -Infinity ? 1 : best;
-}
-
-/**
  * Whether at least one material a technique can be worked from is obtainable (`isAvailable`).
  *
  * Takes the already-resolved candidate pool (`introducedMaterialPool`) rather than a tag list, so
@@ -299,7 +277,7 @@ function hasIntroducedMaterialAccess(
  *    `'form'` prerequisites are geometric, not material, and are resolved against a specific
  *    component by 2GN.30, not at the culture level this function operates on. "Plausibly has
  *    access" for a material substrate means: at least one material in `materials` both (a) the
- *    culture favours at better than neutral affinity (`bestMaterialAffinity(...) > 1`) and (b) can
+ *    culture favours at better than neutral affinity (`culturalAffinityWeight(...) > 1`) and (b) can
  *    actually obtain (`isAvailable`), and (c) satisfies the technique's `substrate.test`.
  * 2. **Introduced material** (roadmap 2GN.84). A technique can have a *non*-material substrate
  *    (`wire-wrapping`'s is `'form'`) while still introducing a material (`INTRODUCED_MATERIAL_TAGS`)
@@ -333,7 +311,7 @@ function materialAccessGate(
 	if (technique.substrate.kind === 'material') {
 		const substrate = technique.substrate;
 		const hasSubstrateAccess = materials.some((material) =>
-			bestMaterialAffinity(material, culture) > 1 &&
+			culturalAffinityWeight(material, culture) > 1 &&
 			isAvailable(material, geology, trade) &&
 			substrate.test(material)
 		);

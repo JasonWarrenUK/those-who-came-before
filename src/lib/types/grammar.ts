@@ -109,10 +109,16 @@ export interface GrammarOption {
 	baseWeight: number;
 
 	/**
-	 * Per-material-tag weight adjustments (doc 05 §5.4). Iterated as `[MaterialTag, number]` pairs
-	 * and added to the running weight as `affinity * modifier`, so the key type matches
-	 * `CulturalProfile.materialAffinities`. A positive modifier makes the option likelier for
-	 * cultures that favour that material; negative suppresses it.
+	 * Per-material-tag weight adjustments (doc 05 §5.4). Iterated as `[MaterialTag, number]` pairs and
+	 * added to the running weight as `affinity * modifier`, where the affinity is looked up on the
+	 * culture and an absent tag contributes `0` (no adjustment) rather than a neutral multiplier. A
+	 * positive modifier makes the option likelier for cultures that favour that material; negative
+	 * suppresses it.
+	 *
+	 * ⚠️ Stays tag-keyed while `CulturalProfile.materialAffinities` moved to `MaterialSelector` entries
+	 * (roadmap 2GN.110/2GN.123). This map **cannot** carry per-material entries even in principle:
+	 * `effectiveOptionWeight` runs at stage 4 and materials are not assigned until stage 6, so there is
+	 * no material in hand to name. A stage-ordering fact, not a divergence awaiting reconciliation.
 	 */
 	culturalModifiers: Map<MaterialTag, number>;
 

@@ -40,7 +40,7 @@ import type {
 	MaterialSelector,
 	PhaseCharacteristics,
 } from '../../types/world.ts';
-import type { MaterialName, MaterialTag } from '../../types/tags.ts';
+import type { MaterialName } from '../../types/tags.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -179,32 +179,54 @@ export function isAvailable(
 }
 
 /**
- * A material's cultural-affinity weight (doc 05 §3.3, `CulturalProfile.materialAffinities`). A tag
- * absent from the map contributes a neutral `1`.
+ * A material's cultural-affinity weight (doc 05 §3.3, `CulturalProfile.materialAffinities`),
+ * resolved **most-specific-wins** per the roadmap 2GN.110 ruling: a `{ id }` entry naming this
+ * material beats any `{ tag }` entry covering its class, a `{ tag }` entry supplies the class
+ * default, and a material matched by neither reads a neutral `1`.
  *
- * **The max across tags is vestigial** since roadmap 2GN.78 (doc 12 §2.40): every shipped material
- * now carries exactly one `MaterialTag`, so there is only ever one affinity to read. It previously
- * justified itself on gold (`metal` + `precious-metal`) reading by its strongest leaning rather than
- * being diluted — but 2GN.84 measured the opposite effect, the max *discarding* authored
- * `precious-*` values whenever the class tag scored higher (3 of the 5 authored across the Explorer
- * presets were dead this way). That one-directional behaviour — a second tag could only ever raise a
- * material, never lower it — was itself evidence the precious tags were encoding a judgement rather
- * than a class, and contributed to retiring them.
+ * So `{ tag: 'metal' }: 1.5` with `{ id: 'gold' }: 0.8` weights bronze and iron at 1.5 and gold at
+ * 0.8 — the specific entry **lowers** as well as raises. That bidirectionality is the whole point:
+ * this replaced a `max` across tags which 2GN.84 measured discarding authored values whenever the
+ * class tag scored higher (3 of the 5 authored across the Explorer presets were dead that way), so a
+ * specific entry could only ever raise a material. Product-of-deviations was rejected alongside it
+ * for breaking the correspondence between what an author writes and what the engine computes
+ * (`1.5 × 0.8 = 1.2` reads as mild favour when disfavour was meant).
  *
- * Kept rather than simplified to a single lookup because `MaterialDefinition.tags` is still a list.
- * **If a genuine multi-tag material is ever authored, this reduction needs a ruling** (max /
- * most-specific-wins / product-of-deviations) before it carries weight again; it has never had one.
- * `decoration.ts`'s `bestMaterialAffinity` inlines the same reduction and must move with it.
+ * ⚠️ The **tag-versus-tag tie is deliberately unruled** (ruling point 6): a material carrying two
+ * `MaterialTag`s would match two class entries with no tiebreak between them. No shipped material
+ * does, and `materials.test.ts` pins that invariant so this becomes reachable only loudly. The
+ * `find` below therefore takes first-match by array order — **an implementation detail, not a
+ * ruling.** Do not read array order as a decision; the ruling comes due if that test ever fails.
+ *
+ * ⚠️ Two duplicate entries with the *same* selector hit that first-match rule too, and unlike the
+ * tag tie nothing prevents authoring them: `[{ id: 'gold' }: 0.5, { id: 'gold' }: 2.0]` resolves to
+ * 0.5. The `Map` this replaced would have kept the last such entry, so the shape change reversed
+ * which duplicate wins. Neither is ruled and no authored data duplicates a selector; if that ever
+ * matters, it wants a validation pass at authoring time rather than a tiebreak here.
+ *
+ * Weights are not validated. A negative weight resolves through unchanged and reaches
+ * `computeMaterialWeight`, where `weightedSelect`'s `Math.max(0, …)` clamps it to zero — defined
+ * behaviour rather than a crash, but the type permits a value the semantics have no reading for.
+ *
+ * Exported so `decoration.ts` can share it rather than inline a second copy, which is what the two
+ * previously-divergent JSDoc blocks were apologising for.
+ *
+ * @param material - The candidate material.
+ * @param culture - The culture whose judgement is being read.
+ * @returns The affinity weight; `1` when the culture expresses no view on this material.
  */
-function culturalAffinityWeight(material: MaterialDefinition, culture: CulturalProfile): number {
-	let best = -Infinity;
+export function culturalAffinityWeight(
+	material: MaterialDefinition,
+	culture: CulturalProfile,
+): number {
+	const specific = culture.materialAffinities.find((entry) => entry.selector.id === material.id);
+	if (specific) return specific.weight;
 
-	for (const tag of material.tags as MaterialTag[]) {
-		const affinity = culture.materialAffinities.get(tag) ?? 1;
-		if (affinity > best) best = affinity;
-	}
+	const byClass = culture.materialAffinities.find((entry) =>
+		entry.selector.tag !== undefined && material.tags.includes(entry.selector.tag)
+	);
 
-	return best === -Infinity ? 1 : best;
+	return byClass?.weight ?? 1;
 }
 
 /**

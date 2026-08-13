@@ -1547,11 +1547,46 @@
 					{
 						"id": "2GN.123",
 						"description": "`types/world.ts` + `engine/generation/materials.ts` + `engine/generation/decoration.ts` — re-key `CulturalProfile.materialAffinities` from `Map<MaterialTag, number>` to the `MaterialSelector` tagged union 2GN.112 built for `MaterialFlow`, resolved **most-specific-wins**. 2GN.110 ruled this on 2026-08-13 and nothing has carried it: the type is still tag-keyed at `types/world.ts:220`, and `data/explorer-cultures.ts` still holds the comment recording Thalassar’s dropped `precious-metal: 1.2` as an open design question. A bare `MaterialTag | MaterialName` union cannot work because `bone`, `glass` and `leather` each name both a class and a material, which is exactly why the flow side needed the tagged form. `includes`/`excludes` does NOT transfer: membership needs subtraction, affinities are weights with nothing to subtract. Deliverable: the re-keyed type, `culturalAffinityWeight` (`materials.ts`) and `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins resolution, the four Explorer presets migrated, and Thalassar’s authored intent restored as `{id:'gold'}: 1.2, {id:'silver'}: 1.2` with no `metal` entry. ⚠️ closes the unruled `max` reduction flagged in `culturalAffinityWeight`’s JSDoc: 2GN.84 measured max discarding authored values whenever the class tag scored higher (3 of 5 dead), so under max a specific entry could only ever raise a material, never lower it — most-specific-wins is what makes `{id:'gold'}: 0.8` under `{tag:'metal'}: 1.5` mean what it reads as. ⚠️ moves material-selection distributions, so `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.110"
 						],
 						"notes": "Filed 2026-08-13 during PR #61 review. 2GN.110 was marked done on the strength of its ruling, but no task carried the implementation: `2GN.27`, `2GN.68`, `2GN.114` and `3WS.3` all depend on 2GN.110 while consuming or fixture-building around affinities rather than re-keying them, so the ruling had no destination. Surfaced by a review comment on `site/design/classification.html`, which described the new shape as shipped when the type had not moved; the page now describes it as a ruled contract, and this task is what makes it true. Product-of-deviations was rejected in the ruling (1.5 × 0.8 = 1.2, so a below-neutral authored value would yield an above-neutral weight). A specific entry with no class entry is well-formed and is the case that recovers Thalassar exactly.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.124",
+						"description": "`src/lib/data/materials.ts` + `src/lib/types/tags.ts` — widen the material catalogue beyond the 16 shipped materials, scoped to what artefact generation and craft actually need. Four of the eight `MaterialTag` classes are single-leaf (clay, glass, fiber, leather), so `materials.calibration.test.ts` emits no intra-tag split for them — it would \"always read 100% and carry no information\" — leaving half the guard's two-level tree unmeasurable by construction. Covers both filling out thin classes (copper, tin and lead under `metal`; wool and hemp under `fiber`; further clays) and breadth for archaeological plausibility (shell, amber, horn, pigments, composite materials), judged by what a real assemblage needs rather than by filling tag rows for their own sake. ⚠️ may require new `MaterialTag` members, which touches the `MaterialSelector` keyspace and every authored `materialAffinities` entry array; `MATERIAL_NAMES` is declared rather than derived from `MATERIALS` (the import would cycle), so `materials.test.ts`'s two-directional pin fails loudly until the list is updated alongside. ⚠️ moves material-share distributions, so `EXPECTED_TAG_SHARES` and `EXPECTED_INTRA_TAG_SHARES` need re-recording",
+						"status": "todo",
+						"dependsOn": [],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.125",
+						"description": "design spike — does `AvailabilityLevel` conflate materials that are **found** with materials that are **produced**? `GeologicalContext`'s own JSDoc calls itself \"geological material scarcity\" and cites obsidian, gold and tin, yet it keys `leather`, `linen`, `bone`, `antler`, `oak`, `ash`, `fired-clay` and `glass` — none of which are geological. Measured 2026-08-13: **10 of the 16 shipped materials are produced rather than dug.** Sharpest are `bronze` and `iron`: bronze does not exist in the ground at all (an alloy requiring tin *and* copper) and iron requires smelting from ore, yet each carries a single `AvailabilityLevel` conflating \"the ore is here\" with \"we can smelt it\". **This double-counts**, because `computeMaterialWeight` multiplies `scarcityWeight × phaseTechnologyWeight` as independent terms: for granite they genuinely are independent (the rock is underfoot; carving is a separate skill), but Tarpan's bronze `scarce` stands in for ore-plus-tin-plus-smelting, which its `metallurgy: 0.6` already encodes — the same constraint applied twice. It also makes authoring unstatable: nothing can express \"abundant cattle, no tanning tradition\" or \"rich ore, no smelting\" as distinct from simply \"little leather\" or \"little iron\". Rule whether `AvailabilityLevel` splits into substrate-versus-product, whether a `requiresExtraction` flag or an input-material relation hangs off `MaterialDefinition`, or whether `craftDomain` absorbs the distinction. Sequenced after 2GN.124 deliberately, so the ruling is made against the widened catalogue rather than a 16-material sample that may not contain the awkward cases",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.124"
+						],
+						"notes": "Filed 2026-08-13 from a preset-cultures audit. The conflation surfaced while checking whether each preset's authored affinities were reachable: Tarpan authors `metal: 1.3` and its geology marks bronze `scarce`, which reads as a statement about deposits but is really a statement about metallurgy. Downstream of 2GN.124 because the ruling should be made against the full catalogue — a widened `metal` class carrying copper and tin separately may itself resolve part of the bronze case, and ruling first would risk modelling around a gap the catalogue task closes.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.126",
+						"description": "apply the 2GN.125 ruling to the availability model — `types/world.ts` (`AvailabilityLevel`, `GeologicalContext`, `RegionalAvailability`), `types/artefact.ts` (`MaterialDefinition`), `engine/generation/materials.ts` (`scarcityWeight`, `computeMaterialWeight`, `explainMaterialWeight`) and the four Explorer preset geologies. ⚠️ moves material-selection distributions wherever a produced material stops being weighted as though it were dug, so `EXPECTED_FIRE_RATES` (`calibration.test.ts`), the region/tag share and intra-tag split guards (`materials.calibration.test.ts`) and the preset affinity guard all need re-recording with the drift annotated. ⚠️ breaking if `AvailabilityLevel` gains or splits members: `save.ts` persists world state, and every authored geology in `data/explorer-cultures.ts` and `tests/fixtures/world.ts` is keyed on the current five levels",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.125"
+						],
+						"notes": "Blocks 3WS.3, 3WS.6 and 3WS.7 — the three M3 generators that emit or consume this model. 3WS.7 generates `AvailabilityLevel` directly; 3WS.3 generates `CulturalProfile.materialAffinities`, whose coherence depends on what an availability level means; 3WS.6 generates `MaterialFlow`s, and a found/produced split changes what a flow can coherently carry (ore, ingots and finished hide are different goods). All three already sit behind the M2 gate via 3WS.1, so these edges record ordering rather than changing any status today — they survive the gate lifting, which is the point.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.127",
+						"description": "design spike — should a material absent from `CulturalProfile.materialAffinities` resolve to the neutral `1`, or is silence an authoring error that should throw? `culturalAffinityWeight` (`engine/generation/materials.ts`) returns `1` for any material no entry matches, and `computeTechniqueWeight` (`decoration.ts`) does the same for `techniqueAffinities` — so **an unauthored material is indistinguishable from one deliberately authored at exactly `1.0`.** Measured 2026-08-13 across the four Explorer presets: 8–12 of 16 materials and 13–14 of 16 techniques resolve by default rather than by authorship, so most of every preset is silence. Xoconahtl's `['clay', 1.0]` is the case that exposes it — behaviourally identical to omitting the entry, kept only because a comment says it is deliberate indifference, which is exactly the distinction the type cannot carry. ⚠️ The stakes cut both ways and the spike must weigh both: throwing makes every preset state a judgement about every material (~250 authored numbers across four presets today, growing with 2GN.124's widened catalogue) and turns a new material into a breaking change for all authored cultures; keeping the default leaves \"considered and indifferent\" and \"never considered\" permanently indistinguishable, which is the same silently-dead-authoring failure 2GN.84 measured on the retired `precious-*` entries. Options to rule between include: keep the default; throw on omission; require an explicit neutral sentinel; or a `completeness: 'partial' | 'exhaustive'` flag on the profile letting a culture opt into strictness. Applies equally to `techniqueAffinities`, `contextWeights` and `siteTypeWeights`, which share the shape — rule the family, not the one map",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-13 from a preset-cultures audit. Sits alongside doc 12 §2.47's lesson that a dormant path accumulates no evidence about itself: a defaulted entry is dormant authoring, and nothing in the suite can tell it from a decision. Related to 2GN.124 (a widened catalogue multiplies the authoring cost of throwing) but not blocked on it — the ruling is about the contract, not the catalogue size, and can be made against the 16 shipped materials.",
 						"assignee": "Jason Warren"
 					}
 				]
@@ -1586,7 +1621,9 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.2",
-							"2GN.110"
+							"2GN.110",
+							"2GN.123",
+							"2GN.126"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1613,7 +1650,8 @@
 						"description": "`engine/world/culture.ts` — `MaterialFlow` generation within relationships (tag, materials, direction, volume)",
 						"status": "blocked",
 						"dependsOn": [
-							"3WS.5"
+							"3WS.5",
+							"2GN.126"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1622,7 +1660,8 @@
 						"description": "`engine/world/seed.ts` — geological context generation: `GeologicalContext` with material availability per region, `AvailabilityLevel` per material",
 						"status": "blocked",
 						"dependsOn": [
-							"3WS.1"
+							"3WS.1",
+							"2GN.126"
 						],
 						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.",
 						"assignee": "Jason Warren"

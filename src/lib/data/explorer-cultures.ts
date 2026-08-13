@@ -25,10 +25,11 @@ import type {
 	AvailabilityLevel,
 	CulturalProfile,
 	GeologicalContext,
+	MaterialAffinity,
 	MaterialFlow,
 	PhaseCharacteristics,
 } from '../types/world.ts';
-import type { MaterialTag } from '../types/tags.ts';
+import type { MaterialName, MaterialTag } from '../types/tags.ts';
 import type { CulturePhaseSample } from '../engine/generation/baselines.ts';
 
 /** One Explorer preset: a named, described culture paired with a single phase to generate against. */
@@ -59,8 +60,22 @@ export interface ExplorerCulture {
 	trade: MaterialFlow[];
 }
 
-function materialAffinities(entries: [MaterialTag, number][]): Map<MaterialTag, number> {
-	return new Map(entries);
+/**
+ * Builds a preset's `materialAffinities` from terse pairs, so the presets stay readable now that the
+ * entries are objects (roadmap 2GN.123). A bare `MaterialTag` key becomes a class entry; wrap an id
+ * as `{ id: 'gold' }` for a per-material entry, which beats any class entry covering it.
+ *
+ * Both forms are spelled out rather than accepting a bare string because `bone`, `glass` and
+ * `leather` each name a class *and* a material — the collision `MaterialSelector` exists to keep
+ * apart.
+ */
+function materialAffinities(
+	entries: [MaterialTag | { id: MaterialName }, number][],
+): MaterialAffinity[] {
+	return entries.map(([key, weight]) => ({
+		selector: typeof key === 'string' ? { tag: key } : { id: key.id },
+		weight,
+	}));
 }
 
 /** The 16 shipped material ids, in `src/lib/data/materials.ts` order. */
@@ -192,17 +207,19 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Thalassar',
 		description: 'Maritime-trade palace culture — moderate specialisation, clay and gilded glass.',
 		profile: {
-			// A `precious-metal: 1.2` entry sat here until roadmap 2GN.78 retired the tag. It was the
-			// only *live* precious affinity across the four presets (the others lost to a higher
-			// class-tag value under the max reduction), so dropping it is a real loss of authored
-			// intent: Thalassar meant "we favour gold and silver", and `materialAffinities` is keyed
-			// by tag, so there is no surviving way to say that about two specific materials. Left
-			// dropped rather than re-expressed as `metal: 1.2`, which would newly favour bronze and
-			// iron this culture was never authored to prefer. Whether the map should support
-			// per-material entries alongside per-tag ones is filed as a design question.
+			// Gold and silver restored (roadmap 2GN.123). A `precious-metal: 1.2` entry sat here until
+			// 2GN.78 retired that tag — the only *live* precious affinity across the four presets, so
+			// dropping it lost real authored intent. Thalassar means "we favour gold and silver", and
+			// the tag-keyed map had no way to say that about two specific materials: `metal: 1.2`
+			// would have newly favoured the bronze and iron this culture was never authored to prefer.
+			// Most-specific-wins (2GN.110) is what makes the naming exact — two `{ id }` entries and
+			// deliberately no `metal` entry, so every other metal reads the neutral 1 rather than
+			// inheriting anything.
 			materialAffinities: materialAffinities([
 				['clay', 1.7],
 				['glass', 1.1],
+				[{ id: 'gold' }, 1.2],
+				[{ id: 'silver' }, 1.2],
 			]),
 			techniqueAffinities: new Map([
 				['painting', 1.6],
@@ -300,12 +317,33 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		label: 'Xoconahtl',
 		description: 'Jungle religious/monumental culture — stone and relief-heavy, votive deposition.',
 		profile: {
-			// `precious-stone: 1.4` removed with the tag (roadmap 2GN.78). It was already dead data:
-			// jade carried both tags and `culturalAffinityWeight` takes the max, so `stone: 1.8`
-			// always won and the authored 1.4 never affected a draw.
+			// Jade restored as a raise, not the literal 1.4 (roadmap 2GN.123). The retired
+			// `precious-stone: 1.4` sat *below* `stone: 1.8`, which reads as "values jade less than
+			// granite" — but it never meant that. Doc 12 §2.34 measured the map as one-directional by
+			// construction: under the `max` reduction a lower number could not lower anything, so the
+			// author was reaching for a second axis (a precious *tier* alongside the class) rather
+			// than authoring suppression. With `precious-stone` retired as a global concept (2GN.77:
+			// standing is a culture's judgement, not a property of the rock), that tier is gone and
+			// the intent belongs here: "they use a lot of stone, and quite a lot of jade".
+			//
+			// Above `stone` rather than below it, because jade is *local* here — `available`, not
+			// imported like Khaltiris's — and a monumental culture at `religiousEmphasis` 0.85 with
+			// jade underfoot prizes it over ordinary granite.
 			materialAffinities: materialAffinities([
 				['stone', 1.8],
+				// Explicitly neutral, not an oversight: this culture works clay in quantity (fired-clay
+				// is `abundant` and 12% of its output) without favouring it. Resolves identically to
+				// omitting the entry — kept because "considered and indifferent" is worth distinguishing
+				// from "never considered", a distinction the type cannot carry (roadmap 2GN.127).
 				['clay', 1.0],
+				[{ id: 'jade' }, 2.2],
+				// Below neutral, and the first authored disfavour in any preset. Distinct from the
+				// capability floor already suppressing leather here (`leatherWorking: 0.30`, lowest in
+				// the set; geology `scarce`): those say this culture *cannot* work hide well. This says
+				// it would choose otherwise given the hide — a humid climate makes tanning a poor
+				// investment beside the stone it builds in. 0.7 rather than 0.5 because the authored
+				// case is climate and opportunity cost, not distaste.
+				['leather', 0.7],
 			]),
 			techniqueAffinities: new Map([
 				['relief', 1.7],
@@ -396,6 +434,8 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			// `precious-metal: 1.4` removed with the tag (roadmap 2GN.78). Dead data, like Xoconahtl's:
 			// gold and silver carried both tags and `metal: 1.7` always won the max. This is the
 			// specific entry doc 12 §2.34 measured when it folded the semantics question into 2GN.78.
+			// The max is gone (2GN.123); as with Xoconahtl, the old pair read as valuing gold and
+			// silver *below* metal generally, so it is left unrestored pending a ruling on intent.
 			materialAffinities: materialAffinities([
 				['metal', 1.7],
 				['stone', 1.1],

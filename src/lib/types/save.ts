@@ -115,8 +115,12 @@ export interface SerialisedWorldState {
 	/**
 	 * Authored addition, not in doc 08 §3.3's tree: the tree's chronology line says "Periods,
 	 * cultures" but `WorldChronology` holds only timelines — the Map-bearing `Culture`
-	 * profiles (`baseProfile.materialAffinities`, `craftInvestment.contextWeights`/
+	 * profiles (`baseProfile.techniqueAffinities`, `craftInvestment.contextWeights`/
 	 * `.siteTypeWeights`) live nowhere else. Firms up at 3WS.3/3WS.9.
+	 *
+	 * `baseProfile.materialAffinities` was named here as a fourth Map until roadmap 2GN.123 re-keyed
+	 * it to a `readonly MaterialAffinity[]`. It still needs `Serialised<T>`, but structurally rather
+	 * than by the Map branch: each entry's `selector` is a plain object and survives JSON unchanged.
 	 */
 	cultures: Serialised<Culture>[];
 

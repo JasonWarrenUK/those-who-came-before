@@ -427,6 +427,11 @@ so a culture can no longer say "we prize gold specifically" — only "we prize m
 should support per-material entries alongside per-tag ones is an open design question, filed rather
 than answered.
 
+> **Superseded by §2.13 (2026-08-13).** That question is now answered: affinities are keyed by
+> `MaterialSelector` and resolved most-specific-wins, so "we prize gold specifically" is expressible
+> again. The loss recorded above was real when written and is kept as the record of why the selector
+> was adopted; read §2.13 for what the field does now.
+
 **Consequence: material baselines are keyed by culture-phase × region.** Geology is regional and
 culture is not — nothing binds a culture to a single region — so a culture spanning two regions
 faces different material availability in each. Decoration baselines need no region key; material

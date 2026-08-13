@@ -1581,27 +1581,41 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       parameters survive, and what `ExtractedFeatures` carries. ⚠️ 8 shipped rules read
       `openingType` or `perforation`; `EXPECTED_FIRE_RATES` re-records once at implementation, which
       is why this is ruled before 2GN.118's vocabulary changes are implemented rather than after
-- [ ] **2GN.123** — `types/world.ts` + `engine/generation/materials.ts` +
+- [x] **2GN.123** — `types/world.ts` + `engine/generation/materials.ts` +
       `engine/generation/decoration.ts` — re-key `CulturalProfile.materialAffinities` from
       `Map<MaterialTag, number>` to the `MaterialSelector` tagged union, resolved
-      **most-specific-wins** _(depends on 2GN.110)_ — filed 2026-08-13 during PR #61 review. 2GN.110
-      ruled this on 2026-08-13 and nothing carried it: the type is still tag-keyed at
-      `types/world.ts:220`, and `data/explorer-cultures.ts` still holds the comment recording
-      Thalassar's dropped `precious-metal: 1.2` as an open design question. Its four existing
-      dependents (2GN.27, 2GN.68, 2GN.114, 3WS.3) all consume or fixture-build around affinities
-      rather than re-keying them, so the ruling had no destination. A bare
-      `MaterialTag |
-      MaterialName` union cannot work, because `bone`, `glass` and `leather`
-      each name both a class and a material — exactly why the flow side needed the tagged form at
-      2GN.112. `includes`/`excludes` does **not** transfer: membership needs subtraction, affinities
-      are weights with nothing to subtract. Deliverable: the re-keyed type, `culturalAffinityWeight`
-      (`materials.ts`) and `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins
-      resolution, the four Explorer presets migrated, and Thalassar's authored intent restored as
+      **most-specific-wins** — filed 2026-08-13 during PR #61 review. 2GN.110 ruled this on
+      2026-08-13 and nothing carried it: the type is still tag-keyed at `types/world.ts:220`, and
+      `data/explorer-cultures.ts` still holds the comment recording Thalassar's dropped
+      `precious-metal: 1.2` as an open design question. Its four existing dependents (2GN.27,
+      2GN.68, 2GN.114, 3WS.3) all consume or fixture-build around affinities rather than re-keying
+      them, so the ruling had no destination. A bare `MaterialTag |
+      MaterialName` union cannot
+      work, because `bone`, `glass` and `leather` each name both a class and a material — exactly
+      why the flow side needed the tagged form at 2GN.112. `includes`/`excludes` does **not**
+      transfer: membership needs subtraction, affinities are weights with nothing to subtract.
+      Deliverable: the re-keyed type, `culturalAffinityWeight` (`materials.ts`) and
+      `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins resolution, the four
+      Explorer presets migrated, and Thalassar's authored intent restored as
       `{id:'gold'}: 1.2, {id:'silver'}: 1.2` with no `metal` entry. ⚠️ closes the unruled `max`
       reduction flagged in `culturalAffinityWeight`'s JSDoc: 2GN.84 measured max discarding authored
       values whenever the class tag scored higher (3 of 5 dead), so under max a specific entry could
       only ever raise a material, never lower it. ⚠️ moves material-selection distributions, so
       `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated
+  - Note: delivered 2026-08-13 across two branches — mechanism first with distributions held still
+    (so the calibration guards proved the re-key behaviour-neutral: affinity factors and final
+    weights byte-identical to `main` across 4 presets × 16 materials), then Thalassar's restoration.
+    Shipped as `readonly MaterialAffinity[]`, **not** the `Map<MaterialSelector, number>` this line
+    and the ruling both name: a JS `Map` matches object keys by reference, so `.get({tag:'metal'})`
+    can never hit an entry authored as a different literal. Recorded in doc 12 §2.47.
+  - Note: `EXPECTED_FIRE_RATES` needed **no** re-record, and that is itself the finding. Restoring
+    Thalassar moved its gold share 24.9%→26.1% of metal and silver 34.3%→37.7%, and no pin noticed —
+    every calibration guard samples `mockCulturalProfile()` against `mockRegionalWorld`, so the four
+    shipped presets were entirely unmeasured. Closed with the first preset-level affinity guard
+    (`materials.calibration.test.ts`), which needed two attempts: a pinned share could not separate
+    restored from unrestored across seed salts, and the paired-seed version that replaced it passed
+    against a `max`-rebuilt resolver until its suppression case gained a class entry to override.
+    Doc 12 §2.48; a preset-level share pin for the other three presets is left open there.
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
@@ -2012,6 +2026,86 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       group-count failure, simultaneous-violation accumulation, purity/no-mutation via
       `structuredClone` snapshots, and a 500-seed moderate-tier integration sweep asserting expanded
       trees mostly satisfy their own derived budget)
+- [ ] **2GN.124** — `src/lib/data/materials.ts` + `src/lib/types/tags.ts` — widen the material
+      catalogue beyond the 16 shipped materials, scoped to what artefact generation and craft
+      actually need. Four of the eight `MaterialTag` classes are single-leaf (clay, glass, fiber,
+      leather), so `materials.calibration.test.ts` emits no intra-tag split for them — it would
+      "always read 100% and carry no information" — leaving half the guard's two-level tree
+      unmeasurable by construction. Covers both filling out thin classes (copper, tin and lead under
+      `metal`; wool and hemp under `fiber`; further clays) and breadth for archaeological
+      plausibility (shell, amber, horn, pigments, composite materials), judged by what a real
+      assemblage needs rather than by filling tag rows for their own sake. ⚠️ may require new
+      `MaterialTag` members, which touches the `MaterialSelector` keyspace and every authored
+      `materialAffinities` entry array; `MATERIAL_NAMES` is declared rather than derived from
+      `MATERIALS` (the import would cycle), so `materials.test.ts`'s two-directional pin fails
+      loudly until the list is updated alongside. ⚠️ moves material-share distributions, so
+      `EXPECTED_TAG_SHARES` and `EXPECTED_INTRA_TAG_SHARES` need re-recording
+- [ ] **2GN.125** — design spike — does `AvailabilityLevel` conflate materials that are **found**
+      with materials that are **produced**? _(blocked — depends on 2GN.124)_ `GeologicalContext`'s
+      own JSDoc calls itself "geological material scarcity" and cites obsidian, gold and tin, yet it
+      keys `leather`, `linen`, `bone`, `antler`, `oak`, `ash`, `fired-clay` and `glass` — none of
+      which are geological. Measured 2026-08-13: **10 of the 16 shipped materials are produced
+      rather than dug.** Sharpest are `bronze` and `iron`: bronze does not exist in the ground at
+      all (an alloy requiring tin _and_ copper) and iron requires smelting from ore, yet each
+      carries a single `AvailabilityLevel` conflating "the ore is here" with "we can smelt it".
+      **This double-counts**, because `computeMaterialWeight` multiplies
+      `scarcityWeight × phaseTechnologyWeight` as independent terms: for granite they genuinely are
+      independent (the rock is underfoot; carving is a separate skill), but Tarpan's bronze `scarce`
+      stands in for ore-plus-tin-plus-smelting, which its `metallurgy: 0.6` already encodes — the
+      same constraint applied twice. It also makes authoring unstatable: nothing can express
+      "abundant cattle, no tanning tradition" or "rich ore, no smelting" as distinct from simply
+      "little leather" or "little iron". Rule whether `AvailabilityLevel` splits into
+      substrate-versus-product, whether a `requiresExtraction` flag or an input-material relation
+      hangs off `MaterialDefinition`, or whether `craftDomain` absorbs the distinction. Sequenced
+      after 2GN.124 deliberately, so the ruling is made against the widened catalogue rather than a
+      16-material sample that may not contain the awkward cases
+  - Note: filed 2026-08-13 from a preset-cultures audit. The conflation surfaced while checking
+    whether each preset's authored affinities were reachable: Tarpan authors `metal: 1.3` and its
+    geology marks bronze `scarce`, which reads as a statement about deposits but is really a
+    statement about metallurgy.
+- [ ] **2GN.126** — apply the 2GN.125 ruling to the availability model — `types/world.ts`
+      (`AvailabilityLevel`, `GeologicalContext`, `RegionalAvailability`), `types/artefact.ts`
+      (`MaterialDefinition`), `engine/generation/materials.ts` (`scarcityWeight`,
+      `computeMaterialWeight`, `explainMaterialWeight`) and the four Explorer preset geologies
+      _(blocked — depends on 2GN.125)_ ⚠️ moves material-selection distributions wherever a produced
+      material stops being weighted as though it were dug, so `EXPECTED_FIRE_RATES`
+      (`calibration.test.ts`), the region/tag share and intra-tag split guards
+      (`materials.calibration.test.ts`) and the preset affinity guard all need re-recording with the
+      drift annotated. ⚠️ breaking if `AvailabilityLevel` gains or splits members: `save.ts`
+      persists world state, and every authored geology in `data/explorer-cultures.ts` and
+      `tests/fixtures/world.ts` is keyed on the current five levels
+  - Note: blocks 3WS.3, 3WS.6 and 3WS.7 — the three M3 generators that emit or consume this model.
+    3WS.7 generates `AvailabilityLevel` directly; 3WS.3 generates
+    `CulturalProfile.materialAffinities`, whose coherence depends on what an availability level
+    means; 3WS.6 generates `MaterialFlow`s, and a found/produced split changes what a flow can
+    coherently carry (ore, ingots and finished hide are different goods). All three already sit
+    behind the M2 gate via 3WS.1, so these edges record ordering rather than changing any status
+    today — they survive the gate lifting, which is the point.
+- [ ] **2GN.127** — design spike — should a material absent from
+      `CulturalProfile.materialAffinities` resolve to the neutral `1`, or is silence an authoring
+      error that should throw? `culturalAffinityWeight` (`engine/generation/materials.ts`) returns
+      `1` for any material no entry matches, and `computeTechniqueWeight` (`decoration.ts`) does the
+      same for `techniqueAffinities` — so **an unauthored material is indistinguishable from one
+      deliberately authored at exactly `1.0`.** Measured 2026-08-13 across the four Explorer
+      presets: 8–12 of 16 materials and 13–14 of 16 techniques resolve by default rather than by
+      authorship, so most of every preset is silence. Xoconahtl's `['clay', 1.0]` is the case that
+      exposes it — behaviourally identical to omitting the entry, kept only because a comment says
+      it is deliberate indifference, which is exactly the distinction the type cannot carry. ⚠️ The
+      stakes cut both ways and the spike must weigh both: throwing makes every preset state a
+      judgement about every material (~250 authored numbers across four presets today, growing with
+      2GN.124's widened catalogue) and turns a new material into a breaking change for all authored
+      cultures; keeping the default leaves "considered and indifferent" and "never considered"
+      permanently indistinguishable, which is the same silently-dead-authoring failure 2GN.84
+      measured on the retired `precious-*` entries. Options to rule between include: keep the
+      default; throw on omission; require an explicit neutral sentinel; or a
+      `completeness: 'partial' | 'exhaustive'` flag on the profile letting a culture opt into
+      strictness. Applies equally to `techniqueAffinities`, `contextWeights` and `siteTypeWeights`,
+      which share the shape — rule the family, not the one map
+  - Note: filed 2026-08-13 from a preset-cultures audit. Sits alongside doc 12 §2.47's lesson that a
+    dormant path accumulates no evidence about itself: a defaulted entry is dormant authoring, and
+    nothing in the suite can tell it from a decision. Related to 2GN.124 (a widened catalogue
+    multiplies the authoring cost of throwing) but not blocked on it — the ruling is about the
+    contract, not the catalogue size.
 
 ---
 
@@ -2027,10 +2121,14 @@ integration with real culture data
       — depends on 3WS.1)_
 - [ ] **3WS.3** — `engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture
       generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)
-      _(blocked — depends on 3WS.2, 2GN.110)_ — 2GN.110 edge added 2026-08-11: this task _generates_
-      `materialAffinities`, so it cannot be written before that map's keyspace is settled — per-tag
-      only, or per-material entries alongside (the expressive loss 2GN.78 accepted). Generating maps
-      in one shape and re-keying them later would mean regenerating every seeded world
+      _(blocked — depends on 3WS.2, 2GN.110, 2GN.123, 2GN.126)_ — 2GN.110 edge added 2026-08-11:
+      this task _generates_ `materialAffinities`, so it cannot be written before that field's
+      keyspace is settled — per-tag only, or per-material entries alongside (the expressive loss
+      2GN.78 accepted). Generating affinities in one shape and re-keying them later would mean
+      regenerating every seeded world. 2GN.123 edge added 2026-08-13: 2GN.110 ruled the keyspace,
+      2GN.123 shipped it as `readonly MaterialAffinity[]` resolved most-specific-wins, and it is the
+      shipped shape this task has to generate against. Both are `done`, so the edge changes no
+      scheduling; it records which task the dependency actually rests on
 - [ ] **3WS.4** — `engine/world/culture.ts` — `generatePhases(culture, prng): CulturePhase[]` — 3-4
       phases per culture with `PhaseCharacteristics` (technology, economy, society, aesthetics)
       _(blocked — depends on 3WS.3)_
@@ -2038,13 +2136,17 @@ integration with real culture data
       `generateRelationships(cultures, prng): CultureRelationship[]` — temporal relationship phases
       with trade, conflict, cultural exchange, politics _(blocked — depends on 3WS.3)_
 - [ ] **3WS.6** — `engine/world/culture.ts` — `MaterialFlow` generation within relationships (tag,
-      materials, direction, volume) _(blocked — depends on 3WS.5)_
+      materials, direction, volume) _(blocked — depends on 3WS.5, 2GN.126)_ — 2GN.126 edge added
+      2026-08-13: a found/produced split changes what a flow can coherently carry, since ore, ingots
+      and finished hide are different goods
 - [ ] **3WS.7** — `engine/world/seed.ts` — geological context generation: `GeologicalContext` with
       material availability per region, `AvailabilityLevel` per material _(blocked — depends on
-      3WS.1)_ — inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here:
-      decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or
-      stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47
-      already mint against mock fixtures
+      3WS.1, 2GN.126)_ — 2GN.126 edge added 2026-08-13: this task _generates_ `AvailabilityLevel`,
+      so generating against a model known to conflate found and produced materials would bake the
+      conflation into the generator. — inherits the region-vocabulary decision dependency sweep
+      2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region
+      binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region
+      strings 2GN.26 and 2GN.47 already mint against mock fixtures
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
       sets for cultural fingerprinting) _(blocked — depends on 3WS.3)_ — generated vocabularies must
       be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's
@@ -2706,6 +2808,10 @@ graph LR
 	2GN.120["2GN.120: `engine/generation/grammar.ts` — deriv…"]
 	2GN.122["2GN.122: design spike — is there one aperture m…"]
 	2GN.123["2GN.123: `types/world.ts` + `engine/generation/…"]
+	2GN.124["2GN.124: `src/lib/data/materials.ts` + `src/lib…"]
+	2GN.125["2GN.125: design spike — does `AvailabilityLevel…"]
+	2GN.126["2GN.126: apply the 2GN.125 ruling to the availa…"]
+	2GN.127["2GN.127: design spike — should a material absen…"]
 	M2["M2: Generation Pipeline"]:::mile
 	M3["M3: World State & Integration"]:::mile
 	M4["M4: Player Interface"]:::mile
@@ -3167,6 +3273,14 @@ graph LR
 	2GN.120 --> M2
 	2GN.122 --> M2
 	2GN.123 --> M2
+	2GN.123 --> 3WS.3
+	2GN.124 --> 2GN.125
+	2GN.125 --> 2GN.126
+	2GN.126 --> M2
+	2GN.126 --> 3WS.3
+	2GN.126 --> 3WS.6
+	2GN.126 --> 3WS.7
+	2GN.127 --> M2
 	M2 --> 3WS.1
 	M3 --> 4UI.1
 	M4 --> 5KN.1
@@ -3508,9 +3622,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.120,2GN.122,2GN.123,2GN.16,2GN.21,2GN.27,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.121,2GN.13,2GN.14,2GN.15,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
+	class 2GN.10,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.120,2GN.122,2GN.124,2GN.127,2GN.16,2GN.21,2GN.27,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.121,2GN.125,2GN.126,2GN.13,2GN.14,2GN.15,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
 
 ## Links

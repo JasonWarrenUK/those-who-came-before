@@ -224,9 +224,9 @@ Deno.test('selectGrammarOption: material affinity shifts selection toward modifi
 		}),
 	]);
 	const phase = mockPhaseCharacteristics();
-	const indifferent = mockCulturalProfile({ materialAffinities: new Map() });
+	const indifferent = mockCulturalProfile({ materialAffinities: [] });
 	const metalworkers = mockCulturalProfile({
-		materialAffinities: new Map<MaterialTag, number>([['metal', 2]]),
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 2 }],
 	});
 
 	const draws = 1000;
@@ -256,7 +256,7 @@ Deno.test('selectGrammarOption: phase characteristics shift selection multiplica
 			phaseModifiers: new Map([['technology.metallurgy', 3]]),
 		}),
 	]);
-	const culture = mockCulturalProfile({ materialAffinities: new Map() });
+	const culture = mockCulturalProfile({ materialAffinities: [] });
 
 	const draws = 1000;
 	const lowTech = tallySelections(
@@ -300,7 +300,7 @@ Deno.test('selectGrammarOption: the 0.01 floor keeps a suppressed option reachab
 		}),
 	]);
 	const culture = mockCulturalProfile({
-		materialAffinities: new Map<MaterialTag, number>([['metal', 2]]),
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 2 }],
 	});
 	const tally = tallySelections(subject, culture, mockPhaseCharacteristics(), 'floor-seed', 10000);
 
@@ -319,7 +319,7 @@ Deno.test('selectGrammarOption: modifiers for absent affinities read as zero', (
 			culturalModifiers: new Map<MaterialTag, number>([['glass', 5]]),
 		}),
 	]);
-	const culture = mockCulturalProfile({ materialAffinities: new Map() }); // no glass affinity
+	const culture = mockCulturalProfile({ materialAffinities: [] }); // no glass affinity
 	const tally = tallySelections(subject, culture, mockPhaseCharacteristics(), 'absent-tag', 1000);
 
 	// With the modifier inert both options weigh 1 — the split should stay near 50/50.
@@ -652,9 +652,9 @@ Deno.test('expandGrammar: non-attachment terminal in the attachment slot throws'
 
 Deno.test('expandGrammar: material affinity biases primary selection end to end', () => {
 	const phase = mockPhaseCharacteristics();
-	const indifferent = mockCulturalProfile({ materialAffinities: new Map() });
+	const indifferent = mockCulturalProfile({ materialAffinities: [] });
 	const metalworkers = mockCulturalProfile({
-		materialAffinities: new Map<MaterialTag, number>([['metal', 3]]),
+		materialAffinities: [{ selector: { tag: 'metal' }, weight: 3 }],
 	});
 
 	const runs = 1000;

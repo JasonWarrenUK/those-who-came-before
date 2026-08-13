@@ -39,7 +39,11 @@
 	"fmt": {
 		"useTabs": true,
 		"lineWidth": 100,
-		"singleQuote": true
+		"singleQuote": true,
+		"exclude": [
+			"docs/artefacts/",
+			"site/"
+		]
 	},
 	"lint": {
 		"rules": {
