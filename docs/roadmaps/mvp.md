@@ -2121,11 +2121,14 @@ integration with real culture data
       — depends on 3WS.1)_
 - [ ] **3WS.3** — `engine/world/culture.ts` — `generateCultures(prng, count): Culture[]` — culture
       generation with `CulturalProfile` (materialAffinities, motifVocabulary, craftInvestment)
-      _(blocked — depends on 3WS.2, 2GN.110, 2GN.126)_ — 2GN.110 edge added 2026-08-11: this task
-      _generates_ `materialAffinities`, so it cannot be written before that map's keyspace is
-      settled — per-tag only, or per-material entries alongside (the expressive loss 2GN.78
-      accepted). Generating maps in one shape and re-keying them later would mean regenerating every
-      seeded world
+      _(blocked — depends on 3WS.2, 2GN.110, 2GN.123, 2GN.126)_ — 2GN.110 edge added 2026-08-11:
+      this task _generates_ `materialAffinities`, so it cannot be written before that field's
+      keyspace is settled — per-tag only, or per-material entries alongside (the expressive loss
+      2GN.78 accepted). Generating affinities in one shape and re-keying them later would mean
+      regenerating every seeded world. 2GN.123 edge added 2026-08-13: 2GN.110 ruled the keyspace,
+      2GN.123 shipped it as `readonly MaterialAffinity[]` resolved most-specific-wins, and it is the
+      shipped shape this task has to generate against. Both are `done`, so the edge changes no
+      scheduling; it records which task the dependency actually rests on
 - [ ] **3WS.4** — `engine/world/culture.ts` — `generatePhases(culture, prng): CulturePhase[]` — 3-4
       phases per culture with `PhaseCharacteristics` (technology, economy, society, aesthetics)
       _(blocked — depends on 3WS.3)_
@@ -3270,6 +3273,7 @@ graph LR
 	2GN.120 --> M2
 	2GN.122 --> M2
 	2GN.123 --> M2
+	2GN.123 --> 3WS.3
 	2GN.124 --> 2GN.125
 	2GN.125 --> 2GN.126
 	2GN.126 --> M2
