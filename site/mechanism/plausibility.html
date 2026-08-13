@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normalisation & plausibility · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stage 5 · Normalisation & plausibility</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stage 5 · Normalisation &amp; plausibility</div>
+  <h1>Exhaustion Throws</h1>
+  <p class="lede">The grammar is honest about geometry and ignorant of physics. Stage 5 flattens its tree into a normalised structure, then checks the result against physical plausibility rules. On failure it re-rolls; on exhaustion it refuses to emit anything at all.</p>
+
+  <h2>Normalisation</h2>
+  <p>Grammar expansion yields a tree; downstream stages want a flat, standardised shape. <code>NormalisedArtefact</code> carries the component list (each with its primitive type, parameters, position along the primary axis and arrangement-group membership), the attachment list, derived dimensions, portability and inspection depth. The spec also makes normalisation the owner of <code>allowedMaterialTags</code> per component, derived from a physical compatibility table: an edged elongated form admits metal and stone; a hollow-enclosed form admits clay, metal, wood and stone. Physics supplies these constraints; the grammar never did. In the shipped code the field is stubbed empty (its compatibility table is a scheduled task, 2GN.10, and the stub is labelled as such at the assignment site), and the convention downstream is that an empty list means "no constraint recorded yet" rather than "nothing fits".</p>
+
+  <h2>The rule set</h2>
+  <pre><code class="lang-ts">type PlausibilityRule =
+  | { type: 'requires';  component: string; dependsOn: string }
+  | { type: 'excludes';  component: string; excludes: string }
+  | { type: 'ordering';  component: string; before?: string; after?: string }
+  | { type: 'material-physics'; predicate: (a) =&gt; boolean; reason: string }
+  | { type: 'ergonomic';        predicate: (a) =&gt; boolean; reason: string }</code></pre>
+  <p>The rules encode things a craftsperson would never build: an edged form with nothing grippable attached, a long blade on a stubby grip, a heavy head lashed to a cord, a heavy component perched on a thin-walled vessel. Each predicate rule carries a human-readable reason; a failed check is a diagnostic. The five shapes are five kinds of impossibility:</p>
+  <ul>
+    <li><strong><code>requires</code> / <code>excludes</code></strong> carry affordance logic: an edged form demands something grippable, because a blade nobody could hold is a blade nobody would have made.</li>
+    <li><strong><code>ordering</code></strong> carries assembly logic, constraining which components can precede which along the primary axis.</li>
+    <li><strong><code>material-physics</code></strong> rejects configurations that fail statics: the heavy head on the thin-walled vessel.</li>
+    <li><strong><code>ergonomic</code></strong> encodes the one constant every culture in every generated world shares, the human body. A long blade demands at least a medium grip because wrists are wrists everywhere; this is the only rule family that holds across all possible cultures by construction.</li>
+  </ul>
+  <p>The set is written negatively, and the direction is a design decision. Enumerating everything a craftsperson might build is open-ended; enumerating what nobody would build is tractable. The rules stay as ignorant of function as the grammar: they know certain geometry could never be used by human hands, whoever made it and whatever it was for.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="The re-roll loop">
+    <rect class="box" x="8" y="30" width="140" height="30" rx="6"/><text x="78" y="49" text-anchor="middle">expandGrammar</text>
+    <rect class="box" x="188" y="30" width="130" height="30" rx="6"/><text x="253" y="49" text-anchor="middle">normalise</text>
+    <rect class="box" x="358" y="30" width="160" height="30" rx="6"/><text x="438" y="49" text-anchor="middle">checkPlausibility</text>
+    <rect class="gold" x="580" y="30" width="132" height="30" rx="6"/><text x="646" y="49" text-anchor="middle">→ stage 6</text>
+    <rect class="warn" x="358" y="104" width="240" height="30" rx="6"/><text x="478" y="123" text-anchor="middle">PlausibilityExhaustedError</text>
+    <path class="arrow" d="M 148 45 h 32"/><path class="arrow" d="M 174 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 318 45 h 32"/><path class="arrow" d="M 344 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 518 45 h 54"/><path class="arrow" d="M 566 42 l 6 3 l -6 3"/>
+    <text class="lab" x="524" y="40">pass</text>
+    <path class="arrow" d="M 438 60 v 20 h -360 v -14"/><path class="arrow" d="M 74 74 l 4 -6 l 4 6"/>
+    <text class="lab" x="180" y="76">fail: re-expand from stage 4, up to N attempts</text>
+    <path class="arrow" d="M 478 60 v 44"/><path class="arrow" d="M 474 96 l 4 6 l 4 -6"/>
+    <text class="lab" x="488" y="90">all N fail</text>
+  </svg>
+  <figcaption class="diagcap">Re-rolling is the intended control flow; exhaustion is a defect report, with the seed attached so it reproduces.</figcaption></figure>
+
+  <h2>The exhaustion contract</h2>
+  <p>When plausibility fails, the pipeline re-expands from stage 4 and tries again, up to N attempts. Grammar expansion is cheap; re-rolling is the intended control flow. If all N attempts fail, the contract (assigned to a scheduled roadmap task; <code>checkPlausibility</code> is shipped, the retry orchestration around it comes with the pipeline assembler) is to throw a typed <code>PlausibilityExhaustedError</code> carrying the seed, the attempt count and the last failing rule set.</p>
+  <div class="callout warn"><span class="tag">Why throwing is correct here</span>
+  Exhaustion means the grammar and the rule set disagree: a generator defect to surface during development. A relaxed rule set would break the pipeline guarantee that every artefact reaching the player passes every plausibility rule. A fallback artefact not derived from the grammar would break Simulation Honesty, the design pillar that says all player-facing content derives from the same underlying data. The strongest case for a fallback is availability (a live game that throws is worse for the player than one that shows a slightly wrong pot); the project's answer is that the error is a development-time signal by construction, because determinism means any exhausting seed can be reproduced and fixed before release.</div>
+
+  <h2>The guarantee</h2>
+  <p>The pipeline promises structural coherence unconditionally: no artefact that fails a plausibility rule ever reaches the player, and the promise holds vacuously through exhaustion because in that case <em>nothing</em> reaches the player.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    <code>src/lib/engine/generation/plausibility.ts</code> (checkPlausibility, rule predicates) · rules data: <code>src/lib/data/plausibility.ts</code> · normalisation: <code>grammar.ts</code>'s <code>normaliseArtefact</code> · Spec: doc 05 §6, §14
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/mechanism/structure.html"><span class="dir">Previous</span>Structural grammar</a>
+    <a href="/mechanism/materials.html" class="next"><span class="dir">Next</span>Material assignment</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="/assets/highlight.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Project Explorer · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand practice">Practice</span>
+    <span class="here">Practice · The Project Explorer</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Practice · The Project Explorer</div>
+  <h1>Generation You Can Watch</h1>
+  <p class="lede">Two observability surfaces grow with the pipeline: a nine-panel browser workbench compiled into dev builds at <code>/dev/explorer</code>, and a CLI sampler suite for the terminal. The roadmap treats both as deliverables of every phase, alongside the features they expose.</p>
+
+  <h2>The nine panels</h2>
+  <p>Each panel answers one question about a seed:</p>
+  <ul>
+    <li><strong>Overview</strong> orients, and <strong>PRNG</strong> shows the raw draw stream.</li>
+    <li><strong>Type index</strong> renders the type system live, with dependency and reference graphs, so the roughly 160 interfaces stay navigable.</li>
+    <li><strong>Structure viewer</strong> draws the expanded component tree in the shared observational prose.</li>
+    <li><strong>Plausibility</strong> shows which rules passed and failed for a given expansion.</li>
+    <li><strong>Material viewer</strong> shows each part's pick with the weights behind it.</li>
+    <li><strong>Decoration inspector</strong> nests the layers per component.</li>
+    <li><strong>Tag inspector</strong> shows the scored map with per-rule contributions, and <strong>rule calibration</strong> samples fire rates across settings; these two are where the measured-threshold work on the classification page actually happened.</li>
+  </ul>
+
+  <figure class="diag"><svg viewBox="0 0 797 170" role="img" aria-label="Panels tap the pipeline between stages">
+    <rect class="box" x="8"   y="30" width="145" height="28" rx="6"/><text x="80.5"  y="48" text-anchor="middle">4 · grammar</text>
+    <rect class="box" x="167" y="30" width="145" height="28" rx="6"/><text x="239.5" y="48" text-anchor="middle">5 · plausibility</text>
+    <rect class="box" x="326" y="30" width="145" height="28" rx="6"/><text x="398.5" y="48" text-anchor="middle">6 · materials</text>
+    <rect class="box" x="485" y="30" width="145" height="28" rx="6"/><text x="557.5" y="48" text-anchor="middle">7 · decoration</text>
+    <rect class="box" x="644" y="30" width="145" height="28" rx="6"/><text x="716.5" y="48" text-anchor="middle">8 · tags</text>
+    <rect class="gold" x="8"   y="106" width="145" height="28" rx="6"/><text x="80.5"  y="124" text-anchor="middle">structure</text>
+    <rect class="gold" x="167" y="106" width="145" height="28" rx="6"/><text x="239.5" y="124" text-anchor="middle">plausibility</text>
+    <rect class="gold" x="326" y="106" width="145" height="28" rx="6"/><text x="398.5" y="124" text-anchor="middle">materials</text>
+    <rect class="gold" x="485" y="106" width="145" height="28" rx="6"/><text x="557.5" y="124" text-anchor="middle">decoration</text>
+    <rect class="gold" x="644" y="106" width="145" height="28" rx="6"/><text x="716.5" y="124" text-anchor="middle">tags · calibration</text>
+    <path class="arrow" d="M 80.5 58 v 40"/><path class="arrow" d="M 76.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 239.5 58 v 40"/><path class="arrow" d="M 235.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 398.5 58 v 40"/><path class="arrow" d="M 394.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 557.5 58 v 40"/><path class="arrow" d="M 553.5 90 l 4 6 l 4 -6"/>
+    <path class="arrow" d="M 716.5 58 v 40"/><path class="arrow" d="M 712.5 90 l 4 6 l 4 -6"/>
+    <text class="lab" x="8" y="18">pipeline stages</text>
+    <text class="lab" x="8" y="158">panels and samplers, one per stage (plus overview, PRNG and the type index)</text>
+  </svg>
+  <figcaption class="diagcap">Every stage boundary has a window on it. A defect visible at stage 7 but absent at stage 6 has already told you where it lives.</figcaption></figure>
+
+  <h2>The samplers</h2>
+  <p>The CLI suite prints one pipeline stage each, for eyeballing output ahead of a panel landing, or for piping with <code>--json</code>:</p>
+  <pre><code>deno task sample                  # gum menu over the samplers below
+deno task sample:artefact         # anatomy tree + plausibility verdict
+deno task sample:materials        # anatomy tree with each part's material pick
+deno task sample:decoration       # decorative layers nested per part
+deno task sample:features         # annotated classifier reading, per-value provenance
+deno task sample:classification   # scored tag map with per-rule contributions</code></pre>
+  <p>The features sampler carries per-value provenance: each extracted value names the component and policy that produced it, which is how collapse-policy behaviour (the dominant-blade and dominant-container decisions on the classification page) gets checked by hand. The samplers and the Explorer's structure viewer share the same prose renderer, so what the terminal says and what the panel says never drift.</p>
+
+  <h2>Defects live in populations</h2>
+  <p>Procgen defects are population properties, and a population is invisible without tooling. The wire-wrapping gate defect surfaced in a sampling pass; the elite inflation surfaced in fire-rate measurement; the fixture skew surfaced when a re-measurement disagreed with the original sample. None of them could have been seen in a unit test or a code review, because every individual artefact involved was fine. Determinism closes the loop: anything odd in a panel arrives with the seed that produced it, so every observation is a reproducible test case by construction.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Panels: <code>src/routes/dev/explorer/</code> · Samplers: <code>scripts/dev/</code> (see its README) · Shared renderer: <code>src/lib/engine/generation/prose.ts</code>
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/practice/method.html"><span class="dir">Previous</span>Measurement culture</a>
+    <a href="/practice/docs.html" class="next"><span class="dir">Next</span>The document suite</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="/assets/highlight.js"></script>
+</body>
+</html>

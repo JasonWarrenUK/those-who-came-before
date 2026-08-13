@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features & classification · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stage 8 · Features & classification</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stage 8 · Features &amp; classification</div>
+  <h1>Tags Are Evidence Tallies</h1>
+  <p class="lede">Stage 8 is where the pipeline reads its own output back. A single extraction pass turns the finished object into a feature set; 43 scoring rules turn features into tag scores. The scores are the game's occluded ground truth: the player's claims are eventually judged against them, and the player never sees them.</p>
+
+  <h2>Extraction: one pass, one value per question</h2>
+  <p><code>extractFeatures</code> runs once across components, attachments and decorative layers together, and it's pure and PRNG-free: same artefact in, same features out. An artefact can have three edged components. Which one is "the blade"? Every multi-component collision resolves to one value through a documented collapse policy:</p>
+  <ul>
+    <li><strong>Blade fields</strong> read from the dominant edged component (longest, earliest position on ties), so length band and profile never describe different blades.</li>
+    <li><strong>Container fields</strong> read from the dominant container (largest hollow-enclosed, falling back to longest cylindrical), so a bowl with a socketed ferrule reads the bowl's opening and base, never a mix.</li>
+    <li><strong>Categorical fields</strong> like perforation collapse to the most classificatorily loaded value present, with the priority order pinned in comments.</li>
+  </ul>
+  <p>Some features have no single grammar signal and are derived from interviewed anatomy rules instead:</p>
+  <ul>
+    <li><strong>Impact surface:</strong> an untapered bar end or a thick disc. A plain bar end is a striking face; think hammer, pestle, mace head.</li>
+    <li><strong>Fastening mechanism:</strong> brooch anatomy (a sharp, edgeless pin bearing on a hoop) or any hinged join, gated to body scale.</li>
+    <li><strong>Wearable:</strong> a ring form or a suspension perforation, gated the same way, because a hinged chest lid is not a dress fastener and nobody wears a perforated slab.</li>
+  </ul>
+  <p>The presence flags deliberately refuse the module's own graceful-degradation contract: unrecognised signals leave them false, so degradation can never fabricate a pin.</p>
+
+  <div class="callout"><span class="tag">A boundary with a test on it</span>
+  No classification rule may read <code>portability</code> or <code>inspectionDepth</code>. Both derive from the same dimensions as the physical <code>massBand</code> and <code>sizeBand</code>, but they are mechanical facts about player handling, and letting classification consume them would smuggle game mechanics into world semantics. Rules read the physical bands instead, and a boundary guard test fails the suite if any rule ever touches the mechanical pair.</div>
+
+  <h2>Scoring: a plain sum, on purpose</h2>
+  <p><code>classifyArtefact</code> runs all 43 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The JSDoc pins what the numbers mean: "evidence tallies, not confidences". Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
+  <pre><code class="lang-ts">// the rule shape (shipped rules live in data/classification.ts; weights here illustrative)
+interface ClassificationRule {
+  condition: (features: ExtractedFeatures, context: ClassificationContext) =&gt; boolean;
+  tags: Map&lt;ArtefactTag, number&gt;;
+}
+
+{ condition: (f) =&gt; f.hasEdge &amp;&amp; f.bladeLengthBand !== 'short',
+  tags: new Map([['weapon', 0.6], ['tool', 0.3]]) }</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Evidence tallies for one artefact">
+    <text class="lab" x="8" y="18">engraved bronze blade: accumulated tallies (illustrative values)</text>
+    <text x="8" y="44">weapon</text><rect class="bar" x="110" y="34" width="220" height="10"/><text class="lab" x="338" y="44">1.1</text>
+    <text x="8" y="66">elite</text><rect class="bar" x="110" y="56" width="180" height="10"/><text class="lab" x="298" y="66">0.9</text>
+    <text x="8" y="88">ritual</text><rect class="bar" x="110" y="78" width="160" height="10"/><text class="lab" x="278" y="88">0.8</text>
+    <text x="8" y="110">ceremonial</text><rect class="bar" x="110" y="100" width="140" height="10"/><text class="lab" x="258" y="110">0.7</text>
+    <text x="8" y="132">tool</text><rect class="bar" x="110" y="122" width="60" height="10"/><text class="lab" x="178" y="132">0.3</text>
+    <text class="lab" x="420" y="66">no winner is declared;</text>
+    <text class="lab" x="420" y="80">rank and margin are the signal,</text>
+    <text class="lab" x="420" y="94">and the player never sees these numbers</text>
+  </svg>
+  <figcaption class="diagcap">A plain sum leaves the argument open. Four high tallies on one object is a puzzle, and puzzles are the product.</figcaption></figure>
+
+  <h2>Absolute tags, relative tags</h2>
+  <p>The vocabulary splits by scoring basis, and the two halves make two different kinds of claim.</p>
+  <table>
+    <tr><th>Basis</th><th>The claim</th><th>Tags</th><th>Threshold</th></tr>
+    <tr><td><strong>Absolute</strong></td><td>About the object: affordances a lone examiner could verify with the thing in hand</td><td>weapon, tool, container, fastener, ornament, domestic, agricultural, maritime, trade-good, currency</td><td>Fixed</td></tr>
+    <tr><td><strong>Relative</strong></td><td>About a population: this object sits in the upper tail of its own culture's output</td><td>personal, communal, elite, utilitarian, ceremonial, everyday, military, artisanal, ritual, votive, funerary</td><td>Sampled per culture-phase</td></tr>
+  </table>
+
+  <h3>The failure that forced the split</h3>
+  <p>Under absolute thresholds, the applied-element rule fired on 4.3% of artefacts from an austere culture and 48.1% from a decorative one, an order of magnitude of phase sensitivity; "elite" had quietly come to mean "unusually decorated in absolute terms", so a decorative culture read as composed almost entirely of elites. That breaks Simulation Honesty directly, and the fix follows the tag's semantics: elite means unusually rich <em>for this culture</em>, so the threshold has to come from this culture's own distribution.</p>
+
+  <h3>Whose distribution?</h3>
+  <p>A population claim means nothing until you say whose. Four populations could anchor it:</p>
+  <ul>
+    <li><strong>Every artefact in the world:</strong> reproduces the measured failure; decorative cultures become aristocracies wholesale.</li>
+    <li><strong>The profession's published corpus:</strong> ground truth would depend on what happens to have been excavated, and the pipeline guarantees ground truth is lens-independent.</li>
+    <li><strong>The player's personal finds:</strong> the same problem, with a smaller and stranger sample.</li>
+    <li><strong>The producing culture-phase's own output:</strong> the anchoring that matches what the word means. Unusually rich for the people who made it.</li>
+  </ul>
+  <p>Archaeologists reason the same way when they read a grave as rich against the local burial record rather than against Tutankhamun.</p>
+
+  <h3>The baseline is sampled, never authored</h3>
+  <p>The engine generates 400 artefacts through stages 4–7 for the culture-phase, builds percentile ladders over nine sampled features and scores the real artefact against those. There's no bootstrap circularity, because nothing upstream of classification reads a tag. Sampling also keeps the baseline honest across change: a culture's norm is whatever its own generator actually produces, so retuning any upstream weight moves every relative threshold with it at the next sampling, where an authored baseline would silently drift the first time the grammar changed.</p>
+  <pre><code class="lang-ts">// baselines.ts
+export const BASELINE_SAMPLE_SIZE = 400; // the measured knee (doc 11 §2.9)
+export const SAMPLED_FEATURES: readonly BaselineFeature[] = [
+  'decorativeLayerCount', 'decorativeComplexity', 'techniqueComplexity',
+  'appliedElementCount',  'decorativePerPart',    'partCount',
+  'attachmentDiversity',  'edgeCount',            'meanDecorativeGrade',
+];
+// a relative rule then asks the context, via ClassificationContext.exceeds,
+// whether this artefact clears a sampled rung for one of those features</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="How a relative tag gets its threshold">
+    <rect class="soft" x="8" y="30" width="140" height="34" rx="6"/><text x="78" y="46" text-anchor="middle">culture-phase</text><text class="lab" x="78" y="58" text-anchor="middle">profile + geology</text>
+    <rect class="box" x="188" y="30" width="150" height="34" rx="6"/><text x="263" y="46" text-anchor="middle">400 artefacts</text><text class="lab" x="263" y="58" text-anchor="middle">stages 4–7, no tags</text>
+    <rect class="box" x="378" y="30" width="150" height="34" rx="6"/><text x="453" y="46" text-anchor="middle">percentile ladder</text><text class="lab" x="453" y="58" text-anchor="middle">per sampled feature</text>
+    <rect class="gold" x="568" y="30" width="144" height="34" rx="6"/><text x="640" y="46" text-anchor="middle">exceeds p75?</text><text class="lab" x="640" y="58" text-anchor="middle">award the relative tag</text>
+    <path class="arrow" d="M 148 47 h 34"/><path class="arrow" d="M 176 44 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 338 47 h 34"/><path class="arrow" d="M 366 44 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 528 47 h 34"/><path class="arrow" d="M 556 44 l 6 3 l -6 3"/>
+    <text class="lab" x="8" y="100">the real artefact is scored against its own culture's ladder, so "elite" always means "elite here"</text>
+  </svg>
+  <figcaption class="diagcap">Baseline sampling. The sample runs the same pipeline as real artefacts, which is what keeps the norm current.</figcaption></figure>
+
+  <h2>Thresholds come from samples</h2>
+  <h3>Measured, then pinned</h3>
+  <p>The spec's illustrative thresholds (<code>decorativeComplexity &gt; 2</code> and friends) were authored before any decoration pipeline existed. Once one did, sampling 1200 real artefacts showed those thresholds firing on 87–99% of output; under a plain-sum fold, a rule that fires on nearly everything adds a constant to every score and discriminates nothing. The shipped thresholds are pinned to measured percentiles instead, and the doc carries the distribution table:</p>
+  <table>
+    <tr><th>Feature</th><th>p50</th><th>p75</th><th>p90</th></tr>
+    <tr><td><code>decorativeLayerCount</code></td><td>6</td><td>10</td><td>13</td></tr>
+    <tr><td><code>decorativeComplexity</code></td><td>11.2</td><td>16.3</td><td>22.3</td></tr>
+    <tr><td><code>techniqueComplexity</code></td><td></td><td></td><td>9</td></tr>
+    <tr><td><code>decorativeComplexity / partCount</code></td><td></td><td>4.05</td><td></td></tr>
+  </table>
+  <p>Against those measured medians, the spec's <code>&gt; 2</code> was firing on essentially everything the real pipeline produces.</p>
+
+  <h3>The sample itself was wrong once</h3>
+  <p>A later re-measurement found the original 1200-artefact sample skewed: the mock geology modelled only 4 of 16 materials, so the other twelve passed an "unmodelled means obtainable" lenience at full weight, and silver came out the world's second commonest material. Re-sampling 7200 artefacts across six fully modelled fixture worlds corrected the material mix and, usefully, proved the elite inflation (steady at ~90% presence in every world) had never been material-driven in the first place.</p>
+
+  <h3>Ties inflate fire rates</h3>
+  <p>Sampled features are coarse integers with heavy tie-mass, and the comparison is ≥, so a p75 threshold landing on a tie point admits the whole tie and fires at nearly double the implied rate. Each migrated rule records the realised fire rate it was checked against rather than trusting the rung's name.</p>
+
+  <h3>Where the migration stands</h3>
+  <ul>
+    <li>34 of the 43 rules award relative tags, per the split pinned in the test suite.</li>
+    <li>Nine of those had numeric conditions a percentile could replace, and all nine are migrated.</li>
+    <li>The other 25 read categorical bands (wall thickness, base type, mass band and kin) and stay absolute pending a design spike; what "relative" means for a categorical value is still undecided, and the code declines to guess.</li>
+    <li>One tag, <code>currency</code>, has no rule at all: no grammar signal exists to key on, and it stays absent rather than force-fitted.</li>
+  </ul>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    <code>src/lib/engine/generation/classification.ts</code> (extractFeatures, classifyArtefact) · rules: <code>src/lib/data/classification.ts</code> · baselines: <code>engine/generation/baselines.ts</code> · vocabularies: <code>src/lib/types/tags.ts</code> · Spec: doc 05 §9
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/mechanism/decoration.html"><span class="dir">Previous</span>Decorative grammar</a>
+    <a href="/mechanism/description.html" class="next"><span class="dir">Next</span>Description generation</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="/assets/highlight.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seeding & determinism · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Foundation · Seeding & determinism</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Foundation · Seeding &amp; determinism</div>
+  <h1>Every Draw Is Accounted For</h1>
+  <p class="lede">The entire game world unfolds from one seed string. Same seed, same world, same sequence of artefacts, on every machine, forever. That guarantee rests on a module about a hundred lines long and two habits: every generation function takes the PRNG as a parameter, and no function changes how many draws it makes.</p>
+
+  <h2>The generator</h2>
+  <p>The seed string is hashed by xmur3 into a stream of well-mixed 32-bit integers, which seed the four state words of a xoshiro128** generator. Each call advances the state and returns a float in [0, 1). There's a guard against the all-zero state (xoshiro is degenerate there; xmur3 makes it vanishingly unlikely, but a guard is cheaper than an incident) and that, with <code>weightedSelect</code> below, is the whole module.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 120" role="img" aria-label="From seed string to draw stream">
+    <rect class="soft" x="8" y="30" width="130" height="30" rx="6"/><text x="73" y="49" text-anchor="middle">"twcb-demo"</text>
+    <rect class="box" x="168" y="30" width="80" height="30" rx="6"/><text x="208" y="49" text-anchor="middle">xmur3</text>
+    <rect class="box" x="278" y="30" width="120" height="30" rx="6"/><text x="338" y="49" text-anchor="middle">s0 s1 s2 s3</text>
+    <rect class="box" x="428" y="30" width="118" height="30" rx="6"/><text x="487" y="49" text-anchor="middle">xoshiro128**</text>
+    <rect class="gold" x="576" y="30" width="136" height="30" rx="6"/><text x="644" y="49" text-anchor="middle">.481 .077 .930 …</text>
+    <path class="arrow" d="M 138 45 h 24"/><path class="arrow" d="M 156 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 248 45 h 24"/><path class="arrow" d="M 266 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 398 45 h 24"/><path class="arrow" d="M 416 42 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 546 45 h 24"/><path class="arrow" d="M 564 42 l 6 3 l -6 3"/>
+    <text class="lab" x="8" y="20">seed string</text>
+    <text class="lab" x="278" y="20">four state words</text>
+    <text class="lab" x="576" y="20">floats in [0, 1)</text>
+    <text class="lab" x="576" y="86">draw 1: grammar option · draw 2: parameter band · draw 3: …</text>
+    <path class="arrow" d="M 644 60 v 12"/><path class="arrow" d="M 640 66 l 4 6 l 4 -6"/>
+  </svg>
+  <figcaption class="diagcap">One string in, one infinite stream out. Which draw feeds which decision is fixed by contract.</figcaption></figure>
+
+  <h2>Determinism is injected</h2>
+  <p>No engine module ever calls <code>Math.random()</code>. Every generation function takes a <code>prng: () =&gt; number</code> parameter, and determinism flows entirely from that injection. The engine modules are pure TypeScript with no framework or browser dependencies; the design docs call this the engine boundary. The same pipeline runs in a test, a CLI sampler or a browser panel with identical output.</p>
+
+  <h2>Draw ordering is part of the API</h2>
+  <p><em>How many times</em> a function draws from the PRNG is part of its public contract. <code>selectGrammarOption</code> documents that it consumes exactly one draw per call regardless of how many options it weighs. If a refactor made it draw twice, every seed in existence would produce a different world, and every regression fixture would be lies. Changing the draw count is a breaking change even when the function's return type is untouched.</p>
+  <div class="callout"><span class="tag">Draw order is a wire format</span>
+  In seeded procgen the PRNG call sequence is a serialisation format: the seed is the message and the draw order is the schema. A change to either deserves the review a wire-protocol change gets.</div>
+
+  <h2>Weighted selection</h2>
+  <p>One utility, <code>weightedSelect</code>, does nearly all the choosing in the pipeline. It takes candidates, a PRNG and a weight callback; the callback shape exists because callers weigh differently-shaped things (grammar options by effective weight, materials by a three-factor product). Two edge cases are handled deliberately: a zero-total weight table degrades to a uniform draw rather than crashing or silently picking the first item, and floating-point drift on the final subtraction falls through to the last candidate.</p>
+  <pre><code class="lang-ts">export function weightedSelect&lt;T&gt;(
+  items: readonly T[],
+  prng: () =&gt; number,
+  getWeight: (item: T) =&gt; number, // callers weigh differently-shaped things
+): T</code></pre>
+
+  <h2>What the seed does and doesn't pin</h2>
+  <p>The guarantee is phrased carefully: same seed means the same <em>sequence</em> of artefacts. Artefact N may depend on artefacts 1 through N−1 (associated finds, site reuse, material precedent), so the seed determines the unfolding, and no artefact is addressable in isolation. If you want artefact 500, you generate the 499 before it.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    <code>src/lib/engine/prng.ts</code> (xmur3, xoshiro128**, weightedSelect) · determinism and distribution tests alongside · draw-count contracts in each generation module's JSDoc
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="/mechanism/index.html"><span class="dir">Previous</span>Pipeline overview</a>
+    <a href="/mechanism/structure.html" class="next"><span class="dir">Next</span>Structural grammar</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="/assets/highlight.js"></script>
+</body>
+</html>
