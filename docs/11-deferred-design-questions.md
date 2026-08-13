@@ -602,5 +602,55 @@ across the group. Full detail: `docs/spikes/2GN.108-short-bodied-edged-tools.md`
 
 ---
 
+### 2.12 Categorical Rules Need Conditions, Not Baselines (roadmap 2GN.97)
+
+**Decision:** A classification rule awarding a `RelativeTag` does **not** automatically require a
+culture-phase baseline. Of the 24 rules 2GN.82 could not migrate, a baseline is the right answer for
+none of them. The rules divide into five groups with different defects.
+
+**§2.9's boundary is confirmed and clarified.** The absolute/relative cut is drawn by the tag a rule
+awards, and that determines whether the rule's *claim* is culture-relative. It does not follow that
+every such rule needs a sampled baseline: where the condition reads a morphological fact that
+determines the tag (a closed ring was worn; a flexible sheet covered something), the rule stands
+unchanged. Roughly 10 of the 24 are of this kind.
+
+**Two rules are unrelativisable, because there is no quantity to relativise.**
+`vessel-thin-walled-fine-ware` and `vessel-thick-walled-utilitarian` read `wallThickness`, which the
+grammar rolls as a three-value ordinal with no continuous value beneath it. A prevalence baseline
+counts band frequencies, which say nothing about actual thickness — a culture whose walls are all
+3mm and one whose walls are all 30mm both read "100% thin" depending only on where the global cut
+falls. ⚠️ **One culture's thick may be physically thinner than another's thin, and no baseline of any
+kind recovers that.** The two rules stay absolute, blocked with reason, until thickness is a modelled
+quantity (2GN.120). Fourth instance of the band-computed-from-an-absolute-table family after §2.9's
+siblings 2GN.86, 2GN.87 and 2GN.108.
+
+**Two rules are under-conditioned rather than unrelativised.** `baseType` *is* a genuine categorical
+— unlike `wallThickness`, nothing continuous is crushed beneath it, and prevalence would be a
+meaningful number. It is still the wrong answer, because **a base is a relation between the base and
+what it supports**: a pedestal under a statue and a pedestal under a hat-stand carry opposite
+readings from an identical `baseType`, and the difference is not cultural, so no relativisation
+separates them. A rule reading one term of a two-term relation discards the term carrying the
+meaning (doc 02, Simulation Honesty).
+
+**The general finding, which crosses this section's own boundary.** Measured across all 43 shipped
+rules: 10 of the 24 condition on exactly one property, 7 more on two properties of the same
+component, and exactly one is genuinely relational. `NormalisedArtefact.attachments` and
+`NormalisedComponent.position` are populated and read by no rule at all. ⚠️ This is orthogonal to the
+absolute/relative cut — `perforation-central-rotation` awards `tool`, an `AbsoluteTag`, and is
+under-conditioned identically — so it is a property of how conditions are written, not of which
+vocabulary they award from. Ruled at 2GN.119, scoped to all 43 rules.
+
+**Also recorded:** `precious-materials-in-decoration` is dormant, not unmigrated — the feature is
+hardcoded `false` pending motif→culture and layer-material wiring (2GN.78 fallout), so the rule
+cannot fire. Once derived it is culture-relative against regional scarcity per §2.9's material
+half (2GN.77), reading the keyspace 2GN.110 rules.
+
+**Affects:** doc 12 (§2.44 records the measurements). Roadmap: 2GN.97 ruled, unblocking 2GN.72;
+2GN.119 (relational conditioning, all 44 rules), 2GN.120 (derived wall thickness) and 2GN.118
+(primitive value-set audit) filed. Full detail:
+`docs/spikes/2GN.97-categorical-relative-award-rules.md`.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._

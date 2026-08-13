@@ -2463,5 +2463,63 @@ retrofitted to a different general convention without repeating the recalibratio
 
 ---
 
+### 2.44 The Categorical Rules Wanted Conditions, Not Baselines; 10 of 24 Read One Property (2026-08-13)
+
+**Origin:** 2GN.97 design spike **Source of truth:**
+`docs/spikes/2GN.97-categorical-relative-award-rules.md`; decision locked in doc 11 §2.12
+
+**The brief was rejected, not answered.** §2.31 split this task out of 2GN.82 as "what does relative
+mean for a categorical band", offering a prevalence baseline, a `stratification` gate or
+weight-scaling. Measuring the rules first found that four of the five groups they fall into do not
+want a baseline at all, and the largest finding was invisible from inside the question as posed.
+**General lesson: a brief encodes the understanding available when it was filed.** §2.39 recorded the
+converse for rules — a condition can outlive the intent that authored it — and this records it for
+tasks. Where a brief names a solution shape, the first measurement should test whether that shape
+fits, not how to build it.
+
+**Count corrected: 24, not 25.** The roadmap figure predated §2.39's deletion of R4. Measured against
+the current array: 34 rules award at least one `RelativeTag`, 10 carry a migrated `exceeds` call.
+
+**Group A2 is not fixable by weighting, because accumulation is additive.** `classifyArtefact` sums
+`tag → weight` with no suppression, competition or normalisation, so awarding two readings at half
+weight is indistinguishable downstream from two confident unrelated rules contributing the same
+scores — an ambiguous artefact reads as weakly-everything rather than strongly-uncertain. Splitting
+weights was rejected on that basis before the ambiguity was reframed (below).
+
+**The wall rules are unrelativisable.** `wallThickness` is `wall: ['thin','medium','thick']` rolled
+by the grammar with no continuous value anywhere beneath it. Prevalence counts band frequency, which
+says nothing about actual thickness: a culture whose walls are all 3mm and one whose walls are all
+30mm both read "100% thin" depending only on where the global cut falls, so **one culture's thick may
+be physically thinner than another's thin and no baseline recovers it.** Fourth instance of the
+band-computed-from-an-absolute-table family after §2.26 (mass), §2.39 (blade) and §2.43 (axis). Filed
+2GN.120; the two rules stay absolute and blocked-with-reason meanwhile.
+
+**The base rules are under-conditioned, and `baseType` is innocent.** Stress-tested against the wall
+case it passes both tests — no crushed quantity (a pedestal is not "very flat"), and prevalence would
+be a real comparable number. It is still the wrong answer: **a base is a relation between the base and
+what it supports.** A pedestal under a statue and one under a hat-stand read oppositely from an
+identical `baseType`, and the difference is not cultural, so no relativisation separates them.
+
+**The finding that outgrew the brief.** Across all 43 rules: **10 of the 24 condition on exactly one
+property** (`f.x === 'value'` and nothing else); 7 more read two properties of the same component
+(the container rules pair `hasContainer`, a presence flag, with a feature extracted off the dominant
+container); **exactly one is genuinely relational** (`motif-multiple-origins`). `attachments` and
+`position` are populated and read by no rule — the same unused-graph finding as §2.43, reached from
+the classification side. ⚠️ The defect crosses doc 11 §2.9's boundary: `perforation-central-rotation`
+awards `tool`, an `AbsoluteTag`, and is under-conditioned identically, so it is **a property of how
+conditions are written, not of which vocabulary they award from**. Filed 2GN.119, scoped to all 43.
+
+| §   | Propagation                                                                                                | Date       |
+| --- | ---------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `docs/spikes/2GN.97-categorical-relative-award-rules.md`: new spike write-up                                 | 2026-08-13 |
+| —   | Doc 11 §2.12: locked decision (baselines are not the answer; five groups)                                    | 2026-08-13 |
+| —   | Roadmap: 2GN.97 closed, unblocking 2GN.72 (per-component feature provenance)                                 | 2026-08-13 |
+| —   | Roadmap: 2GN.119 (relational conditioning, all 44 rules) and 2GN.120 (derived wall thickness) filed           | 2026-08-13 |
+| —   | Roadmap: 2GN.118 (primitive value-set audit) filed, blocking 2GN.10, 2GN.21, 2GN.109, 2GN.117                 | 2026-08-13 |
+| ⏳  | `data/classification.ts`: the two wall rules annotated absolute-with-reason — with 2GN.120                    | 2026-08-13 |
+| ⏳  | `precious-materials-in-decoration` recorded dormant, not unmigrated — feature stubbed `false` since 2GN.78    | 2026-08-13 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
