@@ -76,7 +76,8 @@ const IGNORED_DIRS: ReadonlySet<string> = new Set([
 
 /** Files the walk must reach, or it has silently narrowed. See the test that asserts this. */
 const REQUIRED_COVERAGE: readonly string[] = [
-	'index.html',
+	'site/index.html',
+	'site/mechanism/classification.html',
 	'README.md',
 	'docs/12-propagation-register.md',
 ];
@@ -106,9 +107,10 @@ const RELATIVE_COUNT = CLASSIFICATION_RULES.filter((rule) => {
  * **The verb form is matched, though, and the bare noun phrase is the only exclusion.** "runs 43
  * rules" names the whole set by construction: something that *runs* or *evaluates* N rules is
  * describing the evaluated set, where a bare "all N rules" can be scoping a subset introduced
- * earlier in the sentence. The distinction is not cosmetic — `index.html`'s "`classifyArtefact` runs
- * all 43 rules" read 44 for two commits, was caught by eye rather than by this guard, and is exactly
- * the sentence this file exists to catch (roadmap 2GN.113).
+ * earlier in the sentence. The distinction is not cosmetic — the pipeline explainer's (now
+ * `site/mechanism/classification.html`) "`classifyArtefact` runs all 43 rules" read 44 for two
+ * commits, was caught by eye rather than by this guard, and is exactly the sentence this file
+ * exists to catch (roadmap 2GN.113).
  */
 const TOTAL_PATTERNS: readonly RegExp[] = [
 	/\ball (\d+) (?:classification|scoring|shipped) rules\b/g,
@@ -173,10 +175,13 @@ function isHistorical(lines: readonly string[], index: number): boolean {
  * hits two files where editing falsifies a dated measurement and marking is impossible.
  *
  * Exempting the data island rather than the file is what keeps the rest of those pages honest, and
- * the `type` attribute is load-bearing: `index.html` states "43 scoring rules" inside a plain
- * `<script>` block of page JS, which is a live claim and stays checked. The source of truth for
- * these strings is `.claude/roadmaps.json`, reviewed as prose in its own right; what is skipped
- * here is a projection of it, not an independent assertion.
+ * the `type` attribute is load-bearing: `site/index.html` states "43 scoring rules" as plain hub-card
+ * markup, and `site/mechanism/classification.html` states it again in prose — both live claims that
+ * stay checked. (Before the site split, this same string lived inside a `<script>` block of page JS
+ * in the old root `index.html`; the split moved it into markup, but the exemption boundary being
+ * documented here — data island vs. everything else — is unchanged.) The source of truth for the
+ * roadmap-artefact strings is `.claude/roadmaps.json`, reviewed as prose in its own right; what is
+ * skipped here is a projection of it, not an independent assertion.
  */
 function isEmbeddedData(line: string): boolean {
 	return /<script[^>]*\btype\s*=\s*["']application\/json["']/i.test(line);
@@ -229,9 +234,11 @@ function scan(path: string, source: string): Mention[] {
 /**
  * The data-island skip is scoped by `type`, and that boundary is the whole point of it.
  *
- * A skip written as "any `<script>`" would read as the same fix and silently drop `index.html`'s
- * live "43 scoring rules" claim, which sits in a plain page-JS block. This pins both sides so the
- * narrowing cannot be lost to a later tidy-up.
+ * A skip written as "any `<script>`" would read as the same fix and silently drop the live
+ * "43 scoring rules"/"43 rules" claims in `site/index.html` and `site/mechanism/classification.html`.
+ * Neither sits inside a `<script>` block today, but the boundary this test pins — data island vs.
+ * everything else, scoped by `type` — is what stops a future `<script>`-wide skip from reopening
+ * that gap if either claim ever moves back into page JS.
  */
 Deno.test('scan: skips embedded JSON data islands, still reads plain script blocks', () => {
 	const stale = String(RULE_COUNT + 1);
