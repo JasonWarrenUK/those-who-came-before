@@ -8,7 +8,7 @@
 	maps to emerald; --bronze (kickers, headings) maps to cinnamon. Shade gaps of 3 hold body-text
 	contrast (4.5:1) and gaps of 4 hold AAA (7:1) per the RC contrast table.
 */
-@import url("./reasonable-colors.css");
+@import "./reasonable-colors.css";
 
 :root {
 	--bg: var(--color-gray-1);
@@ -27,8 +27,8 @@
 	--code-ink: var(--color-gray-1);
 	--code-accent: var(--color-amber-3);
 
-	--serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-	--mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+	--serif: "Iowan Old Style", "Palatino Linotype", palatino, "Book Antiqua", georgia, serif;
+	--mono: ui-monospace, "SF Mono", "Cascadia Code", menlo, consolas, monospace;
 	--shell: 52rem;
 	--prose: 46rem;
 }
