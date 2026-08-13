@@ -388,9 +388,10 @@
 					{
 						"id": "2GN.10",
 						"description": "`engine/generation/grammar.ts` — `allowedMaterialTags` derivation per component from primitive type + properties compatibility",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.8"
+							"2GN.8",
+							"2GN.118"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -487,9 +488,10 @@
 					{
 						"id": "2GN.21",
 						"description": "`engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.20"
+							"2GN.20",
+							"2GN.118"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1131,7 +1133,7 @@
 					{
 						"id": "2GN.72",
 						"description": "`engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.19",
 							"2GN.97"
@@ -1209,14 +1211,14 @@
 					{
 						"id": "2GN.97",
 						"description": "design spike — what does the 2GN.80 ruling mean for the 25 categorical relative-award rules 2GN.82 could not migrate",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.82"
 						],
 						"softDependsOn": [
 							"2GN.96"
 						],
-						"notes": "Split out of 2GN.82 (doc 12 §2.31) 2026-08-05: `BaselineFeature` is a deliberately closed union of eight numeric features (`types/tags.ts`), so a rule reading `wallThickness`, `baseType`, `openingType`, `massBand`, `perforation`, `ringGap`, `sheetFlexibility`, `sizeBand`, `isWearable` or `hasFasteningMechanism` has nothing to call `ClassificationContext.exceeds` against — not an oversight, the type rules it out by design (\"a percentile over `hasEdge` or `openingType` is meaningless\"). What \"relative\" means for a categorical band is genuinely undecided in doc 11 §2.9: candidates are a prevalence/frequency baseline (how common is `thin` walled ware in this culture's own output), a `stratification` gate (doc 11 §2.9 already rules `stratification` a live input on how much `elite` can exist at all — blocked on 2GN.96), or weight-scaling an otherwise-unchanged absolute condition. This is a design spike, not an implementation task — same shape as 2GN.80/2GN.77 before they were ruled. Sequence after 2GN.96 if practical: `stratification` may be a stronger gate for the elite-bearing categoricals (R12 thin-walled, R15 pedestal-base) than a bare frequency baseline, and ruling here first risks re-ruling once 2GN.96 lands. Not a hard dependency — 2GN.96 is M3-blocked (3WS.4/3WS.9/3WS.21) and this spike needs no code, so it can proceed in M2 regardless.",
+						"notes": "Ruled 2026-08-13 — see docs/spikes/2GN.97-categorical-relative-award-rules.md, doc 11 §2.12 and doc 12 §2.44. **The brief's framing was wrong and the ruling rejects it.** 2GN.82 left these rules as 'unmigrated, needing a categorical baseline'; measuring all of them found they are not one problem and most need no baseline at all. Count corrected: **24, not 25** — the roadmap figure predated 2GN.87's deletion of R4. Five groups. **(A1) ~10 rules where morphology determines the tag** — fine unchanged. **(A2→ absorbed) ambiguous morphology**: a central perforation reads spindle-whorl or pendant; ruled NOT a baseline problem (prevalence cannot disambiguate a single artefact) and NOT fixable by weight-splitting, because `classifyArtefact` accumulates additively with no suppression, so 'ambiguous' and 'weakly two things' are indistinguishable downstream. **(B-walls) 2 rules unrelativisable** — `wallThickness` is a three-value roll with no quantity beneath it, so one culture's thick may be thinner than another's thin and no baseline can recover it; filed 2GN.120. **(B-bases) 2 rules under-conditioned** — `baseType` IS a genuine categorical (unlike walls, nothing continuous is crushed) and prevalence would be meaningful, but a base is a relation between the base and what it supports: a pedestal under a statue and one under a hat-stand read oppositely with identical `baseType`. No relativisation fixes an under-conditioned rule. **(C) mass/size** — cheap route, `massBand` derives from a scored distribution. **(D) `precious-materials-in-decoration` is stubbed `false`** and cannot fire — 2GN.78 fallout, a fifth dormant rule; once derived it is culture-relative against regional scarcity per 2GN.77, and reads the keyspace 2GN.110 rules. **The finding that outgrew the brief**: 10 of 24 condition on exactly one property, 7 more on two properties of the same component, and only 1 is genuinely relational. ⚠️ The defect crosses doc 11 §2.9's boundary — `perforation-central-rotation` awards `tool`, an AbsoluteTag, and is under-conditioned identically — so it is a property of how conditions are written, not of which vocabulary they award. Filed 2GN.119, scoped to **all 44 rules**. Also surfaced 2GN.118 (are the primitive value-sets rational) while stress-testing `baseType`.",
 						"assignee": ""
 					},
 					{
@@ -1418,9 +1420,10 @@
 					{
 						"id": "2GN.109",
 						"description": "`src/lib/data/classification.ts` — replacement edge-family rule for the short-bodied non-blade edge, framed morphologically rather than as a truth-table cell. The deleted R4 (roadmap 2GN.87) failed because its condition described a combination of feature *bands* rather than a shape: whatever signal this rule reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather than authoring a rule for a form the game does not produce. Adding it shifts `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`, `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts` and the Explorer panel's label lookups all need updating together",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.108"
+							"2GN.108",
+							"2GN.118"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1498,9 +1501,34 @@
 						"description": "`engine/generation/grammar.ts` + `engine/generation/classification.ts` — implement oriented normalisation and re-express `bladeLengthBand` as grip-to-edge proportion rather than absolute cm, with the full recalibration sweep",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.115"
+							"2GN.115",
+							"2GN.118"
 						],
 						"notes": "Placeholder filed 2026-08-13 alongside the 2GN.108 ruling, so the implementation the spike unlocks exists in the graph rather than only in the spike doc. Depends on 2GN.115 alone: the 2GN.108 edge is reached transitively through it, so drawing it directly would be redundant. Carries two changes that must land together: normalisation orients the artefact by reversal (canonical working-end pole) instead of emitting a raw depth-first `position`, and `bladeLengthBand` bands the grip-to-edge span traversed over the `attachments` graph instead of reading absolute cm off `SHORT_MEDIUM_LONG_CM`. ⚠️ shifts fire rates set-wide — the 2GN.79 calibration guard will flag every moved rule, and `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated. Downstream of 2GN.108 alongside 2GN.67, 2GN.69 and 2GN.109, so sequence the sweep once rather than per-task.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.118",
+						"description": "design spike — are the primitive grammar's categorical parameter value-sets rational and justified? `PRIMITIVE_PARAMETERS` (`data/grammars/primitives.ts`) reproduces doc 05 §5.3 verbatim, so this audits the spec's own vocabularies rather than any code drift. Surfaced by 2GN.97 2026-08-13 while stress-testing whether `baseType` is a genuine categorical: it is, but the value-sets around it are not obviously deliberate. Three measured instances, all of the same shape — two primitives expressing the same concept with disjoint vocabularies, so a value is unreachable by primitive type rather than by design. (a) `base`: `cylindrical` rolls `['flat','rounded','pointed']`, `hollow-enclosed` rolls `['flat','rounded','pedestal']`, making a pedestalled bowl and a pointed cylinder both unreachable — and capping `base-pedestal-display`'s population at hollow-enclosed containers. (b) `opening`: `cylindrical` rolls `['open','restricted','closed']` while `hollow-enclosed` rolls `['wide','narrow','slit','none']` — different vocabularies AND different arities for one concept, leaving `slit` (read by `container-slit-votive`) unreachable on cylinders. (c) `perforation`: `flat-broad` rolls `['none','single','multiple']`, `disc-form` rolls `['none','central','off-centre']` — disjoint, so `perforation-central-rotation` can only ever fire on discs and `perforation-single-pendant` only on flat-broads. Rule for each parameter whether the split is deliberate morphological modelling or an artefact of authoring the BNF primitive-by-primitive; where deliberate, record why; where not, rule the corrected vocabulary. Same shape as 2GN.87's reachability finding, applied to the grammar's inputs rather than a rule's condition",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-13 from the 2GN.97 spike session, which reached it by stress-testing whether `baseType` is a genuine categorical (it is — unlike `wallThickness`, there is no crushed continuous quantity beneath it). The audit question is one level up: whether the value-sets themselves were designed or accreted. ⚠️ Ruling here may change which values exist, so anything authoring rules against them or deriving from them waits: 2GN.10 (`allowedMaterialTags` from primitive type + properties), 2GN.21 (`physicalLabel` from these observable values), 2GN.109 (replacement edge-family rule) and 2GN.117 (re-bands `bladeLengthBand` off `elongated.length`). 2GN.97 is NOT a dependent — it surfaced the defect rather than consuming the vocabulary.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.119",
+						"description": "design spike — should classification conditions read *relations between components* rather than isolated component properties? Measured 2026-08-13 over all 44 shipped rules during 2GN.97: **10 of the 24 unmigrated rules condition on exactly one property** (`f.x === 'value'` and nothing else) — `base-pedestal-display`, `base-pointed-amphora`, the three `perforation-*` rules, both `ring-*` rules, both `sheet-*` rules and `size-small-personal`. A further 7 read two properties that both describe the *same* component (the container rules pair `hasContainer`, a presence flag, with a feature extracted off the dominant container). Exactly one rule is genuinely relational (`motif-multiple-origins`, comparing origins across the artefact's decoration). A base is a relationship between the base and what it supports: a pedestal under a statue and a pedestal under a hat-stand carry opposite readings, identical `baseType`, and no amount of culture-relativity separates them because the difference is not cultural. The rule reads one term of a two-term relation and discards the term carrying the meaning — doc 02 Simulation Honesty. ⚠️ This is orthogonal to doc 11 §2.9's absolute/relative cut: `perforation-central-rotation` awards `tool` (an AbsoluteTag) and is under-conditioned identically, so the defect is a property of how conditions are written, not of which vocabulary they award from. `NormalisedArtefact.attachments` and `NormalisedComponent.position` are populated and unread by every rule — the same unused-graph finding as 2GN.108. Rule whether conditions gain access to component relations, what that does to `ClassificationRule.condition`'s signature (already widened once by 2GN.80), and which rules are rewritten versus left as affordance readings",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-13 from the 2GN.97 spike session. Scope is **all 44 rules**, not the 24 unmigrated ones: the measurement that produced it covered the 24, but the defect cuts across the absolute/relative boundary, so scoping to relative-award rules would audit the wrong set. Supersedes the framing 2GN.97 inherited — those rules are not unmigrated-but-fine awaiting a baseline, a class of them is under-conditioned, and no baseline of any kind fixes an under-conditioned rule. Absorbs the ambiguity originally filed as a competing-readings question (a central perforation reads spindle-whorl or pendant depending on the disc's size, mass and what it attaches to — the ambiguity IS the missing relational term). ⚠️ Interacts with 2GN.118: that audits which parameter *values* exist, this audits what a condition may *read*. Independent questions on the same surface; neither blocks the other.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.120",
+						"description": "`engine/generation/grammar.ts` — derive `wallThickness` as a modelled quantity rather than a free three-value roll. Today `PRIMITIVE_PARAMETERS` rolls `wall: ['thin','medium','thick']` directly, with no continuous value beneath and no input from craft process, material or vessel role. Three consequences ruled in 2GN.97 (2026-08-13): (a) thickness is plausibly a *derivative of the crafting process* and is currently uninfluenced by `craftSpecialisation`, the component's assigned material or what the vessel is for; (b) three rungs is the entire gradation available, too coarse for the distinctions the classification rules try to draw on it; (c) **cross-culture comparison is impossible by construction** — one culture's `thick` may be physically thinner than another's `thin`, and since the band is cut from a global table before anything culture-relative is consulted, no baseline can recover the difference. Fourth instance of the band-computed-from-an-absolute-table family after 2GN.86 (mass), 2GN.87 (blade) and 2GN.108 (axis). Deliverable: a derived thickness quantity with its inputs ruled, and bands cut per-culture rather than globally",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-13 by the 2GN.97 ruling, which found `vessel-thin-walled-fine-ware` and `vessel-thick-walled-utilitarian` unrelativisable: no baseline of any kind — prevalence, stratification or weight-scaling — can relativise a three-value label rolled from a global table, because there is no quantity for a culture to have opinions about. Prevalence in particular cannot work here (unlike `baseType`, where it can): band frequency says nothing about actual thickness, so a culture whose walls are all 3mm and one whose walls are all 30mm both read '100% thin' or '100% thick' depending only on where the global cut falls. ⚠️ The two wall rules stay as they are until this lands — they were left absolute rather than migrated or deleted, recorded as blocked-with-reason. ⚠️ Overlaps 2GN.118, which audits whether the `wall` vocabulary is justified at all; if that spike rules the three-value set out, this task's shape changes with it.",
 						"assignee": "Jason Warren"
 					}
 				]
