@@ -2036,10 +2036,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       plausibility (shell, amber, horn, pigments, composite materials), judged by what a real
       assemblage needs rather than by filling tag rows for their own sake. ⚠️ may require new
       `MaterialTag` members, which touches the `MaterialSelector` keyspace and every authored
-      `materialAffinities` map; `MATERIAL_NAMES` is declared rather than derived from `MATERIALS`
-      (the import would cycle), so `materials.test.ts`'s two-directional pin fails loudly until the
-      list is updated alongside. ⚠️ moves material-share distributions, so `EXPECTED_TAG_SHARES` and
-      `EXPECTED_INTRA_TAG_SHARES` need re-recording
+      `materialAffinities` entry array; `MATERIAL_NAMES` is declared rather than derived from
+      `MATERIALS` (the import would cycle), so `materials.test.ts`'s two-directional pin fails
+      loudly until the list is updated alongside. ⚠️ moves material-share distributions, so
+      `EXPECTED_TAG_SHARES` and `EXPECTED_INTRA_TAG_SHARES` need re-recording
 - [ ] **2GN.125** — design spike — does `AvailabilityLevel` conflate materials that are **found**
       with materials that are **produced**? _(blocked — depends on 2GN.124)_ `GeologicalContext`'s
       own JSDoc calls itself "geological material scarcity" and cites obsidian, gold and tin, yet it
