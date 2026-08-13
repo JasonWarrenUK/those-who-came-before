@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Engine Doesn&rsquo;t Know Whose Beliefs These Are · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">04 · The Engine Doesn&rsquo;t Know Whose Beliefs These Are</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">04 · Interpretation</div>
+  <h1>One Interface, Player and NPC</h1>
+  <p class="lede">The instinct here is a <code>PlayerState</code> and a separate <code>NPCState</code>, with NPC wrongness tracked as a list of flagged mistakes. This project ruled that out directly. An NPC's error isn't metadata attached to a scholar. It's just claims, in the identical container the player's beliefs live in, that happen to diverge from ground truth.</p>
+
+  <div class="callout"><span class="tag">Needs</span> <a href="channels.html">Five Channels of Filtering</a>, since the lens is the clearest place to watch this constraint in action.</div>
+
+  <h2>The rejected shape, and what it cost</h2>
+  <p><code>MinimalScholar</code>'s own type comment records what it replaced: NPC errors used to live in a <code>corpusErrors</code> field, a list of wrong-answer flags sitting beside the scholar's other data. That design works, in the narrow sense that it compiles and renders. What it can't do is let an NPC's mistake behave like a mistake: it can't be argued with, cited approvingly by a different NPC who happens to share it, revised when new evidence surfaces, or contradicted by the player's own later find. It's a label, not a belief.</p>
+  <p>The shipped design deletes that field. NPC wrongness is now simply claims inside an <code>InterpretiveModel</code>, the same container type the player uses, that happen not to match occluded ground truth. Nothing distinguishes an NPC's wrong claim from a right one at the type level, because nothing should: the engine that will eventually surface the contradiction has to reach it the same way it reaches every other claim, or the whole mechanic of one agent's error propagating into another agent's belief has nowhere to attach.</p>
+
+  <h2>What the interface actually holds</h2>
+  <p><code>InterpretiveModel</code> carries five kinds of claim (about cultures, about specific artefacts, about chronological ordering, about other agents, plus a methodological stance shaping how new evidence gets weighed) and two kinds of bookkeeping (per-hypothesis strain, a queue of open contradictions). Every field is agent-generic: there is no <code>isPlayer</code> flag anywhere in the shape, and no field that only makes sense for one kind of agent.</p>
+  <pre><code class="lang-ts">interface InterpretiveModel {
+  agentId: string;
+  culturalClaims: Map&lt;string, CulturalClaim&gt;;
+  artefactClaims: Map&lt;string, ArtefactClaim&gt;;
+  chronologicalClaims: Map&lt;string, ChronoClaim&gt;;
+  agentAssessments: Map&lt;string, AgentAssessment&gt;;
+  methodologicalWeights: MethodologicalProfile;
+  strainScores: Map&lt;string, HypothesisStrain&gt;;
+  contradictionQueue: ContradictionQueue;
+}</code></pre>
+  <p>The type's own JSDoc states the consequence in one sentence: engine functions accept an <code>InterpretiveModel</code> as a parameter and never know whose model they are processing. Only the UI and store layers are allowed to treat the player as special, because a UI has to render a player's screen differently from an NPC's dossier. The lens calculator, the contradiction detector and the eventual peer-review generator all take the same shape either way.</p>
+
+  <h2>What that constraint buys</h2>
+  <p>Consider what has to be true for one specific mechanic to work: an NPC scholar publishes a confident, wrong claim about a culture's material preferences. The player reads that publication, forms a belief influenced by it, and their own later interpretation of a new artefact gets steered by a mistake that was never theirs. For that chain to run without a special case anywhere in the code, the NPC's wrong claim has to be a first-class citizen of exactly the same type the player's beliefs are made of, reachable by exactly the same contradiction machinery, capable of being cited, inherited, and eventually revised or retracted the same way. A <code>corpusErrors</code> flag never could have supported that: a flag doesn't have a confidence level, doesn't sit in an evidence chain, doesn't have a <code>status</code> that can move from <code>active</code> to <code>challenged</code>. A claim does.</p>
+  <p>This is also what makes peer review possible as a mechanic rather than a scripted event: reviewing another scholar's paper is comparing one <code>InterpretiveModel</code>'s claims against another's, and the reviewer's own position is a defended stance built from the same materials as the paper under review, not an oracle's verdict. A hostile reviewer who happens to agree with you is stronger evidence than a friendly one, precisely because both are claims of the same weight and kind.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 220" role="img" aria-label="Player and NPC feeding identical engine functions from identically-shaped containers">
+    <rect class="box" x="40" y="16" width="260" height="56" rx="8"/><text x="170" y="38" text-anchor="middle">Player&rsquo;s InterpretiveModel</text>
+    <text class="lab" x="170" y="56" text-anchor="middle">culturalClaims, artefactClaims,</text>
+    <text class="lab" x="170" y="68" text-anchor="middle">chronologicalClaims, strainScores&hellip;</text>
+    <rect class="box" x="420" y="16" width="260" height="56" rx="8"/><text x="550" y="38" text-anchor="middle">NPC&rsquo;s InterpretiveModel</text>
+    <text class="lab" x="550" y="56" text-anchor="middle">identical shape, seeded at</text>
+    <text class="lab" x="550" y="68" text-anchor="middle">world generation, not gameplay</text>
+    <path class="arrow" d="M 220 74 L 320 110"/><path class="arrow" d="M 308 102 l 14 8 l -22 4"/>
+    <path class="arrow" d="M 500 74 L 400 110"/><path class="arrow" d="M 412 102 l -14 8 l 22 4"/>
+    <rect class="gold" x="200" y="112" width="320" height="34" rx="6"/><text x="360" y="134" text-anchor="middle">lens calculation &middot; contradiction detection &middot; peer review</text>
+    <text class="lab" x="360" y="164" text-anchor="middle">these functions accept an InterpretiveModel and never branch on whose it is</text>
+    <path class="arrow" d="M 360 148 L 360 180"/><path class="arrow" d="M 352 172 l 8 12 l 8 -12"/>
+    <rect class="soft" x="220" y="182" width="280" height="30" rx="6" style="stroke-dasharray:4 3"/>
+    <text x="360" y="202" text-anchor="middle">only the UI/store layer treats the player as special</text>
+  </svg>
+  <figcaption class="diagcap">The player-is-special boundary sits at one layer, drawn deliberately thin, rather than threaded through every engine function that touches a belief.</figcaption></figure>
+
+  <div class="callout warn"><span class="tag">Where the two agents genuinely differ</span>
+  Agent-generic doesn't mean identical in practice. At MVP the player's model evolves through play, term by term; NPC models are generated once, statically, during world creation, carrying <code>culturalClaims</code>, <code>methodologicalWeights</code> and a subset of <code>artefactClaims</code>, while an NPC's <code>agentAssessments</code> and <code>contradictionQueue</code> are left empty. The difference is entirely in how the container gets filled and when, not in what shape it has to be to be read.
+  </div>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/11-deferred-design-questions.md</code> §2.6, <code>docs/06-knowledge-contradiction-model.md</code> §6 · Types: <code>src/lib/types/interpretation.ts</code> (<code>InterpretiveModel</code>), <code>src/lib/types/scholars.ts</code> (<code>MinimalScholar</code>, the retired <code>corpusErrors</code> note)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="classification.html"><span class="dir">Previous</span>Relative vs Absolute Classification</a>
+    <a href="contradiction.html" class="next"><span class="dir">Next</span>Contradictions Are Revealed by Consequences</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/11-deferred-design-questions.md</code> §2.6, <code>docs/06-knowledge-contradiction-model.md</code>, <code>src/lib/types/interpretation.ts</code>, <code>src/lib/types/scholars.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>

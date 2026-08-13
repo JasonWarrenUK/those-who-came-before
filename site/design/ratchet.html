@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Commitment Ratchet · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">07 · The Commitment Ratchet</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">07 · Career and perception</div>
+  <h1>Why Publishing Makes You Blinder</h1>
+  <p class="lede"><code>LensStrength.factors</code> does two jobs at once. It's how strongly one belief filters what the player notices next, and its inputs (dissemination state, venue prestige, citations, teaching) are exactly the things a career rewards. The scalar that measures success and the scalar that measures how badly you're about to misread the next artefact are the same number.</p>
+
+  <div class="callout"><span class="tag">Needs</span> <a href="channels.html">Five Channels of Filtering</a>, for what lens strength actually scales.</div>
+
+  <h2>The strength formula is a career ledger wearing a different hat</h2>
+  <p>Look again at what feeds <code>LensStrength.factors</code>: <code>dissemination</code> (private through published, graduated), <code>venuePrestige</code> (multiplied against it), <code>evidenceCount</code>, <code>taught</code>, <code>cited</code>, <code>contradictions</code> (the only downward pressure that isn't a deliberate choice), and <code>onSabbatical</code>. Every one of those except the last two is a thing the career system is separately, positively rewarding. Publishing at a prestigious venue is good for your career and it locks your lens harder. Being cited is good for your career and it locks your lens harder. Teaching a hypothesis to students is good for your career (<code>CareerActivity</code>'s <code>student-supervision</code> type) and it locks your lens harder.</p>
+  <p>There is no punishment mechanic anywhere in this. Nobody designed a system that makes the player worse at their job as a consequence of failure. The distortion is a side effect of doing well, arriving through the exact channel the career system already uses to tell the player they're succeeding.</p>
+
+  <h2>Where the wire actually is</h2>
+  <p><code>DisseminationCareerEffect</code>, the type recording what happens when a document moves along the publication pipeline, carries a <code>lensEffect: number</code> field sitting right beside <code>reputationEffects</code>. The same career event that computes a reputation bump computes a lens contribution in the same object, at the same time. This isn't two systems that happen to correlate; it's one state transition with two outputs.</p>
+  <pre><code class="lang-ts">interface DisseminationCareerEffect {
+  transition: DisseminationTransition;
+  venueId: string;
+  reputationEffects: ReputationEffect[];
+  lensEffect: number; // contribution to lens strength, doc 04
+}</code></pre>
+  <p>And venue prestige itself, the multiplier on the dissemination contribution, is computed rather than assigned: <code>editorialRigour</code>, <code>reach</code>, <code>establishment</code> and scope width all feed it, the type's own comment states prestige is "computed from properties, never stored as a tier". A venue can't be lavishly prestigious by fiat; it has to actually be demanding, actually be established, actually reach a wide audience. Which means the lens-hardening effect of publishing somewhere prestigious is earned the same way the career benefit is earned: by the venue being genuinely rigorous, not by the game handing out a label.</p>
+
+  <h2>The one lever that pulls the other way</h2>
+  <p><code>onSabbatical</code> is worth &minus;0.15, a flat reduction applied while the flag is true. Every other factor in the formula either only goes up (evidence, citations, teaching) or only fires under specific negative conditions the player doesn't choose (active contradictions). Sabbatical is the single factor the player can deliberately reach for that reduces lens strength on purpose, described in the career model as reduced lens, full energy, no background drains: a term bought specifically to see more clearly.</p>
+  <p>It isn't a full reset. It's a flat subtraction against whatever the accumulated dissemination, prestige, citation and teaching contributions already total, so a hypothesis that's been publicly defended for years still filters harder during a sabbatical than a hypothesis nobody has touched, just less hard than it would without the break. Clarity here is a temporary discount, not an erasure, matching the ratchet metaphor: a ratchet can be eased, not undone in one motion.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 220" role="img" aria-label="LensStrength.factors stacked contribution chart across three archetypes">
+    <text class="lab" x="20" y="20">lens strength (0&ndash;1, clamped)</text>
+    <line x1="60" y1="30" x2="60" y2="180" stroke="#a3947c" stroke-width="1"/>
+    <line x1="60" y1="180" x2="660" y2="180" stroke="#a3947c" stroke-width="1"/>
+    <rect class="soft" x="120" y="165" width="90" height="15" rx="2"/><text class="lab" x="165" y="200" text-anchor="middle">tentative note</text>
+    <rect class="box" x="300" y="120" width="90" height="60" rx="2"/><text class="lab" x="345" y="200" text-anchor="middle">circulated draft</text>
+    <rect class="gold" x="480" y="42" width="90" height="138" rx="2"/><text class="lab" x="525" y="200" text-anchor="middle">taught + cited + published</text>
+    <text x="165" y="160" text-anchor="middle" style="font-size:9px">low confidence only</text>
+    <text x="345" y="105" text-anchor="middle" style="font-size:9px">dissemination + some evidence</text>
+    <text x="525" y="30" text-anchor="middle" style="font-size:9px">near the 1.0 clamp</text>
+  </svg>
+  <figcaption class="diagcap">Three archetypes of the same formula. The rightmost bar isn't a penalty state; every input that put it there is a career success by the game's own reputation model.</figcaption></figure>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/04-interpretive-lens.md</code> §4, <code>docs/07-career-social-systems.md</code> §3.2 · Types: <code>src/lib/types/lens.ts</code> (<code>LensStrength</code>), <code>src/lib/types/career.ts</code> (<code>DisseminationCareerEffect</code>), <code>src/lib/types/venues.ts</code> (<code>VenueDefinition</code> prestige inputs)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="publishing.html"><span class="dir">Previous</span>Immutable Documents</a>
+    <a href="labels.html" class="next"><span class="dir">Next</span>Labels That Emerge Instead of Being Assigned</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/04-interpretive-lens.md</code>, <code>docs/07-career-social-systems.md</code>, <code>src/lib/types/lens.ts</code>, <code>src/lib/types/career.ts</code>, <code>src/lib/types/venues.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>

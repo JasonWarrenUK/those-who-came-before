@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measurement culture · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand practice">Practice</span>
+    <span class="here">Practice · Measurement culture</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Practice · Measurement culture</div>
+  <h1>Every Constant Is on Probation</h1>
+  <p class="lede">Numbers in this codebase have a lifecycle: authored as provisional, exposed to observation, measured against samples, then pinned or replaced. This page covers the lifecycle and the boundary that makes it possible; the Explorer page covers the tooling, and the document-suite page covers the paper trail.</p>
+
+  <h2>Constants are measured before they're believed</h2>
+  <p>The recurring loop, visible on the materials, decoration and classification pages: author a provisional constant, mark it MVP-provisional with the precedent it follows, build the observability to sample real output, measure, then either pin the constant with a calibration test or replace it with a measured value and record the distribution table in the doc. The classification thresholds went through the full loop twice (the second pass caught the fixture skew). The scarcity weights kept their authored values but gained a test that pins the ratios between rungs, which is the honest version of "these numbers are right": nobody claims 0.25 is correct, only that scarce reading meaningfully rarer than available is now load-bearing and protected.</p>
+  <pre><code class="lang-ts">// the convention, condensed from materials.ts
+// MVP-provisional (2GN.25 precedent): doc 05 names the drivers but supplies
+// no numbers, so these are authored priors, expected to be retuned once
+// generation is observable in the Explorer.
+// Values pinned by materials.calibration.test.ts (2GN.84): what the pin
+// makes load-bearing is the RATIO between rungs, not any absolute figure.</code></pre>
+
+  <figure class="diag"><svg viewBox="0 0 720 160" role="img" aria-label="The constant lifecycle">
+    <rect class="soft" x="8" y="24" width="160" height="34" rx="6"/><text x="88" y="41" text-anchor="middle">author provisional</text><text class="lab" x="88" y="52" text-anchor="middle">marked, with precedent</text>
+    <rect class="box" x="208" y="24" width="150" height="34" rx="6"/><text x="283" y="41" text-anchor="middle">make observable</text><text class="lab" x="283" y="52" text-anchor="middle">panel or sampler</text>
+    <rect class="box" x="398" y="24" width="140" height="34" rx="6"/><text x="468" y="41" text-anchor="middle">measure</text><text class="lab" x="468" y="52" text-anchor="middle">1200–7200 artefacts</text>
+    <rect class="gold" x="578" y="24" width="134" height="34" rx="6"/><text x="645" y="41" text-anchor="middle">pin or replace</text><text class="lab" x="645" y="52" text-anchor="middle">test + doc table</text>
+    <path class="arrow" d="M 168 41 h 34"/><path class="arrow" d="M 196 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 358 41 h 34"/><path class="arrow" d="M 386 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 538 41 h 34"/><path class="arrow" d="M 566 38 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 645 58 v 40 h -557 v -34"/><path class="arrow" d="M 84 70 l 4 -6 l 4 6"/>
+    <text class="lab" x="240" y="112">re-enters probation whenever upstream stages change the population</text>
+  </svg>
+  <figcaption class="diagcap">The lifecycle. The classification thresholds have been around it twice.</figcaption></figure>
+
+  <div class="callout"><span class="tag">Procgen fails statistically</span>
+  Every individual artefact can look fine while the population is absurd: nine in ten objects "elite", a metal-free culture leading the world in wirework. Both happened. Unit tests assert properties of instances; the calibration suites here assert properties of distributions.</div>
+
+  <h2>The engine boundary</h2>
+  <p>Everything under <code>engine/</code> is pure TypeScript: no Svelte, no browser, no ambient randomness, PRNG injected. The UI layer is a consumer. The same pipeline runs headless in tests, from CLI samplers and inside the browser workbench, with identical output; the boundary is enforced socially by module JSDoc and structurally by the import graph. The measurement culture depends on this: sampling 7200 artefacts is only cheap because the pipeline runs anywhere, and a sample is only meaningful because determinism makes it reproducible.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Calibration suites: <code>src/lib/data/*.calibration.test.ts</code>, <code>classification.test.ts</code> · Boundary: <code>src/lib/engine/</code> (module JSDoc) · Distribution tables: doc 12 §§2.24, 2.31, 2.33
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="../mechanism/world.html"><span class="dir">Previous</span>World generation</a>
+    <a href="explorer.html" class="next"><span class="dir">Next</span>The Project Explorer</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="../assets/highlight.js"></script>
+</body>
+</html>

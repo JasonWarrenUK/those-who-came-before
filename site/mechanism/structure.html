@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structural grammar · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stage 4 · Structural grammar</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stage 4 · Structural grammar</div>
+  <h1>The Grammar Doesn&rsquo;t Know What a Sword Is</h1>
+  <p class="lede">Stage 4 builds the physical object. It works bottom-up from geometric primitives, and it is forbidden, as a matter of design law, from ever branching by intent. The spec marks exactly one principle non-negotiable, and it's this one.</p>
+
+  <h2>Why bottom-up</h2>
+  <p>The obvious way to generate game items is top-down: pick "sword" from a table, then fill in sword-shaped details. The whole game premise dies if you do that. If the generator knows it made a sword, the classification is trivially recoverable and interpretation has nothing to do; the player's job of working out what a thing <em>was</em> only exists if the engine itself never decided. So the grammar produces structures (an elongated form with an edge, socketed to a cylindrical form) and classification happens downstream, by reading the geometry back like an archaeologist would. The ambiguity is native: a long edged thing genuinely might be a weapon, a tool or a ritual object.</p>
+
+  <h2>The vocabulary</h2>
+  <p>Eight geometric primitives, each with its own parameter set: <code>elongated</code>, <code>cylindrical</code>, <code>flat-broad</code>, <code>hollow-enclosed</code>, <code>ring-form</code>, <code>disc-form</code>, <code>bar-form</code>, <code>sheet-form</code>. Two examples of the parameter space:</p>
+  <ul>
+    <li>An <strong>elongated</strong> form has a length band, a cross-section, a taper, an edge count and a point: enough to be a pin, a blade or a shaft, without ever saying which.</li>
+    <li>A <strong>hollow-enclosed</strong> form has a shape, wall thickness, an opening and a base: enough to be a jar, a box or an urn, same rule.</li>
+  </ul>
+  <p>Components join through nine attachment types (<code>inline</code>, <code>perpendicular</code>, <code>socketed</code>, <code>riveted</code>, <code>wrapped</code>, <code>lashed</code>, <code>hinged</code>, <code>threaded</code>, <code>friction-fit</code>), and the attachments matter later: a hinged join is evidence of fine metalwork, and classification will read brooch anatomy off a pin bearing on a hoop.</p>
+  <pre><code>&lt;object&gt;            ::= &lt;component-group&gt;+
+&lt;component-group&gt;   ::= &lt;primary-component&gt; [&lt;attachment&gt; &lt;component-group&gt;]*
+&lt;primary-component&gt; ::= &lt;elongated&gt; | &lt;cylindrical&gt; | &lt;flat-broad&gt;
+                      | &lt;hollow-enclosed&gt; | &lt;ring-form&gt; | &lt;disc-form&gt;
+                      | &lt;bar-form&gt; | &lt;sheet-form&gt;</code></pre>
+  <p>The BNF's repetition operators are engine-owned: the data module supplies alternatives and weights only, and <code>expandGrammar</code> decides how many groups and how long the attachment chains run, bounded by the complexity budget below.</p>
+  <p>Grammar rules live in a data file as plain objects; the engine looks them up by symbol. Four production rules cover the MVP.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="One expanded object">
+    <rect class="box" x="8" y="40" width="190" height="34" rx="6"/><text x="103" y="56" text-anchor="middle">elongated</text><text class="lab" x="103" y="68" text-anchor="middle">long · double edge · sharp point</text>
+    <rect class="box" x="280" y="40" width="160" height="34" rx="6"/><text x="360" y="56" text-anchor="middle">cylindrical</text><text class="lab" x="360" y="68" text-anchor="middle">short · narrow · thick wall</text>
+    <rect class="box" x="522" y="40" width="190" height="34" rx="6"/><text x="617" y="56" text-anchor="middle">disc-form × 2</text><text class="lab" x="617" y="68" text-anchor="middle">arrangement: symmetric</text>
+    <path class="arrow" d="M 198 57 h 78"/><path class="arrow" d="M 270 54 l 6 3 l -6 3"/>
+    <text class="lab" x="237" y="50" text-anchor="middle">socketed</text>
+    <path class="arrow" d="M 440 57 h 78"/><path class="arrow" d="M 512 54 l 6 3 l -6 3"/>
+    <text class="lab" x="479" y="50" text-anchor="middle">riveted</text>
+    <text class="lab" x="8" y="110">Three component groups, two attachments, one arrangement group. Nothing here says "sword";</text>
+    <text class="lab" x="8" y="124">stage 8 will read the edge, the grip-shaped cylinder and the symmetric pair as evidence.</text>
+  </svg>
+  <figcaption class="diagcap">One expansion, flattened left to right along the primary axis.</figcaption></figure>
+
+  <h2>Culture is a weight modifier</h2>
+  <p>Cultures don't have allowed artefact types. They have tendencies, expressed as weight modifiers over grammar options. Selection works like this: start from the option's authored base weight, add each cultural modifier scaled by the culture's affinity for that material tag, multiply by phase influence, floor at 0.01.</p>
+  <pre><code>weight = max(0.01,
+  (baseWeight + Σ affinity(tag) × modifier)
+  × Π (1 + (multiplier − 1) × phaseAttribute))</code></pre>
+  <p>The 0.01 floor means nothing is ever impossible: a deeply pacifist culture occasionally produces a blade. The source comment reads, in full, "Because archaeology." Phase influence is calibrated so a high attribute amplifies while a low one merely fails to amplify; "low metallurgy" never drags an option below its base weight.</p>
+  <p>A phase is a multi-attribute profile, one per culture per period: eight technology axes (metallurgy, ceramics, textiles, leather-working, stone, glass, wood, bone), plus economy, society and aesthetics blocks. A culture can be exceptional metalworkers with crude ceramics, and its artefacts will say so.</p>
+
+  <h2>Complexity budgets and arrangement patterns</h2>
+  <p>Uncontrolled repetition produces nonsense, so repetition is patterned, and the constraint system encodes two claims about the world rather than two knobs on a generator.</p>
+  <h3>The budget is a claim about people</h3>
+  <p>Object complexity tracks who a culture can afford to specialise: a part-time potter makes simple forms, a workshop tradition supports composite objects with several distinct assemblies. So the budget hangs off <code>society.craftSpecialisation</code>, one number per culture-phase, resolved into a tier that every object draws against:</p>
+  <ul>
+    <li><strong>Simple</strong> (0–0.3): 1–2 component groups, basic patterns only (symmetric, linear).</li>
+    <li><strong>Moderate</strong> (0.3–0.6): 2–3 groups, most patterns available.</li>
+    <li><strong>Sophisticated</strong> (0.6–1.0): 3–4 groups, all six patterns, including nesting and branching.</li>
+  </ul>
+  <p>Complexity is a property of the society before it's a property of any object, which is why the budget binds at the culture level and not per artefact.</p>
+  <h3>The patterns are a claim about objects</h3>
+  <p>Real artefacts repeat components deliberately: rivets march in rows, beads circle a rim, sockets stack. Six arrangement patterns cover the MVP (symmetric pairs, radial spreads of 3–12, linear arrays, stacks, nests, branches), and a repeated component must belong to one of them; the accumulation checker rejects an expansion whose repetition fits no pattern, because unpatterned repetition reads as noise where patterned repetition reads as intent. The arrangement group survives normalisation, so downstream feature extraction can tell a radial spread of studs from one stud, and the player can too.</p>
+
+  <h2>Portability, derived</h2>
+  <p>Generated objects carry a portability band, from <code>pocketable</code> through <code>team-lift</code> to <code>major-effort</code>, and an inspection depth derived from physical dimensions: anything up to 30cm can be held and fully examined, up to 150cm examined in detail, beyond that observed in situ. These are mechanical facts about player handling, and classification rules are banned from reading them; the classification page has the boundary and the test that guards it.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Engine: <code>src/lib/engine/generation/grammar.ts</code> · Rules: <code>src/lib/data/grammars/core.ts</code> · Primitives: <code>src/lib/data/grammars/primitives.ts</code> · Spec: doc 05 §5
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="determinism.html"><span class="dir">Previous</span>Seeding & determinism</a>
+    <a href="plausibility.html" class="next"><span class="dir">Next</span>Normalisation & plausibility</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="../assets/highlight.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World generation · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stages 2–3 · World generation</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stages 2–3 · World generation</div>
+  <h1>The World Is Still a Fixture</h1>
+  <p class="lede">The pipeline's second and third stages produce the world everything downstream consumes: chronology, cultures, geology and a simulated body of scholarship. Both are specified in detail and not yet built (stage 1's seed machinery shipped long ago; the determinism page covers it). The engine currently runs against four preset cultures and six named fixture worlds, and the seams where the real thing will bolt on are marked in the code.</p>
+
+  <h2>Chronology without a shared timeline</h2>
+  <p>There is no monolithic world timeline. Each culture has its own periodisation, and interactions are defined by temporal overlap rather than shared phase labels; Culture A's "Expansion" might overlap Culture B's "Settlement" and the player has to work the alignment out from stratigraphy.</p>
+  <p>The design mirrors how the discipline works. Archaeologists build local sequences first (this pottery style precedes that one, at this site) and argue about cross-dating second; whole regional chronologies have floated by centuries until an anchor turned up. The engine reproduces that epistemic situation: every culture gets its own phase sequence with its own labels, overlap is a fact about years, and years are hidden. Synchronising two cultures' sequences is publishable work because the world never states the alignment anywhere the player can read.</p>
+  <p>An artefact's true age is the gap between the world's present year and its production year, and that number is hidden too. Dating arrives on three rungs of increasing cost:</p>
+  <ul>
+    <li><strong>Relative dating</strong> comes free from stratigraphy: this layer sits below that one, so it's older, and finds in one layer are roughly contemporaneous.</li>
+    <li><strong>Approximate frameworks</strong> come from the corpus's received chronologies, presented as established fact, and possibly wrong: the original dating may have been flawed, or extrapolated past its evidence.</li>
+    <li><strong>Independent dating</strong> (radiocarbon, thermoluminescence) is career-gated, takes time, may consume part of the artefact and can overturn the received framework. "The accepted chronology for Site X is wrong" is a publishable, high-scrutiny claim.</li>
+  </ul>
+
+  <figure class="diag"><svg viewBox="0 0 720 150" role="img" aria-label="Two culture timelines with overlapping phases">
+    <text class="lab" x="8" y="34">Culture A</text>
+    <rect class="box" x="110" y="20" width="180" height="24" rx="5"/><text x="200" y="36" text-anchor="middle">Expansion</text>
+    <rect class="box" x="290" y="20" width="220" height="24" rx="5"/><text x="400" y="36" text-anchor="middle">Settlement</text>
+    <rect class="box" x="510" y="20" width="150" height="24" rx="5"/><text x="585" y="36" text-anchor="middle">Fragmentation</text>
+    <text class="lab" x="8" y="76">Culture B</text>
+    <rect class="gold" x="180" y="62" width="250" height="24" rx="5"/><text x="305" y="78" text-anchor="middle">Settlement</text>
+    <rect class="gold" x="430" y="62" width="230" height="24" rx="5"/><text x="545" y="78" text-anchor="middle">Consolidation</text>
+    <text class="lab" x="8" y="118">relationship</text>
+    <rect class="warn" x="240" y="104" width="200" height="24" rx="5"/><text x="340" y="120" text-anchor="middle">trade + raiding window</text>
+    <rect class="soft" x="440" y="104" width="160" height="24" rx="5"/><text x="520" y="120" text-anchor="middle">tributary window</text>
+    <text class="lab" x="8" y="146">the year axis exists in the data and is never shown to the player; overlap is theirs to establish</text>
+  </svg>
+  <figcaption class="diagcap">Same years, different periodisations. "A's Expansion overlaps B's Settlement" is a discovery, never a given.</figcaption></figure>
+
+  <h2>Relationships are dated windows</h2>
+  <p>Culture relationships are sequences of dated phases, and inside one window the four dynamics run simultaneously: the same pair of cultures can be trading bronze, raiding each other's borders, swapping motifs and sitting in a tributary arrangement in the same decade. Material flows ride on those windows, which is what stage 6's trade-only rescue and stage 7's borrowed motifs consume.</p>
+  <pre><code class="lang-ts">interface RelationshipDynamics {
+  trade:            { volume: number; materialFlow: MaterialFlow[]; /* … */ };
+  conflict:         { intensity: number; type: 'raiding' | 'territorial' | 'conquest' | 'none' };
+  culturalExchange: { intensity: number; domains: ('motifs'|'techniques'|'materials'|'forms')[] };
+  political:        { type: 'independent'|'tributary'|'alliance'|'vassal'|'colonial' };
+}</code></pre>
+  <p>Several of those mechanisms move the same evidence: a Culture B ingot in a Culture A hoard is consistent with commerce, tribute, plunder and gift, and the window data can support all four at once. The underdetermination is manufactured deliberately, window by window; a world where every foreign object had one explanation would make the player's judgement decorative.</p>
+
+  <h2>A profession that predates the player</h2>
+  <p>Before the player exists, the engine simulates decades of scholarship. NPC scholars are generated with specialisations, site preferences and career stages, each carrying an <code>InterpretiveModel</code>, the same agent-generic interface the player uses. They "excavate" sites biased by their interests, publish through the same document structures the player will use and aggregate into a professional corpus. The player meets that corpus as:</p>
+  <ul>
+    <li><strong>Reference works</strong> summarising what "everyone knows", presented as established fact.</li>
+    <li><strong>Active debates</strong> where NPCs disagree and the player can eventually weigh in.</li>
+    <li><strong>Bibliographies</strong> attached to claims, so how well-supported a claim is can be assessed.</li>
+    <li><strong>Conspicuous absences</strong> a careful player notices: nobody has published on Culture B's burials, or every paper on a region comes from one institution.</li>
+  </ul>
+  <p>The simulation exists because the game's subject is being wrong in company. A lone player against raw ground truth would have nothing to inherit, nothing to cite and nobody to argue with. The agent-generic principle carries the load: because NPC scholars run the same <code>InterpretiveModel</code> as the player, their errors are beliefs held for reasons, reachable by the same evidence the player uses, and overturning one is an argument with a position. Coverage is deliberately unequal in archaeologically authentic ways (monumental cultures over modest ones, burials before rubbish heaps), and the resulting corpus is confidently thorough in some places and silent in others without ever saying which is which.</p>
+  <div class="callout"><span class="tag">Calibrated wrongness</span>
+  The corpus targets roughly 70% broadly correct, 30% interestingly wrong: right about common materials and forms for well-studied cultures, wrong through biased site selection ("a warrior society", concluded from only digging fortifications), false absence claims, bad rarity assessments and missed contacts. NPC errors are real claims in real interpretive models diverging from occluded ground truth, never ad-hoc "wrong" flags. The player's own publications are later measured against this baseline, from safe confirmation up to maximum-scrutiny novelty; a player who parrots consensus publishes confirmations and plateaus, by mechanism.</div>
+
+  <h2>What stands in meanwhile</h2>
+  <p>Four authored Explorer culture presets (Thalassar is the one with a taste for gilding) and six named regional fixture worlds that model availability for all sixteen materials. A fixture is a small authored world, and every measurement run against it inherits its assumptions. The earlier mock world modelled only four materials; everything unmodelled passed an "unmodelled means obtainable" lenience at full weight, so the other twelve were free everywhere, and a 1200-artefact calibration sample duly ranked silver the world's second commonest material. Nothing in that sample was computed wrongly. The world it measured was wrong, and no assertion inside the run could have noticed. Fixtures are world design too.</p>
+  <p>The seams for the real stages are typed and waiting:</p>
+  <ul>
+    <li>The baseline sampler takes a structural parameter bag rather than a concrete <code>CulturePhase</code>, so real culture generation slots in without changing it.</li>
+    <li>The material module documents which of its answers are region-agnostic pending real geology, each with the task id that retires the shortcut.</li>
+    <li>MVP scale for the real thing: two cultures with 3–4 phases each, one relationship with two temporal windows, three to four NPC researchers, six to eight simulated campaigns, fifteen to twenty baseline publications.</li>
+  </ul>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: doc 05 §2–4 · Types (built): <code>src/lib/types/world.ts</code>, <code>corpus.ts</code>, <code>scholars.ts</code> · Stand-ins: <code>src/lib/data/explorer-cultures.ts</code>, <code>tests/fixtures/</code> · Builders land in Milestone 3 (roadmap 3WS.*)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="description.html"><span class="dir">Previous</span>Description generation</a>
+    <a href="../practice/method.html" class="next"><span class="dir">Next</span>Measurement culture</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="../assets/highlight.js"></script>
+</body>
+</html>

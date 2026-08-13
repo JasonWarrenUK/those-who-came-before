@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Description generation · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stage 9 · Description generation</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stage 9 · Description generation</div>
+  <h1>The Engine Never Says &ldquo;Dagger&rdquo;</h1>
+  <p class="lede">Stage 9 is the only stage the player ever reads, and it runs fresh on every inspection because the reader has changed since last time. Upstream stages build an honest object; this one presents it without handing over the answer key.</p>
+
+  <h2>Neutral by construction</h2>
+  <p>Every artefact carries a <code>physicalLabel</code> generated from observable properties alone: "short bronze elongated form with engraved disc-form attachment". The word "dagger" appears nowhere, because "dagger" is an interpretation and interpretive naming is the player's job. The occluded <code>groundTruthTags</code> exist solely so the engine can later judge claims against reality; no agent's interpretive model, player or NPC, ever reads them.</p>
+
+  <h2>Registers: same facts, different foregrounding</h2>
+  <p>Descriptions are filtered through registers, which shape framing without touching truth. The spec's worked example runs one wear pattern through all five:</p>
+  <ul>
+    <li><strong>Neutral:</strong> "marks are visible along the edge".</li>
+    <li><strong>Functional:</strong> "repeated use-wear consistent with cutting or scraping".</li>
+    <li><strong>Aesthetic:</strong> a patina of handling that complements the surface finish.</li>
+    <li><strong>Ritual:</strong> marks possibly indicating deliberate decommissioning of the blade.</li>
+    <li><strong>Technical:</strong> deformation from contact with material harder than the blade.</li>
+  </ul>
+  <p>They differ in the follow-up questions they invite. MVP ships three registers (observational, interpretive, technical); the five-register acquisition system with per-domain proficiency is designed and explicitly deferred.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 160" role="img" aria-label="One fact, three framings">
+    <rect class="soft" x="8" y="58" width="170" height="44" rx="6"/><text x="93" y="76" text-anchor="middle">raw data:</text><text x="93" y="90" text-anchor="middle">marks along the edge</text>
+    <rect class="box" x="260" y="14" width="452" height="30" rx="6"/><text x="272" y="33">neutral: "marks are visible along the edge"</text>
+    <rect class="box" x="260" y="64" width="452" height="30" rx="6"/><text x="272" y="83">functional: "use-wear consistent with cutting or scraping"</text>
+    <rect class="box" x="260" y="114" width="452" height="30" rx="6"/><text x="272" y="133">technical: "deformation from contact with harder material"</text>
+    <path class="arrow" d="M 178 70 L 250 30"/><path class="arrow" d="M 244 30 l 8 -1 l -4 7"/>
+    <path class="arrow" d="M 178 80 h 72"/><path class="arrow" d="M 244 77 l 6 3 l -6 3"/>
+    <path class="arrow" d="M 178 92 L 250 128"/><path class="arrow" d="M 243 126 l 8 2 l -5 6"/>
+    <text class="lab" x="8" y="130">rawData stays one</text>
+    <text class="lab" x="8" y="142">drill-down away</text>
+  </svg>
+  <figcaption class="diagcap">Registers select framing over one set of facts. Nothing is added, nothing hidden; the follow-up question changes.</figcaption></figure>
+
+  <p>The modelling claim behind registers: expertise changes what a description affords rather than what is there. The functional reading points at use, the technical reading at manufacture, the ritual reading at intention, and each one licenses a different next action, which is the currency the game actually trades in.</p>
+  <p>Registers also explain how the lens stays legal. The pipeline guarantees forbid touching facts, so the only lever a belief system can pull is which true framing arrives first; registers are that lever, typed.</p>
+  <h3>Registers run in both directions</h3>
+  <p>When the player publishes, they choose a register too, and the choice trades credibility against reach:</p>
+  <ul>
+    <li><strong>Academic:</strong> formal and evidenced; weight with peers, few readers.</li>
+    <li><strong>Curatorial:</strong> descriptive and contextualised; moderate on both counts.</li>
+    <li><strong>Popular:</strong> reaches everyone, and can spawn simplified versions of the claim that circulate on their own.</li>
+    <li><strong>Field-notes:</strong> raw and provisional; minimal credibility, but establishes priority.</li>
+  </ul>
+  <p>The same mechanism that frames what the player reads frames what the profession hears from them.</p>
+  <p>One authoring constraint: a relative tag must never be described as an intrinsic property. A template rendering <code>elite</code> as "an object of obvious wealth" misrepresents what the score measured, which was standing against the producing culture's own norms. The constraint is written into the template contract, so the prose layer can't quietly undo the relative-tag semantics the classification page set out.</p>
+
+  <h2>The lens sits on top</h2>
+  <p>The interpretive lens (the game's core mechanic, specced in its own document) selects which template variants surface and how observations are ordered: high-salience observations up front, the rest behind investigation, suggested tags nudged by the player's published claims. The presentation type keeps the honest raw data one drill-down away at all times, and the lens&#39;s hard limits repeat from the overview: reorder, reframe, de-emphasise, nothing else. A player who has published "Culture A was a warrior society" will find blades foregrounded and weaving tools easy to scroll past. The engine isn't lying to them; it's agreeing with them, which is worse.</p>
+
+  <h2>What exists today</h2>
+  <p>The observational register is real, in four pieces:</p>
+  <ul>
+    <li><strong>Authored templates per primitive</strong>, in <code>data/descriptions/observational/</code>, one file per geometric form.</li>
+    <li><strong>A slot expander</strong> for <code>#slot#</code> placeholders, with article handling (<code>#point.a#</code> renders "a sharp point" or "an oval cross-section" correctly).</li>
+    <li><strong>Drop-on-none semantics:</strong> a sentence referencing an absent or none-valued parameter is dropped whole rather than rendered with a hole; where "none" is itself observable, like a sealed vessel's opening, a dedicated slot-free variant handles it.</li>
+    <li><strong>One renderer on both surfaces:</strong> the CLI samplers and the Explorer's structure viewer share it, so the dev tooling's voice and the eventual description engine's observational voice cannot drift apart.</li>
+  </ul>
+  <p>Variant selection currently gates on parameter values only; register filtering, lens alignment and material-aware gating are the full description engine's job, a scheduled roadmap task that supersedes the minimal renderer.</p>
+  <pre><code class="lang-ts">// prose.ts: the slot convention the observational templates use
+export const SLOT_PATTERN = /#([a-zA-Z][\w-]*?)(\.a)?#/g;
+// "#taper# taper toward #point.a# point"
+//   → "gradual taper toward a sharp point"
+// any slot absent, or valued 'none' → the whole sentence is dropped,
+// never rendered with a hole; observable 'none' values get their own
+// slot-free variant instead</code></pre>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    <code>src/lib/engine/generation/prose.ts</code> (interim renderer) · templates: <code>src/lib/data/descriptions/observational/</code> · Spec: doc 05 §12–13, doc 04 (lens) · Full engine: roadmap 2GN.38–39
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="classification.html"><span class="dir">Previous</span>Features & classification</a>
+    <a href="world.html" class="next"><span class="dir">Next</span>World generation</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="../assets/highlight.js"></script>
+</body>
+</html>

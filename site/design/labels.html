@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labels That Emerge Instead of Being Assigned · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">08 · Labels That Emerge Instead of Being Assigned</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">08 · Documents and venues</div>
+  <h1>Nobody Chooses a Category</h1>
+  <p class="lede">The player never picks &ldquo;I'm writing a research note&rdquo; from a menu. They write, and the system reads the result back and decides what it is. Then a venue reads the same document and decides again, independently, and the two verdicts don't have to agree. The gap between them is the mechanic, not a bug in the classifier.</p>
+
+  <div class="callout"><span class="tag">Needs</span> <a href="publishing.html">Immutable Documents</a>, since this page is about one specific field on a <code>DocumentNode</code>.</div>
+
+  <h2>Doc 10 states the principle before the mechanism</h2>
+  <p>&ldquo;The player never selects a document form. They write. The system inspects the document's properties and derives a form label.&rdquo; That's doc 10 §4.1, and it names its own precedent directly: this mirrors artefact classification. The grammar produces a physical structure and the tag system reads features off it after the fact; documents work the same way. Nothing about a document's category is authored intent. It's a computed consequence of what the document actually contains.</p>
+
+  <h2>How the computation actually runs</h2>
+  <p>The classification inputs are a fixed bundle read off the document: its scope, evidence depth, how many commitments it advances and how strongly, how many other documents it references, its intended audience, its register, whether it's a working draft or communicative, how many artefacts and cultures it touches. A set of weighted rules scores against that bundle, each rule contributing toward one or more candidate labels rather than picking a single winner outright. A short, low-evidence working document scores toward <code>field-note</code> and <code>memo</code> simultaneously, at different weights; a broad, well-evidenced communicative piece touching several cultures scores toward <code>comparative-study</code> and <code>monograph-chapter</code>. The highest-scoring label wins.</p>
+  <p>The shipped type keeps the honesty of that process visible rather than collapsing it to a single confident answer. <code>DocumentNode.formConfidence</code> is <code>'clear' | 'borderline'</code>, and a near-tie between two candidate labels produces <code>borderline</code> rather than silently picking one. The rules are built to overlap on purpose: a document sitting right at the boundary between a research note and a short communication is a real, meaningful state, not a classifier failure to be hidden from the player.</p>
+
+  <h2>Then the venue disagrees, and that's the point</h2>
+  <p>A submitted document already carries the system's own <code>formLabel</code>. The venue it's submitted to runs its own judgement independently and can produce a different one entirely: <code>VenueClassification</code> holds both labels side by side, <code>submittedFormLabel</code> and <code>venueFormLabel</code>, plus a plain <code>reclassified: boolean</code> flag for whether they differ and a diegetic <code>reclassificationReason</code> when they do. &ldquo;The editors suggest it be published as a research note rather than a full article&rdquo; is the shape of thing that field holds, not an error message.</p>
+  <p>This is deliberately not treated as one of them being wrong. The system's label and the venue's label are two independent readings of the same content, produced by two different sets of standards, and disagreement between them is itself information: it tells the player something about how their work reads to a specific professional audience, distinct from how it reads in the abstract. A downward reclassification, full article to research note, is a real career signal, carrying its own reputational weight precisely because it wasn't scripted as a punishment; it's what happens when a rigorous outside judge applies a standard the player's own draft didn't anticipate.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 240" role="img" aria-label="One document scored by the system's rules, then independently rescored by a venue">
+    <rect class="soft" x="290" y="8" width="140" height="30" rx="6"/><text x="360" y="28" text-anchor="middle">one document, written</text>
+    <path class="arrow" d="M 360 40 L 360 66"/><path class="arrow" d="M 352 58 l 8 10 l 8 -10"/>
+    <rect class="box" x="60" y="68" width="600" height="56" rx="6"/><text x="360" y="88" text-anchor="middle">system's weighted rules score against the content</text>
+    <text class="lab" x="200" y="106" text-anchor="middle">research-note: 0.7</text>
+    <text class="lab" x="360" y="106" text-anchor="middle">short-communication: 0.4</text>
+    <text class="lab" x="520" y="106" text-anchor="middle">case-study: 0.3</text>
+    <path class="arrow" d="M 200 126 L 260 160"/><path class="arrow" d="M 248 152 l 14 6 l -20 8"/>
+    <rect class="gold" x="270" y="128" width="180" height="30" rx="6"/><text x="360" y="148" text-anchor="middle">formLabel: research-note</text>
+    <path class="arrow" d="M 360 160 L 360 184"/><path class="arrow" d="M 352 176 l 8 10 l 8 -10"/>
+    <rect class="warn" x="220" y="186" width="280" height="46" rx="6"/><text x="360" y="206" text-anchor="middle">venue applies its own standard</text>
+    <text class="lab" x="360" y="222" text-anchor="middle">venueFormLabel: short-communication, reclassified: true</text>
+  </svg>
+  <figcaption class="diagcap">The system's own scoring is honest about its near-ties; the venue's independent re-scoring can still land somewhere different, and that gap is recorded, not resolved.</figcaption></figure>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/10-document-tradition-system.md</code> §4 · Types: <code>src/lib/types/documents.ts</code> (<code>DocumentNode.formLabel</code>, <code>formConfidence</code>), <code>src/lib/types/venues.ts</code> (<code>VenueClassification</code>, <code>VenueDefinition</code>)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="ratchet.html"><span class="dir">Previous</span>The Commitment Ratchet</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/10-document-tradition-system.md</code>, <code>src/lib/types/documents.ts</code>, <code>src/lib/types/venues.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>

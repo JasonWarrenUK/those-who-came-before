@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decorative grammar · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand mechanism">Mechanism</span>
+    <span class="here">Stage 7 · Decorative grammar</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Stage 7 · Decorative grammar</div>
+  <h1>Every Layer Is an Act of Craft</h1>
+  <p class="lede">After structure and materials, a second grammar runs over the artefact, treating each component as a potential canvas. Decorative features feed the same unified classification as structural ones: an object can read as ritual because of its shape, because of its decoration or because of both.</p>
+
+  <h2>Sixteen techniques, three families</h2>
+  <p>The decorative BNF has three categories: surface treatments (polish, patina, roughening, scoring, engraving, relief, painting, glaze), applied elements (inlay, overlay, studs, wire-wrapping, gilding) and textile elements (wrapping, tassels, beading).</p>
+  <pre><code>&lt;decoration&gt;        ::= &lt;surface-treatment&gt;* &lt;applied-element&gt;* &lt;textile-element&gt;*
+
+&lt;surface-treatment&gt; ::= polish | patina | roughening | scoring
+                      | engraving(&lt;motif&gt;)            [requires: holds an incised line]
+                      | relief(&lt;motif&gt;)               [requires: formability ≥ 3]
+                      | painting(&lt;motif&gt;, &lt;pigment&gt;)  [requires: solid surface]
+                      | glaze(&lt;colour&gt;)               [requires: ceramic]
+
+&lt;applied-element&gt;   ::= inlay(&lt;material&gt;, &lt;motif&gt;)      [requires: engravable surface]
+                      | overlay(&lt;material&gt;, &lt;coverage&gt;) [requires: rigid surface]
+                      | studs(&lt;material&gt;, &lt;pattern&gt;)
+                      | wire-wrapping(&lt;material&gt;, &lt;pattern&gt;)
+                      | gilding(&lt;precious-metal&gt;)
+
+&lt;textile-element&gt;   ::= wrapping(&lt;material&gt;, &lt;pattern&gt;) | tassels | beading(&lt;material&gt;)</code></pre>
+  <p>The families are three different relationships between decoration and object:</p>
+  <ul>
+    <li><strong>Surface treatments</strong> rework material already present: engraving, scoring and polish remove or rearrange, and their evidence is toolmarks in the substrate itself.</li>
+    <li><strong>Applied elements</strong> bind a second material onto a surface, so each one is also a supply decision.</li>
+    <li><strong>Textile elements</strong> attach flexible material at anchor points, and they answer to a different technology axis (spinning and weaving) than the metalwork most applied elements lean on.</li>
+  </ul>
+  <p>The <code>&lt;material&gt;</code> arguments in the BNF are doing real work: seven of the sixteen techniques bring a material of their own, on top of whatever the component is made of.</p>
+  <ul>
+    <li>The introduced material is a genuine assignment: constrained by per-technique tag sets (wire-wrapping introduces metal; wrapping, fibre or leather) and weighted by the same affinity × technology × scarcity product stage 6 used, gated on the culture actually being able to obtain it.</li>
+    <li>An inlaid panel is two supply chains in one object, each able to carry its own trade story; the wire-wrapping defect below sits exactly on this seam.</li>
+    <li>The extra cost is why <code>appliedElementCount</code> is one of classification's discriminating signals: adding material is dearer than reworking what's there.</li>
+  </ul>
+  <p>Each technique also declares a substrate prerequisite, resolved against the material property axes from stage 6:</p>
+  <ul>
+    <li><strong>Engraving</strong> requires a material that can hold an incised line; soft precious metals qualify via chasing and repoussé despite not being structurally hard. The gate is workability.</li>
+    <li><strong>Relief</strong> requires <code>formability ≥ 3</code>: the material must take a raised form at all. The earlier rigidity proxy wrongly admitted obsidian and flint (worked only by conchoidal fracture) and wrongly excluded leather (tooled or wet-moulded into relief for millennia).</li>
+    <li><strong>Gilding</strong> gates on rigidity. The spec once said "you don't gild wood", and that sentence has been removed as factually wrong: gilded wood over gesso is the commonest gilding in the historical record. The doc keeps the correction inline, dated, with the reasoning.</li>
+  </ul>
+
+  <h2>Technique choice and imagery are independent signals</h2>
+  <p>A culture's preference for techniques (<code>techniqueAffinities</code>) is deliberately separate from its motif vocabulary and from its material affinities. A culture can engrave beasts, engrave without beasts, depict beasts without engraving or do neither; those four combinations only exist if the two signals vary independently, so the type system keeps them apart. On top of affinity sits a one-directional material-access gate: a culture with no suitable material in plentiful, favoured supply has the technique suppressed however much it "likes" it, but favouring a suitable material never forces the technique.</p>
+  <div class="callout warn"><span class="tag">The wire-wrapping defect</span>
+  The gate originally checked only a technique's substrate. Wire-wrapping's substrate is the grippable form it wraps, which is fine; the metal wire is a material the technique <em>introduces</em>, and that side went unchecked. A sampling pass found the result: metal-free cultures produced more metal wirework than anywhere else in the world. The gate now checks both what a technique sits on and what it brings with it. Semantic bugs like this pass every type check and every unit test written from the same mental model; the Explorer page covers the harness that caught it.</div>
+
+  <h2>How much, versus how well</h2>
+  <p>The spec described a 2×2 of craft skill against decorative emphasis, controlling recursion depth. Measured against the real pipeline, its two middle corners ("technically refined but sparse", "abundant but simple") proved unsatisfiable by any single volume scalar, because they differ in kind rather than magnitude. The shipped design splits the axes into two mechanisms:</p>
+  <ul>
+    <li><strong>Volume</strong> (layers per component) reads the culture's decorative emphasis alone: how much decoration a culture puts on things.</li>
+    <li><strong>Grade</strong> (a 0–1 execution quality per layer) reads craft specialisation scaled by the technique's own difficulty: polish and scoring sit at the easy end, inlay and gilding at the hard end.</li>
+  </ul>
+  <p>Craft keeps one legitimate indirect effect on volume: high-craft cultures build more complex objects, and more parts means more canvases.</p>
+  <p>Grades get a second pass once materials are known, because execution difficulty is material-sensitive: engraving iron and engraving gold no longer score identically. Classification later reads mean decorative grade as a quality signal independent of quantity, so a sparse, superb object can outrank a busy, clumsy one.</p>
+
+  <figure class="diag"><svg viewBox="0 0 786 150" role="img" aria-label="Layers on one component">
+    <rect class="soft" x="8" y="106" width="520" height="30" rx="6"/><text x="268" y="125" text-anchor="middle">component: bronze flat-broad panel (the canvas)</text>
+    <rect class="box" x="52" y="66" width="432" height="28" rx="6"/><text x="268" y="84" text-anchor="middle">layer: engraving · motif: coiled-beast · grade 0.78</text>
+    <rect class="gold" x="96" y="26" width="344" height="28" rx="6"/><text x="268" y="44" text-anchor="middle">layer: inlay · material: silver · grade 0.61</text>
+    <text class="lab" x="556" y="122">substrate check: bronze holds</text>
+    <text class="lab" x="556" y="134">an incised line ✓</text>
+    <text class="lab" x="556" y="78">grade = craft × technique</text>
+    <text class="lab" x="556" y="90">difficulty × material fit</text>
+    <text class="lab" x="556" y="38">introduced material: gated on</text>
+    <text class="lab" x="556" y="50">availability, weighted like stage 6</text>
+  </svg>
+  <figcaption class="diagcap">Two flat layers on one canvas. Nesting (<code>sublayers</code>) is scheduled work; the temporal story is already legible from the motif vocabularies.</figcaption></figure>
+
+  <h2>Motifs, borrowed and otherwise</h2>
+  <p>Motif-carrying layers draw from the producing culture's motif vocabulary, weighted 1, plus motifs borrowed through any cultural-exchange relationship active in the production year, weighted by that window's exchange intensity. Introduced materials for techniques like inlay are constrained to per-technique tag sets and weighted by the same affinity × technology × scarcity product as structural assignment. An artefact bearing Culture B's motifs might be B's work, or A's work under heavy exchange, and the sequence of layers (base engraving in one vocabulary, later inlay in another) hints at reworking without any flag saying so.</p>
+
+  <h2>Deliberate gaps</h2>
+  <p>Layers currently ship flat: <code>sublayers</code> is always empty, and decoration-on-decoration is a scheduled task rather than an accident. Substrate enforcement strips candidate layers whose component's actual material fails the prerequisite, except for the three form-substrate techniques (wire-wrapping, wrapping, beading), which pass through unstripped because nothing in the pipeline can yet answer a geometry question about a component; stripping on a check that cannot run would delete three techniques from every artefact on no evidence. The module JSDoc lists each gap, its owner and its reasoning.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    <code>src/lib/engine/generation/decoration.ts</code> (expandDecoration, assignDecorativeDetails, enforceSubstrates, gradeDecorativeLayers) · catalogue and difficulty tables: <code>src/lib/data/decorations.ts</code> · Spec: doc 05 §8
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="materials.html"><span class="dir">Previous</span>Material assignment</a>
+    <a href="classification.html" class="next"><span class="dir">Next</span>Features & classification</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+<script src="../assets/highlight.js"></script>
+</body>
+</html>

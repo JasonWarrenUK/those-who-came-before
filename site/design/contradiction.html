@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contradictions Are Revealed by Consequences · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">05 · Contradictions Are Revealed by Consequences</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">05 · Contradiction</div>
+  <h1>Not by Checking Answers</h1>
+  <p class="lede">The engine holds complete ground truth for every artefact and culture in the world. It could diff a player's beliefs against that truth on every turn and flag every mistake instantly. It deliberately doesn't. A contradiction only exists once a wrong belief produces a consequence something else in the world can visibly catch it on.</p>
+
+  <div class="callout"><span class="tag">Needs</span> <a href="classification.html">Relative vs Absolute Classification</a>, since a contradiction is what fires when a claim conflicts with a property the classifier or the world state actually holds.</div>
+
+  <h2>The rule the type comment states directly</h2>
+  <p><code>contradiction.ts</code>'s own header names the principle in one line: <em>not all errors are contradictions, only those that produce observable consequences</em>. A player who quietly misattributes one artefact to the wrong culture, and never publishes anything downstream of that mistake, has made an error the system never surfaces. The same misattribution becomes a contradiction the moment it generates a prediction that a later artefact visibly falsifies: a claim that this culture never worked iron, followed by a dig that turns up an iron rivet from that same culture. The engine compares claims against occluded properties, but only reaches for the comparison when a claim has actually staked something falsifiable.</p>
+  <p>This is the same discipline the visibility model enforces from the other direction: observable and inferable properties can't generate a contradiction on their own, because the player was always free to notice them; only occluded properties, compared against what a claim actually asserted, can.</p>
+
+  <h2>Eight ways to be caught, not one</h2>
+  <p><code>Contradiction</code> is a discriminated union of eight members, and the cuts between them are finer than a first pass would guess. <code>MaterialContradiction</code> and <code>MaterialProvenanceContradiction</code> look like the same thing until you notice what each actually targets: the first is about whether a material is present or absent at all (a culture claimed never to use iron, and an iron object turns up), the second is about whether the agent's <em>explanation</em> for a correctly-identified material is right (obsidian correctly spotted, but claimed as a trade import when the world state says there's a local deposit). <code>ProvenanceContradiction</code> is a third, separate cut again: artefact-level context rather than material-level origin.</p>
+  <table>
+    <tr><th>Member</th><th>What diverges</th></tr>
+    <tr><td><code>material</code></td><td>A material's presence or absence versus what the agent claimed the culture used</td></tr>
+    <tr><td><code>temporal</code></td><td>An artefact's provenance versus the agent's asserted chronological ordering</td></tr>
+    <tr><td><code>cultural</code></td><td>An artefact's properties versus what the agent's cultural profile predicts</td></tr>
+    <tr><td><code>structural</code></td><td>A logical break inside the agent's own inference chain; no new artefact required</td></tr>
+    <tr><td><code>provenance</code></td><td>An artefact's actual origin versus the context the agent attributed it to</td></tr>
+    <tr><td><code>corpus</code></td><td>The agent's claim versus published professional consensus, which may itself be wrong</td></tr>
+    <tr><td><code>rarity</code></td><td>The agent's sense of how common something is versus the occluded true distribution</td></tr>
+    <tr><td><code>material-provenance</code></td><td>A correctly-identified material's claimed origin versus its actual geological source</td></tr>
+  </table>
+  <p><code>structural</code> stands apart from the other seven: it needs no new evidence at all, because it's a break inside the agent's own reasoning rather than a mismatch against the world. <code>corpus</code> is the other unusual one: the type comment is explicit that the professional consensus being contradicted may itself be wrong, so resolving a corpus contradiction can legitimately mean challenging the consensus rather than deferring to it.</p>
+
+  <h2>Queued, not forced</h2>
+  <p>A detected contradiction doesn't interrupt play. It lands in a <code>ContradictionQueue</code> as a <code>QueuedContradiction</code>, carrying a <code>termsUnresolved</code> counter that drives escalating pressure the longer it sits unaddressed, and a <code>surfacedVia</code> field that's absent until the system picks an in-fiction channel to deliver it through: an impossible find, a field report, eventually a pointed letter from a peer or an awkward question from a student. Detection and surfacing are deliberately decoupled, so a contradiction can be sitting there, detected, before the player ever learns about it.</p>
+
+  <h2>Denial is a supported path, not a failure to resolve</h2>
+  <p>When the player does engage, <code>Resolution.type</code> offers three options, and only one of them is capitulation. <code>revise</code> changes the hypothesis and recalibrates the lens: the honest path. <code>reinterpret</code> keeps the hypothesis intact and explains the evidence away instead, which is legitimate but accumulates <code>HypothesisStrain</code>, a slow-burn pressure that grows more visible the more often it's reached for. <code>reject</code> goes further still and disputes the evidence itself, costing credibility and raising the reputational weight of whatever contradiction surfaces next.</p>
+  <p>None of the three is coded as the wrong answer. A scholar who reinterprets once is behaving normally; a scholar whose every hypothesis survives by reinterpretation is accumulating strain that eventually becomes its own kind of evidence.</p>
+
+  <figure class="diag"><svg viewBox="0 0 720 260" role="img" aria-label="A belief becomes a contradiction only once it stakes a falsifiable claim, then forks three ways on resolution">
+    <rect class="soft" x="20" y="16" width="180" height="40" rx="6"/><text x="110" y="34" text-anchor="middle">wrong belief, unpublished,</text>
+    <text class="lab" x="110" y="48" text-anchor="middle">no prediction staked</text>
+    <text class="lab" x="110" y="66" text-anchor="middle">never becomes a contradiction</text>
+    <rect class="box" x="260" y="16" width="200" height="40" rx="6"/><text x="360" y="34" text-anchor="middle">wrong belief stakes a</text>
+    <text x="360" y="48" text-anchor="middle">falsifiable prediction</text>
+    <path class="arrow" d="M 360 58 L 360 92"/><path class="arrow" d="M 352 84 l 8 12 l 8 -12"/>
+    <rect class="warn" x="270" y="94" width="180" height="36" rx="6"/><text x="360" y="116" text-anchor="middle">new evidence falsifies it</text>
+    <path class="arrow" d="M 360 132 L 360 156"/><path class="arrow" d="M 352 148 l 8 12 l 8 -12"/>
+    <rect class="gold" x="270" y="158" width="180" height="34" rx="6"/><text x="360" y="180" text-anchor="middle">queued, surfaced diegetically</text>
+    <path class="arrow" d="M 300 194 L 150 226"/><path class="arrow" d="M 165 220 l -18 8 l 3 -20"/>
+    <path class="arrow" d="M 360 194 L 360 226"/><path class="arrow" d="M 352 218 l 8 10 l 8 -10"/>
+    <path class="arrow" d="M 420 194 L 570 226"/><path class="arrow" d="M 555 220 l 18 8 l -3 -20"/>
+    <rect class="box" x="60" y="228" width="180" height="26" rx="6"/><text x="150" y="246" text-anchor="middle">revise</text>
+    <rect class="soft" x="270" y="228" width="180" height="26" rx="6"/><text x="360" y="246" text-anchor="middle">reinterpret &rarr; strain</text>
+    <rect class="soft" x="480" y="228" width="180" height="26" rx="6"/><text x="570" y="246" text-anchor="middle">reject &rarr; reputational cost</text>
+  </svg>
+  <figcaption class="diagcap">Only a staked, falsified prediction becomes a queued contradiction. From there, all three resolutions are legitimate; two of them cost something measurable instead of being coded wrong.</figcaption></figure>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spec: <code>docs/06-knowledge-contradiction-model.md</code> §4&ndash;5 · Types: <code>src/lib/types/contradiction.ts</code> (<code>Contradiction</code>, <code>Resolution</code>, <code>ContradictionQueue</code>, <code>HypothesisStrain</code>)
+  </div>
+</article>
+</main>
+
+<div class="pagenav">
+    <a href="agent-generic.html"><span class="dir">Previous</span>The Engine Doesn&rsquo;t Know Whose Beliefs These Are</a>
+    <a href="publishing.html" class="next"><span class="dir">Next</span>Immutable Documents</a>
+</div>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/06-knowledge-contradiction-model.md</code>, <code>src/lib/types/contradiction.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>
