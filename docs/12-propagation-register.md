@@ -2958,7 +2958,7 @@ from**. Filed 2GN.119, scoped to all 43.
 | —  | `docs/spikes/2GN.97-categorical-relative-award-rules.md`: new spike write-up                               | 2026-08-13 |
 | —  | Doc 11 §2.12: locked decision (baselines are not the answer; five groups)                                  | 2026-08-13 |
 | —  | Roadmap: 2GN.97 closed, unblocking 2GN.72 (per-component feature provenance)                               | 2026-08-13 |
-| —  | Roadmap: 2GN.119 (relational conditioning, all 44 rules) and 2GN.120 (derived wall thickness) filed        | 2026-08-13 |
+| —  | Roadmap: 2GN.119 (relational conditioning, all 43 rules) and 2GN.120 (derived wall thickness) filed        | 2026-08-13 |
 | —  | Roadmap: 2GN.118 (primitive value-set audit) filed, blocking 2GN.10, 2GN.21, 2GN.109, 2GN.117              | 2026-08-13 |
 | ⏳ | `data/classification.ts`: the two wall rules annotated absolute-with-reason — with 2GN.120                 | 2026-08-13 |
 | ⏳ | `precious-materials-in-decoration` recorded dormant, not unmigrated — feature stubbed `false` since 2GN.78 | 2026-08-13 |

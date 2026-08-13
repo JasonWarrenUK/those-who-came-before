@@ -1153,7 +1153,7 @@ until 3WS.15 wires real `WorldState`)
       hat-stand read oppositely from an identical `baseType`; (C) mass/size take
       the cheap route; (D) `precious-materials-in-decoration` is **dormant, not
       unmigrated** — hardcoded `false` since 2GN.78, so it cannot fire. **The
-      finding that outgrew the brief**: across all 44 rules, 10 of the 24
+      finding that outgrew the brief**: across all 43 rules, 10 of the 24
       condition on exactly one property, 7 more on two properties of the same
       component, and exactly one is genuinely relational; `attachments` and
       `position` are read by no rule at all. ⚠️ orthogonal to doc 11 §2.9's cut

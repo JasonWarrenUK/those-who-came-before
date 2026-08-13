@@ -758,7 +758,7 @@ culture-relative against regional scarcity per §2.9's material half (2GN.77),
 reading the keyspace 2GN.110 rules.
 
 **Affects:** doc 12 (§2.44 records the measurements). Roadmap: 2GN.97 ruled,
-unblocking 2GN.72; 2GN.119 (relational conditioning, all 44 rules), 2GN.120
+unblocking 2GN.72; 2GN.119 (relational conditioning, all 43 rules), 2GN.120
 (derived wall thickness) and 2GN.118 (primitive value-set audit) filed. Full
 detail: `docs/spikes/2GN.97-categorical-relative-award-rules.md`.
 
