@@ -1,23 +1,23 @@
 # 2GN.97 — The Categorical Relative-Award Rules
 
-| Prop      | Value                                                                     |
-| --------- | ------------------------------------------------------------------------- |
-| Status    | Ruled                                                                     |
-| Ruled     | 2026-08-13                                                                |
-| Ruling in | This document; propagated to doc 11 §2.12 and doc 12 §2.44                 |
-| Outcome   | Brief's framing rejected; five groups, three follow-ups filed              |
+| Prop      | Value                                                         |
+| --------- | ------------------------------------------------------------- |
+| Status    | Ruled                                                         |
+| Ruled     | 2026-08-13                                                    |
+| Ruling in | This document; propagated to doc 11 §2.12 and doc 12 §2.44    |
+| Outcome   | Brief's framing rejected; five groups, three follow-ups filed |
 
 ## The question
 
 2GN.80 ruled status tags culture-relative. 2GN.82 migrated nine measured thresholds to
-`ClassificationContext.exceeds`. The remainder could not migrate: `BaselineFeature` is a deliberately
-closed union of nine numeric features, so a rule reading `wallThickness`, `baseType`, `perforation`,
-`ringGap`, `sheetFlexibility`, `openingType`, `massBand`, `sizeBand`, `isWearable` or
+`ClassificationContext.exceeds`. The remainder could not migrate: `BaselineFeature` is a
+deliberately closed union of nine numeric features, so a rule reading `wallThickness`, `baseType`,
+`perforation`, `ringGap`, `sheetFlexibility`, `openingType`, `massBand`, `sizeBand`, `isWearable` or
 `hasFasteningMechanism` has nothing to call `exceeds` against. The type rules it out by design: a
 percentile over `openingType` is meaningless.
 
-The brief asked what "relative" means for a categorical band, offering three candidates: a prevalence
-baseline, a `stratification` gate, or weight-scaling an unchanged absolute condition.
+The brief asked what "relative" means for a categorical band, offering three candidates: a
+prevalence baseline, a `stratification` gate, or weight-scaling an unchanged absolute condition.
 
 **The ruling rejects the question.** These rules are not one problem, and most of them need no
 baseline at all.
@@ -25,29 +25,29 @@ baseline at all.
 ## Finding 0: the count is 24, not 25
 
 The roadmap figure predates 2GN.87's deletion of R4. Measured against the current
-`CLASSIFICATION_RULES`: 34 rules award at least one `RelativeTag`, 10 carry a migrated
-`exceeds` call, leaving **24** unmigrated.
+`CLASSIFICATION_RULES`: 34 rules award at least one `RelativeTag`, 10 carry a migrated `exceeds`
+call, leaving **24** unmigrated.
 
 ## Finding 1: five groups, not one
 
 Classified by what the condition actually reads and whether the award follows from it.
 
-| Group | Rules | Character |
-| ----- | ----- | --------- |
-| **A1** morphology determines the tag | ~10 | fine unchanged |
-| **A2** morphology is ambiguous | 3 | not a baseline problem |
-| **B-walls** standing claim off a crushed quantity | 2 | unrelativisable |
-| **B-bases** standing claim off a genuine categorical | 2 | under-conditioned |
-| **C** mass/size | 2 | cheap route available |
-| **D** `preciousMaterialsInDecoration` | 1 | stubbed, cannot fire |
+| Group                                                | Rules | Character              |
+| ---------------------------------------------------- | ----- | ---------------------- |
+| **A1** morphology determines the tag                 | ~10   | fine unchanged         |
+| **A2** morphology is ambiguous                       | 3     | not a baseline problem |
+| **B-walls** standing claim off a crushed quantity    | 2     | unrelativisable        |
+| **B-bases** standing claim off a genuine categorical | 2     | under-conditioned      |
+| **C** mass/size                                      | 2     | cheap route available  |
+| **D** `preciousMaterialsInDecoration`                | 1     | stubbed, cannot fire   |
 
 Only group B was ever the question the brief described, and both halves of it turned out to be
 blocked on something other than a baseline.
 
 ## Finding 2: A2 is not fixable by weighting, because accumulation is additive
 
-`perforation-central-rotation` awards `tool, artisanal` on `perforation === 'central'`. A central hole
-means the object span — or it means the object hung. The morphology genuinely supports both.
+`perforation-central-rotation` awards `tool, artisanal` on `perforation === 'central'`. A central
+hole means the object span — or it means the object hung. The morphology genuinely supports both.
 
 Three options were considered:
 
@@ -58,13 +58,14 @@ Three options were considered:
    weakly-everything rather than strongly-uncertain.
 2. **Keep picking one.** Current behaviour, and the same defect class as R4 (2GN.87): the rule
    asserts a determination the data did not make. Strains doc 02 Simulation Honesty.
-3. **Treat the ambiguity as content.** The player is an unreliable narrator (doc 02 pillar 5) and the
-   lens decides which reading surfaces, so a genuinely two-reading artefact is raw material the core
-   mechanic wants. Options 1 and 2 both resolve the ambiguity in generation, before the lens sees it.
+3. **Treat the ambiguity as content.** The player is an unreliable narrator (doc 02 pillar 5) and
+   the lens decides which reading surfaces, so a genuinely two-reading artefact is raw material the
+   core mechanic wants. Options 1 and 2 both resolve the ambiguity in generation, before the lens
+   sees it.
 
-Option 3 needs a shape the tag Map cannot express — competing alternatives rather than co-occurrences
-— so it was scoped out of this spike. Finding 5 then absorbed it: the ambiguity is not a missing
-confidence channel, it is a **missing relational term**.
+Option 3 needs a shape the tag Map cannot express — competing alternatives rather than
+co-occurrences — so it was scoped out of this spike. Finding 5 then absorbed it: the ambiguity is
+not a missing confidence channel, it is a **missing relational term**.
 
 ## Finding 3: the wall rules are unrelativisable, and prevalence is why
 
@@ -102,13 +103,23 @@ So the mechanism the walls could not use is available here. It is still the wron
 **A base is a relation between the base and what it supports.** A pedestal under a statue and a
 pedestal under a hat-stand carry opposite readings from an identical `baseType`, and no amount of
 culture-relativity separates them, because the difference is not cultural. `base-pedestal-display`
-reads exactly one feature and awards `ceremonial, elite` from it. The rule discards the term carrying
-the meaning.
+reads exactly one feature and awards `ceremonial, elite` from it. The rule discards the term
+carrying the meaning.
 
 ⚠️ A vocabulary gap was noticed in the same pass and filed separately as **2GN.118**: `cylindrical`
 rolls `base: ['flat','rounded','pointed']` while `hollow-enclosed` rolls
-`['flat','rounded','pedestal']`, so a pedestalled bowl and a pointed cylinder are both unreachable by
-primitive type rather than by design. `opening` and `perforation` have the same shape of split.
+`['flat','rounded','pedestal']`, so a pedestalled bowl and a pointed cylinder are both unreachable
+by primitive type rather than by design. `opening` and `perforation` have the same shape of split.
+
+> **Ruled 2026-08-13 by 2GN.118.** `base` unions to all four values on both primitives. Two
+> corrections to the paragraph above. First, it understates the `base` defect: because
+> `dominantContainer` always prefers `hollow-enclosed` over `cylindrical`, `base-pointed-amphora`
+> could fire only on cylinder-dominant artefacts (sockets, ferrules) — never on anything
+> amphora-shaped, which is its entire stated subject. Second, the closing sentence is wrong on the
+> substance. `opening` and `perforation` are **not** the same shape of split: each is two axes
+> crushed into one field (presence × size; count × position), which no union fixes. Both are
+> deferred whole to **2GN.122**, along with multiplicity and whether one aperture model subsumes
+> them.
 
 ## Finding 5: the finding that outgrew the brief
 
@@ -123,13 +134,13 @@ Measured across all 43 shipped rules:
 - **Exactly one rule is genuinely relational**: `motif-multiple-origins`, comparing cultural origins
   across the artefact's decoration.
 
-`NormalisedArtefact.attachments` and `NormalisedComponent.position` are populated and read by no rule
-at all — the same unused-graph finding as 2GN.108, reached from the classification side.
+`NormalisedArtefact.attachments` and `NormalisedComponent.position` are populated and read by no
+rule at all — the same unused-graph finding as 2GN.108, reached from the classification side.
 
 ⚠️ **The defect is orthogonal to doc 11 §2.9's absolute/relative cut.**
-`perforation-central-rotation` awards `tool`, an `AbsoluteTag`, and is under-conditioned identically.
-So this is a property of how conditions are written, not of which vocabulary they award from — which
-is why the follow-up is scoped to **all 43 rules** rather than these 24.
+`perforation-central-rotation` awards `tool`, an `AbsoluteTag`, and is under-conditioned
+identically. So this is a property of how conditions are written, not of which vocabulary they award
+from — which is why the follow-up is scoped to **all 43 rules** rather than these 24.
 
 ## Ruling
 
@@ -178,13 +189,13 @@ absolute/relative boundary.
 ## Wider lesson
 
 2GN.82 handed this spike a framing — "these rules could not migrate, find them a baseline" — and the
-framing was inherited without being tested. Four of the five groups turned out not to want a baseline
-at all, and the largest finding was invisible from inside the question as posed.
+framing was inherited without being tested. Four of the five groups turned out not to want a
+baseline at all, and the largest finding was invisible from inside the question as posed.
 
 **A task's brief encodes the understanding available when it was filed.** 2GN.87 recorded the
 converse for rules (a condition can outlive the intent that authored it); this records it for tasks.
 Where a brief names a solution shape, the first measurement should test whether that shape fits, not
 how to build it.
 
-Related: doc 12 §2.31 (the split that created this task), §2.39 (R4's inherited intent), §2.43
-(the unused attachment graph).
+Related: doc 12 §2.31 (the split that created this task), §2.39 (R4's inherited intent), §2.43 (the
+unused attachment graph).
