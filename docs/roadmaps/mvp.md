@@ -2035,6 +2035,23 @@ integration with real culture data
       tells. Moved from M2 to M3 2026-08-05: its dependencies are all M3 tasks, and M3's own entry
       point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work
       without a cycle
+- [ ] **2GN.121** — `engine/generation/grammar.ts` + `data/grammars/primitives.ts` — weight the
+      `base` parameter roll per culture rather than rolling uniformly over a shared vocabulary
+      _(blocked — depends on 2GN.118, 3WS.4, 3WS.9)_ — 2GN.118 ruled (2026-08-13) that `cylindrical`
+      and `hollow-enclosed` both roll the full `['flat','rounded','pointed','pedestal']` union, with
+      the extractor's primitive-type branch in `classification.ts` kept as a marked seam rather than
+      collapsed, precisely so per-primitive divergence can return as **weights** once something
+      rules what drives them. The uniform roll is the placeholder: a pedestalled cylinder is now
+      reachable but exactly as likely as a flat one, in every culture, which is the same
+      absolute-table defect as 2GN.86/87/108/120 in a different guise. `aesthetics.formConservatism`
+      (`types/world.ts`) is already specified as narrowing grammar branch variance and is unread by
+      `expandGrammar` today; `society.stratification` is the plausible driver for pedestal
+      frequency, a display foot being a stratification signal. Rule the input set and the weighting
+      shape, then thread it through `expandGrammar`'s determinism-critical draw sequence. ⚠️ moves
+      `base-pedestal-display` and `base-pointed-amphora` fire rates, so `EXPECTED_FIRE_RATES` needs
+      re-recording with the drift annotated. Placed in M3 on the 2GN.96 precedent — a generation
+      task parked with the world-state data it reads; depends on 3WS.9 rather than 3WS.4 alone so
+      the weighting waits for the full `createWorld` orchestrator
 
 ---
 
