@@ -317,13 +317,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       (delivered as part of 2GN.8 rather than separately — see that entry; folding was safe since
       2GN.9 depended only on 2GN.8 and had no other dependents)
 - [ ] **2GN.10** — `engine/generation/grammar.ts` — `allowedMaterialTags` derivation per component
-      from primitive type + properties compatibility _(blocked — depends on 2GN.118; 2GN.8 done —
+      from primitive type + properties compatibility _(depends on 2GN.8, 2GN.118)_ —
       `NormalisedComponent.allowedMaterialTags` currently stubbed `[]` by 2GN.8, awaiting this
-      task's compatibility table)_ — 2GN.118 edge added 2026-08-13: the compatibility table keys off
-      primitive parameter values that audit may change — ⚠️ forward hazard (dependency review
-      2026-07-30): when this lands, 2GN.23's empty-`allowedMaterialTags` "no constraint" fallback
-      stops firing, so material distributions shift — re-measure `materials.test.ts`'s distribution
-      tests and the Explorer material-viewer presets (2GN.60) against the newly-constrained output
+      task's compatibility table. 2GN.118 edge added 2026-08-13: the compatibility table keys off
+      primitive parameter values that audit may change; 2GN.118 ruled 2026-08-13, unioning `base`
+      and unifying `diameter`, so the table is now authored against a settled vocabulary — ⚠️
+      forward hazard (dependency review 2026-07-30): when this lands, 2GN.23's
+      empty-`allowedMaterialTags` "no constraint" fallback stops firing, so material distributions
+      shift — re-measure `materials.test.ts`'s distribution tests and the Explorer material-viewer
+      presets (2GN.60) against the newly-constrained output
 - [x] **2GN.11** — `src/lib/data/plausibility.ts` — plausibility rule definitions: requires,
       excludes, ordering, material-physics, ergonomic predicates (authored `PlausibilityRule` as a
       new discriminated union in `types/plausibility.ts`, interfaces-first per the
@@ -473,9 +475,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       real-rules integration test scoring doc 05 §9.2's engraved long blade positive on
       weapon/ritual/ceremonial/elite in canonical order _(depended on 2GN.17, 2GN.19 — both done)_
 - [ ] **2GN.21** — `engine/generation/classification.ts` — `physicalLabel` generation from
-      observable properties (neutral, not interpretive) _(blocked — depends on 2GN.118; 2GN.20
-      done)_ — 2GN.118 edge added 2026-08-13: labels are generated directly from the primitive
-      parameter values that audit may change
+      observable properties (neutral, not interpretive) _(depends on 2GN.20, 2GN.118)_ — 2GN.118
+      edge added 2026-08-13: labels are generated directly from the primitive parameter values that
+      audit may change; 2GN.118 ruled the same day, so the vocabulary those labels read is settled
 - [x] **2GN.22** — `src/lib/data/materials.ts` — material definitions: id, label, tags, physical
       properties, decorability (geological scarcity and cultural affinity modifiers deliberately
       kept in `world.ts`'s
@@ -1214,14 +1216,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2GN.67/2GN.69/2GN.109/2GN.117, sequence once
 - [ ] **2GN.109** — `src/lib/data/classification.ts` — replacement edge-family rule for the
       short-bodied non-blade edge, framed morphologically rather than as a truth-table cell
-      _(blocked — depends on 2GN.118; 2GN.108 ruled 2026-08-13, form ruled IN so this rule is live)_
-      — 2GN.118 edge added the same day: the replacement rule is framed morphologically, so it is
-      authored against the values that audit may change. The deleted R4 failed because its condition
-      described a combination of feature _bands_ rather than a shape, so whatever signal this rule
-      reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the
-      form out of MVP scope** — file the closure rather than authoring a rule for a form the game
-      does not produce. ⚠️ adding it shifts `CLASSIFICATION_RULES` indices again, so the
-      pinned-index blocks in `classification.test.ts`,
+      _(depends on 2GN.108, 2GN.118)_ — 2GN.108 ruled 2026-08-13, form ruled IN so this rule is
+      live; 2GN.118 edge added the same day: the replacement rule is framed morphologically, so it
+      is authored against the values that audit may change, and 2GN.118 ruled those the same day.
+      The deleted R4 failed because its condition described a combination of feature _bands_ rather
+      than a shape, so whatever signal this rule reads must be one the generator can actually vary
+      independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather
+      than authoring a rule for a form the game does not produce. ⚠️ adding it shifts
+      `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`,
       `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts`
       and the Explorer panel's label lookups all need updating together
 - [x] **2GN.91** — `src/lib/types/description.ts` — add `condition?: VariantCondition` to
@@ -1436,7 +1438,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       rejecting it spends re-expansion budget enforcing probabilistically what construction can
       guarantee. ⚠️ blocks implementation rather than 2GN.108's ruling: reversal cannot be
       implemented for edged forms and retrofitted to a different general convention without
-      repeating the sweep
+      repeating the sweep. ⚠️ **constraint added 2026-08-13 by 2GN.118 (Finding 6):** `bar-form`'s
+      `taper: ['none','single-end','both-ends']` encodes _which end_, and `single-end` is not
+      reversal-invariant — reverse the component and it still reads "one end" while which end has
+      silently changed, with no data recording which it was. `none` and `both-ends` are symmetric
+      and survive reversal untouched; `single-end` is the sole asymmetric value in the parameter. No
+      production code reads it today (`hasImpactSurfaceIn` tests `bar-form`'s taper only for
+      `'none'`; `bladeProfile` reads `elongated`'s symmetric taper instead), so nothing breaks now —
+      but this spike must either make `single-end` a claim about the oriented axis or accept that
+      reversal silently corrupts it
 - [ ] **2GN.116** — design spike — should component roles (grip-system, head-system and whatever
       else the vocabulary needs) become first-class grammar output? _(unblocked)_ — filed 2026-08-13
       from the 2GN.108 spike session. All three rules in `data/plausibility.ts` are explicitly
@@ -1469,11 +1479,11 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       rates set-wide — the 2GN.79 calibration guard will flag every moved rule and
       `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated. Downstream of 2GN.108
       alongside 2GN.67, 2GN.69 and 2GN.109, so sequence the sweep once
-- [ ] **2GN.118** — design spike — are the primitive grammar's categorical parameter value-sets
-      rational and justified? _(unblocked)_ — filed 2026-08-13 from the 2GN.97 spike session, which
-      reached it by stress-testing whether `baseType` is a genuine categorical (it is: unlike
-      `wallThickness`, no continuous quantity is crushed beneath it). The audit question is one
-      level up — whether the value-sets themselves were designed or accreted. `PRIMITIVE_PARAMETERS`
+- [x] **2GN.118** — design spike — are the primitive grammar's categorical parameter value-sets
+      rational and justified? — filed 2026-08-13 from the 2GN.97 spike session, which reached it by
+      stress-testing whether `baseType` is a genuine categorical (it is: unlike `wallThickness`, no
+      continuous quantity is crushed beneath it). The audit question is one level up — whether the
+      value-sets themselves were designed or accreted. `PRIMITIVE_PARAMETERS`
       (`data/grammars/primitives.ts`) reproduces doc 05 §5.3 **verbatim**, so this audits the spec's
       own vocabularies rather than any code drift. Three measured instances, all the same shape (two
       primitives expressing one concept with disjoint vocabularies, so a value is unreachable by
@@ -1490,9 +1500,20 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       split is deliberate morphological modelling or an artefact of authoring the BNF
       primitive-by-primitive; record why where deliberate, rule the corrected vocabulary where not.
       Same shape as 2GN.87's reachability finding, applied to the grammar's inputs rather than a
-      rule's condition. ⚠️ blocks 2GN.10, 2GN.21, 2GN.109 and 2GN.117, which all author against or
+      rule's condition. ⚠️ blocked 2GN.10, 2GN.21, 2GN.109 and 2GN.117, which all author against or
       derive from these values. 2GN.97 is **not** a dependent — it surfaced the defect rather than
-      consuming the vocabulary
+      consuming the vocabulary. ✅ **Ruled 2026-08-13** — see
+      `docs/spikes/2GN.118-primitive-parameter-value-sets.md`. Seven disjoint shared-name pairs
+      found, not the three filed. `base` unions to `['flat','rounded','pointed','pedestal']` on both
+      primitives: the split had made `base-pointed-amphora` unfireable on anything amphora-shaped,
+      since `dominantContainer` always prefers `hollow-enclosed`. `diameter` unifies to
+      `small/medium/large`, derivation owned by 2GN.120. `crossSection`, `shape` and `taper` stay as
+      authored, being genuine per-primitive geometry. `opening` and `perforation` defer whole to
+      2GN.122, each being two axes crushed into one field rather than a vocabulary split. The two
+      base rules keep their weights: both were authored in `cb3e517` before `EXPECTED_FIRE_RATES`
+      existed, so they were never fitted to observed rates and only the rates move. Ships no `src/`
+      change, so `EXPECTED_FIRE_RATES` re-records once against the full set. Per-culture base
+      weighting filed as 2GN.121; `taper`'s reversal constraint recorded on 2GN.115
 - [ ] **2GN.119** — design spike — should classification conditions read _relations between
       components_ rather than isolated component properties? _(unblocked)_ — filed 2026-08-13 by the
       2GN.97 ruling. Measured over all 43 shipped rules: **10 of the 24 unmigrated rules condition
@@ -1531,8 +1552,56 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       3mm and one whose walls are all 30mm both read "100% thin"). Fourth instance of the
       band-computed-from-an-absolute-table family after 2GN.86 (mass), 2GN.87 (blade) and 2GN.108
       (axis). Deliverable: a derived thickness quantity with its inputs ruled, and bands cut
-      per-culture rather than globally. ⚠️ overlaps 2GN.118 — if that spike rules the three-value
-      `wall` vocabulary out, this task's shape changes with it
+      per-culture rather than globally. ⚠️ overlapped 2GN.118, which ruled 2026-08-13 and left the
+      three-value `wall` vocabulary standing, so this task's shape is unchanged. ⚠️ **scope extended
+      2026-08-13 by 2GN.118 (Finding 5):** `diameter` joins this task as the same defect in a second
+      parameter. 2GN.118 unified its labels (`cylindrical`'s `narrow/medium/wide` and
+      `ring-form`/`disc-form`'s `small/medium/large` were one three-rung axis under two names) but
+      ruled the derivation here, because the argument for keeping the two label sets apart is really
+      an argument for deriving: a cylinder's diameter reads relative to its own length (a wide tube
+      is wide _for a tube_) whereas a disc's diameter is its principal dimension, which is a ratio
+      to model rather than two vocabularies to maintain. Nothing reads `diameter` today, so it
+      carries no live consequence yet — but 2GN.118 noted that "harmless because unread" is exactly
+      what let `base-pointed-amphora` sit broken
+- [ ] **2GN.122** — design spike — is there one aperture model, and does it subsume `perforation`?
+      _(unblocked; soft-depends on 2GN.118)_ — filed 2026-08-13 from the 2GN.118 spike session,
+      cases (b) `opening` and (c) `perforation`. 2GN.118 ruled that `opening` is not one axis but at
+      least two crushed into one field: **presence/count** (`closed` and `none` are the same
+      physical fact, scored identically at 0 by `OPENNESS_BY_OPENING`) and **aperture size**
+      (`wide`/`narrow`/`slit`). It also ruled the two primitives' vocabularies commensurable —
+      `OPENNESS_BY_OPENING` already ranks all seven values on one 0–1 scale, and three shipped rules
+      pair the cylinder and vessel labels as synonyms by hand, which is the rule layer compensating
+      for a split that should not exist. Two questions this spike owns. **(1) Multiplicity:** a
+      through-void has two mouths (bead, socketed axe, tube) and a two-mouthed vase has two separate
+      apertures — different facts, neither expressible today. **(2) Subsumption:** a hole through a
+      disc (`perforation`) and a hole through a cylinder wall (`opening`) are plausibly one concept
+      split across two parameter names by primitive-by-primitive BNF authoring, the same defect as
+      `base` one level up. If they are one axis, `perforation`'s count/position split resolves
+      inside this model instead. Rule the axis set (count, size, through/blind, position), which
+      parameters survive, and what `ExtractedFeatures` carries. ⚠️ 8 shipped rules read
+      `openingType` or `perforation`; `EXPECTED_FIRE_RATES` re-records once at implementation, which
+      is why this is ruled before 2GN.118's vocabulary changes are implemented rather than after
+- [ ] **2GN.123** — `types/world.ts` + `engine/generation/materials.ts` +
+      `engine/generation/decoration.ts` — re-key `CulturalProfile.materialAffinities` from
+      `Map<MaterialTag, number>` to the `MaterialSelector` tagged union, resolved
+      **most-specific-wins** _(depends on 2GN.110)_ — filed 2026-08-13 during PR #61 review. 2GN.110
+      ruled this on 2026-08-13 and nothing carried it: the type is still tag-keyed at
+      `types/world.ts:220`, and `data/explorer-cultures.ts` still holds the comment recording
+      Thalassar's dropped `precious-metal: 1.2` as an open design question. Its four existing
+      dependents (2GN.27, 2GN.68, 2GN.114, 3WS.3) all consume or fixture-build around affinities
+      rather than re-keying them, so the ruling had no destination. A bare
+      `MaterialTag |
+      MaterialName` union cannot work, because `bone`, `glass` and `leather`
+      each name both a class and a material — exactly why the flow side needed the tagged form at
+      2GN.112. `includes`/`excludes` does **not** transfer: membership needs subtraction, affinities
+      are weights with nothing to subtract. Deliverable: the re-keyed type, `culturalAffinityWeight`
+      (`materials.ts`) and `bestMaterialAffinity` (`decoration.ts`) moved onto most-specific-wins
+      resolution, the four Explorer presets migrated, and Thalassar's authored intent restored as
+      `{id:'gold'}: 1.2, {id:'silver'}: 1.2` with no `metal` entry. ⚠️ closes the unruled `max`
+      reduction flagged in `culturalAffinityWeight`'s JSDoc: 2GN.84 measured max discarding authored
+      values whenever the class tag scored higher (3 of 5 dead), so under max a specific entry could
+      only ever raise a material, never lower it. ⚠️ moves material-selection distributions, so
+      `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated
 - [x] **2GN.34** — `src/lib/data/classification.ts` — rescoped by dependency sweep 2026-07-25:
       `extractFeatures` (2GN.19) already computes `decorativeComplexity`/`techniqueComplexity` from
       real signal (`tally.layerCount`, `tally.techniques.size`, `motifDensity`, `tally.maxDepth` via
@@ -2035,6 +2104,23 @@ integration with real culture data
       tells. Moved from M2 to M3 2026-08-05: its dependencies are all M3 tasks, and M3's own entry
       point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work
       without a cycle
+- [ ] **2GN.121** — `engine/generation/grammar.ts` + `data/grammars/primitives.ts` — weight the
+      `base` parameter roll per culture rather than rolling uniformly over a shared vocabulary
+      _(blocked — depends on 2GN.118, 3WS.4, 3WS.9)_ — 2GN.118 ruled (2026-08-13) that `cylindrical`
+      and `hollow-enclosed` both roll the full `['flat','rounded','pointed','pedestal']` union, with
+      the extractor's primitive-type branch in `classification.ts` kept as a marked seam rather than
+      collapsed, precisely so per-primitive divergence can return as **weights** once something
+      rules what drives them. The uniform roll is the placeholder: a pedestalled cylinder is now
+      reachable but exactly as likely as a flat one, in every culture, which is the same
+      absolute-table defect as 2GN.86/87/108/120 in a different guise. `aesthetics.formConservatism`
+      (`types/world.ts`) is already specified as narrowing grammar branch variance and is unread by
+      `expandGrammar` today; `society.stratification` is the plausible driver for pedestal
+      frequency, a display foot being a stratification signal. Rule the input set and the weighting
+      shape, then thread it through `expandGrammar`'s determinism-critical draw sequence. ⚠️ moves
+      `base-pedestal-display` and `base-pointed-amphora` fire rates, so `EXPECTED_FIRE_RATES` needs
+      re-recording with the drift annotated. Placed in M3 on the 2GN.96 precedent — a generation
+      task parked with the world-state data it reads; depends on 3WS.9 rather than 3WS.4 alone so
+      the weighting waits for the full `createWorld` orchestrator
 
 ---
 
@@ -2618,6 +2704,8 @@ graph LR
 	2GN.117["2GN.117: `engine/generation/grammar.ts` + `engi…"]
 	2GN.119["2GN.119: design spike — should classification c…"]
 	2GN.120["2GN.120: `engine/generation/grammar.ts` — deriv…"]
+	2GN.122["2GN.122: design spike — is there one aperture m…"]
+	2GN.123["2GN.123: `types/world.ts` + `engine/generation/…"]
 	M2["M2: Generation Pipeline"]:::mile
 	M3["M3: World State & Integration"]:::mile
 	M4["M4: Player Interface"]:::mile
@@ -2675,6 +2763,7 @@ graph LR
 	3WS.20["3WS.20: Explorer: store inspector panel — live…"]
 	3WS.21["3WS.21: `engine/world/culture.ts` — phase-attri…"]
 	2GN.96["2GN.96: baselines cached on real `WorldState`;…"]
+	2GN.121["2GN.121: `engine/generation/grammar.ts` + `data…"]
 	4UI.1["4UI.1: `components/study/ArtefactInspector.svel…"]
 	4UI.2["4UI.2: `components/study/PropertyList.svelte` —…"]
 	4UI.3["4UI.3: `components/shared/TagBadge.svelte` — ta…"]
@@ -3040,6 +3129,7 @@ graph LR
 	2GN.67 --> M2
 	2GN.69 --> 2GN.71
 	2GN.110 --> 2GN.114
+	2GN.110 --> 2GN.123
 	2GN.110 --> 2GN.27
 	2GN.110 --> 2GN.68
 	2GN.110 --> 3WS.3
@@ -3064,6 +3154,8 @@ graph LR
 	2GN.118 --> 2GN.21
 	2GN.118 --> 2GN.109
 	2GN.118 --> 2GN.117
+	2GN.118 -.-> 2GN.122
+	2GN.118 --> 2GN.121
 	2GN.10 --> 2GN.15
 	2GN.10 --> 2GN.104
 	2GN.15 --> M2
@@ -3073,6 +3165,8 @@ graph LR
 	2GN.117 --> M2
 	2GN.119 --> M2
 	2GN.120 --> M2
+	2GN.122 --> M2
+	2GN.123 --> M2
 	M2 --> 3WS.1
 	M3 --> 4UI.1
 	M4 --> 5KN.1
@@ -3129,6 +3223,7 @@ graph LR
 	3WS.4 --> 3WS.9
 	3WS.4 --> 3WS.21
 	3WS.4 --> 2GN.96
+	3WS.4 --> 2GN.121
 	3WS.5 --> 3WS.6
 	3WS.5 --> 3WS.9
 	3WS.6 --> M3
@@ -3136,6 +3231,7 @@ graph LR
 	3WS.8 --> M3
 	3WS.9 --> 3WS.10
 	3WS.9 --> 2GN.96
+	3WS.9 --> 2GN.121
 	3WS.10 --> 3WS.11
 	3WS.10 --> 3WS.12
 	3WS.10 --> 3WS.13
@@ -3157,6 +3253,7 @@ graph LR
 	3WS.21 --> 2GN.96
 	2GN.96 --> M3
 	2GN.96 -.-> 2GN.97
+	2GN.121 --> M3
 	4UI.1 --> 4UI.2
 	4UI.1 --> 4UI.3
 	4UI.1 --> 4UI.4
@@ -3411,9 +3508,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.105,2GN.106,2GN.107,2GN.114,2GN.115,2GN.116,2GN.118,2GN.119,2GN.120,2GN.16,2GN.27,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.10,2GN.104,2GN.109,2GN.117,2GN.13,2GN.14,2GN.15,2GN.21,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
+	class 2GN.10,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.120,2GN.122,2GN.123,2GN.16,2GN.21,2GN.27,2GN.31,2GN.32,2GN.36,2GN.37,2GN.66,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.121,2GN.13,2GN.14,2GN.15,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
 
 ## Links
