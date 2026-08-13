@@ -545,5 +545,62 @@ moved).
 
 ---
 
+### 2.11 Artefact Orientation and Proportional Blade Banding (roadmap 2GN.108)
+
+**Decision:** The generator **does** express short-bodied edged tools (scraper, chisel, small adze).
+`bladeLengthBand` is re-based on **grip-to-edge proportion** rather than absolute centimetres, and
+normalisation **orients** each artefact by reversal so the working end sits at a canonical pole.
+
+**The grounds are tag-space variety, not archaeological completeness.** The missing shapes are not
+uniformly distributed across the tag space: short-bodied edged tools occupy the working/craft/
+domestic region, so their absence does not thin the corpus evenly. It removes one region, leaving
+edged artefacts skewed towards blade-family readings (dagger, utility knife, weapon) because a
+long-axis edged form is the only edged form the generator can produce. That skew propagates into
+culture tag profiles, and since the lens feeds on tag co-occurrence (doc 04), it surfaces as
+repetition in the **core mechanic** rather than as a missing artefact type.
+
+⚠️ §2.9's culture-relative baselines cannot compensate. They sample the same narrowed distribution,
+so relativity cannot restore variety that was never generated — the narrowing happens upstream of the
+machinery designed to produce variety.
+
+**The quantity was miscast.** Absolute blade length cannot distinguish the forms in question: a
+scraper is edge-dominant and short, a dagger edge-dominant and long, a hafted adze a long body with a
+short edge. What separates them is the span between the edged component and where a hand would hold
+it. `bladeLengthBand` and `primaryAxisLength` both read `SHORT_MEDIUM_LONG_CM`, which is why 2GN.87
+measured their joint distribution as a strict triangle where blade never exceeds axis — a symptom of
+measuring the wrong thing, not the defect itself.
+
+**No role vocabulary is required.** `NormalisedArtefact.attachments` is a populated from/to component
+graph and `NormalisedComponent` carries `position` plus derivable extents, so grip-to-edge span is a
+traversal over structure that already exists. The three grip/rigidity proxies in `data/plausibility.ts`
+never used the graph they had. Note that doc 05's `arrangementGroup` is repetition structure
+(`symmetric`, `radial`, `linear-array`), unrelated to role, and the `'grip-system'`/`'head-system'`
+strings in `types/interpretation.ts` are JSDoc illustration rather than a defined type — a role
+vocabulary would be genuinely new. Whether to build one is ruled separately at 2GN.116.
+
+**Orientation is by reversal, not rejection.** `position` is documented as ordering along the primary
+axis and intended to carry a shared direction across artefacts, but `grammar.ts` mints it as a
+depth-first traversal index reflecting grammar expansion, so a blade can land at position 0 with its
+haft after it and nothing corrects it. Canonicalising by reversal makes the invariant true by
+construction; rejecting mis-oriented artefacts would spend re-expansion budget (2GN.16) enforcing
+probabilistically what construction can guarantee, and would discard roughly half of otherwise-valid
+two-part edged forms — a mirrored artefact carries no information, being the same artefact described
+backwards.
+
+**Deferred:** the general working-end definition (2GN.115). For edged forms the working end is the
+edge; for a vessel, disc, ring or pin there may be no functional pole at all, so whether orientation
+is total or partial by design is ruled there. ⚠️ 2GN.115 blocks **implementation**, not this decision:
+reversal cannot be implemented for edged forms and retrofitted to a different general convention
+without repeating the recalibration sweep.
+
+**Affects:** doc 05 (§6.1's `position` gains an orientation contract; `bladeLengthBand`'s derivation
+changes), doc 12 (§2.43 records the full reasoning). Roadmap: 2GN.108 ruled; implementation at
+2GN.117 (blocked on 2GN.115); 2GN.116 filed for component roles, now blocking 2GN.13/2GN.14. The
+ruling makes **2GN.109 live** — it was contingent, void only if the form had been ruled out of scope.
+⚠️ Recalibration is set-wide and shared with 2GN.67, 2GN.69 and 2GN.109; sequence the sweep once
+across the group. Full detail: `docs/spikes/2GN.108-short-bodied-edged-tools.md`.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._

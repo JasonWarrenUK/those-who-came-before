@@ -2397,5 +2397,71 @@ can sit.
 
 ---
 
+### 2.43 Short-Bodied Edged Tools Ruled In; `position` Is Not the Oriented Axis It Documents (2026-08-13)
+
+**Origin:** 2GN.108 design spike **Source of truth:**
+`docs/spikes/2GN.108-short-bodied-edged-tools.md`; decision locked in doc 11 §2.11
+
+**2GN.87 left the generation question open and this spike closes it: the form is ruled in.** Whether
+the generator should produce a short-bodied edged tool that is not a formed blade (scraper, chisel,
+small adze) was deliberately not inherited from the deleted R4, which was a truth-table patch with an
+archaeological reading attached afterwards. Ruled in on grounds that are **not** archaeological
+completeness.
+
+**The missing shapes are not uniformly distributed across the tag space.** They occupy the working/
+craft/domestic region, so their absence removes one region rather than thinning the corpus evenly,
+leaving edged artefacts skewed towards blade-family readings because a long-axis edged form is the
+only edged form reachable. That skew propagates into culture tag profiles, and the lens feeds on tag
+co-occurrence (doc 04), so it surfaces as **repetition in the core mechanic**. ⚠️ §2.9's
+culture-relative baselines cannot compensate: they sample the same narrowed distribution, so
+relativity cannot restore variety that was never generated. **General lesson: a content gap upstream
+of a variety mechanism is not fixed by that mechanism.**
+
+**All three mechanisms carried over from 2GN.87 treat symptoms.** A shorter `elongated.length` rung,
+decoupling `bladeLengthBand` from the shared cm table, and de-`Math.max`-ing `primaryExtent` each
+address one arm of the coupling. The actual defect is that **`bladeLengthBand` bands the wrong
+quantity**: absolute length cannot separate a scraper (edge-dominant, short) from a dagger
+(edge-dominant, long) from a hafted adze (long body, short edge). The distinction is proportional —
+the span from the edged component to where a hand would hold it. The strict `(axis, blade)` triangle
+2GN.87 measured is a symptom of measuring the wrong thing.
+
+**Grip-to-edge is derivable today; no role vocabulary is needed.** `data/plausibility.ts` states the
+model "needs a component-role vocabulary this project doesn't have yet", and all three of its rules
+are proxies accordingly. But `NormalisedArtefact.attachments` is a populated typed from/to graph and
+`NormalisedComponent` carries `position` plus derivable extents, so the span is a traversal over
+structure that already exists — **the proxies never used the graph they had.** Two scoping claims
+made during the spike were wrong and are corrected here: doc 05's `arrangementGroup` is repetition
+structure (`symmetric`/`radial`/`linear-array`), unrelated to role; and the
+`'grip-system'`/`'head-system'` strings in `types/interpretation.ts` are JSDoc illustration, not a
+defined type. A role vocabulary would be genuinely new, which is why it is ruled separately (2GN.116)
+rather than assumed.
+
+**The root cause: `position` is documented as an oriented axis and is not one.** Doc 05 §6.1 calls it
+"Ordering along the primary axis", intended to carry a shared direction across artefacts — working
+end at one pole. `grammar.ts` mints it as a depth-first traversal index reflecting grammar expansion
+order, so a blade can land at position 0 with its haft after it and nothing corrects it. Normalisation
+must **orient**, not merely flatten. **General lesson, extending §2.39's corollary: a field's
+documented intent is not a claim about what its derivation enforces.** Three plausibility proxies were
+authored to work around an absence no measurement had named.
+
+**Orientation is by reversal, not rejection.** A mirrored artefact carries no information — it is the
+same artefact described backwards — so rejecting it spends re-expansion budget (2GN.16) enforcing
+probabilistically what construction can guarantee, and would discard roughly half of otherwise-valid
+two-part edged forms. The general working-end definition is deferred to 2GN.115, which ⚠️ blocks
+**implementation** rather than this ruling: reversal cannot be implemented for edged forms and
+retrofitted to a different general convention without repeating the recalibration sweep.
+
+| §   | Propagation                                                                                                     | Date       |
+| --- | --------------------------------------------------------------------------------------------------------------- | ---------- |
+| —   | `docs/spikes/2GN.108-short-bodied-edged-tools.md`: new spike write-up, findings and rejected alternatives         | 2026-08-13 |
+| —   | Doc 11 §2.11: locked decision (form ruled in, proportional banding, orientation by reversal)                      | 2026-08-13 |
+| ⏳  | Doc 05 §6.1: `position` gains an orientation contract; `bladeLengthBand`'s derivation restated — with 2GN.117     | 2026-08-13 |
+| —   | Roadmap: 2GN.108 closed; 2GN.115 and 2GN.116 filed; 2GN.117 filed as the implementation placeholder               | 2026-08-13 |
+| —   | Roadmap: 2GN.13 and 2GN.14 gain a `dependsOn` edge to 2GN.116, moving both `todo` → `blocked`                     | 2026-08-13 |
+| ⏳  | 2GN.109 confirmed live (it was void only if the form had been ruled out) — authored with the sweep                | 2026-08-13 |
+| ⏳  | Set-wide recalibration shared with 2GN.67, 2GN.69, 2GN.109 and 2GN.117: sequence once, re-record fire rates       | 2026-08-13 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
