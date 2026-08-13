@@ -1539,8 +1539,17 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       3mm and one whose walls are all 30mm both read "100% thin"). Fourth instance of the
       band-computed-from-an-absolute-table family after 2GN.86 (mass), 2GN.87 (blade) and 2GN.108
       (axis). Deliverable: a derived thickness quantity with its inputs ruled, and bands cut
-      per-culture rather than globally. ⚠️ overlaps 2GN.118 — if that spike rules the three-value
-      `wall` vocabulary out, this task's shape changes with it
+      per-culture rather than globally. ⚠️ overlapped 2GN.118, which ruled 2026-08-13 and left the
+      three-value `wall` vocabulary standing, so this task's shape is unchanged. ⚠️ **scope extended
+      2026-08-13 by 2GN.118 (Finding 5):** `diameter` joins this task as the same defect in a second
+      parameter. 2GN.118 unified its labels (`cylindrical`'s `narrow/medium/wide` and
+      `ring-form`/`disc-form`'s `small/medium/large` were one three-rung axis under two names) but
+      ruled the derivation here, because the argument for keeping the two label sets apart is really
+      an argument for deriving: a cylinder's diameter reads relative to its own length (a wide tube
+      is wide _for a tube_) whereas a disc's diameter is its principal dimension, which is a ratio
+      to model rather than two vocabularies to maintain. Nothing reads `diameter` today, so it
+      carries no live consequence yet — but 2GN.118 noted that "harmless because unread" is exactly
+      what let `base-pointed-amphora` sit broken
 - [ ] **2GN.122** — design spike — is there one aperture model, and does it subsume `perforation`?
       _(unblocked; soft-depends on 2GN.118)_ — filed 2026-08-13 from the 2GN.118 spike session,
       cases (b) `opening` and (c) `perforation`. 2GN.118 ruled that `opening` is not one axis but at
