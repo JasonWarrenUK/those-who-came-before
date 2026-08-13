@@ -438,7 +438,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.12",
-							"2GN.10"
+							"2GN.10",
+							"2GN.111"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -560,7 +561,8 @@
 							"2GN.83",
 							"2GN.84",
 							"2GN.85",
-							"2GN.110"
+							"2GN.110",
+							"2GN.97"
 						],
 						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid. Depends on 2GN.78: that task retires `precious-metal`/`precious-stone` as classification inputs entirely, so this task's \"precious metals → elite/ceremonial\" rule must derive standing from material situation (availability × affinity × provenance × stratification) rather than a static precious-tag lookup — without 2GN.78 sequenced first, this task could restore the static reading 2GN.77 ruled against.",
 						"assignee": "Jason Warren"
@@ -727,7 +729,8 @@
 							"2GN.83",
 							"2GN.84",
 							"2GN.85",
-							"2GN.110"
+							"2GN.110",
+							"2GN.97"
 						],
 						"notes": "**Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false` in `extractFeatures`.",
 						"assignee": "Jason Warren"
@@ -924,9 +927,10 @@
 					{
 						"id": "2GN.67",
 						"description": "`engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.8"
+							"2GN.8",
+							"2GN.108"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1092,9 +1096,10 @@
 					{
 						"id": "2GN.69",
 						"description": "`engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.8"
+							"2GN.8",
+							"2GN.108"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1124,9 +1129,10 @@
 					{
 						"id": "2GN.72",
 						"description": "`engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.19"
+							"2GN.19",
+							"2GN.97"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1204,6 +1210,9 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.82"
+						],
+						"softDependsOn": [
+							"2GN.96"
 						],
 						"notes": "Split out of 2GN.82 (doc 12 §2.31) 2026-08-05: `BaselineFeature` is a deliberately closed union of eight numeric features (`types/tags.ts`), so a rule reading `wallThickness`, `baseType`, `openingType`, `massBand`, `perforation`, `ringGap`, `sheetFlexibility`, `sizeBand`, `isWearable` or `hasFasteningMechanism` has nothing to call `ClassificationContext.exceeds` against — not an oversight, the type rules it out by design (\"a percentile over `hasEdge` or `openingType` is meaningless\"). What \"relative\" means for a categorical band is genuinely undecided in doc 11 §2.9: candidates are a prevalence/frequency baseline (how common is `thin` walled ware in this culture's own output), a `stratification` gate (doc 11 §2.9 already rules `stratification` a live input on how much `elite` can exist at all — blocked on 2GN.96), or weight-scaling an otherwise-unchanged absolute condition. This is a design spike, not an implementation task — same shape as 2GN.80/2GN.77 before they were ruled. Sequence after 2GN.96 if practical: `stratification` may be a stronger gate for the elite-bearing categoricals (R12 thin-walled, R15 pedestal-base) than a bare frequency baseline, and ruling here first risks re-ruling once 2GN.96 lands. Not a hard dependency — 2GN.96 is M3-blocked (3WS.4/3WS.9/3WS.21) and this spike needs no code, so it can proceed in M2 regardless.",
 						"assignee": ""
@@ -1334,9 +1343,10 @@
 					{
 						"id": "2GN.93",
 						"description": "`engine/generation/description.ts` — variant selection honours `condition`: filter candidates by the component's assigned material (via the `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.91"
+							"2GN.91",
+							"2GN.111"
 						],
 						"notes": "Nothing currently does the material join at description time — `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant selection — resolve at pickup whether this is a distinct task or 2GN.38's description should instead be amended to state selection honours `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as separately-tracked selection logic.",
 						"assignee": "Jason Warren"
@@ -1452,8 +1462,10 @@
 					{
 						"id": "2GN.114",
 						"description": "`tests/fixtures/culture.ts` — extend `mockCulturalProfile`/`mockPhaseCharacteristics` with a high-craft/elite preset (`craftSpecialisation`, `decorativeEmphasis`, `motifComplexity` pushed toward 1.0), so elite/ceremonial-grade artefacts are reachable through ordinary sampling and Explorer calibration runs rather than only via hand-built overrides",
-						"status": "todo",
-						"dependsOn": [],
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.110"
+						],
 						"softDependsOn": [
 							"2GN.98"
 						],
