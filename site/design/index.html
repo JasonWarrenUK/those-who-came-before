@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Design Strand · Those Who Came Before</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="/index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">Reading order</span>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Design strand</div>
+  <h1>Eight Ideas Behind the Mechanic</h1>
+  <p class="lede">The mechanism pages describe a machine that runs: an artefact goes in, structure and materials and tags come out. These pages describe something that doesn't run yet: the interpretive lens, contradiction, documents, career, all with contracts that are written, reviewed and quotable. Where the mechanism strand points at <code>src/lib/engine/</code>, this one points at <code>src/lib/types/</code>: 2,238 lines across ten files, 92 exports, none of it wired to behaviour, all of it real enough to check.</p>
+
+  <div class="callout"><span class="tag">What &ldquo;designed&rdquo; means here</span>
+  Nothing on this strand carries a shipped/partial/designed badge. Those badges answer &ldquo;does it run&rdquo;, which is the wrong question for a page whose entire subject is a design that hasn't run yet. Each page instead says plainly, in prose, which parts are a shipped type a reader can open and which are a doc's intention with no type behind it yet: the same honesty the badges give the mechanism strand, in the form this strand actually needs.</div>
+
+  <h2>Reading order</h2>
+  <p>Organised by idea, not by document number. Several of the strongest subjects span three or four of the fourteen design docs, and one of them, the fact that engine code never knows whose beliefs it's processing, doesn't appear as its own heading anywhere. Reading the docs in order would hide it. Each page below states its own one-line prerequisite; nothing requires having read the design docs themselves.</p>
+
+  <div class="cardstack">
+    <div class="cards">
+      <a class="card" href="/design/two-readings.html">
+        <span class="num">Start here</span>
+        <span class="topic">Two Readings of the Same Sword</span>
+        <span class="t">The Entry Point</span>
+        <span class="d">Two players, one artefact, two coherent theories, both wrong. Needs nothing else on this site.</span>
+      </a>
+      <a class="card" href="/design/channels.html">
+        <span class="num">02</span>
+        <span class="topic">Five Channels of Filtering</span>
+        <span class="t">Misleading Without Ever Lying</span>
+        <span class="d">The lens as five distinct, individually auditable interventions on perception, one of which works by removing information, on a cap.</span>
+      </a>
+      <a class="card" href="/design/classification.html">
+        <span class="num">03</span>
+        <span class="topic">Relative vs Absolute Classification</span>
+        <span class="t">Whose Culture Is the Classifier Judging?</span>
+        <span class="d">A fixed threshold fired on 4.3% of one culture's output and 48% of another's. The fix, and the tag it cost.</span>
+      </a>
+      <a class="card" href="/design/agent-generic.html">
+        <span class="num">04</span>
+        <span class="topic">The Engine Doesn&rsquo;t Know Whose Beliefs These Are</span>
+        <span class="t">One Interface, Player and NPC</span>
+        <span class="d">Needs §2. NPC wrongness is just claims in the same container the player uses, which is what lets an NPC's error become the player's.</span>
+      </a>
+      <a class="card" href="/design/contradiction.html">
+        <span class="num">05</span>
+        <span class="topic">Contradictions Are Revealed by Consequences</span>
+        <span class="t">Not by Checking Answers</span>
+        <span class="d">Needs §3. Full ground truth exists and is deliberately never diffed against directly. Denial is a supported code path with a cost.</span>
+      </a>
+      <a class="card" href="/design/publishing.html">
+        <span class="num">06</span>
+        <span class="topic">Immutable Documents</span>
+        <span class="t">Retraction Is a Social Act, Not a Delete</span>
+        <span class="d">A document freezes when it's seen, not when it's saved. Retraction cascades forward through lineage, by degree.</span>
+      </a>
+      <a class="card" href="/design/ratchet.html">
+        <span class="num">07</span>
+        <span class="topic">The Commitment Ratchet</span>
+        <span class="t">Why Publishing Makes You Blinder</span>
+        <span class="d">Needs §2. The object that measures your career success is the same object measuring how badly you're about to misread the next artefact.</span>
+      </a>
+      <a class="card" href="/design/labels.html">
+        <span class="num">08</span>
+        <span class="topic">Labels That Emerge Instead of Being Assigned</span>
+        <span class="t">Nobody Chooses a Category</span>
+        <span class="d">Needs §6. A document classifies itself from its own content, then a venue classifies it again. The gap between the two is the mechanic.</span>
+      </a>
+    </div>
+  </div>
+
+  <h2>Why these eight and not fourteen</h2>
+  <p>Docs 02 (pillars), 03 (systems map), 08 (architecture) and 11 (deferred decisions) are load-bearing across every page here rather than subjects of their own: the pillars get cited where they decide something, doc 11's rulings are the spine of §3 and §4, and doc 08 already has a home on the mechanism strand. A page per document would have produced several thin pages and buried the two best ideas inside them.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/02</code>, <code>04</code>, <code>06</code>, <code>07</code>, <code>10</code>, <code>11</code> · Types: <code>src/lib/types/</code>
+  </div>
+</article>
+</main>
+
+<footer>
+  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/04-interpretive-lens.md</code>, <code>docs/06-knowledge-contradiction-model.md</code>, <code>docs/07-career-social-systems.md</code>, <code>docs/10-document-tradition-system.md</code>, <code>docs/11-deferred-design-questions.md</code>, <code>src/lib/types/</code>. Facts here describe that snapshot; the roadmap moves weekly.
+</footer>
+</body>
+</html>
