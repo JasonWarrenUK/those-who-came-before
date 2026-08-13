@@ -8,6 +8,31 @@ import { PRIMITIVE_TYPES } from '../src/lib/data/grammars/primitives.ts';
 import { CORE_GRAMMAR_RULES } from '../src/lib/data/grammars/core.ts';
 
 /**
+ * Counts a type alias union's members by parsing its source text — there is no runtime array to
+ * import for a `type X = A | B | …` the way there is for `const X = [...]`. Narrow on purpose:
+ * counts `|`-separated arms between the `export type <name> =` line and the first line that isn't
+ * a union arm (blank, or a line starting something new), so it can't accidentally walk into an
+ * unrelated later declaration. Used for `Contradiction` (design/contradiction.html's "eight
+ * members" claim), the only union-count claim currently live in `site/`.
+ */
+function countUnionMembers(source: string, typeName: string): number {
+	const start = source.indexOf(`export type ${typeName} =`);
+	if (start === -1) throw new Error(`type ${typeName} not found while counting union members`);
+	const body = source.slice(start).split('\n').slice(1);
+	let count = 0;
+	for (const line of body) {
+		const trimmed = line.trim();
+		if (trimmed.startsWith('|')) {
+			count++;
+			continue;
+		}
+		if (trimmed === '') continue;
+		break;
+	}
+	return count;
+}
+
+/**
  * Fails when prose states a classification-rule count that no longer matches the shipped array.
  *
  * `classification.test.ts` already pins the two numbers against the code. This guard closes the
@@ -408,7 +433,21 @@ Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.
 	// Numbered design docs only (docs/00-*.md .. docs/13-*.md), not every .md the walk finds —
 	// archive/, dev/, spikes/ and reports/ carry their own prose and aren't "the fourteen documents".
 	const numberedDocCount = [...reached].filter((path) => /^docs\/\d{2}-.*\.md$/.test(path)).length;
-	const keyedClaims = [...KEYED_CLAIMS, docCountClaim(numberedDocCount)];
+
+	// "Contradiction is a discriminated union of eight members" — design/contradiction.html's own
+	// live claim. Counted from source (see countUnionMembers) rather than imported, since a type
+	// alias has no runtime array to import the way MATERIALS or DECORATIVE_TECHNIQUES does.
+	const contradictionMemberCount = countUnionMembers(
+		await Deno.readTextFile(new URL('../src/lib/types/contradiction.ts', import.meta.url)),
+		'Contradiction',
+	);
+	const contradictionClaim: KeyedClaim = {
+		pattern: new RegExp(`\\bdiscriminated union of (${NUMBER_WORD}|\\d+) members\\b`, 'gi'),
+		expected: contradictionMemberCount,
+		label: 'contradiction.ts Contradiction union',
+	};
+
+	const keyedClaims = [...KEYED_CLAIMS, docCountClaim(numberedDocCount), contradictionClaim];
 
 	const stale: Mention[] = [];
 	for (const path of reached) {
