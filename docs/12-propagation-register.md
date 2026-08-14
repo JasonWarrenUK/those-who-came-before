@@ -2730,5 +2730,87 @@ lesson on dormant paths, of which this is the testing-side twin.
 
 ---
 
+### 2.49 Affinity Silence Ruled Against Access; Two of the Brief's Four Maps Have No Readers (2026-08-14)
+
+2GN.127 was filed to rule whether an absent `materialAffinities` entry should default to neutral `1`
+or throw, and instructed "rule the family, not the one map", naming `materialAffinities`,
+`techniqueAffinities`, `contextWeights` and `siteTypeWeights`. **Two of the four have no engine
+readers at all.** `contextWeights` and `siteTypeWeights` are declared in `CraftInvestmentProfile`,
+authored in all four presets, and read by nothing in `src/lib/engine/`. Ruling strictness for them
+would author a contract against unobserved behaviour — §2.47's dormant-path lesson applied to the
+brief's own framing, and the defect 2GN.87 punished.
+
+**None of the brief's four options was taken.** Keep-the-default, throw-on-omission, a neutral
+sentinel and a `completeness` flag all treat the distinction as something the author must _declare_.
+It is already _derivable_: `isAvailable(material, geology, trade)` answers whether the culture could
+ever have encountered the material, which is exactly the condition under which having no attitude is
+credible. Silence is checked, not annotated, so no syntax changes and every authored profile keeps
+its shape.
+
+⚠️ **Throwing on all omission is not the strict reading of the instinct it appears to be.** It does
+not distinguish ambivalence from absence; it abolishes absence, making "this culture never
+encountered jade" unstateable. Measured against the presets, it is closer in effect to keeping the
+default than it looks — both collapse the two cases, in opposite directions.
+
+**Measured across the four presets** — silent materials split by `isAvailable`:
+
+| Preset    | Silent but accessible | Silent and inaccessible |
+| --------- | --------------------: | ----------------------: |
+| tarpan    |                     6 |                       3 |
+| thalassar |                    11 |                       1 |
+| xoconahtl |                     6 |                       4 |
+| khaltiris |                     8 |                       0 |
+| **Total** |                **31** |                   **8** |
+
+Thalassar's eleven is the rule working, not failing: it buys metal, gold and obsidian through three
+flows and states no opinion about any of them. Khaltiris has no legitimate silences and must state a
+position on all sixteen materials.
+
+⚠️ **`isAvailable`'s MVP lenience inverts the rule if read naively.** It returns `true` for a
+material with no geology entry, so unmodelled would count as accessible and silence about it would
+throw — backwards, since unmodelled is the strongest case for "never encountered". `scarcityWeight`
+already treats `undefined` as a third state for the same class of reason; the validator follows it.
+The presets do not expose this (their `geology()` helper models all sixteen deliberately) which is
+exactly why it needed catching in the ruling rather than in implementation.
+
+⚠️ **The ruling's first draft named a reader that does not exist.** Finding 1's table listed
+`bestMaterialAffinity` as the second consumer of `materialAffinities`, carried straight from
+2GN.110's ruling notes; `grep` over `src/` returns nothing, because 2GN.123 removed it when it
+re-keyed the map. Caught in branch review before the PR. The real inventory is three:
+`culturalAffinityWeight` (`materials.ts`), `effectiveOptionWeight` (`grammar.ts`) and
+`materialAccessGate` (`decoration.ts`) through the first. The same class of error as §2.47's, and a
+direct instance of the standing rule that a doc is authoritative for design intent and never for
+what shipped — a ruling that inventories code must re-derive that inventory from the code.
+
+`effectiveOptionWeight` is the reader the draft missed entirely, and it matters to scope: its
+default is `?? 0`, not the resolver's neutral `1`, so an unmentioned tag contributes no adjustment
+to an additive weight. Silence there is a different statement and stays outside the validator.
+
+⏳ **The same stale name survives in three places this branch did not touch**: doc 11 §2.13, §2.45
+above, and 2GN.123's roadmap line, all describing `decoration.ts` as inlining its own reduction.
+2GN.123 did not rename that function, it **deleted** it — `decoration.ts:98` now imports
+`culturalAffinityWeight` from `materials.ts`, which is the single-resolver outcome the task wanted.
+The three references describe the pre-2GN.123 world and want a sweep; left out of this branch to
+keep the diff on its subject.
+
+**The technique layer carries the same defect one hop down.** `materialAccessGate`'s substrate check
+requires `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral. Once this
+ruling pushes cultures to author far more entries, any authored at exactly `1.0` still fail that
+gate — so a culture explicitly indifferent to bronze has bronze-substrate techniques suppressed
+identically to one that cannot obtain bronze. The ambivalent-versus-absent collapse reappears inside
+the gate meant to model access. Named and filed rather than worked around; whether affinity should
+gate substrate access at all is a separate ruling.
+
+| §  | Propagation                                                                              | Date       |
+| -- | ---------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.15 records the locked decision and the one-directional obligation              | 2026-08-14 |
+| —  | `docs/spikes/2GN.127-affinity-silence.md` holds the measurements and rejected options    | 2026-08-14 |
+| ⏳ | Validator + preset re-authoring (31 violations to close); doc 05 §3.3 authoring contract | 2026-08-14 |
+| ⏳ | `techniqueAffinities` extension, carrying the `> 1` substrate-gate question              | 2026-08-14 |
+| —  | Reader inventory corrected in review: `bestMaterialAffinity` does not exist              | 2026-08-14 |
+| ⏳ | Sweep the same stale name from doc 11 §2.13, §2.45 and 2GN.123's roadmap line            | 2026-08-14 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
