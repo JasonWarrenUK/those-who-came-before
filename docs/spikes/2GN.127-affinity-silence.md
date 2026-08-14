@@ -1,11 +1,12 @@
 # 2GN.127 — What an Absent Affinity Entry Means
 
-| Prop      | Value                                                                           |
-| --------- | ------------------------------------------------------------------------------- |
-| Status    | Ruled                                                                           |
-| Ruled     | 2026-08-14                                                                      |
-| Ruling in | This document; propagated to doc 11 §2.15 and doc 12 §2.49                      |
-| Outcome   | Silence is legitimate iff the material is inaccessible; a validator enforces it |
+| Prop        | Value                                                                           |
+| ----------- | ------------------------------------------------------------------------------- |
+| Status      | Ruled; implemented by 2GN.128                                                   |
+| Ruled       | 2026-08-14                                                                      |
+| Implemented | 2026-08-14 — `engine/generation/cultureValidation.ts`; see doc 12 §2.50         |
+| Ruling in   | This document; propagated to doc 11 §2.15 and doc 12 §2.49                      |
+| Outcome     | Silence is legitimate iff the material is inaccessible; a validator enforces it |
 
 ## The question
 
@@ -176,3 +177,18 @@ ambivalent-versus-absent collapse this spike exists to eliminate, reappearing on
 
 Whether affinity should gate substrate access at all is a separate ruling. Filed with the technique
 extension.
+
+⚠️ **Measured during 2GN.128, and now live in the shipped presets.** Xoconahtl authors
+`['clay', 1.0]` — deliberate indifference to a material its geology marks `abundant` — and that
+entry fails the gate above:
+
+```
+xoconahtl fired-clay: affinity=1  geology=abundant  isAvailable=true
+passes substrate gate (needs > 1 AND available): false
+```
+
+So clay-substrate techniques are suppressed for a culture swimming in clay, identically to one that
+cannot obtain any. 2GN.128 deliberately **kept** the `1.0` rather than nudging it to `1.1` to clear
+the gate: retuning authored content to route around an engine defect edits the demo to fit the bug
+and destroys the evidence that makes the defect measurable. This is the concrete case 2GN.129 rules
+against.
