@@ -2801,14 +2801,89 @@ identically to one that cannot obtain bronze. The ambivalent-versus-absent colla
 the gate meant to model access. Named and filed rather than worked around; whether affinity should
 gate substrate access at all is a separate ruling.
 
-| §  | Propagation                                                                              | Date       |
-| -- | ---------------------------------------------------------------------------------------- | ---------- |
-| —  | Doc 11 §2.15 records the locked decision and the one-directional obligation              | 2026-08-14 |
-| —  | `docs/spikes/2GN.127-affinity-silence.md` holds the measurements and rejected options    | 2026-08-14 |
-| ⏳ | Validator + preset re-authoring (31 violations to close); doc 05 §3.3 authoring contract | 2026-08-14 |
-| ⏳ | `techniqueAffinities` extension, carrying the `> 1` substrate-gate question              | 2026-08-14 |
-| —  | Reader inventory corrected in review: `bestMaterialAffinity` does not exist              | 2026-08-14 |
-| ⏳ | Sweep the same stale name from doc 11 §2.13, §2.45 and 2GN.123's roadmap line            | 2026-08-14 |
+| §  | Propagation                                                                           | Date       |
+| -- | ------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.15 records the locked decision and the one-directional obligation           | 2026-08-14 |
+| —  | `docs/spikes/2GN.127-affinity-silence.md` holds the measurements and rejected options | 2026-08-14 |
+| —  | Validator + preset re-authoring (31 violations closed) landed as 2GN.128 — see §2.50  | 2026-08-14 |
+| ⏳ | Doc 05 §3.3 authoring contract                                                        | 2026-08-14 |
+| ⏳ | `techniqueAffinities` extension, carrying the `> 1` substrate-gate question           | 2026-08-14 |
+| —  | Reader inventory corrected in review: `bestMaterialAffinity` does not exist           | 2026-08-14 |
+| ⏳ | Sweep the same stale name from doc 11 §2.13, §2.45 and 2GN.123's roadmap line         | 2026-08-14 |
+
+---
+
+### 2.50 The Silence Validator Needed No New Machinery; a Duplicate Selector Can Silently Void a Guard (2026-08-14)
+
+2GN.128 implemented §2.49's ruling: `engine/generation/cultureValidation.ts` enforces that silence
+in `materialAffinities` is legitimate **iff** the material is inaccessible, and all four Explorer
+presets were re-authored to satisfy it. The 31 violations §2.49 measured are closed (tarpan 7
+entries, thalassar 12, xoconahtl 8, khaltiris 9) and the validator throws from the start.
+
+**The ruling anticipated a helper problem the code had already solved.** §2.49 warned that
+`isAvailable`'s lenience inverts the rule and that the validator must treat `level === undefined` as
+a third state, which read as needing the private `bestRegionalLevel` exported. It did not:
+`explainMaterialWeight` was **already exported** and already returns `level` and `available` as
+separate fields, so the whole derivation is `level !== undefined && available`. Measured against a
+geology modelling nothing: `isAvailable` returns `true` where the validator correctly reads
+inaccessible. A second instance of §2.49's own lesson — a ruling that inventories code must
+re-derive that inventory from the code, including when it is predicting what the implementation will
+need.
+
+⚠️ Keeping `bestRegionalLevel`/`reachableByTrade` private was not tidiness. `materialAssignment.ts`
+records that a previous version of the Explorer material panel re-implemented that region logic
+locally and **diverged**, reading the culture's first region where the engine reads the best across
+all — invisible only because every preset authors exactly one region. Only `selectorMatches` was
+exported, for the coverage predicate; `culturalAffinityWeight` structurally cannot serve as one,
+since its `?? 1` fallback makes "matched at exactly 1.0" and "unmatched" the same value.
+
+⚠️ **A duplicate class selector silently voids `materials.calibration.test.ts`'s preset-affinity
+guard.** Thalassar's first draft used a `{ tag: 'metal' }: 0.9` class entry to discharge bronze and
+iron. The guard builds its `classLifted` comparison arm by appending `{ tag: 'metal' }: 1.5` to the
+preset's class-only entries, and `culturalAffinityWeight` takes first-match — so the appended entry
+becomes inert and `classLifted` collapses onto `neutral` exactly. **The guard's assertions still
+pass**, because the shipped-versus-neutral shift stays well above its floor: green, reviewed and
+measuring nothing, which is §2.48's failure mode recurring inside the very guard §2.48 installed.
+Thalassar therefore keeps no `metal` class entry and discharges bronze and iron specifically, and
+`explorer-cultures.test.ts` now pins the no-duplicate-selector invariant that
+`culturalAffinityWeight`'s JSDoc had asked for at authoring time. Measured after the re-authoring,
+`classLifted` separates from `neutral` again, so the arm is live.
+
+**Xoconahtl's `['clay', 1.0]` keeps its value; only its comment is discharged.** The comment existed
+to carry a distinction "the type cannot carry", which the ruling now carries through the entry's
+presence — omitting it would throw. ⚠️ The value stays at exactly `1.0` deliberately, against the
+temptation to nudge it to `1.1`: clay is `abundant` for this culture yet fails
+`materialAccessGate`'s `> 1` substrate check, so this is the **live, measurable instance** of the
+defect 2GN.129 exists to rule on. Retuning authored content to route around a known engine defect
+would edit the demo to fit the bug and destroy the evidence. The gate is what is wrong, not the
+`1.0`.
+
+**Enforcement point.** The ruling says profile-construction time; for a hand-authored const array
+that is module evaluation, so `explorer-cultures.ts` validates every preset on import — the form
+`classification.ts`'s `RULES_BY_ID` already uses. Verified by deliberately removing khaltiris's
+`glass` entry: the import throws, naming the preset, the material, its level and the fix.
+
+⚠️ **Engine test fixtures need no exemption, and must not be given one.** `mockCulturalProfile`
+covers two classes and several tests pass `{ materialAffinities: [] }`, but it returns a bare
+profile with no geology and no trade, so the validator's signature makes it impossible to apply. The
+rule is not "a profile must be exhaustive"; it is "a profile _paired with a world_ must cover what
+that world makes accessible". Recorded in the module JSDoc so nobody later "completes" the rule by
+hooking it in.
+
+**Calibration drift was narrower than the roadmap's hazard note implied.** §2.48 established that
+every guard in `materials.calibration.test.ts` except the preset-affinity one samples
+`mockCulturalProfile` against `mockRegionalWorld` and never reads `EXPLORER_CULTURES`, so
+`EXPECTED_TAG_SHARES`, `EXPECTED_INTRA_TAG_SHARES` and `EXPECTED_PROVENANCE_MIX` needed **no
+re-recording**. Suite went 594 → 611 passing with no pin edited.
+
+| §  | Propagation                                                                           | Date       |
+| -- | ------------------------------------------------------------------------------------- | ---------- |
+| —  | `engine/generation/cultureValidation.ts` + `cultureValidation.test.ts` (14 cases)     | 2026-08-14 |
+| —  | All four presets re-authored; module-load guard in `data/explorer-cultures.ts`        | 2026-08-14 |
+| —  | `selectorMatches` exported; region helpers deliberately kept private                  | 2026-08-14 |
+| —  | `explorer-cultures.test.ts` pins silence, duplicate selectors and one-directionality  | 2026-08-14 |
+| ⏳ | 2GN.129: `techniqueAffinities` + the `> 1` gate, with xoconahtl clay as the live case | 2026-08-14 |
+| ⏳ | 2GN.124/2GN.126 re-open violations; `findAffinitySilenceViolations` re-closes them    | 2026-08-14 |
 
 ---
 

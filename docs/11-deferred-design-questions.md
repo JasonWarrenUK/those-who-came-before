@@ -822,12 +822,28 @@ unmentioned tag contributes no adjustment to an additive weight, where `1` would
 every option. Silence there is a different statement from silence in the resolver, so the validator
 does not police it.
 
+**Implemented (2GN.128, 2026-08-14).** The validator is `findAffinitySilenceViolations` /
+`assertAffinitiesCoverAccessibleMaterials` in `engine/generation/cultureValidation.ts`, and the
+enforcement point is **module load** in `data/explorer-cultures.ts` — for a hand-authored const
+array, that is profile-construction time. All 31 violations are closed; the presets now author 7–12
+entries each.
+
+⚠️ **The rule is structurally inapplicable to world-less profiles, which is why engine fixtures need
+no exemption.** Accessibility is derived from a geology and trade set, and `mockCulturalProfile`
+carries neither, so the validator cannot be applied to it at all. The rule is not "a profile must be
+exhaustive"; it is "a profile _paired with a world_ must cover what that world makes accessible".
+Tests passing `{ materialAffinities: [] }` exercise the resolver's neutral default, which this
+decision leaves untouched. Do not "complete" the rule by hooking it into the fixture.
+
+⚠️ The three-state read needed no new export: `explainMaterialWeight` already returns `level` and
+`available` separately, so accessibility is `level !== undefined && available`. The private region
+helpers stayed private deliberately — doc 12 §2.50 records the divergence that argument rests on.
+
 **Affects:** doc 05 §3.3 (`materialAffinities`' authoring contract), doc 12 (§2.49 records the
-measurements). Roadmap: 2GN.127 ruled; implementation adds the validator and re-authors the four
-Explorer presets — measured 31 violations against 8 legitimate silences across them, with khaltiris
-required to state a position on all sixteen materials. The presets are re-authored to fit the rule,
-not the reverse: they exist to showcase the engine. Full detail:
-`docs/spikes/2GN.127-affinity-silence.md`.
+measurements, §2.50 the implementation). Roadmap: 2GN.127 ruled, 2GN.128 implemented — measured 31
+violations against 8 legitimate silences, with khaltiris required to state a position on all sixteen
+materials. The presets were re-authored to fit the rule, not the reverse: they exist to showcase the
+engine. Full detail: `docs/spikes/2GN.127-affinity-silence.md`.
 
 ---
 

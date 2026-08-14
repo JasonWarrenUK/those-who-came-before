@@ -122,8 +122,26 @@ function bestRegionalLevel(
 	return best;
 }
 
-/** Whether one `MaterialSelector` names `material`, by its class or by its own id. */
-function selectorMatches(material: MaterialDefinition, selector: MaterialSelector): boolean {
+/**
+ * Whether one `MaterialSelector` names `material`, by its class or by its own id.
+ *
+ * Exported for `cultureValidation.ts` (roadmap 2GN.128), which needs the *coverage* question — "does
+ * any affinity entry match this material at all" — that `culturalAffinityWeight` structurally cannot
+ * answer: its `?? 1` fallback makes "matched at exactly 1.0" and "unmatched" the same value, which is
+ * the collapse the 2GN.127 ruling exists to eliminate. Shared rather than re-implemented, per the
+ * same reasoning `culturalAffinityWeight`'s own JSDoc gives for being exported to `decoration.ts`.
+ *
+ * ⚠️ `bestRegionalLevel` and `reachableByTrade` deliberately stay **private** despite the validator
+ * also needing availability. It reads `explainMaterialWeight` instead, which already exposes `level`
+ * and `available` as separate fields. `materialAssignment.ts` (the Explorer material panel) records
+ * why: a previous version of that module re-implemented this region logic locally and diverged,
+ * reading the culture's *first* region where the engine reads the *best* across all — invisible only
+ * because every Explorer preset authors exactly one region. Obtainability keeps one source of truth.
+ */
+export function selectorMatches(
+	material: MaterialDefinition,
+	selector: MaterialSelector,
+): boolean {
 	return selector.tag !== undefined
 		? material.tags.includes(selector.tag)
 		: material.id === selector.id;

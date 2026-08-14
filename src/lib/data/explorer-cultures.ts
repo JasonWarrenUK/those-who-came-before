@@ -31,6 +31,7 @@ import type {
 } from '../types/world.ts';
 import type { MaterialName, MaterialTag } from '../types/tags.ts';
 import type { CulturePhaseSample } from '../engine/generation/baselines.ts';
+import { assertAffinitiesCoverAccessibleMaterials } from '../engine/generation/cultureValidation.ts';
 
 /** One Explorer preset: a named, described culture paired with a single phase to generate against. */
 export interface ExplorerCulture {
@@ -127,8 +128,29 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		profile: {
 			materialAffinities: materialAffinities([
 				['bone', 1.6],
+				// ⚠️ Covers gold and silver, both `absent` in this geology. Legal and deliberate: the
+				// 2GN.127 obligation is one-directional (accessible ⟹ must be covered; covered ⟹
+				// nothing implied about access), so a culture may hold a view on a metal it has never
+				// held. The weight is inert for those two — `isAvailable` excludes them before
+				// `culturalAffinityWeight` is ever consulted. Not an oversight; don't tidy it away.
 				['metal', 1.3],
 				['leather', 1.2],
+				// The four entries below close this preset's six 2GN.128 violations: oak and ash
+				// (`wood`), flint and granite (`stone`), fired-clay (`clay`), linen (`fiber`).
+				//
+				// Shafts, frames and cart-beds: a mobile life is built from what it can cut on the
+				// move. Mild favour rather than a specialism, matching `woodWorking: 0.4`.
+				['wood', 1.1],
+				// Flint is still knapped, but stone is heavy and this culture moves. Just below neutral
+				// reads as "used where bone won't serve", not as distaste.
+				['stone', 0.9],
+				// Fired pots travel badly. A *preference* against ceramics, distinct from the capability
+				// floor: this culture could fire more clay than it chooses to.
+				['clay', 0.7],
+				// The phase block already argues this one — flax is a settled-agriculture crop, so
+				// `textiles` does not rise with the herd's by-products the way `leatherWorking` does.
+				// The affinity states the choice; the technology score states the capability.
+				['fiber', 0.6],
 			]),
 			techniqueAffinities: new Map([
 				['engraving', 1.2],
@@ -220,6 +242,43 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				['glass', 1.1],
 				[{ id: 'gold' }, 1.2],
 				[{ id: 'silver' }, 1.2],
+				// The eight entries below close this preset's eleven 2GN.128 violations, the worst count
+				// of the four — a culture that buys metal, gold and obsidian through three flows and
+				// holds no stated opinion about any of them is not credible.
+				//
+				// ⚠️ Bronze and iron are discharged by *specific* entries, and the continued absence of
+				// a `metal` class entry is now load-bearing twice over. Beyond the authored intent above
+				// (naming gold and silver without dragging bronze and iron up with them), a `metal`
+				// entry would silently break `materials.calibration.test.ts`'s preset-affinity guard:
+				// that guard appends `{ tag: 'metal' }: 1.5` to build its `classLifted` arm, and
+				// `culturalAffinityWeight` takes first-match, so a pre-existing `metal` entry makes the
+				// appended one inert. Measured: the guard's assertions still pass while its comparison
+				// arm collapses to the neutral case — green, and measuring nothing (doc 12 §2.48).
+				//
+				// Bought rather than made (`metallurgy: 0.55`, both `trade-only`): useful, not prized.
+				[{ id: 'bronze' }, 0.9],
+				// The utilitarian import, and a palace culture's least-prized metal.
+				[{ id: 'iron' }, 0.8],
+				// Granite is ballast, quay and footing rather than what this culture makes things of.
+				// Also covers jade, `trade-only` here with no flow reaching it since 2GN.112 narrowed
+				// the obsidian route — inert, and legal under the one-directional obligation.
+				['stone', 0.8],
+				// The exception to that, and the clearest case for most-specific-wins in the set: this
+				// culture maintains a dedicated shipping route for obsidian alone (see `trade` below).
+				// Running a flow for one stone while shrugging at the granite underfoot is a specific
+				// preference, not a class one.
+				[{ id: 'obsidian' }, 1.2],
+				// Hulls, decking and fittings. Considered and genuinely unremarkable — which after
+				// 2GN.128 is a statement the map can carry rather than a silence indistinguishable
+				// from never having thought about it.
+				['wood', 1.0],
+				// Matches `boneWorking: 0.3`, the lowest in the set.
+				['bone', 0.7],
+				// Linen is `abundant` here, and sailcloth is a maritime culture's real textile stake.
+				['fiber', 1.3],
+				// "Hide is workaday here (bindings, straps, sandals)", per the `leatherWorking` comment
+				// in the phase block below.
+				['leather', 0.9],
 			]),
 			techniqueAffinities: new Map([
 				['painting', 1.6],
@@ -332,9 +391,20 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			materialAffinities: materialAffinities([
 				['stone', 1.8],
 				// Explicitly neutral, not an oversight: this culture works clay in quantity (fired-clay
-				// is `abundant` and 12% of its output) without favouring it. Resolves identically to
-				// omitting the entry — kept because "considered and indifferent" is worth distinguishing
-				// from "never considered", a distinction the type cannot carry (roadmap 2GN.127).
+				// is `abundant` and 12% of its output) without favouring it.
+				//
+				// The 2GN.127 ruling resolved what this entry used to apologise for. It no longer
+				// "resolves identically to omitting the entry": omitting it would now *throw*, because
+				// fired-clay is accessible here, so the entry's presence is what states the judgement
+				// and the old comment's "a distinction the type cannot carry" is discharged.
+				//
+				// ⚠️ The value stays at exactly 1.0 deliberately, and this is the live instance of the
+				// defect 2GN.129 exists to rule on: `materialAccessGate` (`decoration.ts`) requires
+				// `culturalAffinityWeight(...) > 1` for substrate access, so this authored indifference
+				// suppresses clay-substrate techniques *identically* to a culture that cannot obtain
+				// clay at all — on a culture whose fired-clay is `abundant`. Retuning this to 1.1 would
+				// route around the defect by editing the content rather than the gate, and would
+				// destroy the evidence that makes it measurable. The gate is what's wrong, not the 1.0.
 				['clay', 1.0],
 				[{ id: 'jade' }, 2.2],
 				// Below neutral, and the first authored disfavour in any preset. Distinct from the
@@ -344,6 +414,24 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 				// investment beside the stone it builds in. 0.7 rather than 0.5 because the authored
 				// case is climate and opportunity cost, not distaste.
 				['leather', 0.7],
+				// The four entries below close this preset's six 2GN.128 violations.
+				//
+				// The sole import, and the only metal that reaches this culture at all — bronze, iron
+				// and silver are all `absent`. A monumental culture at `religiousEmphasis: 0.85` that
+				// maintains one low-volume flow for one metal is importing votive metal. Below jade's
+				// 2.2 deliberately: the jade comment above argues local-and-prized outranks ordinary
+				// stone, and imported gold ranking under local jade follows that same logic.
+				[{ id: 'gold' }, 1.5],
+				// A jungle culture's most available structural material, at `woodWorking: 0.5`.
+				['wood', 1.2],
+				// ⚠️ A second entry at exactly neutral, and unlike clay above this one is tolerable
+				// where it sits. It hits the same `> 1` substrate gate, but bone-substrate techniques
+				// are not this culture's idiom (`boneWorking: 0.4`, and its decorative weight is in
+				// relief and engraving on stone), so the suppression costs nothing observable here.
+				// The pair is deliberate, not inconsistent: 2GN.129 rules the gate, not these values.
+				['bone', 1.0],
+				// Linen is `available`, and textile offering is real votive practice.
+				['fiber', 1.1],
 			]),
 			techniqueAffinities: new Map([
 				['relief', 1.7],
@@ -439,6 +527,36 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 			materialAffinities: materialAffinities([
 				['metal', 1.7],
 				['stone', 1.1],
+				// The seven entries below close this preset's eight 2GN.128 violations. Khaltiris is the
+				// only preset with **zero** legitimate silences — nothing in its geology is `absent` and
+				// both `trade-only` materials have a flow — so it must state a position on all sixteen.
+				// Nine entries do it, because the two class entries above already carry eight materials:
+				// the terseness the ruling protects, tested against its hardest case.
+				//
+				// ⚠️ The parked gold/silver question above is deliberately left parked. `metal: 1.7`
+				// covers both, so the obligation is discharged without re-authoring intent that 2GN.123
+				// explicitly deferred pending a ruling. 2GN.128 does not disturb it.
+				//
+				// The exception to `stone`, and the second-clearest most-specific-wins case in the set:
+				// jade is `trade-only` and arrives by a dedicated jade-only flow, which is what the
+				// culture header means by "an imperial metalworking culture that has to import its
+				// ornament". Maintaining a route for one stone while granite lies `abundant` underfoot
+				// is a specific preference, not a class one.
+				[{ id: 'jade' }, 1.6],
+				// The other import, by its own flow: `trade-only` and wanted.
+				['glass', 1.4],
+				// Armour backing, scabbards, harness and shield facing, with dedicated tanners implied
+				// by `craftSpecialisation: 0.85` — the case the `leatherWorking` comment already makes.
+				['leather', 1.1],
+				// Structural rather than displayed; not what an imperial workshop signs its name to.
+				['wood', 0.9],
+				// Utilitarian ware beside inlaid metal, matching `ceramics: 0.5`.
+				['clay', 0.8],
+				// Matches `boneWorking: 0.3`, joint-lowest in the set.
+				['bone', 0.7],
+				// `scarce` here and `textiles: 0.45` — the one organic this culture neither has nor
+				// prizes. Slightly below neutral rather than lower: cloth is still needed, just bought.
+				['fiber', 0.9],
 			]),
 			techniqueAffinities: new Map([
 				['inlay', 1.6],
@@ -520,6 +638,33 @@ export const EXPLORER_CULTURES: readonly ExplorerCulture[] = [
 		],
 	},
 ];
+
+/**
+ * Every preset satisfies the 2GN.127 affinity-silence rule, checked once at module load
+ * (roadmap 2GN.128, doc 11 §2.15).
+ *
+ * The ruling requires enforcement at **profile-construction time** rather than during generation.
+ * For a hand-authored const array that moment is module evaluation: these presets have no
+ * constructor function, and inventing one purely to host this check would be authoring machinery for
+ * a shape nothing has, which 2GN.110's precedent explicitly declines. Same form as
+ * `data/classification.ts`'s `RULES_BY_ID` duplicate-id guard.
+ *
+ * So a violating preset fails the import — the dev server, the build and the test run all stop —
+ * instead of silently skewing one artefact in a thousand draws.
+ *
+ * ⚠️ This is the module's first **value** import from `engine/generation/`, where it previously took
+ * only types. Deliberate: the data→engine direction is already established (`materials.ts` imports
+ * `data/materials.ts`), and the alternative is a data module that cannot check its own invariant.
+ */
+for (const culture of EXPLORER_CULTURES) {
+	assertAffinitiesCoverAccessibleMaterials(
+		culture.id,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+	);
+}
 
 /**
  * An `ExplorerCulture` as a `CulturePhaseSample`, for baseline sampling (roadmap 2GN.95).
