@@ -1,8 +1,8 @@
 # Milestone Board / Roadmap
 
 > [!WARNING]
-> **Superseded.** This is the pre-reset 7-milestone plan referenced by doc 01's historical audit. The
-> canonical roadmap is `.claude/roadmaps.json`, projected into
+> **Superseded.** This is the pre-reset 7-milestone plan referenced by doc 01's historical audit.
+> The canonical roadmap is `.claude/roadmaps.json`, projected into
 > [`docs/roadmaps/mvp.md`](../roadmaps/mvp.md) — see the CLAUDE.md roadmap section.
 
 ## Milestone 1: Artefact Generation v2 (Blueprints & Anatomy)
