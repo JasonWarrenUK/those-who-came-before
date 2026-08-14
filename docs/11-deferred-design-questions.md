@@ -804,13 +804,23 @@ throw — backwards, since an unmodelled material is the strongest case for "nev
 `scarcityWeight`'s JSDoc already treats `undefined` as a third state distinct from available/absent;
 the validator does likewise.
 
-**Scope.** Binds `materialAffinities` now. `contextWeights` and `siteTypeWeights` have **no engine
-readers at all** and inherit when they get one — ruling strictness for a dormant map is the defect
-2GN.87 punished. `techniqueAffinities` inherits the principle but is deferred behind a prior
+**Scope.** Binds `materialAffinities` now, and within it the neutral-`1` default that
+`culturalAffinityWeight` (`materials.ts`) applies. `contextWeights` and `siteTypeWeights` have **no
+engine readers at all** and inherit when they get one — ruling strictness for a dormant map is the
+defect 2GN.87 punished. `techniqueAffinities` inherits the principle but is deferred behind a prior
 question: `materialAccessGate`'s substrate check requires `culturalAffinityWeight(...) > 1`, so a
 material authored at exactly `1.0` fails it identically to one the culture cannot obtain — ⚠️ the
 same ambivalent-versus-absent collapse this ruling eliminates, reappearing one layer down. Whether
 affinity should gate substrate access at all is a separate ruling.
+
+⚠️ **`effectiveOptionWeight` (`grammar.ts`) reads `materialAffinities` too, and is deliberately not
+bound by this.** §2.13 records why it cannot consult a per-material entry even in principle (stage 4
+weights grammar options; materials are not assigned until stage 6). The point here is narrower and
+about the default rather than the keyspace: its lookup runs **tag→weight**, the reverse of the
+resolver's material→weight, and its default is **`?? 0`**, not the resolver's neutral `1`. An
+unmentioned tag contributes no adjustment to an additive weight, where `1` would silently shift
+every option. Silence there is a different statement from silence in the resolver, so the validator
+does not police it.
 
 **Affects:** doc 05 §3.3 (`materialAffinities`' authoring contract), doc 12 (§2.49 records the
 measurements). Roadmap: 2GN.127 ruled; implementation adds the validator and re-authors the four

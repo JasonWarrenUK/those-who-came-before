@@ -25,17 +25,26 @@ sentinel; or a `completeness: 'partial' | 'exhaustive'` flag. The ruling below t
 The brief instructed "rule the family, not the one map", naming `materialAffinities`,
 `techniqueAffinities`, `contextWeights` and `siteTypeWeights`. Checked against the engine:
 
-| Map                   | Engine readers                                   |
-| --------------------- | ------------------------------------------------ |
-| `materialAffinities`  | `culturalAffinityWeight`, `bestMaterialAffinity` |
-| `techniqueAffinities` | `computeTechniqueWeight`                         |
-| `contextWeights`      | **none**                                         |
-| `siteTypeWeights`     | **none**                                         |
+| Map                   | Engine readers                                                                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `materialAffinities`  | `culturalAffinityWeight` (`materials.ts`), `effectiveOptionWeight` (`grammar.ts`), and `materialAccessGate` (`decoration.ts`) through the first |
+| `techniqueAffinities` | `computeTechniqueWeight` (`decoration.ts`)                                                                                                      |
+| `contextWeights`      | **none**                                                                                                                                        |
+| `siteTypeWeights`     | **none**                                                                                                                                        |
 
 Two of the four are dormant: declared in `CraftInvestmentProfile`, authored in all four presets,
 read by nothing. Ruling strictness for a map with no reader means authoring a contract against
 unobserved behaviour, which is the defect 2GN.87 punished and which 2GN.110 explicitly refused to
 repeat on tag-versus-tag ties.
+
+⚠️ **`effectiveOptionWeight` reads the map directly but is not governed by this ruling**, and its
+default is `?? 0` rather than the resolver's neutral `1`. It iterates a `GrammarOption`'s
+`culturalModifiers` and looks each tag up in `materialAffinities`, so the lookup runs tag→weight,
+the reverse of the resolver's material→weight. An unmentioned tag contributes no adjustment to an
+additive weight, where `1` would silently shift every option. Silence there is a different statement
+from silence in the resolver and is left alone. Doc 11 §2.13 records the separate reason it cannot
+consult a per-material entry even in principle: it runs at stage 4, and materials are not assigned
+until stage 6.
 
 This is also doc 12 §2.47's own lesson (a dormant path accumulates no evidence about itself)
 applying to the brief's own framing.

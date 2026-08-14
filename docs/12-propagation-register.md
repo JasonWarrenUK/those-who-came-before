@@ -2773,6 +2773,26 @@ already treats `undefined` as a third state for the same class of reason; the va
 The presets do not expose this (their `geology()` helper models all sixteen deliberately) which is
 exactly why it needed catching in the ruling rather than in implementation.
 
+⚠️ **The ruling's first draft named a reader that does not exist.** Finding 1's table listed
+`bestMaterialAffinity` as the second consumer of `materialAffinities`, carried straight from
+2GN.110's ruling notes; `grep` over `src/` returns nothing, because 2GN.123 removed it when it
+re-keyed the map. Caught in branch review before the PR. The real inventory is three:
+`culturalAffinityWeight` (`materials.ts`), `effectiveOptionWeight` (`grammar.ts`) and
+`materialAccessGate` (`decoration.ts`) through the first. The same class of error as §2.47's, and a
+direct instance of the standing rule that a doc is authoritative for design intent and never for
+what shipped — a ruling that inventories code must re-derive that inventory from the code.
+
+`effectiveOptionWeight` is the reader the draft missed entirely, and it matters to scope: its
+default is `?? 0`, not the resolver's neutral `1`, so an unmentioned tag contributes no adjustment
+to an additive weight. Silence there is a different statement and stays outside the validator.
+
+⏳ **The same stale name survives in three places this branch did not touch**: doc 11 §2.13, §2.45
+above, and 2GN.123's roadmap line, all describing `decoration.ts` as inlining its own reduction.
+2GN.123 did not rename that function, it **deleted** it — `decoration.ts:98` now imports
+`culturalAffinityWeight` from `materials.ts`, which is the single-resolver outcome the task wanted.
+The three references describe the pre-2GN.123 world and want a sweep; left out of this branch to
+keep the diff on its subject.
+
 **The technique layer carries the same defect one hop down.** `materialAccessGate`'s substrate check
 requires `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral. Once this
 ruling pushes cultures to author far more entries, any authored at exactly `1.0` still fail that
@@ -2787,6 +2807,8 @@ gate substrate access at all is a separate ruling.
 | —  | `docs/spikes/2GN.127-affinity-silence.md` holds the measurements and rejected options    | 2026-08-14 |
 | ⏳ | Validator + preset re-authoring (31 violations to close); doc 05 §3.3 authoring contract | 2026-08-14 |
 | ⏳ | `techniqueAffinities` extension, carrying the `> 1` substrate-gate question              | 2026-08-14 |
+| —  | Reader inventory corrected in review: `bestMaterialAffinity` does not exist              | 2026-08-14 |
+| ⏳ | Sweep the same stale name from doc 11 §2.13, §2.45 and 2GN.123's roadmap line            | 2026-08-14 |
 
 ---
 
