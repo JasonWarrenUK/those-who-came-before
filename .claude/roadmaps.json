@@ -709,6 +709,7 @@
 							"M1",
 							"2GN.91"
 						],
+						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact and reads the tag distribution for register selection, correctly owns that edge instead. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -720,6 +721,7 @@
 							"M1",
 							"2GN.91"
 						],
+						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact and reads the tag distribution for register selection, correctly owns that edge instead. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
 						"assignee": "Jason Warren"
 					},
 					{

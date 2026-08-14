@@ -1681,9 +1681,18 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [ ] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
-      function tag variants _(depends on 1FD.31, M1, 2GN.91 — all done)_
+      function tag variants _(depends on 1FD.31, M1, 2GN.91 — all done)_ — deliberately does not
+      depend on 2GN.27/2GN.68 (tag-accumulation changes): template authoring keys on fixed
+      structural/material fields (1FD.31's `DescriptionTemplate`/`Variant` shape, 2GN.91's
+      `VariantCondition`: `property`/`craftDomain`/`materialId`/`materialTag`), not on the derived
+      function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions
+      against a fully-classified artefact and reads the tag distribution for register selection,
+      correctly owns that edge instead. Confirmed by roadmap-review (deps, M2) 2026-08-15
 - [ ] **2GN.37** — `src/lib/data/descriptions/technical/` — technical register templates
-      (craft-process, manufacturing) _(depends on 1FD.31, M1, 2GN.91 — all done)_
+      (craft-process, manufacturing) _(depends on 1FD.31, M1, 2GN.91 — all done)_ — same rationale
+      as 2GN.36: does not depend on 2GN.27/2GN.68, since template authoring keys on fixed
+      structural/material fields rather than derived tags. Confirmed by roadmap-review (deps, M2)
+      2026-08-15
 - [ ] **2GN.38** — `engine/generation/description.ts` —
       `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered
       observation list per component _(blocked — depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37,
