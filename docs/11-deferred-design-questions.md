@@ -759,5 +759,67 @@ detail: `docs/spikes/2GN.111-per-state-physical-properties.md`.
 
 ---
 
+### 2.15 Silence in an Affinity Map Means Inaccessible (roadmap 2GN.127)
+
+**Decision:** an absent entry in `CulturalProfile.materialAffinities` is legitimate **iff the
+material is inaccessible to that culture** — `absent` locally with no `MaterialFlow` reaching it, or
+unmodelled in that geology. A material the culture can obtain, locally or through trade, **must**
+carry a matching entry. A **validator** enforces this at profile-construction time; it does not
+throw during generation.
+
+The general principle, binding on the affinity-map family as each member becomes live: **silence is
+legitimate iff the thing is inaccessible, and accessibility must be derivable from the world
+model.** A map with no derivable accessibility does not get a strictness rule invented for it.
+
+**The problem it solves.** `culturalAffinityWeight` returns `1` for any unmatched material, so an
+unauthored material was indistinguishable from one deliberately authored at exactly `1.0` —
+"considered and indifferent" and "never considered" collapsed into the same reading. Xoconahtl's
+`['clay', 1.0]` existed only to carry that distinction in a comment, which is precisely what the
+type could not carry.
+
+**Why not a sentinel or a `completeness` flag.** Both were offered by the brief and both are
+unnecessary: absence is already derivable. `isAvailable(material, geology, trade)` answers "could
+this culture ever have encountered this?", which is exactly the condition under which having no
+attitude is credible. The distinction becomes a **validation** question rather than a syntax
+question, and every authored profile keeps its shape. ⚠️ Throwing on all omission was rejected for a
+stronger reason: it does not distinguish the two cases, it abolishes one — under it, no culture may
+ever not have encountered a material.
+
+**Class entries discharge the obligation.** `{ tag: 'stone' }: 1.4` states a position on flint,
+granite and obsidian; most-specific-wins (§2.13) already treats it as each material's real weight.
+Requiring per-material entries would destroy the terse authoring 2GN.110 built (khaltiris authors
+two entries covering eight materials), make 2GN.124's widened catalogue a breaking change for every
+culture, and produce fake exhaustiveness — an author given sixteen boxes fills twelve with `1.0`
+unthinkingly, which is silence laundered as authorship, the failure mode §2.14 names on the
+per-state side.
+
+⚠️ **The obligation is one-directional.** Accessible ⟹ must be covered. Covered ⟹ nothing implied
+about access. A culture may legitimately hold opinions about materials it cannot obtain, so a
+`{ tag: 'metal' }: 1.5` entry covering a gold that no flow reaches is well-formed and silent. The
+validator only ever reports the missing direction.
+
+⚠️ **Unmodelled geology reads as inaccessible, not accessible.** `isAvailable`'s MVP lenience
+returns `true` for a material with no geology entry, which read naively would make silence about it
+throw — backwards, since an unmodelled material is the strongest case for "never encountered".
+`scarcityWeight`'s JSDoc already treats `undefined` as a third state distinct from available/absent;
+the validator does likewise.
+
+**Scope.** Binds `materialAffinities` now. `contextWeights` and `siteTypeWeights` have **no engine
+readers at all** and inherit when they get one — ruling strictness for a dormant map is the defect
+2GN.87 punished. `techniqueAffinities` inherits the principle but is deferred behind a prior
+question: `materialAccessGate`'s substrate check requires `culturalAffinityWeight(...) > 1`, so a
+material authored at exactly `1.0` fails it identically to one the culture cannot obtain — ⚠️ the
+same ambivalent-versus-absent collapse this ruling eliminates, reappearing one layer down. Whether
+affinity should gate substrate access at all is a separate ruling.
+
+**Affects:** doc 05 §3.3 (`materialAffinities`' authoring contract), doc 12 (§2.49 records the
+measurements). Roadmap: 2GN.127 ruled; implementation adds the validator and re-authors the four
+Explorer presets — measured 31 violations against 8 legitimate silences across them, with khaltiris
+required to state a position on all sixteen materials. The presets are re-authored to fit the rule,
+not the reverse: they exist to showcase the engine. Full detail:
+`docs/spikes/2GN.127-affinity-silence.md`.
+
+---
+
 _This document is a living registry. New questions and decisions should be added as they emerge
 during specification work._
