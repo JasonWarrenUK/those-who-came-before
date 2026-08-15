@@ -152,12 +152,12 @@ export function pickRanked<T>(items: readonly T[], prng: () => number): T {
 		throw new Error('pickRanked: items must not be empty');
 	}
 
-	if (items.length === 1) {
-		return items[0];
-	}
-
 	// Inverse geometric CDF. `Math.log(1 - u)` is negative and `Math.log(1 - DROPOFF)` likewise, so
 	// the quotient is non-negative; `u === 0` yields index 0.
+	//
+	// ⚠️ Always draws, even for a singleton list — the doc comment above promises exactly one
+	// `prng()` call regardless of list length, and a fast-path return here would silently break that
+	// contract for the caller's very next draw.
 	const index = Math.floor(Math.log(1 - prng()) / Math.log(1 - RANKED_DROPOFF));
 	return items[Math.min(index, items.length - 1)];
 }

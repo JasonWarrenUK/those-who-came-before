@@ -205,7 +205,7 @@ Deno.test('pickRanked: follows the geometric dropoff', () => {
  * of draws, so changing an inventory's size would shift every subsequent value in the stream.
  */
 Deno.test('pickRanked: consumes exactly one draw regardless of list length', () => {
-	for (const length of [2, 5, 40]) {
+	for (const length of [1, 2, 5, 40]) {
 		const items = Array.from({ length }, (_unused, index) => index);
 		let draws = 0;
 		const counting = () => {
