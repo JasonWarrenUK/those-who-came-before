@@ -42,7 +42,7 @@ Deno.test('syllabify: a glide begins a syllable rather than closing one', () => 
 	assert(sonorityOf('a') > sonorityOf('yy'), 'a vowel must outrank an approximant strictly');
 });
 
-Deno.test('syllabify: a single vowel yields a single syllable', () => {
+Deno.test('syllabify: splits CV·CV and closes a final syllable with a coda', () => {
 	assertEquals(shape(['p', 'o', 'p', 'o']), 'p|o| p|o|');
 	assertEquals(shape(['k', 'a', 'r']), 'k|a|r');
 });
