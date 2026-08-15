@@ -354,7 +354,7 @@ Deno.test('syllables: the recorded structure agrees with independent syllabifica
 	assert(
 		share >= 0.9,
 		`stored and derived syllabification agree on only ${(100 * share).toFixed(1)}% of names ` +
-			`(floor 75%); one of the two has broken`,
+			`(floor 90%); one of the two has broken`,
 	);
 });
 
@@ -377,7 +377,7 @@ Deno.test('renderNameSyllabified: reads the recorded boundaries', () => {
 Deno.test('renderNameSyllabified: falls back to derivation when the counts are stale', () => {
 	assertEquals(
 		renderNameSyllabified({
-			// Counts sum to 4 against 6 segments — what a segment-rewriting drift pass would leave.
+			// Counts sum to 4 against 5 segments — what a segment-rewriting drift pass would leave.
 			segments: ['t', 'a', 'p', 'r', 'a'],
 			syllables: [2, 2],
 			languageId: 'l',
