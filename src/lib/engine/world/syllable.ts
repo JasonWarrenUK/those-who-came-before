@@ -25,7 +25,7 @@
 import type { Manner } from '../../types/language.ts';
 import { MANNER_VALUES } from '../../types/language.ts';
 import { PHONES_BY_ID } from '../../data/names/phones.ts';
-import { ONSET_CLUSTER_MANNERS } from '../../data/names/coherence.ts';
+import { ONSET_CLUSTER_MANNERS, ONSET_S_CLUSTER_FOLLOWERS } from '../../data/names/coherence.ts';
 
 /**
  * One syllable's three slots. `nucleus` is `null` only for a degenerate input holding no vowel,
@@ -43,8 +43,11 @@ export interface Syllable {
 }
 
 /**
- * Whether an ordered consonant pair forms an admissible onset cluster, per the sonority rules in
- * `ONSET_CLUSTER_MANNERS`. Checked over manners, so the rule keeps applying as the phone table grows.
+ * Whether an ordered consonant pair forms an admissible onset cluster: either a sonority-rising pair
+ * per `ONSET_CLUSTER_MANNERS`, or the `/s/`-specific exception in `ONSET_S_CLUSTER_FOLLOWERS`.
+ *
+ * The second check is by phoneme id, not manner, deliberately — the `/s/` exception does not
+ * generalise to every fricative. See `ONSET_S_CLUSTER_FOLLOWERS`'s doc comment.
  */
 export function isAdmissibleCluster(first: string, second: string): boolean {
 	const firstManner = PHONES_BY_ID.get(first)?.manner;
@@ -54,7 +57,11 @@ export function isAdmissibleCluster(first: string, second: string): boolean {
 		return false;
 	}
 
-	return ONSET_CLUSTER_MANNERS.some(([a, b]) => a === firstManner && b === secondManner);
+	if (ONSET_CLUSTER_MANNERS.some(([a, b]) => a === firstManner && b === secondManner)) {
+		return true;
+	}
+
+	return first === 's' && ONSET_S_CLUSTER_FOLLOWERS.includes(secondManner);
 }
 
 /**
@@ -124,7 +131,8 @@ export function syllabify(segments: readonly string[]): Syllable[] {
 		let onsetStart = between.length;
 		while (onsetStart > 0) {
 			const candidate = between[onsetStart - 1];
-			const next = onsetStart === between.length ? segments[position] : between[onsetStart];
+			const nextIsNucleus = onsetStart === between.length;
+			const next = nextIsNucleus ? segments[position] : between[onsetStart];
 
 			if (sonorityOf(candidate) >= sonorityOf(next)) {
 				break;
@@ -134,7 +142,7 @@ export function syllabify(segments: readonly string[]): Syllable[] {
 			// language would actually admit. `ch` before `ś` rises, yet `chś` is no onset — without this
 			// the walk invented clusters the generator could never have produced, and `Lechśekpin` read
 			// `le • chśek • pin` rather than `lech • śek • pin`.
-			if (next !== segments[position] && !isAdmissibleCluster(candidate, next)) {
+			if (!nextIsNucleus && !isAdmissibleCluster(candidate, next)) {
 				break;
 			}
 

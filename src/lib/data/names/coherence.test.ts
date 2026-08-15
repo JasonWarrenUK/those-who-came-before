@@ -2,10 +2,12 @@
 import { assert, assertEquals } from '@std/assert';
 import { MANNER_VALUES } from '../../types/language.ts';
 import { PHONES_BY_ID } from './phones.ts';
+import { isAdmissibleCluster } from '../../engine/world/syllable.ts';
 import {
 	MAX_CONSONANT_RUN,
 	MINIMAL_VOWEL_SYSTEM,
 	ONSET_CLUSTER_MANNERS,
+	ONSET_S_CLUSTER_FOLLOWERS,
 	PHONEME_PREREQUISITES,
 	UNIVERSAL_CORE,
 } from './coherence.ts';
@@ -99,14 +101,15 @@ Deno.test('clusters: every manner named is a real manner', () => {
 
 /**
  * The sonority sequencing principle: an onset cluster rises in sonority towards the vowel.
- * `MANNER_VALUES` is ordered by increasing sonority, so an admissible pair has increasing indices —
- * except the two well-attested `/s/`-initial violations, which this pins as the *only* exceptions so
- * a third cannot be added without a deliberate decision.
+ * `MANNER_VALUES` is ordered by increasing sonority, so an admissible pair has increasing indices.
+ * `ONSET_CLUSTER_MANNERS` carries no exceptions itself — the `/s/`-initial sonority violations are
+ * phoneme-scoped in `ONSET_S_CLUSTER_FOLLOWERS` instead, checked separately below, so a manner-level
+ * exception cannot silently admit every fricative.
  *
  * This test earned its place during authoring: two cluster rules referenced a `'liquid'` manner that
  * no longer existed after the lateral split, leaving them silently dead.
  */
-Deno.test('clusters: rise in sonority, bar the two attested /s/ exceptions', () => {
+Deno.test('clusters: rise in sonority with no exceptions', () => {
 	const sonority = (manner: string) =>
 		MANNER_VALUES.indexOf(manner as typeof MANNER_VALUES[number]);
 
@@ -114,7 +117,30 @@ Deno.test('clusters: rise in sonority, bar the two attested /s/ exceptions', () 
 		.filter(([first, second]) => sonority(first) >= sonority(second))
 		.map(([first, second]) => `${first}+${second}`);
 
-	assertEquals(violations, ['fricative+stop']);
+	assertEquals(violations, []);
+});
+
+/**
+ * The `/s/`-initial exceptions (`stop`, `speak`, `skill`, `smoke`, `snow`) are pinned as the only
+ * two manners `/s/` may lead into despite the sonority principle above, so a third cannot be added
+ * without a deliberate decision.
+ */
+Deno.test('clusters: /s/ leads into exactly stop and nasal', () => {
+	assertEquals([...ONSET_S_CLUSTER_FOLLOWERS], ['stop', 'nasal']);
+});
+
+Deno.test('clusters: /s/ + stop is admissible, other fricatives + stop are not', () => {
+	assert(isAdmissibleCluster('s', 't'), 's+t (stop) should be admissible');
+	assert(isAdmissibleCluster('s', 'p'), 's+p (stop) should be admissible');
+	assert(!isAdmissibleCluster('f', 't'), 'f+t should not inherit the /s/ exception');
+	assert(!isAdmissibleCluster('sh', 'k'), 'sh+k should not inherit the /s/ exception');
+	assert(!isAdmissibleCluster('zh', 'p'), 'zh+p should not inherit the /s/ exception');
+});
+
+Deno.test('clusters: /s/ + nasal is admissible, other fricatives + nasal are not', () => {
+	assert(isAdmissibleCluster('s', 'n'), 's+n (nasal) should be admissible');
+	assert(!isAdmissibleCluster('f', 'm'), 'f+m should not inherit the /s/ exception');
+	assert(!isAdmissibleCluster('sh', 'n'), 'sh+n should not inherit the /s/ exception');
 });
 
 Deno.test('clusters: the phonotactic limits are the measured ones', () => {

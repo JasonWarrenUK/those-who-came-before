@@ -133,8 +133,13 @@ export const MINIMAL_VOWEL_SYSTEM: readonly string[] = ['a', 'i', 'u'];
  *
  * The generalisation is the sonority sequencing principle: an onset cluster must rise in sonority
  * towards the vowel. `MANNER_VALUES` is ordered by increasing sonority, so an admissible pair is one
- * whose indices increase — plus the attested `/s/`-initial exceptions, which every phonology
- * textbook notes violate sonority and which English shows in `stop`, `speak`, `skill`.
+ * whose indices increase.
+ *
+ * ⚠️ **Does not itself admit the `/s/`-initial exceptions.** `stop`, `speak`, `skill` violate rising
+ * sonority and are attested only for `/s/` specifically, not for the `fricative` manner generally —
+ * `/f/`, `/sh/`, `/zh/` and the table's other twelve fricatives do not share the exception. Encoding
+ * it here at the manner level would admit all of them. `ONSET_S_CLUSTER_FOLLOWERS` below carries
+ * that exception at the phoneme level instead; `isAdmissibleCluster` (`syllable.ts`) checks both.
  */
 export const ONSET_CLUSTER_MANNERS: readonly (readonly [Manner, Manner])[] = [
 	['stop', 'lateral'],
@@ -146,12 +151,19 @@ export const ONSET_CLUSTER_MANNERS: readonly (readonly [Manner, Manner])[] = [
 	['fricative', 'tap'],
 	['fricative', 'approximant'],
 	['nasal', 'approximant'],
-	// Sonority-violating but well attested: /s/ + stop and /s/ + nasal, as in `stop`, `speak`,
-	// `skill`, `smoke`, `snow`. Called out because they are the deliberate exceptions to the rising
-	// rule above, not oversights — `coherence.test.ts` pins that these are the only two.
-	['fricative', 'stop'],
-	['fricative', 'nasal'],
 ];
+
+/**
+ * Manners `/s/` may lead into despite violating rising sonority, as in `stop`, `speak`, `skill`,
+ * `smoke`, `snow` — attested cross-linguistically for `/s/` specifically, not for fricatives as a
+ * class. Phoneme-scoped rather than folded into `ONSET_CLUSTER_MANNERS`: that table is manner-level
+ * by design, and every other fricative (`/f/`, `/sh/`, `/zh/`, ...) does not share this exception.
+ *
+ * `fricative+nasal` is not itself a sonority violation — `nasal` outranks `fricative` in
+ * `MANNER_VALUES` — so `/s/` + nasal is included here only because `smoke`/`snow` are attested, not
+ * because it needs a sonority exemption.
+ */
+export const ONSET_S_CLUSTER_FOLLOWERS: readonly Manner[] = ['stop', 'nasal'];
 
 /**
  * The largest run of consecutive consonants a generated name may contain.
