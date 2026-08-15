@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
 import { assert, assertEquals, assertNotEquals } from '@std/assert';
-import { createPrng, weightedSelect } from './prng.ts';
+import { createPrng, pickRanked, RANKED_DROPOFF, weightedSelect } from './prng.ts';
 import { mockWorldSeed } from '../../../tests/fixtures/world.ts';
 
 function drawSequence(prng: () => number, count: number): number[] {
@@ -134,4 +134,86 @@ Deno.test('mockWorldSeed: same raw seed produces a deterministic prng', () => {
 Deno.test('mockWorldSeed: defaults to a stable raw seed', () => {
 	const seed = mockWorldSeed();
 	assertEquals(seed.raw, 'test-seed');
+});
+
+Deno.test('pickRanked: same seed produces the same selection', () => {
+	const items = ['a', 'b', 'c', 'd', 'e'];
+
+	assertEquals(
+		pickRanked(items, createPrng('ranked')),
+		pickRanked(items, createPrng('ranked')),
+	);
+});
+
+Deno.test('pickRanked: a single-item list always returns that item', () => {
+	assertEquals(pickRanked(['only'], createPrng('single')), 'only');
+});
+
+Deno.test('pickRanked: throws on an empty list', () => {
+	let threw = false;
+
+	try {
+		pickRanked([], createPrng('empty'));
+	} catch {
+		threw = true;
+	}
+
+	assert(threw, 'expected pickRanked to throw on an empty items array');
+});
+
+Deno.test('pickRanked: only ever returns a member of the list', () => {
+	const items = ['a', 'b', 'c'];
+	const prng = createPrng('membership');
+
+	for (let draw = 0; draw < 500; draw++) {
+		assert(items.includes(pickRanked(items, prng)), 'returned a non-member');
+	}
+});
+
+/**
+ * The distribution is the whole point of the function, not an implementation detail: it is what
+ * stops a generated vocabulary reading as noise. Pinned as a band around the geometric expectation
+ * so retuning `RANKED_DROPOFF` has to confront what it changes.
+ */
+Deno.test('pickRanked: follows the geometric dropoff', () => {
+	const items = Array.from({ length: 10 }, (_unused, index) => index);
+	const prng = createPrng('distribution');
+	const counts = new Array(items.length).fill(0);
+	const draws = 20_000;
+
+	for (let draw = 0; draw < draws; draw++) {
+		counts[pickRanked(items, prng)]++;
+	}
+
+	// First position gets `RANKED_DROPOFF`; each subsequent falls by the same factor.
+	assert(
+		Math.abs(counts[0] / draws - RANKED_DROPOFF) < 0.03,
+		`first-position share ${(counts[0] / draws).toFixed(3)} is off ${RANKED_DROPOFF}`,
+	);
+
+	// Monotonically decreasing, bar the final position, which absorbs the whole clamped tail.
+	for (let index = 1; index < items.length - 1; index++) {
+		assert(
+			counts[index] <= counts[index - 1],
+			`position ${index} drew more often than ${index - 1}`,
+		);
+	}
+});
+
+/**
+ * Load-bearing for determinism: a rejection-sampling implementation would consume a variable number
+ * of draws, so changing an inventory's size would shift every subsequent value in the stream.
+ */
+Deno.test('pickRanked: consumes exactly one draw regardless of list length', () => {
+	for (const length of [2, 5, 40]) {
+		const items = Array.from({ length }, (_unused, index) => index);
+		let draws = 0;
+		const counting = () => {
+			draws++;
+			return 0.5;
+		};
+
+		pickRanked(items, counting);
+		assertEquals(draws, 1, `a ${length}-item list consumed ${draws} draws`);
+	}
 });
