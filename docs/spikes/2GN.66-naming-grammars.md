@@ -141,9 +141,10 @@ language in the world obeyed one frequency law: `/n/` opened 28.4% of all names 
 62% of them. Languages differed in which phonemes they _had_, never in which they _preferred_ — so
 they differed in inventory and not in character.
 
-Fixed by giving each language its own frequency ordering (`jitterRank`): the universal rank,
-compressed and perturbed per language. Measured by counting how many distinct phonemes are ever some
-language's commonest initial, out of 42 consonants:
+Fixed by giving each family its own frequency ordering (`jitterRank`): the universal rank,
+compressed and perturbed per family, then shared by every language within it — sister divergence
+within a family is deferred (see below). Measured by counting how many distinct phonemes are ever
+some language's commonest initial, out of 42 consonants:
 
 | Ordering                               | Distinct favourites | Commonest favourite |
 | -------------------------------------- | ------------------: | ------------------: |
@@ -195,8 +196,9 @@ Reading the output is the only thing that finds a defect present from the start.
 
 ## Prior art: `the-tongue`
 
-`/Users/jasonwarren/Code/creations/the-tongue` is a mature diachronic language engine (~9.5k engine
-lines, 12 design spikes). Its rulings are adopted rather than re-derived. Adopted directly:
+`the-tongue` is a mature diachronic language engine (~9.5k engine lines, 12 design spikes), a prior
+personal project not part of this repository. Its rulings are adopted rather than re-derived.
+Adopted directly:
 
 | Import                         | Why                                                                                                          |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
