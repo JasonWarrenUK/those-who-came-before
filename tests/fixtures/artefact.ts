@@ -215,7 +215,14 @@ function mockProvenance(): Provenance {
 		phaseId: 'test-phase',
 		year: -250,
 		site: {
-			name: 'Test Site',
+			// A `NameForm` rather than a string since 2GN.66: names are stored as phonemes and
+			// rendered on read. `renderName` turns this into 'Tesu'.
+			name: {
+				segments: ['t', 'e', 's', 'u'],
+				syllables: [2, 2],
+				languageId: 'test-language',
+				coinedPhaseId: 'test-phase',
+			},
 			type: 'settlement',
 			region: 'Test Region',
 		},

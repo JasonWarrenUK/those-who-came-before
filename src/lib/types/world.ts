@@ -13,6 +13,7 @@
 
 import type { MaterialName, MaterialTag } from './tags.ts';
 import type { DecorativeTechnique } from './decoration.ts';
+import type { NameForm } from './language.ts';
 
 /**
  * Stage 1 of the generation pipeline (doc 05 §2): a single seed string deterministically generates
@@ -538,8 +539,17 @@ export interface Provenance {
 
 	/** The excavation site. Kept inline per doc 05 §3.5. */
 	site: {
-		/** Site name. */
-		name: string;
+		/**
+		 * Site name, stored as the phonemes composing it rather than as display text (roadmap
+		 * 2GN.66). `renderName` (`engine/world/naming.ts`) turns it into a string.
+		 *
+		 * ⚠️ Not a `string`, deliberately. A name held as segments can be re-rendered against a later
+		 * phase's sound changes, so a site named early appears drifted in a late document — the fossil
+		 * effect that makes an old toponym an interpretive puzzle rather than a label (Pillar 1, error
+		 * is the engine). Storing display text would foreclose that permanently. The renderer is
+		 * currently identity with respect to time, since no sound change exists yet.
+		 */
+		name: NameForm;
 
 		/** Kind of site. */
 		type: SiteType;
