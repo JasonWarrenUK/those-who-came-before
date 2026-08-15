@@ -33,12 +33,12 @@
  * | Median inventory size      |          0.00 |        ±3 |
  * | Mean consonants            |          0.44 |        ±2 |
  * | Mean vowels                |          0.12 |        ±1 |
- * | Distinct leading phonemes  |          2.00 |    ≥20 () |
+ * | Distinct leading phonemes  |          2.00 |   ≥20 (*) |
  * | Mean syllables per name    |          0.07 |     ±0.25 |
  * | Mean segments per name     |          0.16 |      ±0.8 |
  * | Template share (worst)     |          8.0pp |      ±12pp |
  *
- * () The leader count is pinned as a floor rather than a band: more diversity is never a
+ * (*) The leader count is pinned as a floor rather than a band: more diversity is never a
  * regression, and the failure it guards against is one-directional.
  *
  * ⚠️ **When this fails, it is usually right, and widening the band is usually wrong** — the same
