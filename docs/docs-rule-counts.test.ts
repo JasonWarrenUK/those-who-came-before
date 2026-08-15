@@ -90,8 +90,14 @@ const REPO_ROOT = new URL('../', import.meta.url);
  * `node_modules` is third-party prose that is not ours to correct and would dominate the walk's
  * cost. `build`/`.output`/`.svelte-kit`/`.deno-deploy` are generated projections of files already
  * checked at their source. `_to_delete` is staged for removal, so its claims are not claims the
- * project is making. Deliberately **not** listed: `src/`, `scripts/`, `tests/`, `static/` — those
- * are exactly the sweeps 2GN.87 missed, and excluding source trees here would reopen that gap.
+ * project is making. `worktrees` (under `.claude/`) holds separate git worktrees, each on its own
+ * branch with its own checkout state — their prose is that branch's concern, not this one's, and
+ * syncing them live would make this test's pass/fail depend on unrelated worktrees' freshness.
+ * Matched by bare name like every other entry here, so it excludes any directory named `worktrees`
+ * at any depth — the same trade-off `build`/`.output` already make, and no other legitimate
+ * `worktrees` directory exists in this repo. Deliberately **not** listed: `src/`, `scripts/`,
+ * `tests/`, `static/` — those are exactly the sweeps 2GN.87 missed, and excluding source trees here
+ * would reopen that gap.
  */
 const IGNORED_DIRS: ReadonlySet<string> = new Set([
 	'node_modules',
@@ -101,6 +107,7 @@ const IGNORED_DIRS: ReadonlySet<string> = new Set([
 	'build',
 	'.output',
 	'_to_delete',
+	'worktrees',
 ]);
 
 /** Files the walk must reach, or it has silently narrowed. See the test that asserts this. */
