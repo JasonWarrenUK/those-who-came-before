@@ -379,15 +379,6 @@ export function generateScholarName(
 }
 
 /**
- * Renders a name to display text: graphemes concatenated, first letter capitalised.
- *
- * ⚠️ **Currently identity with respect to time.** The eventual sound-change engine makes this
- * function take the phase to render *at* and walk changes forward from `NameForm.coinedPhaseId`, so
- * a name coined early appears drifted in a late document. Until then every phase renders alike, and
- * `name.coinedPhaseId` goes unread. This is the honesty ledger's "phase-evolved name forms: NOT
- * MODELLED" entry — the storage supports it, the renderer does not do it yet.
- */
-/**
  * Renders a name with its syllable boundaries marked — `Popo` becomes `po • po` — reading the
  * boundaries the generator recorded rather than reconstructing them.
  *
@@ -422,6 +413,15 @@ export function renderNameSyllabified(name: NameForm, separator = ' • '): stri
 	return parts.join(separator);
 }
 
+/**
+ * Renders a name to display text: graphemes concatenated, first letter capitalised.
+ *
+ * ⚠️ **Currently identity with respect to time.** The eventual sound-change engine makes this
+ * function take the phase to render *at* and walk changes forward from `NameForm.coinedPhaseId`, so
+ * a name coined early appears drifted in a late document. Until then every phase renders alike, and
+ * `name.coinedPhaseId` goes unread. This is the honesty ledger's "phase-evolved name forms: NOT
+ * MODELLED" entry — the storage supports it, the renderer does not do it yet.
+ */
 export function renderName(name: NameForm): string {
 	const text = name.segments
 		.map((id) => PHONES_BY_ID.get(id)?.grapheme ?? id)
