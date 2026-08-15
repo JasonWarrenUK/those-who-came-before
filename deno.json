@@ -10,7 +10,8 @@
 		"sample:materials": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-materials.ts",
 		"sample:decoration": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-decoration.ts",
 		"sample:features": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-features.ts",
-		"sample:classification": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-classification.ts"
+		"sample:classification": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-classification.ts",
+		"sample:names": "deno run -q --allow-run=gum --allow-env=NO_COLOR,CLICOLOR_FORCE scripts/dev/sample-names.ts"
 	},
 	"compilerOptions": {
 		"strict": true,

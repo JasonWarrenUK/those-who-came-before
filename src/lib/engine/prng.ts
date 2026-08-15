@@ -116,3 +116,48 @@ export function weightedSelect<T>(
 	// Floating-point drift can leave a sliver of `remaining` unconsumed; the last item covers it.
 	return items[items.length - 1];
 }
+
+/**
+ * How sharply `pickRanked` favours the front of its list. `0.3` is gen's (Zompist) "Medium"
+ * setting, adopted via `the-tongue`'s `1eng-16` survey. Expected shares over a 10-member list:
+ * `.300 .210 .147 .103 .072 .050 .035 .025 .017 .041` — the last absorbs the whole tail.
+ */
+export const RANKED_DROPOFF = 0.3;
+
+/**
+ * Selects from a **markedness-ordered** list with a geometric dropoff, so the front is drawn far
+ * more often than the tail.
+ *
+ * Distinct from `weightedSelect`, which takes explicit per-item weights: here the weight *is* the
+ * position, which suits vocabularies whose natural frequency follows their ordering — phoneme
+ * inventories above all. Drawing phonemes uniformly is what makes generated words read as noise
+ * rather than as a language; `the-tongue`'s survey of Zompist's tools named the uniform draw as the
+ * one clear deficiency in an otherwise strong model.
+ *
+ * ⚠️ **The caller's ordering is load-bearing.** This function assumes `items` is sorted commonest
+ * first and cannot detect otherwise; handing it an arbitrary order silently produces an arbitrary
+ * frequency distribution rather than an error.
+ *
+ * Implemented by inverting the geometric CDF, which costs exactly **one** `prng()` call regardless
+ * of list length. A rejection-sampling loop would consume a variable number of draws, so any change
+ * in list length would shift every subsequent value in the stream and break determinism across
+ * inventory sizes.
+ *
+ * @param items - Candidates, ordered commonest first. Must be non-empty.
+ * @param prng - A generator from `createPrng`, or any `() => number` in `[0, 1)`.
+ * @returns The selected item; indices past the end clamp to the last item.
+ */
+export function pickRanked<T>(items: readonly T[], prng: () => number): T {
+	if (items.length === 0) {
+		throw new Error('pickRanked: items must not be empty');
+	}
+
+	// Inverse geometric CDF. `Math.log(1 - u)` is negative and `Math.log(1 - DROPOFF)` likewise, so
+	// the quotient is non-negative; `u === 0` yields index 0.
+	//
+	// ⚠️ Always draws, even for a singleton list — the doc comment above promises exactly one
+	// `prng()` call regardless of list length, and a fast-path return here would silently break that
+	// contract for the caller's very next draw.
+	const index = Math.floor(Math.log(1 - prng()) / Math.log(1 - RANKED_DROPOFF));
+	return items[Math.min(index, items.length - 1)];
+}

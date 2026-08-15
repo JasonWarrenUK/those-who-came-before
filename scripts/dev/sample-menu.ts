@@ -22,6 +22,7 @@ const SAMPLERS: Sampler[] = [
 	{ key: 'decoration', blurb: 'decorative layers nested per part' },
 	{ key: 'features', blurb: 'annotated classifier reading' },
 	{ key: 'classification', blurb: 'scored tag chart with per-rule contributions' },
+	{ key: 'names', blurb: "a world's languages, their sound systems and the names they make" },
 ];
 
 const KEY_WIDTH = 15; // 'classification' plus a space.
