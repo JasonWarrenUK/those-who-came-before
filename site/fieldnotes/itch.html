@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Itch Page · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  .catchlist{margin:1.2rem 0}
+  .catchlist details{border-bottom:1px solid var(--line);padding:.6rem 0}
+  .catchlist summary{cursor:pointer;font-weight:600;list-style:none}
+  .catchlist summary::-webkit-details-marker{display:none}
+  .catchlist summary::before{content:"▸ ";color:var(--faint)}
+  .catchlist details[open] summary::before{content:"▾ "}
+  .catchlist p{margin:.5rem 0 .3rem 1.1rem;font-size:.92rem;color:var(--muted)}
+  .catchlist details.resolved summary{text-decoration:line-through;font-style:italic;color:var(--muted);font-weight:500}
+</style>
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand fieldnotes">Fieldnotes</span>
+    <span class="here">Itch · The Itch Page</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">Itch · Level zero</div>
+  <h1>What Nearly Got Past Us</h1>
+  <p><span class="settled"><span class="dots">○○○○○</span><span class="rung">itch</span></span></p>
+  <p class="lede">This is the aggregate of everything that's caught our attention while building the rest of this site and the game underneath it: a moment where something looked fine and wasn't quite, or looked wrong and turned out to be a bigger question than the thing that surfaced it. Nothing here is a finished thought. Each one goes on in the order it was caught, and stays, struck through, once it's been dealt with. Nothing is ever deleted.</p>
+
+  <div class="catchlist">
+
+    <details>
+      <summary>A rule can be well-formed and describe nothing that can exist. Are there others?</summary>
+      <p>One classification rule turned out to be arithmetically impossible to satisfy: two of the features it checked were secretly derived from the same underlying number, so the combination it asked for could never occur. It passed every type check going. Nobody has since audited the other forty-two rules for the same failure mode, and there's no obvious way to check for it other than reading each one and asking whether its condition is actually reachable.</p>
+    </details>
+
+    <details>
+      <summary>Does a dormant code path accumulate evidence about itself just by sitting there unused?</summary>
+      <p>A piece of logic survived years of review not because it was correct, but because it never fired, so nothing ever tested it and no measurement ever contradicted it. Silence looked like confidence. It wasn't. Worth asking whether there's anything else in the codebase currently getting a pass for the same reason.</p>
+    </details>
+
+    <details>
+      <summary>Can a vocabulary audit ever catch a concept that's been split, or merged, without meaning to?</summary>
+      <p>An audit that compares only like-named things measures the vocabulary, not the model underneath it. The one that got run was blind to exactly the failures that matter most: one concept quietly living under two different names, and two genuinely different concepts sharing one name without anybody noticing.</p>
+    </details>
+
+    <details>
+      <summary>When a new axis gets added, what did its older siblings quietly assume instead?</summary>
+      <p>Adding a new property to how an object is described forced a question none of the existing properties had ever explicitly answered: which physical state is this actually describing? Six existing properties turned out to have been recorded against the finished object by default, not by any conscious decision, because nobody had been forced to ask the question before. A new axis seems to work less like an addition and more like a probe.</p>
+    </details>
+
+    <details>
+      <summary>A field's documented intent isn't a claim about what it actually enforces. How many other fields are like that?</summary>
+      <p>A field documented as "ordering along the primary axis" turned out to just be a traversal index, meaning an object's parts could genuinely be recorded back to front. Three separate workarounds had been quietly written elsewhere in the code to route around an absence nobody had actually gone looking for.</p>
+    </details>
+
+    <details>
+      <summary>Is a task's own brief ever wrong about what it's asking for?</summary>
+      <p>A task specified a particular fix shape in advance. When the actual measurement got done, four out of five cases turned out not to want that shape at all. The brief had encoded whatever understanding existed at the point it was written, and nobody had gone back to check whether that understanding still held once real data was in hand.</p>
+    </details>
+
+    <details>
+      <summary>Almost nothing reads how an object's own parts relate to each other. Should more?</summary>
+      <p>Of forty-three scoring rules, exactly one is genuinely relational: it looks at how two parts of an object relate rather than reading one property in isolation. The connection graph between an object's own parts is fully populated. Almost nothing consults it.</p>
+    </details>
+
+    <details>
+      <summary>Some properties are recorded as words with no number underneath them at all. Does that ever go wrong quietly?</summary>
+      <p>Wall thickness is currently three words, thin, medium, thick, with nothing underneath them. One culture's "thick" could be physically thinner than another culture's "thin", and there's no baseline of any kind that could catch that, because there's no number to compare.</p>
+    </details>
+
+    <details>
+      <summary>A distribution guard can only ever catch a generator moving. What about one that was never right to begin with?</summary>
+      <p>A calibration suite is recorded from the generator's own behaviour at the point it's written. That means it can flag a regression perfectly well and be structurally incapable of ever flagging a defect that was present from the very first commit, because there was never a correct baseline for it to diverge from.</p>
+    </details>
+
+    <details>
+      <summary>When is leaving a field blank in authored data actually a hidden opinion?</summary>
+      <p>An author handed sixteen boxes to fill in will often default several of them to the same safe value without really deciding anything, which reads later as a stated position rather than the shrug it actually was. Silence in an authored table only seems legitimate when the thing being left out genuinely couldn't have been reached in the first place, not merely when nobody got around to it.</p>
+    </details>
+
+  </div>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Doc: <code>docs/12-propagation-register.md</code> · Spikes: <code>docs/spikes/2GN.66</code>, <code>2GN.87</code>, <code>2GN.97</code>, <code>2GN.108</code>, <code>2GN.110</code>, <code>2GN.111</code>, <code>2GN.118</code>, <code>2GN.127</code>
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>
