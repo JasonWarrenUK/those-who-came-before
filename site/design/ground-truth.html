@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Truth Nobody Consults · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">09 · A Truth Nobody Consults</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">09 · Visibility levels</div>
+  <h1>Ground Truth That Stays Buried</h1>
+  <p class="lede">The engine holds a complete record of the true world: every culture's real chronology, every artefact's real origin, every relationship's real character. And it is built, deliberately, never to diff the player's beliefs against that record directly. The obvious question is why bother holding it at all, if nothing is ever allowed to check against it.</p>
+
+  <h2>The alternative that was rejected: no hidden state at all</h2>
+  <p>The cheap version of this game doesn't need a hidden ground truth. Generate plausible-looking artefacts, let the player write whatever theory they like, and never track whether it's "true", because nothing in the design ever needs to know. This was rejected outright, because it can't produce the one thing the whole project exists to produce: a contradiction that's actually earned. Without a fixed truth sitting underneath everything, there's no fact for a wrong belief to eventually collide with. Every theory the player builds would be equally valid forever, which isn't freedom, it's a game with nothing at stake.</p>
+
+  <h2>Four levels, and the rule that makes the third one work</h2>
+  <p>Every property in the world sits at one of four visibility levels: <strong>observable</strong>, directly perceptible on inspection; <strong>inferable</strong>, recoverable by reasoning from observables; <strong>occluded</strong>, true and permanently hidden from every mind in the world, player and NPC scholar alike; and <strong>engine-internal</strong>, not a fact about the world at all, just plumbing like the seed itself. The load-bearing rule sits on the occluded tier: agents, the player included, can approach an occluded property through accumulated inference, but they can never directly verify it. There is no code path anywhere that reveals an occluded fact to a player and says "you were right."</p>
+
+  <h2>Why holding it changes anything if nothing reads it</h2>
+  <p>The ground truth isn't consulted by the player-facing systems, but it's consulted constantly by the systems that generate the evidence the player actually sees. An artefact's true culture of origin determines what materials, decoration and features it can plausibly carry; a culture's true relationship history with its neighbours determines what contact evidence can legitimately appear in the archaeological record. The truth doesn't get compared to the player's belief. It gets used, upstream, to make sure everything the player is shown is at least consistent with a truth that exists, even though that truth is never handed over.</p>
+  <p>That's also what keeps a contradiction honest when one finally does arrive. A contradiction here is never "the game checked your answer and it was wrong." It's "a prediction your theory made, quietly, turned out to fail," and that failure is only meaningful because there was a real, fixed fact underneath it the whole time, generating consistent evidence, that the game simply never showed its working on.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/05-generation-architecture.md</code> §2 · <code>docs/11-deferred-design-questions.md</code> §2.4 · <code>docs/06-knowledge-contradiction-model.md</code> §4
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

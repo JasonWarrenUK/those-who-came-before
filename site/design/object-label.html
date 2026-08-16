@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Grammar May Not Know What It's Building · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">14 · The Grammar May Not Know What It's Building</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">14 · Structure and naming</div>
+  <h1>Naming It Is Your Job</h1>
+  <p class="lede">The structural grammar that builds an object is forbidden, as a hard rule, from ever branching on what that object is for. It doesn't know it's building a sword, and it isn't allowed to know. What the object is called, and what it means, is left entirely to systems that run afterward, and ultimately to the player.</p>
+
+  <h2>The alternative that was rejected: generate by intent</h2>
+  <p>The obvious, easier design decides "this is going to be a dagger" first, then builds geometry that satisfies what a dagger needs to be. It was rejected outright, because it collapses the exact ambiguity this whole game depends on. If the generator already knows an object is a dagger, every property it produces is downstream of that decision, and there's no honest sense in which a player could be wrong about what they're looking at: the answer was decided before the object existed. Simulation Honesty, one of the project's non-negotiable pillars, rules this out directly: nothing gets to be true about an object that wasn't derived from the same underlying process everything else derives from.</p>
+
+  <h2>Geometry first, meaning never assumed</h2>
+  <p>The grammar instead works purely with geometric primitives: elongated forms, hollow enclosures, flat surfaces, cylindrical sections, combined by production rules that never reference function at all. Whether the result reads as a weapon, a tool, or something else entirely is decided afterward, by classification rules reading the finished geometry back, and even then only as a score among several simultaneously-held candidates, not a single confirmed answer.</p>
+
+  <h2>A label built to resist being an answer</h2>
+  <p>The object's own internal label reflects this on purpose: something like "short bronze elongated form with engraved disc-form attachment", not "ceremonial dagger". That's not a placeholder waiting to be replaced with a better name later. It's the honest output of a process that only knows about geometry, materials and decoration, and it's deliberately unusable as an interpretation, because interpreting it is meant to be the player's own work, not a label the engine hands over for free.</p>
+
+  <h2>Contradictory tags, left standing on purpose</h2>
+  <p>Because classification runs as scoring rather than a single decision, one object can genuinely score toward weapon, ritual, ceremonial and elite all at once, and nothing forces those candidates down to one. That's not an unresolved bug sitting in the tag system. It's the correct output of a generator that isn't allowed to know which reading is "the" reading, handed to a player whose actual job, the only job the game is really about, is deciding which of those tensions to resolve, and living with having chosen.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/05-generation-architecture.md</code> §5&ndash;6 · <code>docs/02-design-pillars.md</code> pillar 3 · related: <a href="../mechanism/structure.html">Structural Grammar</a>, <a href="classification.html">Relative vs Absolute Classification</a>
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

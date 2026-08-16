@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perceived Versus Actual Rarity · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">12 · Perceived Versus Actual Rarity</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">12 · Rarity</div>
+  <h1>What Everyone Believes Is Scarce</h1>
+  <p class="lede">Rarity in this world is tracked as two separate numbers that are allowed to disagree with each other: what's actually scarce, by geology and production, and what the profession currently believes is scarce, based on what's been found so far. That gap isn't an oversight waiting to be closed. It's where the interesting part of publishing lives.</p>
+
+  <h2>The alternative that was rejected: rarity is just a fact</h2>
+  <p>The simpler design gives every material and every artefact type a single rarity value, computed once from the underlying world state, and treats "how rare is this" as a solved, queryable fact. That was rejected because it removes exactly the situation real archaeology runs into constantly: a material or object type genuinely being common in the ground while reading as rare in the literature, purely because of where people have happened to dig so far. Collapsing rarity to one true number would mean the corpus could never be honestly wrong about scarcity, which is one of its most realistic failure modes.</p>
+
+  <h2>Four layers feeding one belief</h2>
+  <p>Actual rarity is itself layered: how geologically scarce a material is, how often a culture actually chose to work it even when available, and how much of what was made has survived and been recovered, covered on its own terms elsewhere on this site. Perceived rarity sits on top of all three, as the profession's current belief about scarcity, built from whatever sample of finds has actually been excavated and published so far. It's entirely possible for a culture to have used gold constantly, in a world where gold was genuinely abundant, and still have the corpus report it as rare, if every excavation to date happened to focus on low-status settlements where gold rarely turns up.</p>
+
+  <h2>Why the gap is worth keeping open</h2>
+  <p>This is deliberately where publication impact lives. A player who notices the gap, who finds solid evidence that something the corpus treats as scarce is actually common, or the reverse, has found a genuinely high-value claim to make, and it's a claim the corpus itself cannot pre-empt, because the corpus's belief and the underlying truth are tracked as separate values that were never guaranteed to converge. Closing that gap through your own excavation and argument is meant to feel like real archaeological work, not like the game quietly correcting a display bug.</p>
+  <p>Collapsing the two numbers into one, the tempting simplification, would remove that opportunity entirely: there would be nothing left to discover, because the profession's belief and the truth would always already agree.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/05-generation-architecture.md</code> §9 · complementary reading: <a href="survival-bias.html">What Rotted and What Was Dug</a>, <a href="classification.html">Relative vs Absolute Classification</a>
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>
