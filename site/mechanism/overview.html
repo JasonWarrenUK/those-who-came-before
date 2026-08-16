@@ -2,6 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pipeline overview · Those Who Came Before</title>
 <link rel="stylesheet" href="../assets/site.css">
@@ -13,6 +14,7 @@
     <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand mechanism">Mechanism</span>
     <span class="here">Stages 1–9 · Pipeline overview</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
   </div>
 </nav>
 
@@ -21,17 +23,6 @@
   <div class="kicker">Stages 1–9 · Pipeline overview</div>
   <h1>Nine Stages, Three Cadences</h1>
   <p class="lede">Every artefact the player will ever touch has passed through nine stages, in order, at three cadences: three stages run once per world, five run per artefact and one runs per inspection.</p>
-
-  <h2>The spine</h2>
-  <pre><code>World Seed
-  → Chronology &amp; Culture Generation        <span class="c">(once per game)</span>
-    → Initial Corpus Generation             <span class="c">(once per game)</span>
-      → Bottom-Up Structural Grammar        <span class="c">(per artefact)</span>
-        → Normalisation + Plausibility      <span class="c">(per artefact)</span>
-          → Material Assignment             <span class="c">(per artefact)</span>
-            → Decorative Grammar            <span class="c">(per artefact)</span>
-              → Feature Extraction + Tags   <span class="c">(per artefact)</span>
-                → Description Generation    <span class="c">(per inspection)</span></code></pre>
 
   <p>Stages 1–3 run once, at world creation: they produce the chronology, the cultures, the geology and a simulated century of scholarship for the player to inherit. Stages 4–8 run every time the world needs a new artefact, building a physical object, dressing it and scoring it against the tag vocabulary. Only stage 9 repeats per <em>inspection</em>, because the player's beliefs and available registers shift between viewings; the same object can read differently on Tuesday than it did on Monday.</p>
 
@@ -84,13 +75,10 @@
 </main>
 
 <div class="pagenav">
-    <a href="../index.html"><span class="dir">Previous</span>Hub</a>
-    <a href="determinism.html" class="next"><span class="dir">Next</span>Seeding & determinism</a>
+    <a href="determinism.html" class="next"><span class="dir">Next</span>Seeding & Determinism</a>
 </div>
 
-<footer>
-  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
-</footer>
 <script src="../assets/highlight.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

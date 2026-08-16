@@ -2,6 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Relative vs Absolute Classification · Those Who Came Before</title>
 <link rel="stylesheet" href="../assets/site.css">
@@ -13,6 +14,7 @@
     <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand design">Design</span>
     <span class="here">03 · Relative vs Absolute Classification</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
   </div>
 </nav>
 
@@ -72,13 +74,6 @@
 </article>
 </main>
 
-<div class="pagenav">
-    <a href="channels.html"><span class="dir">Previous</span>Five Channels of Filtering</a>
-    <a href="agent-generic.html" class="next"><span class="dir">Next</span>The Engine Doesn&rsquo;t Know Whose Beliefs These Are</a>
-</div>
-
-<footer>
-  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/11-deferred-design-questions.md</code> §2.9, <code>src/lib/types/tags.ts</code>, <code>src/lib/data/classification.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
-</footer>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

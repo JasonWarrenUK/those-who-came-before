@@ -2,6 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Structural grammar · Those Who Came Before</title>
 <link rel="stylesheet" href="../assets/site.css">
@@ -13,6 +14,7 @@
     <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand mechanism">Mechanism</span>
     <span class="here">Stage 4 · Structural grammar</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
   </div>
 </nav>
 
@@ -84,13 +86,11 @@
 </main>
 
 <div class="pagenav">
-    <a href="determinism.html"><span class="dir">Previous</span>Seeding & determinism</a>
-    <a href="plausibility.html" class="next"><span class="dir">Next</span>Normalisation & plausibility</a>
+    <a href="world.html"><span class="dir">Previous</span>World Generation</a>
+    <a href="plausibility.html" class="next"><span class="dir">Next</span>Normalisation & Plausibility</a>
 </div>
 
-<footer>
-  Written against the codebase and design docs as of 12 August 2026. Sources: <code>docs/05-generation-architecture.md</code>, <code>src/lib/engine/</code>, <code>src/lib/data/</code>. Facts here describe that snapshot; the roadmap moves weekly.
-</footer>
 <script src="../assets/highlight.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

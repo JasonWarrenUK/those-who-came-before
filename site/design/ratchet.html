@@ -2,6 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Commitment Ratchet · Those Who Came Before</title>
 <link rel="stylesheet" href="../assets/site.css">
@@ -13,6 +14,7 @@
     <span class="site"><a href="../index.html">Those Who Came Before</a></span>
     <span class="strand design">Design</span>
     <span class="here">07 · The Commitment Ratchet</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
   </div>
 </nav>
 
@@ -61,13 +63,6 @@
 </article>
 </main>
 
-<div class="pagenav">
-    <a href="publishing.html"><span class="dir">Previous</span>Immutable Documents</a>
-    <a href="labels.html" class="next"><span class="dir">Next</span>Labels That Emerge Instead of Being Assigned</a>
-</div>
-
-<footer>
-  Written against the codebase and design docs as of 13 August 2026. Sources: <code>docs/04-interpretive-lens.md</code>, <code>docs/07-career-social-systems.md</code>, <code>src/lib/types/lens.ts</code>, <code>src/lib/types/career.ts</code>, <code>src/lib/types/venues.ts</code>. Facts here describe that snapshot; the roadmap moves weekly.
-</footer>
+<script src="../assets/theme.js"></script>
 </body>
 </html>
