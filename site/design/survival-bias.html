@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Rotted and What Was Dug · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">11 · What Rotted and What Was Dug</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">11 · Reading an absence</div>
+  <h1>Reading an Absence</h1>
+  <p class="lede">What actually reaches the player isn't just a function of what a culture made. It's filtered twice more first: by what survived physically, and by what previous excavators happened to dig. Both filters are modelled on purpose, and both are allowed to distort the record in ways that are never flagged as distortion.</p>
+
+  <h2>The alternative that was rejected: everything a culture made is equally available</h2>
+  <p>The simplest version of the generator would treat a culture's true output as directly available to the player: if they made it, it can be found, in roughly the proportions they made it in. That was rejected, because it quietly removes one of the most common and most realistic sources of error in real archaeology, drawing conclusions from what happened to survive and get found rather than from what was actually there. A generator that skipped this would be simulating a much easier discipline than the one this game is trying to be honest about.</p>
+
+  <h2>Survival: what rotted</h2>
+  <p>Materials decay at different rates depending on burial conditions, and a culture that worked heavily in organic materials, wood, textile, hide, can genuinely look sparse in the surviving record even if it produced abundant work in its own time, simply because wet, acidic or well-aerated soil ate most of it before anyone got there to dig. A culture read as "primarily working in stone and bone" from the surviving evidence might really have been a wood-and-fibre culture whose everyday output is now, honestly, gone.</p>
+
+  <h2>Recovery: what was dug</h2>
+  <p>On top of that, previous excavators didn't dig randomly. Large, monumental, urban sites attract more research funding and more attention than modest sites in remote regions. Burials and temples get excavated well before anyone spends a season on a rubbish heap, because a burial makes a more publishable paper. Both biases stack directly onto the corpus a player inherits: a culture can read as "primarily a warrior society" purely because the researchers who dug it only ever excavated its fortifications, never its kitchens.</p>
+
+  <h2>Why model both instead of picking one</h2>
+  <p>Survival bias and recovery bias distort the record in genuinely different ways, and collapsing them into a single "rarity" number would erase a distinction that's actually load-bearing. Something can be common in survival terms but under-dug, or well-excavated but poorly preserved, and those two situations call for different kinds of scepticism from a player reading the literature. Keeping them as separate, stackable filters is what lets a careful reader eventually ask the right question: is this thing rare because it never existed much, because it didn't survive, or because nobody's gone looking for it yet? Those are three different claims, and only one generator that models all three separately can let a player tell them apart.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Docs: <code>docs/05-generation-architecture.md</code> §4.2, §10.3 · complementary reading: <a href="../ideas/corpus.html">The Discipline That Already Happened</a>
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

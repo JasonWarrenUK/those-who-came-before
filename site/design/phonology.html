@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Names Get a Phoneme Engine · Those Who Came Before</title>
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="inner">
+    <span class="site"><a href="../index.html">Those Who Came Before</a></span>
+    <span class="strand design">Design</span>
+    <span class="here">13 · Why Names Get a Phoneme Engine</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
+  </div>
+</nav>
+
+<main>
+<article class="wrap">
+  <div class="kicker">13 · Naming</div>
+  <h1>Sounds, Not Spellings</h1>
+  <p class="lede">A roadmap task that reads as nine words, "generate plausible-sounding names for cultures and places", turned into a genuine language engine: phoneme inventories, sonority rules, language families. The cheap version was rejected on purpose, and the reason is that a name generator built as a name generator gets thrown away the moment the game needs to do the one thing names are actually for here.</p>
+
+  <h2>The alternative that was rejected: a syllable table</h2>
+  <p>The cheapest reading of the task is a per-culture table of syllable fragments, joined together at random into something that sounds vaguely consistent. It works, immediately, and it was rejected anyway, because a later, already-intended phase puts untranslated tablets in front of the player, written in these cultures' own languages. A name generator that only ever outputs finished strings has nothing underneath those strings for a translation puzzle to work with. Building the cheap version now means throwing it away later; building the real version now means the translation phase inherits it for free.</p>
+
+  <h2>A name is a sequence of sounds, not a fixed spelling</h2>
+  <p>The decision that follows from that: a name is stored as a sequence of phonemes, not as a spelled string, and gets rendered into readable text only at the point it's actually shown to the player. That single choice is what makes toponymic drift possible at all. A site named early in a culture's history can turn up later, in a document written generations afterward, under a form that's audibly drifted from the original without ever having been redefined by anyone. Every <em>-chester</em> and <em>-thorpe</em> scattered across England is this exact phenomenon, playing out over real centuries. Storing spellings instead of sounds would have made that entire effect structurally impossible to produce.</p>
+
+  <h2>Families instead of one shared ancestor</h2>
+  <p>Languages are generated in families, deliberately not descending from one universal root. A single shared ancestor for every culture's language would make all of them quietly related, which is both linguistically implausible and dramatically flat, and it would remove the most interesting case the later tablet phase depends on: an untranslated tablet written in a language that's a known relative of one the player already understands reads completely differently, and is worth completely different things to translate, than one written in a total isolate.</p>
+
+  <h2>Grounded in real phonology, not invented from nothing</h2>
+  <p>The sound inventories themselves aren't arbitrary. Sounds like <code>p t k m n s l</code> appear in almost every attested human language and form the safe, common core; pharyngeal and uvular consonants are comparatively rare and get used more sparingly. Sonority sequencing constrains which sounds can plausibly sit next to each other within a syllable, and every generated language keeps a basic three-vowel floor, because that's close to a genuine typological minimum. None of this makes the generated languages real. It makes them draw from the same statistical shape real languages actually have, rather than from a uniform random distribution across every sound a human mouth can make, which is what makes invented languages read as flat and interchangeable in the first place.</p>
+
+  <div class="srcbox"><span class="tag">Where it lives</span>
+    Spike: <code>docs/spikes/2GN.66-naming-grammars.md</code>
+  </div>
+</article>
+</main>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

@@ -5,8 +5,15 @@
 	Mapping notes: Reasonable Colors has no warm-neutral/parchment hue, so --bg/--surface/--ink
 	trade the original site's sepia warmth for RC's cool gray scale — the nearest honest match,
 	not a forced one. --terra (accent, links) maps to amber; --verd (structural boxes, callouts)
-	maps to emerald; --bronze (kickers, headings) maps to cinnamon. Shade gaps of 3 hold body-text
-	contrast (4.5:1) and gaps of 4 hold AAA (7:1) per the RC contrast table.
+	maps to emerald; --bronze (kickers, headings) maps to cinnamon — this is a sitewide
+	typographic accent, unrelated to which strand cinnamon happens to represent below.
+	Shade gaps of 3 hold body-text contrast (4.5:1) and gaps of 4 hold AAA (7:1) per the
+	RC contrast table.
+
+	Strand hues: five groups, one Reasonable Colors harmony. Design (violet) is the pivot.
+	The three concept groups (Fieldnotes, Ideas, Design) form violet's own triadic set
+	(cinnamon, teal, violet); the two developer groups (Mechanism, Practice) take violet's
+	split-complementary pair (green, lime). Confirmed against reasonable.work/colors/violet.
 */
 @import "./reasonable-colors.css";
 
@@ -18,11 +25,23 @@
 	--faint: var(--color-gray-3);
 	--line: var(--color-gray-2);
 
+	--ink-soft: var(--color-gray-5);
+
 	--terra: var(--color-amber-4);
 	--terra-soft: var(--color-amber-3);
 	--verd: var(--color-emerald-4);
 	--bronze: var(--color-cinnamon-4);
 
+	/* strand hues — see mapping note above; badges derive from these, not from --verd/--bronze */
+	--strand-fieldnotes: var(--color-cinnamon-4);
+	--strand-fieldnotes-text: var(--color-cinnamon-5);
+	--strand-ideas: var(--color-teal-4);
+	--strand-design: var(--color-violet-4);
+	--strand-mechanism: var(--color-green-4);
+	--strand-practice: var(--color-lime-4);
+	--strand-practice-text: var(--color-lime-5);
+
+	/* code blocks stay a fixed dark reading surface in both themes, so these don't move */
 	--code-bg: var(--color-gray-6);
 	--code-ink: var(--color-gray-1);
 	--code-accent: var(--color-amber-3);
@@ -39,12 +58,74 @@
 	:root { --shell: 74rem; }
 }
 
+/*
+	Dark palette. Same alias names, different values — every rule above and below this
+	file that references an alias (not a raw --color-{name}-{shade}) picks this up for
+	free. Accent hues move from shade 4 (mid-dark, built for a white surface) to shade 2
+	(near the light end of each ramp) rather than a mirrored shade 3, because several
+	hues' shade 3 (amber, emerald, teal, green, lime) read as too dark against a near-black
+	surface to hold body-text contrast. This is a first pass, the same way a constant in
+	the engine starts provisional: read against real screens, not measured against a
+	contrast checker, and worth revisiting if a specific hue reads wrong.
+
+	Two blocks, same values: the media-query block follows system preference when no
+	explicit choice has been made; the [data-theme="dark"] block is what the toggle sets,
+	and wins over system preference either direction once a reader has clicked it.
+*/
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--bg: var(--color-gray-6);
+		--surface: var(--color-gray-5);
+		--ink: var(--color-gray-1);
+		--ink-soft: var(--color-gray-2);
+		--muted: var(--color-gray-3);
+		--faint: var(--color-gray-4);
+		--line: var(--color-gray-4);
+
+		--terra: var(--color-amber-2);
+		--terra-soft: var(--color-amber-3);
+		--verd: var(--color-emerald-2);
+		--bronze: var(--color-cinnamon-2);
+
+		--strand-fieldnotes: var(--color-cinnamon-2);
+		--strand-fieldnotes-text: var(--color-cinnamon-2);
+		--strand-ideas: var(--color-teal-2);
+		--strand-design: var(--color-violet-2);
+		--strand-mechanism: var(--color-green-2);
+		--strand-practice: var(--color-lime-2);
+		--strand-practice-text: var(--color-lime-2);
+	}
+}
+:root[data-theme="dark"] {
+	--bg: var(--color-gray-6);
+	--surface: var(--color-gray-5);
+	--ink: var(--color-gray-1);
+	--ink-soft: var(--color-gray-2);
+	--muted: var(--color-gray-3);
+	--faint: var(--color-gray-4);
+	--line: var(--color-gray-4);
+
+	--terra: var(--color-amber-2);
+	--terra-soft: var(--color-amber-3);
+	--verd: var(--color-emerald-2);
+	--bronze: var(--color-cinnamon-2);
+
+	--strand-fieldnotes: var(--color-cinnamon-2);
+	--strand-fieldnotes-text: var(--color-cinnamon-2);
+	--strand-ideas: var(--color-teal-2);
+	--strand-design: var(--color-violet-2);
+	--strand-mechanism: var(--color-green-2);
+	--strand-practice: var(--color-lime-2);
+	--strand-practice-text: var(--color-lime-2);
+}
+
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   margin:0;background:var(--bg);color:var(--ink);
   font-family:var(--serif);font-size:17px;line-height:1.65;
   -webkit-font-smoothing:antialiased;
+  transition:background-color .15s,color .15s;
 }
 a{color:var(--terra);text-decoration:none}
 a:hover{text-decoration:underline}
@@ -80,6 +161,12 @@ pre .t{color:var(--color-sky-2)}
 #topbar .here{
   font-size:.85rem;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.theme-toggle{
+  margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:1.9rem;height:1.9rem;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);cursor:pointer;font-size:.95rem;line-height:1;padding:0;
+}
+.theme-toggle:hover{border-color:var(--bronze)}
 
 /* ---------- shared page chrome ---------- */
 .wrap{max-width:var(--shell);margin:0 auto;padding:0 1.5rem}
@@ -93,7 +180,7 @@ h1{font-size:2.35rem;line-height:1.12;margin:.2rem 0 1rem;font-weight:600;letter
 h2{font-size:1.35rem;margin:2.4rem 0 .6rem;font-weight:600}
 h3{font-size:1.05rem;margin:1.8rem 0 .4rem;font-weight:600}
 p{margin:.75rem 0}
-.lede{font-size:1.13rem;color:var(--color-gray-5)}
+.lede{font-size:1.13rem;color:var(--ink-soft)}
 ul,ol{padding-left:1.3rem}
 li{margin:.35rem 0}
 hr{border:none;border-top:1px solid var(--line);margin:2.2rem 0}
@@ -118,9 +205,23 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
   display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
   padding:.18em .6em;border-radius:99px;vertical-align:middle;
 }
-.badge.shipped{background:color-mix(in srgb,var(--verd) 14%,transparent);color:var(--verd)}
-.badge.partial{background:color-mix(in srgb,var(--bronze) 16%,transparent);color:var(--color-cinnamon-5)}
-.badge.designed{background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
+/* badges take their own card's group hue, varied by shade for status (darker = more built),
+   rather than a sixth colour competing with the five strand hues. Mechanism = green, Practice
+   = lime; badges only appear on these two groups' cards today (Design carries none by policy). */
+.group-mechanism .badge.shipped{background:color-mix(in srgb,var(--color-green-5) 16%,transparent);color:var(--color-green-5)}
+.group-mechanism .badge.partial{background:color-mix(in srgb,var(--color-green-4) 16%,transparent);color:var(--color-green-4)}
+.group-mechanism .badge.designed{background:color-mix(in srgb,var(--color-green-3) 20%,transparent);color:var(--color-green-3)}
+.group-practice .badge.shipped{background:color-mix(in srgb,var(--color-lime-5) 16%,transparent);color:var(--color-lime-5)}
+.group-practice .badge.partial{background:color-mix(in srgb,var(--color-lime-4) 16%,transparent);color:var(--color-lime-4)}
+.group-practice .badge.designed{background:color-mix(in srgb,var(--color-lime-3) 20%,transparent);color:var(--color-lime-3)}
+
+/* fieldnotes settledness mark — a third badge vocabulary, legitimate here because
+   unsettledness is this group's actual subject rather than a caveat on it. Rendered as
+   plain ○/● characters rather than built-up circle elements: five rungs of dots plus a
+   named rung (itch, hunch, sketch, draft, call, stand — see the fieldnotes headline key). */
+.settled{display:inline-flex;align-items:baseline;gap:.5em;font-size:.7rem;vertical-align:middle}
+.settled .dots{font-family:var(--mono);letter-spacing:.08em;color:var(--strand-fieldnotes)}
+.settled .rung{font-family:var(--mono);font-size:.68rem;letter-spacing:.02em;color:var(--strand-fieldnotes);text-transform:lowercase}
 
 .srcbox{
   margin:2.5rem 0 0;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:10px;
@@ -156,15 +257,28 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 .diagcap{font-size:.78rem;color:var(--muted);margin:.5rem .2rem .3rem}
 
 /* ---------- hub ---------- */
-.hero{max-width:var(--shell);margin:0 auto;padding:3.2rem 1.5rem 1rem}
+.hero{
+  max-width:var(--shell);margin:0 auto;padding:3.2rem 1.5rem 1rem;
+  display:grid;grid-template-columns:1fr 15.5rem;gap:2.2rem;align-items:start;
+}
 .hero h1{font-size:2.7rem;max-width:30ch}
 .hero .lede{max-width:56ch}
-.statusline{
-  font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  padding:.55rem 0;margin:1.6rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;
+.heroaside{
+  border:1px solid var(--line);border-radius:10px;background:var(--surface);
+  padding:1.1rem 1.2rem;margin-top:.3rem;
 }
-.statusline b{color:var(--ink);font-weight:600}
+.statusline{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:.75rem}
+.statusline .row{display:flex;flex-direction:column;gap:.15rem}
+.statusline .lbl{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.statusline b{color:var(--ink);font-weight:600;font-size:.9rem}
+@media(max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .heroaside{margin-top:1.4rem}
+}
 .cardstack{max-width:var(--shell);margin:1.8rem auto 4rem;padding:0 1.5rem;display:flex;flex-direction:column;gap:1.1rem}
+/* three unlabelled groups by DOM order alone: {Fieldnotes, Ideas, Design}, {Mechanism}, {Practice}.
+   group-break adds extra space above a group's first member without a visible heading. */
+.cardgroup.group-break{margin-top:1.3rem}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
 .cardgroup{border:1px solid var(--line);border-radius:14px}
 .cardgroup summary{
@@ -194,20 +308,56 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 .card .d{font-size:.84rem;color:var(--muted);line-height:1.45;flex:1;margin-top:.15rem}
 .card .badge{align-self:flex-start;margin-top:.35rem}
 
-/* section strand indicator, used on mechanism/design/practice pages */
+/* section strand indicator, used on every subpage and in each hub cardgroup summary */
 .strand{
   font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
   display:inline-block;padding:.15em .55em;border-radius:5px;margin-right:.5rem;
 }
-.strand.mechanism{background:color-mix(in srgb,var(--verd) 14%,transparent);color:var(--verd)}
-.strand.design{background:color-mix(in srgb,var(--color-violet-4) 14%,transparent);color:var(--color-violet-4)}
-.strand.practice{background:color-mix(in srgb,var(--bronze) 16%,transparent);color:var(--color-cinnamon-5)}
+.strand.ideas{background:color-mix(in srgb,var(--strand-ideas) 14%,transparent);color:var(--strand-ideas)}
+.strand.fieldnotes{background:color-mix(in srgb,var(--strand-fieldnotes) 16%,transparent);color:var(--strand-fieldnotes-text)}
+.strand.design{background:color-mix(in srgb,var(--strand-design) 14%,transparent);color:var(--strand-design)}
+.strand.mechanism{background:color-mix(in srgb,var(--strand-mechanism) 14%,transparent);color:var(--strand-mechanism)}
+.strand.practice{background:color-mix(in srgb,var(--strand-practice) 22%,transparent);color:var(--strand-practice-text)}
+
+/* headline element — first item inside each hub cardgroup's .cards grid, spanning full width */
+.headline{
+  grid-column:1/-1;margin:0 0 .3rem;padding:1.1rem 1.2rem;border:1px solid var(--line);
+  border-radius:10px;background:var(--surface);
+}
+.headline .diag{margin:.4rem 0 0}
+.headline .diagcap{margin:.5rem .1rem 0}
+.groupnote{grid-column:1/-1;font-size:.85rem;color:var(--muted);margin:-.3rem 0 .2rem;line-height:1.5}
+
+/* the fieldnotes settledness key, as the fieldnotes headline element */
+.settlekey{display:flex;flex-direction:column;gap:.4rem}
+.settlekey .row{display:flex;align-items:baseline;gap:.7rem;font-size:.83rem}
+.settlekey .rung{font-family:var(--mono);width:4.4em;flex:none;color:var(--strand-fieldnotes);font-size:.72rem}
+.settlekey .dots{flex:none;width:5.6em;font-family:var(--mono);letter-spacing:.08em;color:var(--strand-fieldnotes)}
+.settlekey .means{color:var(--muted)}
+
+/* practice's headline: a link to the repository rather than a diagram */
+.repolink{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:.4rem .2rem;text-decoration:none;color:var(--ink);
+}
+.repolink .lbl{font-weight:650}
+.repolink .sub{font-size:.82rem;color:var(--muted);display:block;margin-top:.15rem}
+.repolink .go{font-family:var(--mono);color:var(--strand-practice);font-size:.85rem;white-space:nowrap}
+.repolink:hover{text-decoration:none}
+.repolink:hover .lbl{color:var(--color-lime-5)}
 
 /* pipeline strip / cross-page svg strips */
 .pipestrip{max-width:var(--shell);margin:2.2rem auto 0;padding:0 1.5rem;overflow-x:auto}
 .pipestrip svg{display:block;min-width:640px;width:100%;max-width:100%}
 .pipestrip text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
 .pipestrip .cad{fill:var(--faint);font-size:10px}
+.pipestrip .arrow{stroke:var(--faint);fill:none;stroke-width:1.1}
+/* stage status colours as aliases, not the inline hex the script used to compute, so the
+   pipeline reads correctly in both themes without the script knowing which theme is active */
+.pipestrip [class^="stage-"]{stroke-width:1.2}
+.pipestrip .stage-shipped{fill:color-mix(in srgb,var(--strand-mechanism) 13%,transparent);stroke:var(--strand-mechanism)}
+.pipestrip .stage-partial{fill:color-mix(in srgb,var(--strand-practice) 18%,transparent);stroke:var(--strand-practice-text)}
+.pipestrip .stage-designed{fill:color-mix(in srgb,var(--muted) 10%,transparent);stroke:var(--faint)}
 
 footer{
   max-width:var(--shell);margin:0 auto;padding:1.2rem 1.5rem 2.4rem;
