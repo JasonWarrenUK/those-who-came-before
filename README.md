@@ -36,40 +36,23 @@ follow-ons remain. Exact task-by-task status lives in
 [`.claude/roadmaps.json`](.claude/roadmaps.json) (canonical) and its projection,
 [`docs/roadmaps/mvp.md`](docs/roadmaps/mvp.md) — not this summary.
 
-What the repository currently contains:
-
-- A SvelteKit skeleton: one player-facing route, three static components (Header, Footer and
-  Timeline), DaisyUI theming, and the nine-panel Project Explorer described below
-- The complete MVP type system in `src/lib/types/`: eighteen modules, roughly 160 interfaces and
-  aliases covering artefacts, world generation, interpretation, lens, documents, career,
-  contradictions, corpus, descriptions, plausibility and saves
-- A seeded PRNG (xoshiro128**) and percentile statistics (`engine/statistics.ts`) in
-  `src/lib/engine/`, with determinism, distribution and regression tests
-- A component grammar system in `src/lib/data/grammars/` and `src/lib/engine/generation/grammar.ts`:
-  eight geometric primitives, MVP grammar rules, culture/phase-biased weighted selection,
-  complexity-tier budgets, accumulation constraint checking and tree-to-`NormalisedArtefact`
-  flattening
-- Plausibility checking in `src/lib/engine/generation/plausibility.ts` (`checkPlausibility`,
-  material-physics and ergonomic rule predicates)
-- Material assignment in `src/lib/engine/generation/materials.ts` (culture affinity × phase
-  technology × geological scarcity weighting, trade-aware availability) and a material property
-  model (formability, hardness, working-state axes) it grades decoration against
-- Decorative motif and introduced-material resolution in `src/lib/engine/generation/decoration.ts`
-  (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag
-  sets, material-aware execution grading)
-- Unified feature extraction and rule-based tag classification in
-  `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (43 rules;
-  culture-phase baseline sampling via `engine/generation/baselines.ts` for tags scored relative to a
-  culture's own norms, doc 11 §2.9)
-- Description generation in `src/lib/engine/generation/prose.ts`, drawing on the observational
-  register templates in `src/lib/data/descriptions/observational/`
-- The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with nine panels
-  — an overview, PRNG output, a live type index with dependency and reference graphs, structure
-  viewer, plausibility panel, material viewer, decoration inspector, tag inspector and rule
-  calibration
-- A CLI sampler suite (`deno task sample*`, see [`scripts/dev/README.md`](scripts/dev/README.md))
-  for eyeballing pipeline output stage by stage ahead of its Explorer panel landing
-- The full design specification in `docs/`
+<details>
+  <summary><strong>What the Repository Currently Contains</strong></summary>
+  <ul>
+    <li>A SvelteKit skeleton: one player-facing route, three static components (Header, Footer and Timeline), DaisyUI theming, and the nine-panel Project Explorer described below</li>
+    <li>The complete MVP type system in `src/lib/types/`: eighteen modules, roughly 160 interfaces and aliases covering artefacts, world generation, interpretation, lens, documents, career, contradictions, corpus, descriptions, plausibility and saves</li>
+    <li>A seeded PRNG (xoshiro128**) and percentile statistics (`engine/statistics.ts`) in `src/lib/engine/`, with determinism, distribution and regression tests</li>
+    <li>A component grammar system in `src/lib/data/grammars/` and `src/lib/engine/generation/grammar.ts`: eight geometric primitives, MVP grammar rules, culture/phase-biased weighted selection, complexity-tier budgets, accumulation constraint checking and tree-to-`NormalisedArtefact` flattening</li>
+    <li>Plausibility checking in `src/lib/engine/generation/plausibility.ts` (`checkPlausibility`, material-physics and ergonomic rule predicates)</li>
+    <li>Material assignment in `src/lib/engine/generation/materials.ts` (culture affinity × phase technology × geological scarcity weighting, trade-aware availability) and a material property model (formability, hardness, working-state axes) it grades decoration against</li>
+    <li>Decorative motif and introduced-material resolution in `src/lib/engine/generation/decoration.ts` (cultural motif vocabularies plus cross-cultural exchange, per-technique introduced-material tag sets, material-aware execution grading)</li>
+    <li>Unified feature extraction and rule-based tag classification in `src/lib/engine/generation/classification.ts` and `src/lib/data/classification.ts` (43 rules; culture-phase baseline sampling via `engine/generation/baselines.ts` for tags scored relative to a culture's own norms, doc 11 §2.9)</li>
+    <li>Description generation in `src/lib/engine/generation/prose.ts`, drawing on the observational register templates in `src/lib/data/descriptions/observational/`</li>
+    <li>The Project Explorer at `/dev/explorer` (dev builds only): a developer workbench with nine panels — an overview, PRNG output, a live type index with dependency and reference graphs, structure viewer, plausibility panel, material viewer, decoration inspector, tag inspector and rule calibration</li>
+    <li>A CLI sampler suite (`deno task sample*`, see [`scripts/dev/README.md`](scripts/dev/README.md)) for eyeballing pipeline output stage by stage ahead of its Explorer panel landing</li>
+    <li>The full design specification in `docs/`</li>
+  </ul>
+</details>
 
 ## Quick Start
 
