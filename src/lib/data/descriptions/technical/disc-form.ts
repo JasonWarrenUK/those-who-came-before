@@ -48,7 +48,8 @@ export const DISC_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 				condition: { values: ['none'] },
 			},
 			{
-				template: 'A perforation was worked precisely on-centre, for true rotation around an axle.',
+				template:
+					'A perforation was worked precisely on-centre, struck or drilled to a marked axis.',
 				emphasis: [],
 				register: 'technical',
 				condition: { values: ['central'] },

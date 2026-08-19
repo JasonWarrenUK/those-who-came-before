@@ -147,7 +147,9 @@ Deno.test('interpretive: conditioned variants precede unconditioned ones within 
 	for (const { property, variants } of INTERPRETIVE_TEMPLATES) {
 		let sawUnconditioned = false;
 		for (const variant of variants) {
-			if (variant.condition?.values === undefined) {
+			const isUnconditioned = variant.condition?.values === undefined &&
+				variant.condition?.craftDomain === undefined;
+			if (isUnconditioned) {
 				sawUnconditioned = true;
 				continue;
 			}
@@ -197,18 +199,26 @@ const SAMPLE_REGIONS: readonly MockWorldRegion[] = [
 ];
 const SAMPLES_PER_REGION = 60;
 
-function sampleComponentProperties(): Map<string, string | number>[] {
-	const properties: Map<string, string | number>[] = [];
+interface SampledComponent {
+	primitiveType: string;
+	properties: Map<string, string | number>;
+}
+
+function sampleComponentProperties(): SampledComponent[] {
+	const components: SampledComponent[] = [];
 	for (const region of SAMPLE_REGIONS) {
 		const world = sampleWorld(region);
 		for (let i = 0; i < SAMPLES_PER_REGION; i++) {
 			const artefact = generateArtefact(`interpretive-firing-${region}-${i}`, world);
 			for (const component of artefact.components) {
-				properties.push(component.properties);
+				components.push({
+					primitiveType: component.primitiveType,
+					properties: component.properties,
+				});
 			}
 		}
 	}
-	return properties;
+	return components;
 }
 
 Deno.test('interpretive: every value-conditioned variant fires on at least one sampled component', () => {
@@ -217,14 +227,15 @@ Deno.test('interpretive: every value-conditioned variant fires on at least one s
 	for (const { property, variants } of INTERPRETIVE_TEMPLATES) {
 		if (property.startsWith('decoration.')) continue; // decoration templates need a DecorativeLayer corpus, not components
 
-		const [, parameter] = property.split('.');
+		const [primitive, parameter] = property.split('.');
 
 		for (const variant of variants) {
 			const values = variant.condition?.values;
 			if (values === undefined) continue;
 
-			const fired = corpus.some((props) => {
-				const raw = props.get(parameter);
+			const fired = corpus.some(({ primitiveType, properties }) => {
+				if (primitiveType !== primitive) return false;
+				const raw = properties.get(parameter);
 				return raw !== undefined && values.includes(String(raw));
 			});
 			assert(

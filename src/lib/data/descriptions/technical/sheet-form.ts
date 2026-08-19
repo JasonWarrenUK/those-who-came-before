@@ -34,7 +34,7 @@ export const SHEET_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 				condition: { values: ['irregular'] },
 			},
 			{
-				template: 'Cut to a #shape# outline.',
+				template: 'Cut to #shape.a# outline.',
 				emphasis: [],
 				register: 'technical',
 			},

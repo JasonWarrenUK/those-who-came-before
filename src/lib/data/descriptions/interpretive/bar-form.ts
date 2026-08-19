@@ -11,7 +11,7 @@ export const BAR_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 		variants: [
 			{
 				template: 'Long stock, more raw material than finished piece.',
-				emphasis: ['trade-good'],
+				emphasis: ['utilitarian'],
 				register: 'interpretive',
 				condition: { values: ['long'] },
 			},
@@ -55,7 +55,7 @@ export const BAR_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 		variants: [
 			{
 				template: 'Untapered along its whole length — this is stock, not a finished point.',
-				emphasis: ['trade-good'],
+				emphasis: ['utilitarian'],
 				register: 'interpretive',
 				condition: { values: ['none'] },
 			},

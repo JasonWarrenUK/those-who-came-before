@@ -219,18 +219,26 @@ const SAMPLE_REGIONS: readonly MockWorldRegion[] = [
 ];
 const SAMPLES_PER_REGION = 60;
 
-function sampleComponentProperties(): Map<string, string | number>[] {
-	const properties: Map<string, string | number>[] = [];
+interface SampledComponent {
+	primitiveType: string;
+	properties: Map<string, string | number>;
+}
+
+function sampleComponentProperties(): SampledComponent[] {
+	const components: SampledComponent[] = [];
 	for (const region of SAMPLE_REGIONS) {
 		const world = sampleWorld(region);
 		for (let i = 0; i < SAMPLES_PER_REGION; i++) {
 			const artefact = generateArtefact(`technical-firing-${region}-${i}`, world);
 			for (const component of artefact.components) {
-				properties.push(component.properties);
+				components.push({
+					primitiveType: component.primitiveType,
+					properties: component.properties,
+				});
 			}
 		}
 	}
-	return properties;
+	return components;
 }
 
 Deno.test('technical: every value-conditioned structural variant fires on at least one sampled component', () => {
@@ -239,14 +247,15 @@ Deno.test('technical: every value-conditioned structural variant fires on at lea
 	for (const { property, variants } of TECHNICAL_TEMPLATES) {
 		if (property.startsWith('decoration.')) continue;
 
-		const [, parameter] = property.split('.');
+		const [primitive, parameter] = property.split('.');
 
 		for (const variant of variants) {
 			const values = variant.condition?.values;
 			if (values === undefined) continue;
 
-			const fired = corpus.some((props) => {
-				const raw = props.get(parameter);
+			const fired = corpus.some(({ primitiveType, properties }) => {
+				if (primitiveType !== primitive) return false;
+				const raw = properties.get(parameter);
 				return raw !== undefined && values.includes(String(raw));
 			});
 			assert(
