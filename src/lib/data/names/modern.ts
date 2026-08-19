@@ -24,9 +24,10 @@
  *
  * ⚠️ `MODERN_PHONOLOGY` is fixed only relative to `generatePhonology`'s current tuning
  * (`ADMISSION_BASE`, `RANK_JITTER`, `CONSONANT_RANK`, `PHONE_TABLE`, …). `modern.test.ts` pins the
- * exact generated inventory as a recorded snapshot, the same convention
- * `phonology.calibration.test.ts` uses for distribution shape — a retune that moves the player's own
- * language should fail loudly rather than drift silently.
+ * exact generated inventory as a recorded snapshot — a plain `assertEquals` against one hardcoded
+ * object, not `phonology.calibration.test.ts`'s statistical convention of measured distributions
+ * with tolerances over hundreds of samples. What the two share is only the motive: a retune that
+ * moves the player's own language should fail loudly rather than drift silently.
  */
 
 import { createPrng } from '../../engine/prng.ts';

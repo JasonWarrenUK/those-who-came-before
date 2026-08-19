@@ -14,9 +14,10 @@ Deno.test('determinism: the pinned seed regenerates the exported phonology', () 
 });
 
 /**
- * Recorded 2026-08-19, mirroring `phonology.calibration.test.ts`'s "recorded, not recalibrated"
- * convention: `MODERN_PHONOLOGY` is fixed only relative to `generatePhonology`'s current tuning, so
- * pin the exact generated shape rather than only its determinism. A later retune of the admission
+ * Recorded 2026-08-19. `MODERN_PHONOLOGY` is fixed only relative to `generatePhonology`'s current
+ * tuning, so this pins the exact generated shape rather than only its determinism — a plain
+ * `assertEquals` snapshot, not `phonology.calibration.test.ts`'s statistical convention of measured
+ * distributions with tolerances. The two share only a motive: a later retune of the admission
  * constants, rank tables or phone table should fail this loudly rather than silently moving the
  * player's own language out from under them.
  */
@@ -31,11 +32,15 @@ Deno.test('snapshot: the pinned modern phonology matches its recorded shape', ()
 
 Deno.test('id: MODERN_LANGUAGE_ID never collides with a forest-minted id', () => {
 	// Forest ids are always `family-N`/`language-N` template literals (generateLanguageForest);
-	// 'modern' matches neither shape by construction, checked here against a real generated forest
-	// rather than asserted only from the naming convention.
+	// 'modern' matches neither shape by construction. Asserting the shape itself, not just its
+	// absence at one sampled seed and culture count, means a future minting-scheme change fails
+	// this test structurally rather than only when it happens to collide at this sample point.
 	const forest = generateLanguageForest(6, createPrng('modern-id-collision-check'));
+	const ids = forestLanguageIds(forest);
 
-	assert(!forestLanguageIds(forest).includes(MODERN_LANGUAGE_ID));
+	assert(ids.length > 0, 'sample produced no languages to check the shape against');
+	assert(ids.every((id) => /^language-\d+$/.test(id)));
+	assert(!ids.includes(MODERN_LANGUAGE_ID));
 	assert(!forest.languages.has(MODERN_LANGUAGE_ID));
 });
 
