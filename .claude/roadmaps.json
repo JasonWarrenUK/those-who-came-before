@@ -1624,7 +1624,8 @@
 							"2GN.66"
 						],
 						"notes": "Ruled during the 2GN.66 spike conversation: the modern language sits OUTSIDE `LanguageForest`, not as a family of one inside it. The forest is per-world-seed and generated; this is global and fixed, so a member inside it would be a language belonging to no culture. `generatePhonology(createPrng(MODERN_LANGUAGE_SEED))` is the whole curation mechanism — a fixed seed string yields one stable phonology, verified during 2GN.66.",
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"pr": 69
 					}
 				]
 			},
