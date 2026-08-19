@@ -703,7 +703,7 @@
 					{
 						"id": "2GN.36",
 						"description": "`src/lib/data/descriptions/interpretive/` — interpretive register templates with function tag variants",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"1FD.31",
 							"M1",
@@ -715,7 +715,7 @@
 					{
 						"id": "2GN.37",
 						"description": "`src/lib/data/descriptions/technical/` — technical register templates (craft-process, manufacturing)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"1FD.31",
 							"M1",
