@@ -616,18 +616,20 @@
 					{
 						"id": "2GN.31",
 						"description": "`engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.29"
+							"2GN.29",
+							"2GN.132"
 						],
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.32",
 						"description": "`engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis`",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.29"
+							"2GN.29",
+							"2GN.131"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1624,6 +1626,32 @@
 							"2GN.66"
 						],
 						"notes": "Ruled during the 2GN.66 spike conversation: the modern language sits OUTSIDE `LanguageForest`, not as a family of one inside it. The forest is per-world-seed and generated; this is global and fixed, so a member inside it would be a language belonging to no culture. `generatePhonology(createPrng(MODERN_LANGUAGE_SEED))` is the whole curation mechanism — a fixed seed string yields one stable phonology, verified during 2GN.66.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.131",
+						"description": "design spike — what does the decorative recursion depth cap actually compute from `craftSpecialisation` and `aesthetics.decorativeEmphasis`?",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "2GN.32's own title names both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as a single volume scalar by doc 11 §2.10 (roadmap 2GN.98), which deliberately split the table into `decorationVolume` (reads `decorativeEmphasis` alone) and `DecorativeLayer.grade` (reads `craftSpecialisation` alone) — leaving recursion depth itself unresolved; doc 12 §2.24 records 'defer to 2GN.31' as one of the rejected candidate answers, confirming depth was consciously left open rather than decided in advance. Nearest in-codebase precedent: `grammar.ts`'s attachment recursion (`MAX_ATTACHMENT_DEPTH = 3`, `ATTACHMENT_PROBABILITY = 0.4`, `ATTACHMENT_DEPTH_DECAY = 0.5`, gated via `prng() < probability * decay ** depth`) — the same shape, but with fixed constants rather than values derived from two phase attributes. Doc 05 §8.3's 'up to 3 layers deep' corner is the only numeric ceiling anchor in the docs. Also stale and worth correcting alongside this ruling: `types/world.ts` lines 42–44 still say craft alone drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.132",
+						"description": "design spike — does sublayer generation live inside `expandDecoration`'s existing slot loop, or as a separate unwired post-pass?",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Folding sublayer draws into `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION` in `calibration.test.ts`, the p75 pin in `statistics.regression.test.ts`, and breaking `classification.test.ts`'s explicit `maxDepth === 1` regression guard (the '2GN.31 regression guard' test) — all three carry the 'when this fails, it is usually right, widening the band is usually wrong' warning, so re-recording them correctly requires deliberately re-measuring the new distribution, not just making the assertion pass. The alternative, a separate post-pass, matches the precedent `enforceSubstrates` (2GN.30) and the material-sensitivity extension (2GN.99) already set: both shipped unwired specifically to avoid perturbing the draw sequence and moving any calibration pin. `assignDecorativeDetails`/`gradeDecorativeLayers` are already written recursion-ready in this shape, waiting for something to populate `sublayers`. Neither option is free: the first is real integration at calibration-breaking cost; the second is safe to ship but leaves `expandDecoration` itself flat, and nothing currently calls `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.133",
+						"description": "`engine/generation/decoration.ts` — make `enforceSubstrates` and `gradeDecorativeLayers` parent-material-aware for sublayers",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.31"
+						],
+						"notes": "`satisfiesSubstrate` (`enforceSubstrates`) and `regrade` (`gradeDecorativeLayers`) both read `componentMaterial.get(layer.targetComponentId)` at every recursion depth, so a sublayer's substrate/grade check tests against the parent component's assigned material rather than the parent layer's own introduced material — silver inlay chased on top of a bronze panel would have its chasing tested against bronze, never silver. Neither 2GN.31 nor 2GN.32's description names this; it only becomes checkable once sublayers exist for real. Filed separately from 2GN.31 rather than absorbed into its scope, per the project's convention of naming a surfaced model gap rather than working around it silently. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
 						"assignee": "Jason Warren"
 					}
 				]

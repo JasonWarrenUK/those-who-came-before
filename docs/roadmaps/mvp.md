@@ -700,15 +700,16 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       deliberate ruling on what `primitiveType`/`properties` combination satisfies each, which was
       explicitly deferred rather than decided when 2GN.30 shipped.
 - [ ] **2GN.31** — `engine/generation/decoration.ts` — layering support: `DecorativeLayer` with
-      sublayers, decoration-on-decoration _(depends on 2GN.29 — unblocked)_ — ⚠️ when this lands,
-      `techniqueComplexity` (`maxDepth * distinctTechniques`) stops being a bare distinct-technique
-      count, since `maxDepth` is currently pinned at 1: the classification rule reading it
-      (`data/classification.ts`, roadmap 2GN.34, doc 12 §2.24) will saturate at a fraction of its
-      current technique breadth with no code change and needs re-measuring against real nested
-      output; a Deno test in `engine/generation/classification.test.ts` pins today's flat-layer
-      contract so this breaks loudly rather than silently
+      sublayers, decoration-on-decoration _(blocked: depends on 2GN.29, 2GN.132)_ — ⚠️ when this
+      lands, `techniqueComplexity` (`maxDepth * distinctTechniques`) stops being a bare
+      distinct-technique count, since `maxDepth` is currently pinned at 1: the classification rule
+      reading it (`data/classification.ts`, roadmap 2GN.34, doc 12 §2.24) will saturate at a
+      fraction of its current technique breadth with no code change and needs re-measuring against
+      real nested output; a Deno test in `engine/generation/classification.test.ts` pins today's
+      flat-layer contract so this breaks loudly rather than silently
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
-      `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(depends on 2GN.29 — unblocked)_
+      `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(blocked: depends on 2GN.29,
+      2GN.131)_
 - [x] **2GN.33** — `engine/generation/decoration.ts` — motif assignment from culture's
       `motifVocabulary`, shared motifs via cultural exchange — landed as
       `assignDecorativeDetails(layers, culture, phase, geology, trade, sharedMotifSources, materials, techniques, prng): DecorativeLayer[]`,
@@ -1804,6 +1805,52 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       done; unblocked)_ — ruled during the 2GN.66 spike conversation: the modern language sits
       **outside** `LanguageForest`, not as a family of one inside it, since the forest is
       per-world-seed and generated where this is global and fixed
+- [ ] **2GN.131** — design spike — what does the decorative recursion depth cap actually compute
+      from `craftSpecialisation` and `aesthetics.decorativeEmphasis`? — 2GN.32's own title names
+      both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's
+      four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as
+      a single volume scalar by doc 11 §2.10 (roadmap 2GN.98), which deliberately split the table
+      into `decorationVolume` (reads `decorativeEmphasis` alone) and `DecorativeLayer.grade` (reads
+      `craftSpecialisation` alone) — leaving recursion depth itself unresolved; doc 12 §2.24 records
+      'defer to 2GN.31' as one of the rejected candidate answers, confirming depth was consciously
+      left open rather than decided in advance. Nearest in-codebase precedent: `grammar.ts`'s
+      attachment recursion (`MAX_ATTACHMENT_DEPTH = 3`, `ATTACHMENT_PROBABILITY = 0.4`,
+      `ATTACHMENT_DEPTH_DECAY = 0.5`, gated via `prng() < probability * decay ** depth`) — the same
+      shape, but with fixed constants rather than values derived from two phase attributes. Doc 05
+      §8.3's 'up to 3 layers deep' corner is the only numeric ceiling anchor in the docs. Also stale
+      and worth correcting alongside this ruling: `types/world.ts` lines 42–44 still say craft alone
+      drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19
+      during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full
+      research trail)
+- [ ] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
+      existing slot loop, or as a separate unwired post-pass? — folding sublayer draws into
+      `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every
+      artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION`
+      in `calibration.test.ts`, the p75 pin in `statistics.regression.test.ts`, and breaking
+      `classification.test.ts`'s explicit `maxDepth === 1` regression guard (the '2GN.31 regression
+      guard' test) — all three carry the 'when this fails, it is usually right, widening the band is
+      usually wrong' warning, so re-recording them correctly requires deliberately re-measuring the
+      new distribution, not just making the assertion pass. The alternative, a separate post-pass,
+      matches the precedent `enforceSubstrates` (2GN.30) and the material-sensitivity extension
+      (2GN.99) already set: both shipped unwired specifically to avoid perturbing the draw sequence
+      and moving any calibration pin. `assignDecorativeDetails`/`gradeDecorativeLayers` are already
+      written recursion-ready in this shape, waiting for something to populate `sublayers`. Neither
+      option is free: the first is real integration at calibration-breaking cost; the second is safe
+      to ship but leaves `expandDecoration` itself flat, and nothing currently calls
+      `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship
+      it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to
+      implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
+- [ ] **2GN.133** — `engine/generation/decoration.ts` — make `enforceSubstrates` and
+      `gradeDecorativeLayers` parent-material-aware for sublayers _(blocked: depends on 2GN.31)_ —
+      `satisfiesSubstrate` (`enforceSubstrates`) and `regrade` (`gradeDecorativeLayers`) both read
+      `componentMaterial.get(layer.targetComponentId)` at every recursion depth, so a sublayer's
+      substrate/grade check tests against the parent component's assigned material rather than the
+      parent layer's own introduced material — silver inlay chased on top of a bronze panel would
+      have its chasing tested against bronze, never silver. Neither 2GN.31 nor 2GN.32's description
+      names this; it only becomes checkable once sublayers exist for real. Filed separately from
+      2GN.31 rather than absorbed into its scope, per the project's convention of naming a surfaced
+      model gap rather than working around it silently. Surfaced 2026-08-19 during an attempt to
+      implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
 - [ ] **2GN.67** — `engine/generation/grammar.ts` — arrangement detection + pattern assignment:
       annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten
       time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3
@@ -2866,17 +2913,13 @@ graph LR
 	2GN.75["2GN.75: `engine/generation/materials.ts` — `ass…"]
 	2GN.29["2GN.29: `engine/generation/decoration.ts` — dec…"]
 	2GN.30["2GN.30: `engine/generation/decoration.ts` — mat…"]
-	2GN.31["2GN.31: `engine/generation/decoration.ts` — lay…"]
-	2GN.32["2GN.32: `engine/generation/decoration.ts` — rec…"]
 	2GN.33["2GN.33: `engine/generation/decoration.ts` — mot…"]
 	2GN.76["2GN.76: `engine/generation/decoration.ts` — mot…"]
-	2GN.34["2GN.34: `src/lib/data/classification.ts` — deco…"]
 	2GN.57["2GN.57: Explorer: structure viewer tab — genera…"]
 	2GN.58["2GN.58: Explorer: plausibility panel — generate…"]
 	2GN.59["2GN.59: Explorer: tag inspector — tag map as sc…"]
 	2GN.60["2GN.60: Explorer: material viewer — resolved ma…"]
 	2GN.61["2GN.61: Explorer: decoration inspector — decora…"]
-	2GN.70["2GN.70: `engine/generation/materials.ts` + `eng…"]
 	2GN.74["2GN.74: `engine/generation/materials.ts` — `exp…"]
 	2GN.80["2GN.80: design spike — are status tags absolute…"]
 	2GN.81["2GN.81: Explorer: rule calibration panel — per-…"]
@@ -2936,6 +2979,13 @@ graph LR
 	2GN.48["2GN.48: `engine/world/scholars.ts` — `generateN…"]
 	2GN.49["2GN.49: `engine/world/scholars.ts` — NPC `Inter…"]
 	2GN.55["2GN.55: `engine/generation/corpus.ts` — calibra…"]
+	2GN.131["2GN.131: design spike — what does the decorativ…"]
+	2GN.32["2GN.32: `engine/generation/decoration.ts` — rec…"]
+	2GN.132["2GN.132: design spike — does sublayer generatio…"]
+	2GN.31["2GN.31: `engine/generation/decoration.ts` — lay…"]
+	2GN.34["2GN.34: `src/lib/data/classification.ts` — deco…"]
+	2GN.70["2GN.70: `engine/generation/materials.ts` + `eng…"]
+	2GN.133["2GN.133: `engine/generation/decoration.ts` — ma…"]
 	M2["M2: Generation Pipeline"]:::mile
 	M3["M3: World State & Integration"]:::mile
 	M4["M4: Player Interface"]:::mile
@@ -3267,9 +3317,9 @@ graph LR
 	2GN.17 --> 2GN.20
 	2GN.19 --> 2GN.20
 	2GN.19 --> 2GN.72
-	2GN.20 --> 2GN.34
 	2GN.20 --> 2GN.59
 	2GN.20 --> 2GN.21
+	2GN.20 --> 2GN.34
 	2GN.20 --> 2GN.27
 	2GN.20 --> 2GN.68
 	2GN.23 --> 2GN.24
@@ -3284,28 +3334,23 @@ graph LR
 	2GN.75 --> 2GN.30
 	2GN.75 --> 2GN.27
 	2GN.29 --> 2GN.30
-	2GN.29 --> 2GN.31
-	2GN.29 --> 2GN.32
 	2GN.29 --> 2GN.33
 	2GN.29 --> 2GN.61
-	2GN.30 --> 2GN.70
+	2GN.29 --> 2GN.32
+	2GN.29 --> 2GN.31
 	2GN.30 --> 2GN.104
+	2GN.30 --> 2GN.70
 	2GN.30 --> 2GN.56
-	2GN.31 -.-> 2GN.34
-	2GN.31 --> 2GN.70
-	2GN.32 --> 2GN.70
 	2GN.33 --> 2GN.76
 	2GN.33 --> 2GN.70
 	2GN.33 --> 2GN.68
 	2GN.76 --> M2
-	2GN.34 --> 2GN.38
 	2GN.57 --> M2
 	2GN.58 --> M2
 	2GN.59 --> 2GN.81
 	2GN.59 --> 2GN.73
 	2GN.60 --> M2
 	2GN.61 --> M2
-	2GN.70 --> M2
 	2GN.74 --> M2
 	2GN.80 --> 2GN.82
 	2GN.80 --> 2GN.83
@@ -3409,6 +3454,15 @@ graph LR
 	2GN.49 --> 2GN.55
 	2GN.49 --> 2GN.50
 	2GN.55 --> M2
+	2GN.131 --> 2GN.32
+	2GN.32 --> 2GN.70
+	2GN.132 --> 2GN.31
+	2GN.31 -.-> 2GN.34
+	2GN.31 --> 2GN.70
+	2GN.31 --> 2GN.133
+	2GN.34 --> 2GN.38
+	2GN.70 --> M2
+	2GN.133 --> M2
 	M2 --> 3WS.1
 	M3 --> 4UI.1
 	M4 --> 5KN.1
@@ -3750,8 +3804,8 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.10,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.120,2GN.122,2GN.124,2GN.129,2GN.130,2GN.16,2GN.21,2GN.27,2GN.31,2GN.32,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.121,2GN.125,2GN.126,2GN.13,2GN.14,2GN.15,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 2GN.10,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.120,2GN.122,2GN.124,2GN.129,2GN.130,2GN.131,2GN.132,2GN.16,2GN.21,2GN.27,2GN.67,2GN.68,2GN.69,2GN.72,2GN.76,2GN.92,2GN.93 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.121,2GN.125,2GN.126,2GN.13,2GN.133,2GN.14,2GN.15,2GN.31,2GN.32,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.48,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
 	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.127,2GN.128,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.4,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.66,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
 
