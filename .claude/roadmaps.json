@@ -449,9 +449,10 @@
 					{
 						"id": "2GN.16",
 						"description": "`engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.12"
+							"2GN.12",
+							"2GN.137"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -616,18 +617,20 @@
 					{
 						"id": "2GN.31",
 						"description": "`engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.29"
+							"2GN.29",
+							"2GN.132"
 						],
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.32",
 						"description": "`engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis`",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.29"
+							"2GN.29",
+							"2GN.131"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -820,7 +823,8 @@
 						"description": "`engine/generation/excavation.ts` — ambiguity distribution targets (~30-40% clear, ~40-50% moderate, ~20-30% high)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.44"
+							"2GN.44",
+							"2GN.138"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -829,7 +833,8 @@
 						"description": "`engine/generation/excavation.ts` — soft batch monitoring: measure interpretive challenge distribution, steer next excavation if skewed",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.44"
+							"2GN.44",
+							"2GN.138"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -937,10 +942,11 @@
 					{
 						"id": "2GN.67",
 						"description": "`engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.8",
-							"2GN.108"
+							"2GN.108",
+							"2GN.139"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1106,10 +1112,11 @@
 					{
 						"id": "2GN.69",
 						"description": "`engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.8",
-							"2GN.108"
+							"2GN.108",
+							"2GN.140"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1534,8 +1541,10 @@
 					{
 						"id": "2GN.120",
 						"description": "`engine/generation/grammar.ts` — derive `wallThickness` as a modelled quantity rather than a free three-value roll. Today `PRIMITIVE_PARAMETERS` rolls `wall: ['thin','medium','thick']` directly, with no continuous value beneath and no input from craft process, material or vessel role. Three consequences ruled in 2GN.97 (2026-08-13): (a) thickness is plausibly a *derivative of the crafting process* and is currently uninfluenced by `craftSpecialisation`, the component's assigned material or what the vessel is for; (b) three rungs is the entire gradation available, too coarse for the distinctions the classification rules try to draw on it; (c) **cross-culture comparison is impossible by construction** — one culture's `thick` may be physically thinner than another's `thin`, and since the band is cut from a global table before anything culture-relative is consulted, no baseline can recover the difference. Fourth instance of the band-computed-from-an-absolute-table family after 2GN.86 (mass), 2GN.87 (blade) and 2GN.108 (axis). Deliverable: a derived thickness quantity with its inputs ruled, and bands cut per-culture rather than globally. ⚠️ **Scope extended 2026-08-13 by 2GN.118 (Finding 5):** `diameter` joins this task as the same defect in a second parameter. 2GN.118 unified its labels (`cylindrical`’s `narrow/medium/wide` and `ring-form`/`disc-form`’s `small/medium/large` were one three-rung axis under two names) but ruled the derivation here, because the argument for keeping the two label sets apart is really an argument for deriving: a cylinder’s diameter reads relative to its own length (a wide tube is wide *for a tube*) whereas a disc’s diameter is its principal dimension, which is a ratio to model rather than two vocabularies to maintain. Nothing reads `diameter` today, so it carries no live consequence yet — but 2GN.118 noted that “harmless because unread” is exactly what let `base-pointed-amphora` sit broken.",
-						"status": "todo",
-						"dependsOn": [],
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.135"
+						],
 						"notes": "Filed 2026-08-13 by the 2GN.97 ruling, which found `vessel-thin-walled-fine-ware` and `vessel-thick-walled-utilitarian` unrelativisable: no baseline of any kind — prevalence, stratification or weight-scaling — can relativise a three-value label rolled from a global table, because there is no quantity for a culture to have opinions about. Prevalence in particular cannot work here (unlike `baseType`, where it can): band frequency says nothing about actual thickness, so a culture whose walls are all 3mm and one whose walls are all 30mm both read '100% thin' or '100% thick' depending only on where the global cut falls. ⚠️ The two wall rules stay as they are until this lands — they were left absolute rather than migrated or deleted, recorded as blocked-with-reason. ⚠️ Overlaps 2GN.118, which audits whether the `wall` vocabulary is justified at all; if that spike rules the three-value set out, this task's shape changes with it.",
 						"assignee": "Jason Warren"
 					},
@@ -1563,8 +1572,10 @@
 					{
 						"id": "2GN.124",
 						"description": "`src/lib/data/materials.ts` + `src/lib/types/tags.ts` — widen the material catalogue beyond the 16 shipped materials, scoped to what artefact generation and craft actually need. Four of the eight `MaterialTag` classes are single-leaf (clay, glass, fiber, leather), so `materials.calibration.test.ts` emits no intra-tag split for them — it would \"always read 100% and carry no information\" — leaving half the guard's two-level tree unmeasurable by construction. Covers both filling out thin classes (copper, tin and lead under `metal`; wool and hemp under `fiber`; further clays) and breadth for archaeological plausibility (shell, amber, horn, pigments, composite materials), judged by what a real assemblage needs rather than by filling tag rows for their own sake. ⚠️ may require new `MaterialTag` members, which touches the `MaterialSelector` keyspace and every authored `materialAffinities` entry array; `MATERIAL_NAMES` is declared rather than derived from `MATERIALS` (the import would cycle), so `materials.test.ts`'s two-directional pin fails loudly until the list is updated alongside. ⚠️ moves material-share distributions, so `EXPECTED_TAG_SHARES` and `EXPECTED_INTRA_TAG_SHARES` need re-recording",
-						"status": "todo",
-						"dependsOn": [],
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.136"
+						],
 						"assignee": "Jason Warren",
 						"notes": "⚠️ **Forward hazard (2GN.128, 2026-08-14):** this task changes the availability model the affinity-silence validator computes its verdict from, so materials that were legitimately silent may become accessible and re-open violations 2GN.128 closed. Re-run the validator and re-close the four presets as part of this task."
 					},
@@ -1609,9 +1620,10 @@
 					{
 						"id": "2GN.129",
 						"description": "`engine/generation/decoration.ts` — extend the 2GN.127 silence rule to `techniqueAffinities`, and rule the substrate-gate question it exposes. Techniques have a derivable accessibility one hop out: `materialAccessGate` already establishes that a culture with no gold cannot gild and no engravable material cannot engrave, so \"silence is legitimate iff inaccessible\" transposes cleanly. ⚠️ **Blocked on a prior defect, which is this task's to rule**: `materialAccessGate`'s substrate check requires `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral, so a material authored at exactly `1.0` fails it identically to one the culture cannot obtain. Once 2GN.128 pushes cultures to author far more entries, a culture that explicitly states indifference to bronze gets bronze-substrate techniques suppressed exactly as though bronze were unobtainable — the ambivalent-versus-absent collapse 2GN.127 exists to eliminate, reappearing inside the gate meant to model access. Whether affinity should gate substrate access at all is the question; `hasIntroducedMaterialAccess` deliberately gates on availability alone and is the contrast case. ⚠️ moves technique-selection distributions, so decorative calibration guards need re-recording with the drift annotated ⚠️ Measured 2026-08-14 by 2GN.128 and now live in the presets: xoconahtl authors `['clay', 1.0]` against `abundant` clay, and it fails the gate (`affinity=1, isAvailable=true` → substrate access `false`). 2GN.128 deliberately kept the `1.0` rather than nudging it past the gate, so the evidence survives for this ruling.",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.128"
+							"2GN.128",
+							"2GN.134"
 						],
 						"notes": "Filed 2026-08-14 by the 2GN.127 ruling, which deferred the technique half rather than ruling it blind — see docs/spikes/2GN.127-affinity-silence.md's closing section and doc 12 §2.49. The `> 1` gate is a live defect independent of whether the silence rule extends: it already means an authored-neutral material cannot serve as a substrate, which no ruling ever established.",
 						"assignee": "Jason Warren"
@@ -1626,6 +1638,98 @@
 						"notes": "Ruled during the 2GN.66 spike conversation: the modern language sits OUTSIDE `LanguageForest`, not as a family of one inside it. The forest is per-world-seed and generated; this is global and fixed, so a member inside it would be a language belonging to no culture. `generatePhonology(createPrng(MODERN_LANGUAGE_SEED))` is the whole curation mechanism — a fixed seed string yields one stable phonology, verified during 2GN.66.",
 						"assignee": "Jason Warren",
 						"pr": 69
+					},
+					{
+						"id": "2GN.131",
+						"description": "design spike — what does the decorative recursion depth cap actually compute from `craftSpecialisation` and `aesthetics.decorativeEmphasis`?",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "2GN.32's own title names both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as a single volume scalar by doc 11 §2.10 (roadmap 2GN.98), which deliberately split the table into `decorationVolume` (reads `decorativeEmphasis` alone) and `DecorativeLayer.grade` (reads `craftSpecialisation` alone) — leaving recursion depth itself unresolved; doc 12 §2.24 records 'defer to 2GN.31' as one of the rejected candidate answers, confirming depth was consciously left open rather than decided in advance. Nearest in-codebase precedent: `grammar.ts`'s attachment recursion (`MAX_ATTACHMENT_DEPTH = 3`, `ATTACHMENT_PROBABILITY = 0.4`, `ATTACHMENT_DEPTH_DECAY = 0.5`, gated via `prng() < probability * decay ** depth`) — the same shape, but with fixed constants rather than values derived from two phase attributes. Doc 05 §8.3's 'up to 3 layers deep' corner is the only numeric ceiling anchor in the docs. Also stale and worth correcting alongside this ruling: `types/world.ts` lines 42–44 still say craft alone drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.132",
+						"description": "design spike — does sublayer generation live inside `expandDecoration`'s existing slot loop, or as a separate unwired post-pass?",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Folding sublayer draws into `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION` in `calibration.test.ts`, the p75 pin in `statistics.regression.test.ts`, and breaking `classification.test.ts`'s explicit `maxDepth === 1` regression guard (the '2GN.31 regression guard' test) — all three carry the 'when this fails, it is usually right, widening the band is usually wrong' warning, so re-recording them correctly requires deliberately re-measuring the new distribution, not just making the assertion pass. The alternative, a separate post-pass, matches the precedent `enforceSubstrates` (2GN.30) and the material-sensitivity extension (2GN.99) already set: both shipped unwired specifically to avoid perturbing the draw sequence and moving any calibration pin. `assignDecorativeDetails`/`gradeDecorativeLayers` are already written recursion-ready in this shape, waiting for something to populate `sublayers`. Neither option is free: the first is real integration at calibration-breaking cost; the second is safe to ship but leaves `expandDecoration` itself flat, and nothing currently calls `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.133",
+						"description": "`engine/generation/decoration.ts` — make `enforceSubstrates` and `gradeDecorativeLayers` parent-material-aware for sublayers",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.31"
+						],
+						"notes": "`satisfiesSubstrate` (`enforceSubstrates`) and `regrade` (`gradeDecorativeLayers`) both read `componentMaterial.get(layer.targetComponentId)` at every recursion depth, so a sublayer's substrate/grade check tests against the parent component's assigned material rather than the parent layer's own introduced material — silver inlay chased on top of a bronze panel would have its chasing tested against bronze, never silver. Neither 2GN.31 nor 2GN.32's description names this; it only becomes checkable once sublayers exist for real. Filed separately from 2GN.31 rather than absorbed into its scope, per the project's convention of naming a surfaced model gap rather than working around it silently. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.134",
+						"description": "design spike — should cultural affinity gate substrate access at all? `materialAccessGate` (`engine/generation/decoration.ts`) requires `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral, so a material authored at exactly `1.0` — explicit indifference under the 2GN.127 ruling — fails the gate identically to one the culture cannot obtain: the ambivalent-versus-absent collapse 2GN.127 eliminated, reappearing inside the gate meant to model access. `hasIntroducedMaterialAccess` deliberately gates on availability alone and is the contrast case. Evidence is live in the presets: xoconahtl authors `['clay', 1.0]` against `abundant` clay and fails the gate (`affinity=1, isAvailable=true` → substrate access `false`); 2GN.128 deliberately kept the `1.0` so the evidence survives for this ruling. Rules the gate question so 2GN.129 can extend the silence rule without inheriting the defect. ⚠️ any change moves technique-selection distributions, so the recalibration cost must be measured before a mechanism is chosen",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.128"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.129 was written as implementation but its own text names this as \"this task's to rule\", and its dependency 2GN.128 only implements the `materialAffinities` half — the spike (2GN.127) scoped itself to materials and deferred the substrate-gate question by name. Splitting the ruling out leaves 2GN.129 as pure implementation.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.135",
+						"description": "design spike — rule the inputs to the derived `wallThickness`/`diameter` quantity 2GN.120 implements: which modelled quantities feed the derivation (`craftSpecialisation`, the component's assigned material, vessel role for thickness; the length ratio 2GN.118 identified for diameter — a cylinder's diameter reads relative to its own length while a disc's is its principal dimension), what continuous value sits beneath the bands, and how per-culture band cutting works so cross-culture comparison stops being impossible by construction. Fourth instance of the band-computed-from-an-absolute-table family (2GN.86 mass, 2GN.87 blade, 2GN.108 axis) — but unlike those, no spike has ruled this one's derivation",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.118"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.120's deliverable says \"a derived thickness quantity with its inputs ruled\", but nothing upstream rules them — spike 2GN.118 explicitly deferred diameter's derivation \"to the 2GN.120 family\", and 2GN.120 itself has no spike dependency. This spike owns the ruling; 2GN.120 becomes pure implementation.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.136",
+						"description": "design spike — rule the selection criteria and target size for widening the material catalogue: what \"what a real assemblage needs\" (2GN.124's stated judge) means concretely — which single-leaf `MaterialTag` classes must gain siblings for `materials.calibration.test.ts`'s intra-tag guard to measure anything (clay, glass, fiber, leather), which archaeologically common materials earn a slot (shell, amber, horn, pigments, composites), whether new `MaterialTag` members are admitted, and the per-candidate recalibration cost (`EXPECTED_TAG_SHARES`/`EXPECTED_INTRA_TAG_SHARES` move; every authored `materialAffinities` entry array and the 2GN.128 validator verdicts are touched)",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no doc section defines selection criteria or a target catalogue size, and the change is calibration-shifting. This spike rules the scope; 2GN.124 implements it.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.137",
+						"description": "design spike — rule the value of N for the plausibility re-expansion attempt cap. The exhaustion contract is already fully specified (doc 05 §5/§14 and doc 12: typed `PlausibilityExhaustedError`, no fallback artefact), but both docs use \"N attempts\" as a literal placeholder — no numeric value is pinned anywhere. Rule it measured rather than guessed: sample the plausibility-failure rate distribution over seeds with `checkPlausibility` (2GN.12, done) and pick the N that bounds exhaustion probability at an agreed tolerance",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.12"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: the narrowest of the audit's five gaps — 2GN.16's contract is real, only the constant is unruled. Deliberately small; may resolve in one measurement session.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.138",
+						"description": "design spike — define \"interpretive challenge\" as a measurable per-artefact quantity and rule the excavation ambiguity distribution targets. Doc 05 §11.3 specifies the principle (measure the interpretive-challenge distribution of a batch, steer the next excavation if skewed) and gives one illustrative skew example (\"90%+ clearly classifiable\"), but never defines the quantity — no formula, no per-artefact scoring rule. 2GN.45's target bands (~30-40% clear / ~40-50% moderate / ~20-30% high) trace to no doc section. Rule the scoring formula (candidate inputs: classification-rule fire counts and margins, tag ambiguity, occluded-property coverage) and re-derive or ratify the bands against measured generator output",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.45 and 2GN.46 both require a metric doc 05 deliberately left qualitative, and 2GN.45's bands appear to originate in the roadmap task text itself. Blocks both.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.139",
+						"description": "design spike — rule the arrangement-pattern assignment mechanism 2GN.67 needs: detection is already contracted (`tallyArrangements`' same-primitiveType-within-one-top-level-group boundary, per 2GN.6), but nothing in the grammar ever *assigns* a pattern (2GN.3 rolls repetition incidentally, `checkAccumulation` only validates admissibility), so `arrangementGroup.pattern` has no faithful source. Rule whether assignment threads a deliberate choice through `expandGrammar`'s determinism-critical draw sequence (moving every calibration pin) or is derivable at flatten time from structure already rolled — and if threaded, where in the sequence the draw lands",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.108"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.67's own text names pattern assignment as \"the open question this task owns\", and its spike dependency 2GN.108 ruled a short-bodied-edged-tool vocabulary question, not this. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.140",
+						"description": "design spike — rule how the grammar models intentional multi-part assemblages versus stray components: `<object> ::= <component-group>+` lets `expandGrammar` roll multiple independent groups with no signal for whether that is a designed co-deposit (hoard, burial set) or an accidental artefact of complexity-budget rolls. Rule what carries the signal (a deliberate assemblage draw with its own cultural weighting, a post-hoc heuristic over rolled structure, or a provenance-level property assigned at excavation composition rather than generation), and what downstream consumers — classification, description, the lens — are entitled to read from it",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.108"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.69 is written as implementation but no doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"assignee": "Jason Warren"
 					}
 				]
 			},
