@@ -1,5 +1,5 @@
 /**
- * MVP plausibility rules (doc 05 §6.2, roadmap 2GN.11).
+ * MVP plausibility rules (doc 05 §6.2, roadmap 2GN.11; material-structural rules roadmap 2GN.15).
  *
  * The four worked examples doc 05 §6.2 gives, encoded as `ergonomic`/`material-physics` predicate
  * rules (`types/plausibility.ts`) rather than the declarative `requires`/`excludes`/`ordering`
@@ -8,19 +8,33 @@
  * faithfully. The declarative variants are shipped in the type but have no MVP instances here —
  * see the note above `PLAUSIBILITY_RULES` below.
  *
- * All four are grip/rigidity/load-bearing proxies rather than the real thing: material rigidity
- * (2GN.23) and a proper component-role/classification vocabulary don't exist yet, so each
- * predicate approximates with what `NormalisedArtefact` already carries (component count,
+ * The first four are grip/rigidity/load-bearing proxies rather than the real thing: a proper
+ * component-role/classification vocabulary doesn't exist yet (roadmap 2GN.116, still open), so
+ * each predicate approximates with what `NormalisedArtefact` already carries (component count,
  * `sheet-form`/`bar-form` presence, `flexibility`/`wall` properties). MVP-provisional per the
- * `data/grammars/core.ts` precedent — expected to be replaced or tightened once 2GN.12's checker
- * is observable in the Explorer (2GN.58) and once material assignment (2GN.23) lands.
+ * `data/grammars/core.ts` precedent — expected to be replaced or tightened once 2GN.116 lands.
+ *
+ * The last two check genuine material-structural compatibility (roadmap 2GN.15) rather than a
+ * proxy: whether a join's target component's `allowedMaterialTags` admits any material physically
+ * capable of the join at all. This has no doc 05 §6.2 example behind it — ruled directly against
+ * `MATERIALS`' measured property ranges per tag, not authored, since plausibility runs before
+ * Stage 6 material assignment and so can only reason about what a component *could* be made from.
+ * These two rules check a different physical fact from the existing `hasRigidShaft` proxy (rules
+ * 3/4 above gate on `perpendicular`/`lashed` + heavy mass; the new rules gate on
+ * `riveted`/`threaded`/`hinged`/`wrapped` regardless of mass), so they don't double-check the same
+ * join.
  *
  * This module is static data only, no behaviour — `checkPlausibility` (roadmap 2GN.12) is the
  * consumer that iterates this array and applies it.
  */
 
 import type { PlausibilityRule } from '../types/plausibility.ts';
-import type { NormalisedArtefact, NormalisedComponent } from '../types/artefact.ts';
+import type {
+	MaterialDefinition,
+	NormalisedArtefact,
+	NormalisedComponent,
+} from '../types/artefact.ts';
+import { MATERIALS } from './materials.ts';
 
 /** Components of a given primitive type, in flattened order. */
 function componentsOf(
@@ -97,6 +111,113 @@ const HEAVY_MASSES: ReadonlySet<NormalisedArtefact['dimensions']['mass']> = new 
 ]);
 
 /**
+ * The join types (doc 05 §5.3's nine `<attachment>` terminals) checked against a component's
+ * material *possibility* rather than a physical proxy (roadmap 2GN.15). Plausibility runs at
+ * Stage 5, before material assignment (Stage 6), so these can only ask "could this component be
+ * made from something that supports this join at all" — a component whose entire
+ * `allowedMaterialTags` set fails the demand can never satisfy it, whichever material Stage 6
+ * eventually draws.
+ *
+ * `riveted`/`threaded`/`hinged` all demand a material class that holds a drilled, tapped or
+ * pivoting metal fastener without crumbling: `rigidity >= 5` clears every catalogue tag except
+ * `fiber` and `leather`, whose only members today (linen 1, leather 2) have nothing to drill
+ * into. `wrapped` demands
+ * the opposite: a material that flexes around a substrate, which is what `rigidity` measures —
+ * `fragility` was deliberately not used as an alternate/OR axis here, even though it looks
+ * related: `fragility` is crack-proneness, not bendability, and jade's `fragility: 2` (rarely
+ * shatters) alongside `rigidity: 7` (stone-hard, cannot bend) would have wrongly passed a rigid
+ * stone as "wrappable" under an OR test. `fragility` is also currently authored against the
+ * *finished* state (roadmap 2GN.105, still open, will re-author it to the *working* state
+ * `computeLayerGrade` actually needs), so even a bendability-flavoured fragility reading would be
+ * measuring the wrong moment today. `inline`, `socketed`, `friction-fit` and `lashed` carry no
+ * distinct derivable threshold: `inline` and `socketed` demand fit tolerance, not a material
+ * class; `friction-fit` likewise; `lashed` is already covered structurally by the doc 05 §6.2
+ * example 3 rule below (`hasPerpendicularOrLashedAttachment` + `hasRigidShaft`), and duplicating
+ * it here would double-gate the same physical fact through a different proxy.
+ *
+ * ⚠️ Revisit both thresholds once 2GN.105 lands: 2GN.111 *ruled* that `rigidity` should gain a
+ * per-state shape (`{ worked, finished }`), but 2GN.105 (still open) is what implements it —
+ * `physicalProperties.rigidity` is a plain scalar today, which is why these rules typecheck
+ * against it directly. Once 2GN.105 lands, confirm which state the plausibility question
+ * actually wants before wiring these rules to the new shape, and it may become worth
+ * reintroducing `fragility` as a genuine second axis once its values describe the working
+ * state. Filed as roadmap 2GN.141.
+ */
+const RIGID_FASTENER_JOINS: ReadonlySet<NormalisedArtefact['attachments'][number]['type']> =
+	new Set(['riveted', 'threaded', 'hinged']);
+
+/** Minimum `rigidity` a material needs to hold a drilled, tapped or pivoting fastener. */
+const RIGID_FASTENER_MIN_RIGIDITY = 5;
+
+/** At or below this `rigidity`, a material can flex around a substrate. */
+const WRAPPABLE_MAX_RIGIDITY = 2;
+
+/**
+ * Whether any material carrying one of `component`'s `allowedMaterialTags` clears `predicate` —
+ * i.e. whether the join demand is achievable by *some* material this component could still be
+ * assigned, not a specific one. An empty `allowedMaterialTags` (no constraint recorded) is
+ * permissive: every material is a candidate, so the demand is trivially achievable.
+ */
+function someCompatibleMaterialSatisfies(
+	component: NormalisedComponent,
+	predicate: (material: MaterialDefinition) => boolean,
+): boolean {
+	if (component.allowedMaterialTags.length === 0) return true;
+	return MATERIALS.some(
+		(material) =>
+			material.tags.some((tag) => component.allowedMaterialTags.includes(tag)) &&
+			predicate(material),
+	);
+}
+
+/**
+ * Whether `artefact` has a rigid-fastener join (`RIGID_FASTENER_JOINS`) where either component's
+ * `allowedMaterialTags` admits no material stiff enough to hold it. `fromComponentId`/
+ * `toComponentId` record tree position (parent/child), not physical role, so a rivet through both
+ * members needs both endpoints checked, not just the child.
+ */
+function hasUnrigidFastenerJoin(artefact: NormalisedArtefact): boolean {
+	const byId = new Map(artefact.components.map((component) => [component.id, component]));
+	return artefact.attachments.some((attachment) => {
+		if (!RIGID_FASTENER_JOINS.has(attachment.type)) return false;
+		const from = byId.get(attachment.fromComponentId);
+		const to = byId.get(attachment.toComponentId);
+		const isRigid = (component: NormalisedComponent) =>
+			someCompatibleMaterialSatisfies(
+				component,
+				(material) => material.physicalProperties.rigidity >= RIGID_FASTENER_MIN_RIGIDITY,
+			);
+		return (from !== undefined && !isRigid(from)) || (to !== undefined && !isRigid(to));
+	});
+}
+
+/**
+ * Whether `artefact` has a `wrapped` join where neither component's `allowedMaterialTags` admits
+ * a material flexible enough to wrap: `rigidity` at or below `WRAPPABLE_MAX_RIGIDITY` clears it
+ * (see `RIGID_FASTENER_JOINS`'s comment for why `fragility` is deliberately not used here).
+ * Wrapping needs exactly one flexible member, not both — a leather strap around a stone core is
+ * legitimate — so this only flags a join where *neither* endpoint can flex, not either.
+ * `fromComponentId`/`toComponentId` record tree position, not which side does the wrapping, so
+ * "either" would wrongly flag that legitimate case whenever the parent happens to be rigid.
+ */
+function hasUnwrappableJoin(artefact: NormalisedArtefact): boolean {
+	const byId = new Map(artefact.components.map((component) => [component.id, component]));
+	return artefact.attachments.some((attachment) => {
+		if (attachment.type !== 'wrapped') return false;
+		const from = byId.get(attachment.fromComponentId);
+		const to = byId.get(attachment.toComponentId);
+		const isFlexible = (component: NormalisedComponent) =>
+			someCompatibleMaterialSatisfies(
+				component,
+				(material) => material.physicalProperties.rigidity <= WRAPPABLE_MAX_RIGIDITY,
+			);
+		const fromFlexible = from === undefined || isFlexible(from);
+		const toFlexible = to === undefined || isFlexible(to);
+		return !fromFlexible && !toFlexible;
+	});
+}
+
+/**
  * The shipped plausibility rules. `requires`/`excludes`/`ordering` instances are deliberately
  * absent for MVP: every doc 05 §6.2 example turns on a component property, not a primitive-to-
  * primitive relationship, so the declarative variants have nothing faithful to encode yet. They
@@ -151,5 +272,28 @@ export const PLAUSIBILITY_RULES: readonly PlausibilityRule[] = [
 		predicate: (artefact) =>
 			HEAVY_MASSES.has(artefact.dimensions.mass) && hasThinWalledHollow(artefact),
 		reason: 'a heavy component on a thin-walled hollow form is structurally implausible',
+	},
+
+	/**
+	 * Material-structural compatibility (roadmap 2GN.15, no doc 05 §6.2 example): a `riveted`,
+	 * `threaded` or `hinged` join's target component must be possibly makeable from a material
+	 * rigid enough to hold the fastener, checked against `allowedMaterialTags` rather than an
+	 * assigned material (plausibility runs before Stage 6 material assignment).
+	 */
+	{
+		type: 'material-physics',
+		predicate: hasUnrigidFastenerJoin,
+		reason: 'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+	},
+
+	/**
+	 * Material-structural compatibility (roadmap 2GN.15, no doc 05 §6.2 example): a `wrapped`
+	 * join's target component must be possibly makeable from a material flexible enough to wrap
+	 * around a substrate, checked against `allowedMaterialTags`.
+	 */
+	{
+		type: 'material-physics',
+		predicate: hasUnwrappableJoin,
+		reason: 'a wrapped join needs a material flexible enough to wrap around its substrate',
 	},
 ];
