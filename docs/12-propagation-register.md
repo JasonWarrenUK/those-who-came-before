@@ -2964,5 +2964,57 @@ structure generation (buildings) is a real pipeline target, per Jason's note rec
 
 ---
 
+### 2.52 Two Material-Structural Plausibility Rules Landed; One Reads a State the Data Doesn't Have Yet (2026-08-20)
+
+Roadmap 2GN.15 added two `PlausibilityRule` entries to `src/lib/data/plausibility.ts`, gated on
+`allowedMaterialTags` (2GN.10, §2.51): a rigid-fastener check (`riveted`/`threaded`/`hinged` joins
+need `rigidity >= 5`) and a wrapped-join check (`wrapped` joins need `rigidity <= 2`). 26 unit tests
+in `plausibility.test.ts` cover both, including the empty-`allowedMaterialTags`-is-permissive
+fixture case shared with the doc 05 §6.2 rules already in the file.
+
+**`fragility` was considered and dropped for the wrapped-join check, for two independent reasons.**
+The first is semantic: `fragility` is crack-proneness, not bendability, and testing it as an
+OR-alternate to `rigidity` fails on jade — `fragility: 2` (rarely shatters) paired with
+`rigidity: 7` (stone-hard) would wrongly pass a rigid, unbendable stone as "wrappable". The second
+is a state mismatch, surfaced only by asking whether it ties into the working/finished-state
+property work already in flight: `fragility` is authored against the _finished_ state today (jade
+cured, glass cold), but a wrapping question is a working-state question (can this be bent around a
+substrate before/during assembly), and 2GN.111 (§2.46) already flagged `fragility` as one of the two
+axes mis-stated against the wrong state entirely. Reintroducing it here now would have measured the
+wrong moment even if the OR-logic bug were fixed. `rigidity` alone (`<= 2`) was used instead; both
+reasons are recorded in the rule's own JSDoc rather than only here, since a future reader debugging
+the wrapped-join rule needs the reasoning at the call site.
+
+**Reachability checked against generator output, not just unit fixtures, and one rule is
+structurally silent today.** Sampling 2000 generated artefacts through the full pipeline: the
+wrapped-join rule fired 149 times (7.5%), proving it reachable and load-bearing. The rigid-fastener
+rule fired zero times. A second sample (5000 artefacts, join-type-only) found 3195 riveted/threaded/
+hinged joins in that set — the join type is common, so the zero is not a sampling artefact. Checking
+all eight `PRIMITIVE_MATERIAL_TAGS` rows (§2.51) against `MATERIALS`' rigidity values found every
+row contains at least one material clearing `rigidity >= 5` (only `fiber`/`leather` fall below it,
+and no row is fiber/leather-only) — the rule can only fire on a hand-built fixture, never on
+generator output, as a direct arithmetic consequence of the current 8-row table and 16-material
+catalogue.
+
+**Ruled: kept as authored, not dropped.** The unreachability isn't permanent — roadmap 2GN.124
+(widen the material catalogue) explicitly scopes in materials like shell, horn and pigments/
+composites, any of which could plausibly land with low rigidity on a primitive that's already
+fiber/leather-heavy, making the rule reachable without further code changes. Dropping it now and
+re-adding it later would be strictly more churn than leaving it in place, correctly specified,
+covered by its own unit tests, waiting on catalogue data it doesn't otherwise depend on.
+
+**Follow-up filed as 2GN.141** (dependsOn 2GN.105): once `fragility` is re-authored to the working
+state, reconsider reintroducing it as a genuine second axis in the wrapped-join check, and confirm
+which state the two rules in this section want once 2GN.105 implements the per-state `rigidity`
+shape 2GN.111 ruled (§2.46) — today's code reads the pre-split scalar, since 2GN.105 hasn't landed.
+
+| §  | Propagation                                                                                   | Date       |
+| -- | --------------------------------------------------------------------------------------------- | ---------- |
+| —  | `hasUnrigidFastenerJoin` + `hasUnwrappableJoin` in `data/plausibility.ts`, 2 new rule entries | 2026-08-20 |
+| ⏳ | 2GN.141: revisit both rules' state/axis choices once 2GN.105 lands                            | 2026-08-20 |
+| ⏳ | 2GN.124: widening the catalogue may make the rigid-fastener rule reachable                    | 2026-08-20 |
+
+---
+
 _This document is a living register. Items are added during design sessions and resolved during
 propagation passes._
