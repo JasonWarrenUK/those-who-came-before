@@ -120,7 +120,8 @@ const HEAVY_MASSES: ReadonlySet<NormalisedArtefact['dimensions']['mass']> = new 
  *
  * `riveted`/`threaded`/`hinged` all demand a material class that holds a drilled, tapped or
  * pivoting metal fastener without crumbling: `rigidity >= 5` clears every catalogue tag except
- * `fiber` (1) and `leather` (2), the two materials with nothing to drill into. `wrapped` demands
+ * `fiber` and `leather`, whose only members today (linen 1, leather 2) have nothing to drill
+ * into. `wrapped` demands
  * the opposite: a material that flexes around a substrate, which is what `rigidity` measures —
  * `fragility` was deliberately not used as an alternate/OR axis here, even though it looks
  * related: `fragility` is crack-proneness, not bendability, and jade's `fragility: 2` (rarely
@@ -170,37 +171,49 @@ function someCompatibleMaterialSatisfies(
 }
 
 /**
- * Whether `artefact` has a rigid-fastener join (`RIGID_FASTENER_JOINS`) whose target component's
- * `allowedMaterialTags` admits no material stiff enough to hold it.
+ * Whether `artefact` has a rigid-fastener join (`RIGID_FASTENER_JOINS`) where either component's
+ * `allowedMaterialTags` admits no material stiff enough to hold it. `fromComponentId`/
+ * `toComponentId` record tree position (parent/child), not physical role, so a rivet through both
+ * members needs both endpoints checked, not just the child.
  */
 function hasUnrigidFastenerJoin(artefact: NormalisedArtefact): boolean {
 	const byId = new Map(artefact.components.map((component) => [component.id, component]));
 	return artefact.attachments.some((attachment) => {
 		if (!RIGID_FASTENER_JOINS.has(attachment.type)) return false;
-		const target = byId.get(attachment.toComponentId);
-		if (target === undefined) return false;
-		return !someCompatibleMaterialSatisfies(
-			target,
-			(material) => material.physicalProperties.rigidity >= RIGID_FASTENER_MIN_RIGIDITY,
-		);
+		const from = byId.get(attachment.fromComponentId);
+		const to = byId.get(attachment.toComponentId);
+		const isRigid = (component: NormalisedComponent) =>
+			someCompatibleMaterialSatisfies(
+				component,
+				(material) => material.physicalProperties.rigidity >= RIGID_FASTENER_MIN_RIGIDITY,
+			);
+		return (from !== undefined && !isRigid(from)) || (to !== undefined && !isRigid(to));
 	});
 }
 
 /**
- * Whether `artefact` has a `wrapped` join whose target component's `allowedMaterialTags` admits
- * no material flexible enough to wrap: `rigidity` at or below `WRAPPABLE_MAX_RIGIDITY` clears it
+ * Whether `artefact` has a `wrapped` join where neither component's `allowedMaterialTags` admits
+ * a material flexible enough to wrap: `rigidity` at or below `WRAPPABLE_MAX_RIGIDITY` clears it
  * (see `RIGID_FASTENER_JOINS`'s comment for why `fragility` is deliberately not used here).
+ * Wrapping needs exactly one flexible member, not both — a leather strap around a stone core is
+ * legitimate — so this only flags a join where *neither* endpoint can flex, not either.
+ * `fromComponentId`/`toComponentId` record tree position, not which side does the wrapping, so
+ * "either" would wrongly flag that legitimate case whenever the parent happens to be rigid.
  */
 function hasUnwrappableJoin(artefact: NormalisedArtefact): boolean {
 	const byId = new Map(artefact.components.map((component) => [component.id, component]));
 	return artefact.attachments.some((attachment) => {
 		if (attachment.type !== 'wrapped') return false;
-		const target = byId.get(attachment.toComponentId);
-		if (target === undefined) return false;
-		return !someCompatibleMaterialSatisfies(
-			target,
-			(material) => material.physicalProperties.rigidity <= WRAPPABLE_MAX_RIGIDITY,
-		);
+		const from = byId.get(attachment.fromComponentId);
+		const to = byId.get(attachment.toComponentId);
+		const isFlexible = (component: NormalisedComponent) =>
+			someCompatibleMaterialSatisfies(
+				component,
+				(material) => material.physicalProperties.rigidity <= WRAPPABLE_MAX_RIGIDITY,
+			);
+		const fromFlexible = from === undefined || isFlexible(from);
+		const toFlexible = to === undefined || isFlexible(to);
+		return !fromFlexible && !toFlexible;
 	});
 }
 
