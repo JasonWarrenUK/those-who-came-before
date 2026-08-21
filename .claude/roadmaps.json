@@ -388,7 +388,7 @@
 					{
 						"id": "2GN.10",
 						"description": "`engine/generation/grammar.ts` — `allowedMaterialTags` derivation per component from primitive type + properties compatibility",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.8",
 							"2GN.118"
@@ -438,7 +438,7 @@
 					{
 						"id": "2GN.15",
 						"description": "`engine/generation/plausibility.ts` — material-structural compatibility (material tags constrain joins/forms)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12",
 							"2GN.10",
@@ -609,9 +609,10 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.30",
-							"2GN.10"
+							"2GN.10",
+							"2GN.116"
 						],
-						"notes": "Filed 2026-08-09 during 2GN.30 implementation. `enforceSubstrates` only enforces `kind: 'material'` substrates; the three `kind: 'form'` techniques pass through unevaluated, matching the Explorer's existing `'unevaluated'` verdict (`routes/dev/explorer/decoration/decorationLayers.ts`). Nothing in the pipeline currently answers a geometry question about a component: `NormalisedComponent.allowedMaterialTags` is stubbed empty until 2GN.10, and no other field expresses `grippable` or `attachment-point`. This task needs 2GN.10 landed first, then a resolver function (likely alongside `enforceSubstrates`, same shape) and a decision on what `primitiveType`/`properties` combination counts as grippable or carrying an attachment point — that judgement call was explicitly deferred, not decided, when 2GN.30 shipped.",
+						"notes": "Filed 2026-08-09 during 2GN.30 implementation. `enforceSubstrates` only enforces `kind: 'material'` substrates; the three `kind: 'form'` techniques pass through unevaluated, matching the Explorer's existing `'unevaluated'` verdict (`routes/dev/explorer/decoration/decorationLayers.ts`). ⚠️ Corrected 2026-08-20 during 2GN.10's implementation: this task previously named `allowedMaterialTags` (2GN.10) as its missing prerequisite, on the premise that no other field expresses `grippable`/`attachment-point`. That premise was wrong — `allowedMaterialTags` answers what a shape can be made *from*, a different question from whether a component *is* grippable or an attachment point. The actual missing piece is a component role concept, which 2GN.116's spike owns and has not yet ruled. 2GN.10 edge kept since the resolver this task builds will still want real material context, but 2GN.116 is now the binding dependency.",
 						"assignee": ""
 					},
 					{
