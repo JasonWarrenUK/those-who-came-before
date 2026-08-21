@@ -1564,10 +1564,12 @@ Deno.test('enforceSubstrates: keeps every kind-none technique regardless of mate
 });
 
 Deno.test("enforceSubstrates: keeps kind-form techniques unstripped (geometry resolution deferred, not this task's scope)", () => {
-	// wire-wrapping/wrapping/beading need the target component's geometry ('grippable' /
-	// 'attachment-point'), which nothing in the pipeline supplies yet — allowedMaterialTags is
-	// stubbed empty until roadmap 2GN.10. Stripping on a check that cannot run would silently
-	// delete these three techniques from every artefact on no evidence.
+	// wire-wrapping/wrapping/beading need the target component's role ('grippable' /
+	// 'attachment-point'), which nothing in the pipeline supplies yet — allowedMaterialTags (real
+	// since roadmap 2GN.10) answers what a shape can be made from, not whether it's grippable or
+	// an attachment point; that role concept remains an open spike (roadmap 2GN.116). Stripping on
+	// a check that cannot run would silently delete these three techniques from every artefact on
+	// no evidence.
 	const formTechniques: DecorativeTechnique[] = ['wire-wrapping', 'wrapping', 'beading'];
 
 	for (const name of formTechniques) {
