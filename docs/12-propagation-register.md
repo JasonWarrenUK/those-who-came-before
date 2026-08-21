@@ -3021,6 +3021,24 @@ inert on generator output (0 failures at either endpoint, consistent with §2.52
 finding above); the wrapped fix changes which joins fire, moving it from the single-endpoint reading
 toward the physically correct one.
 
+**The boundary-pin test needed a second self-review round to actually pin.** The first attempt used
+a `bone`-tagged component, reasoning that `bone`'s `rigidity: 5` sits exactly on
+`RIGID_FASTENER_MIN_RIGIDITY`. It didn't: `antler` shares the `bone` tag at `rigidity: 6`, and
+`someCompatibleMaterialSatisfies` checks every co-tagged material, not the named one, so antler
+rescued the check under a mutation to the threshold (5→6, verified: all tests still passed).
+`metal`'s bronze/gold/silver (5) are equally rescued by iron (6). `wood` is the only tag with no
+member above 5 (oak and ash both sit exactly at 5), so it's the one immune to this rescue and the
+only correct choice for a boundary pin. General lesson: a predicate over `allowedMaterialTags` is a
+claim about tag membership, not about one material, and this class of test needs a tag with no
+higher-rigidity sibling, not merely a material at the right value.
+
+**No calibration pin moved.** `checkPlausibility` has no production caller today (grep confirms the
+only non-test references are the Explorer's `plausibilityBatch.ts` panel and this file's own JSDoc
+mention); the re-expansion loop that would wire it into the sampled pipeline is 2GN.16, still
+`todo`. So the wrapped rule's fire-rate change (from the old single-endpoint reading toward the
+AND-across- both-endpoints one) ships unwired, matching the precedent 2GN.30/2GN.99 already set for
+this file.
+
 | §  | Propagation                                                                                   | Date       |
 | -- | --------------------------------------------------------------------------------------------- | ---------- |
 | —  | `hasUnrigidFastenerJoin` + `hasUnwrappableJoin` in `data/plausibility.ts`, 2 new rule entries | 2026-08-20 |
