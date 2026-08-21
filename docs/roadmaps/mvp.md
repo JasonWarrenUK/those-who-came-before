@@ -3099,7 +3099,7 @@ graph LR
 	2GN.67["2GN.67: `engine/generation/grammar.ts` — arrang…"]
 	2GN.140["2GN.140: design spike — rule how the grammar mo…"]
 	2GN.69["2GN.69: `engine/generation/grammar.ts` — delibe…"]
-	2GN.141["2GN.141: `engine/generation/data/plausibility.t…"]
+	2GN.141["2GN.141: `src/lib/data/plausibility.ts` — revis…"]
 	2GN.13["2GN.13: `engine/generation/plausibility.ts` — p…"]
 	M2["M2: Generation Pipeline"]:::mile
 	M3["M3: World State & Integration"]:::mile

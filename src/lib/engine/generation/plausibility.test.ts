@@ -398,9 +398,11 @@ Deno.test('checkPlausibility: rigidity exactly at RIGID_FASTENER_MIN_RIGIDITY pa
 	const artefact = mockNormalisedArtefact({
 		components: [
 			component('c0', 'elongated'),
-			// bone/wood/bronze/gold/silver all sit at rigidity 5, the documented threshold;
-			// this pins that boundary against a later edit to RIGID_FASTENER_MIN_RIGIDITY.
-			component('c1', 'disc-form', {}, 1, ['bone']),
+			// `wood` is the only tag with no member above rigidity 5: oak and ash both sit
+			// exactly at the threshold, so this component cannot be rescued by a co-tagged
+			// material the way `bone`/`metal` would be by antler (6)/iron (6) — a genuine
+			// boundary pin against a later edit to RIGID_FASTENER_MIN_RIGIDITY.
+			component('c1', 'disc-form', {}, 1, ['wood']),
 		],
 		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
 	});
