@@ -1944,13 +1944,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled
     a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared
     recalibration-sweep sequencing its notes record.
-- [ ] **2GN.141** — `engine/generation/data/plausibility.ts` — revisit the material-structural
-      plausibility rules (2GN.15) once `fragility` is re-authored to the working state: (1)
-      reconsider whether `fragility` should be reintroduced as a genuine second axis in the
-      wrapped-join check, alongside `rigidity`, and (2) confirm which state (worked vs finished) the
-      rigid-fastener and wrapped-join rules actually want to read once 2GN.105 implements the
-      per-state `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the
-      pre-split scalar interface, since 2GN.105 hasn't landed yet) _(blocked — depends on 2GN.105)_
+- [ ] **2GN.141** — `src/lib/data/plausibility.ts` — revisit the material-structural plausibility
+      rules (2GN.15) once `fragility` is re-authored to the working state: (1) reconsider whether
+      `fragility` should be reintroduced as a genuine second axis in the wrapped-join check,
+      alongside `rigidity`, and (2) confirm which state (worked vs finished) the rigid-fastener and
+      wrapped-join rules actually want to read once 2GN.105 implements the per-state
+      `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the pre-split
+      scalar interface, since 2GN.105 hasn't landed yet) _(blocked — depends on 2GN.105)_
   - Note: Filed 2026-08-21 during 2GN.15's implementation. 2GN.15's wrapped-join rule deliberately
     does not use `fragility` today: jade's currently-authored finished-state `fragility: 2` would
     have wrongly passed a rigid, unbendable stone as "wrappable" under an OR-with-rigidity test, and

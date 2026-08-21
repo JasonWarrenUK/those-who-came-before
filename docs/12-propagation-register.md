@@ -3008,6 +3008,19 @@ state, reconsider reintroducing it as a genuine second axis in the wrapped-join 
 which state the two rules in this section want once 2GN.105 implements the per-state `rigidity`
 shape 2GN.111 ruled (§2.46) — today's code reads the pre-split scalar, since 2GN.105 hasn't landed.
 
+**Both rules checked one join endpoint only at first; self-review caught the asymmetry before
+merge.** `fromComponentId`/`toComponentId` record tree position (parent/child from grammar
+expansion), not physical role, so checking only `toComponentId` silently assumed the child is always
+the fastener's/wrap's demanding side. Measuring 3000 sampled artefacts found the `from` endpoint
+actually fails the rigid-fastener predicate _more_ often than `to` (265 vs 257 of 1950 joins) — the
+asymmetry wasn't a rare tail. Fixed to OR across both endpoints for the fastener rule (a rivet
+passes through both members, so either failing is implausible) and AND across both for the wrapped
+rule (wrapping needs exactly one flexible member, not both — a leather strap around a stone core is
+legitimate, so only flag a join where _neither_ end can flex). The fastener fix is behaviourally
+inert on generator output (0 failures at either endpoint, consistent with §2.52's unreachability
+finding above); the wrapped fix changes which joins fire, moving it from the single-endpoint reading
+toward the physically correct one.
+
 | §  | Propagation                                                                                   | Date       |
 | -- | --------------------------------------------------------------------------------------------- | ---------- |
 | —  | `hasUnrigidFastenerJoin` + `hasUnwrappableJoin` in `data/plausibility.ts`, 2 new rule entries | 2026-08-20 |

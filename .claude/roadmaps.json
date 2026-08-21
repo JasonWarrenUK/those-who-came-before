@@ -1738,7 +1738,7 @@
 					},
 					{
 						"id": "2GN.141",
-						"description": "`engine/generation/data/plausibility.ts` — revisit the material-structural plausibility rules (roadmap 2GN.15) once `fragility` is re-authored to the working state: (1) reconsider whether `fragility` should be reintroduced as a genuine second axis in the wrapped-join check, alongside `rigidity`, and (2) confirm which state (worked vs finished) the rigid-fastener and wrapped-join rules actually want to read once 2GN.105 implements the per-state `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the pre-split scalar interface, since 2GN.105 hasn't landed yet)",
+						"description": "`src/lib/data/plausibility.ts` — revisit the material-structural plausibility rules (roadmap 2GN.15) once `fragility` is re-authored to the working state: (1) reconsider whether `fragility` should be reintroduced as a genuine second axis in the wrapped-join check, alongside `rigidity`, and (2) confirm which state (worked vs finished) the rigid-fastener and wrapped-join rules actually want to read once 2GN.105 implements the per-state `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the pre-split scalar interface, since 2GN.105 hasn't landed yet)",
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.105"
