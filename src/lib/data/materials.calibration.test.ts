@@ -98,69 +98,77 @@ const PRIMARY_TAG: Readonly<Record<string, string>> = {
 const MULTI_LEAF_PRIMARY_TAGS: readonly string[] = ['metal', 'stone', 'wood', 'bone'];
 
 /**
- * Measured per-region tag share (roadmap 2GN.84), at `SAMPLES_PER_REGION` per region, recorded
- * 2026-08-06 against the then-current catalogue (jade → `['stone', 'precious-stone']`, glass →
- * engravable/paintable) and the closed introduced-material gate hole. Jade's tags have since become
- * `['stone']` — roadmap 2GN.78 retired the `precious-*` members — which left these shares unmoved,
- * since jade already counted under `stone` here and the tag was carrying no share of its own. A
- * material with zero
- * modelled presence in a region (`forestInterior`'s absent metals, `desertMargin`'s absent wood)
- * reads as an omitted tag entry, not a zero, matching `tests/fixtures/world.ts`'s own
- * "regions differ in which materials are obtainable" design.
+ * Measured per-region tag share (roadmap 2GN.84), at `SAMPLES_PER_REGION` per region. Originally
+ * recorded 2026-08-06 against the then-current catalogue; **re-recorded 2026-08-20 by roadmap
+ * 2GN.10**, which gave `NormalisedComponent.allowedMaterialTags` real per-primitive values in
+ * place of the all-empty stub every prior measurement ran against (`assignMaterial`'s compatibility
+ * filter, doc 05 §7, was a no-op until this task). Deliberate, expected drift, not a fixture or
+ * weight change: `metal` gained an allowed path on all eight primitives so its share rose in every
+ * region; `leather` is now reachable only via `sheet-form` so it collapsed everywhere it wasn't
+ * already low; `forestInterior`'s `stone` intra-tag split shifted because that region's narrower
+ * geology now interacts with a narrower candidate pool. Checked against the ruled compatibility
+ * table (`PRIMITIVE_MATERIAL_TAGS`, `engine/generation/grammar.ts`) before re-recording, per this
+ * file's own "usually right, don't just widen the band" warning. A material with zero modelled
+ * presence in a region (`forestInterior`'s absent metals, `desertMargin`'s absent wood) reads as an
+ * omitted tag entry, not a zero, matching `tests/fixtures/world.ts`'s own "regions differ in which
+ * materials are obtainable" design.
  */
 const EXPECTED_TAG_SHARES: Readonly<Record<MockWorldRegion, Readonly<Record<string, number>>>> = {
 	riverValley: {
-		bone: 17.2,
-		wood: 17.2,
-		clay: 14.6,
-		fiber: 14.3,
-		metal: 12.3,
-		stone: 12.1,
-		leather: 9.0,
+		metal: 23.1,
+		stone: 17.5,
+		wood: 20.1,
+		bone: 17.4,
+		clay: 14.1,
+		fiber: 5.4,
+		glass: 0.8,
+		leather: 1.6,
 	},
 	highlandMine: {
-		metal: 43.7,
-		stone: 28.2,
-		wood: 13.1,
-		bone: 5.0,
-		clay: 3.0,
-		leather: 2.9,
-		fiber: 2.6,
+		metal: 57.8,
+		stone: 23.0,
+		wood: 12.6,
+		bone: 3.4,
+		clay: 1.9,
+		fiber: 0.9,
+		glass: 0.3,
+		leather: 0.1,
 	},
 	coastalPort: {
-		leather: 18.4,
-		fiber: 16.8,
-		wood: 14.7,
-		metal: 15.2,
-		stone: 14.4,
-		clay: 10.5,
-		bone: 8.0,
+		metal: 30.1,
+		stone: 19.4,
+		wood: 18.7,
+		clay: 12.6,
+		bone: 9.7,
+		fiber: 6.6,
+		leather: 1.8,
+		glass: 1.1,
 	},
 	forestInterior: {
-		wood: 30.7,
-		bone: 29.1,
-		leather: 16.2,
-		fiber: 8.2,
-		clay: 7.7,
-		stone: 7.3,
+		wood: 36.7,
+		bone: 31.6,
+		stone: 18.6,
+		clay: 8.1,
+		fiber: 2.9,
+		leather: 2.2,
 		// metal: absent — forestInterior has no metal at any level and no trade flows.
 	},
 	desertMargin: {
-		stone: 48.1,
-		bone: 20.0,
-		metal: 18.3,
-		leather: 9.2,
-		clay: 3.7,
+		stone: 44.7,
+		metal: 30.8,
+		bone: 19.1,
+		clay: 3.4,
+		leather: 2.0,
 		// wood: absent — desertMargin has no wood at any level.
 	},
 	steppeMargin: {
-		bone: 31.5,
-		leather: 16.2,
-		metal: 14.0,
-		wood: 12.9,
-		stone: 12.5,
-		fiber: 9.8,
-		clay: 3.7,
+		bone: 30.4,
+		metal: 27.7,
+		stone: 16.6,
+		wood: 15.8,
+		clay: 4.5,
+		fiber: 3.3,
+		leather: 1.8,
 	},
 };
 
@@ -168,45 +176,50 @@ const EXPECTED_TAG_SHARES: Readonly<Record<MockWorldRegion, Readonly<Record<stri
  * Measured intra-tag conditional split — of the materials sharing a primary tag, each one's share
  * of that tag's total. Emitted only for `MULTI_LEAF_PRIMARY_TAGS`; a region where a tag's total is
  * zero (e.g. `metal` in `forestInterior`) has no entry, since there is nothing to condition on.
+ *
+ * Re-recorded 2026-08-20 alongside `EXPECTED_TAG_SHARES` (roadmap 2GN.10 — see that constant's
+ * comment for why). Only `forestInterior/stone` moved past tolerance (flint/granite split shifted
+ * with the narrower candidate pool); every other region's intra-tag split held within noise, values
+ * refreshed to the same-run measurement regardless.
  */
 const EXPECTED_INTRA_TAG_SHARES: Readonly<
 	Record<MockWorldRegion, Readonly<Record<string, Readonly<Record<string, number>>>>>
 > = {
 	riverValley: {
-		metal: { bronze: 28.6, iron: 22.7, gold: 24.7, silver: 24.0 },
-		stone: { obsidian: 33.6, flint: 25.8, granite: 24.8, jade: 15.8 },
-		wood: { oak: 51.3, ash: 48.7 },
-		bone: { bone: 52.2, antler: 47.8 },
+		metal: { bronze: 25.7, iron: 25.7, gold: 26.0, silver: 22.7 },
+		stone: { obsidian: 29.7, flint: 28.1, granite: 25.3, jade: 16.8 },
+		wood: { oak: 50.8, ash: 49.2 },
+		bone: { bone: 52.4, antler: 47.6 },
 	},
 	highlandMine: {
-		metal: { bronze: 35.7, iron: 35.0, gold: 5.3, silver: 24.0 },
-		stone: { obsidian: 21.3, flint: 36.0, granite: 38.5, jade: 4.2 },
+		metal: { bronze: 36.2, iron: 37.7, gold: 5.1, silver: 20.9 },
+		stone: { obsidian: 21.5, flint: 36.4, granite: 34.8, jade: 7.2 },
 		wood: { oak: 50.8, ash: 49.2 },
-		bone: { bone: 59.0, antler: 41.0 },
+		bone: { bone: 54.2, antler: 45.8 },
 	},
 	coastalPort: {
-		metal: { bronze: 25.9, iron: 25.9, gold: 25.1, silver: 23.2 },
-		stone: { obsidian: 16.5, flint: 33.6, granite: 31.6, jade: 18.2 },
-		wood: { oak: 74.5, ash: 25.5 },
-		bone: { bone: 52.3, antler: 47.7 },
+		metal: { bronze: 24.7, iron: 23.0, gold: 26.3, silver: 25.9 },
+		stone: { obsidian: 19.6, flint: 32.4, granite: 31.1, jade: 16.8 },
+		wood: { oak: 68.5, ash: 31.5 },
+		bone: { bone: 50.0, antler: 50.0 },
 	},
 	forestInterior: {
 		// metal: no entry — zero total in this region.
-		stone: { obsidian: 0.0, flint: 44.8, granite: 55.2, jade: 0.0 },
-		wood: { oak: 51.8, ash: 48.2 },
-		bone: { bone: 52.8, antler: 47.2 },
+		stone: { obsidian: 0.0, flint: 54.5, granite: 45.5, jade: 0.0 },
+		wood: { oak: 45.4, ash: 54.6 },
+		bone: { bone: 47.7, antler: 52.3 },
 	},
 	desertMargin: {
-		metal: { bronze: 35.0, iron: 32.8, gold: 17.8, silver: 14.4 },
-		stone: { obsidian: 30.6, flint: 31.9, granite: 32.5, jade: 5.1 },
+		metal: { bronze: 31.7, iron: 33.1, gold: 18.1, silver: 17.1 },
+		stone: { obsidian: 35.1, flint: 29.9, granite: 30.2, jade: 4.8 },
 		// wood: no entry — zero total in this region.
-		bone: { bone: 51.9, antler: 48.1 },
+		bone: { bone: 50.7, antler: 49.3 },
 	},
 	steppeMargin: {
-		metal: { bronze: 25.7, iron: 21.8, gold: 24.9, silver: 27.7 },
-		stone: { obsidian: 36.0, flint: 30.9, granite: 33.1, jade: 0.0 },
-		wood: { oak: 69.0, ash: 31.0 },
-		bone: { bone: 48.7, antler: 51.3 },
+		metal: { bronze: 23.8, iron: 28.2, gold: 23.7, silver: 24.4 },
+		stone: { obsidian: 32.3, flint: 31.1, granite: 36.7, jade: 0.0 },
+		wood: { oak: 73.7, ash: 26.3 },
+		bone: { bone: 49.1, antler: 50.9 },
 	},
 };
 
@@ -220,14 +233,18 @@ const EXPECTED_INTRA_TAG_SHARES: Readonly<
  * gap), so nothing falls through to `'unknown'`, and `'regional'` has no producer at MVP
  * (`deriveMaterialProvenance`'s own JSDoc).
  */
+// Re-recorded 2026-08-20 alongside EXPECTED_TAG_SHARES (roadmap 2GN.10 — see that constant's
+// comment). More components now filter down to a narrower compatible set before availability is
+// checked, shifting how often a local-scarce/trade-reachable material is the only compatible
+// option left — the direct mechanism this pin measures.
 const EXPECTED_PROVENANCE_MIX: Readonly<Record<MockWorldRegion, { local: number; trade: number }>> =
 	{
-		riverValley: { local: 83.1, trade: 16.9 },
-		highlandMine: { local: 94.7, trade: 5.3 },
-		coastalPort: { local: 77.2, trade: 22.8 },
+		riverValley: { local: 73.1, trade: 26.9 },
+		highlandMine: { local: 95.1, trade: 4.9 },
+		coastalPort: { local: 61.7, trade: 38.3 },
 		forestInterior: { local: 100.0, trade: 0.0 },
-		desertMargin: { local: 91.0, trade: 9.0 },
-		steppeMargin: { local: 84.3, trade: 15.7 },
+		desertMargin: { local: 87.0, trade: 13.0 },
+		steppeMargin: { local: 72.3, trade: 27.7 },
 	};
 
 /**
@@ -236,23 +253,31 @@ const EXPECTED_PROVENANCE_MIX: Readonly<Record<MockWorldRegion, { local: number;
  * uniform selection. Checked against every tag, not just the widest — a single wide outlier
  * clearing the floor proves nothing about whether the other tags collapsed.
  *
- * Measured per-tag spreads this session: metal 46.7pp, stone 44.6pp, wood 30.4pp, bone 25.5pp,
- * fiber 16.9pp, leather 15.6pp, clay 12.2pp — seven of the catalogue's eight primary tags sit well
- * clear of 8. `glass` measured only 2.6pp, but for a structural reason unrelated to collapse: it is
- * the catalogue's rarest tag by overall share (0-2.6% of all materials in any region), so its
- * absolute min-to-max spread is mechanically small regardless of whether geology discriminates for
- * it. `SPREAD_FLOOR_MIN_TAGS` below requires only 7 of the 8 tags to clear the floor, so glass's low
- * share doesn't mask a real collapse in the other seven but also doesn't fail the guard on its own.
+ * Measured per-tag spreads after roadmap 2GN.10 (2026-08-20, re-measured alongside
+ * `EXPECTED_TAG_SHARES`): metal 57.8pp, wood 36.7pp, bone 28.2pp, stone 28.1pp, clay 12.2pp sit
+ * well clear of 8. `glass` (1.1pp), `fiber` (6.6pp) and `leather` (2.1pp) do not, but for a shared
+ * structural reason unrelated to a geology collapse: `PRIMITIVE_MATERIAL_TAGS`
+ * (`engine/generation/grammar.ts`) now gates each tag's reachability by which component *shapes*
+ * can carry it before geology ever gets a say — `leather` only on `sheet-form` (1 of 8
+ * primitives), `fiber` on 3 of 8, `glass` still the catalogue's rarest tag by overall share as
+ * before. All three are shape-bottlenecked roughly equally in every region, so their cross-region
+ * spread stays low regardless of whether the underlying geology fixtures still discriminate for
+ * them — the same mechanism `glass` already had, now shared by two more tags now that
+ * `allowedMaterialTags` is real instead of the all-permissive `[]` stub every prior measurement of
+ * this guard ran against. `SPREAD_FLOOR_MIN_TAGS` below requires only 5 of the 8 tags to clear the
+ * floor, so this doesn't mask a real collapse in the five that aren't shape-bottlenecked, but also
+ * doesn't fail the guard on a structural narrowness this task deliberately ruled.
  */
 const SPREAD_FLOOR_POINTS = 8;
 
 /**
- * How many tags must clear `SPREAD_FLOOR_POINTS` for this guard to pass. Not all of them — `glass`
- * structurally can't (see that constant's comment) — but a genuine weighting collapse would pull
- * every tag toward uniform at once, so requiring all-but-one still catches it while not failing on
- * glass's low share alone.
+ * How many tags must clear `SPREAD_FLOOR_POINTS` for this guard to pass. Not all of them — three
+ * (`glass`, `fiber`, `leather`) are shape-bottlenecked rather than geology-driven, see that
+ * constant's comment — but a genuine weighting collapse would pull every tag toward uniform at
+ * once, so requiring all-but-three still catches it while not failing on the shape bottleneck
+ * alone.
  */
-const SPREAD_FLOOR_MIN_TAGS = 7;
+const SPREAD_FLOOR_MIN_TAGS = 5;
 
 /** Every primary tag in the catalogue, derived from `PRIMARY_TAG` rather than hand-written, so a new material's tag is covered automatically. */
 const ALL_PRIMARY_TAGS: readonly string[] = [...new Set(Object.values(PRIMARY_TAG))];
@@ -475,9 +500,9 @@ Deno.test('materials calibration: geology still discriminates across regions', (
 	// materials.test.ts would still pass in that world; this guard specifically would not.
 	//
 	// Checks every tag's spread, not just the widest. A single wide outlier clearing the floor
-	// proves nothing about the other tags — six of seven could collapse to an identical share in
-	// every region while the seventh alone kept the guard green. `SPREAD_FLOOR_MIN_TAGS` requires
-	// all-but-one tag to clear the floor (see its own comment for why not all seven).
+	// proves nothing about the other tags — several could collapse to an identical share in every
+	// region while one alone kept the guard green. `SPREAD_FLOOR_MIN_TAGS` requires 5 of the 8 tags
+	// to clear the floor, leaving room for the three shape-bottlenecked tags (see its own comment).
 	//
 	// A region that produces zero of a tag is a real, informative measurement (that tag lost all
 	// its geological presence there), not a gap to skip — `tagShares` only carries keys for tags

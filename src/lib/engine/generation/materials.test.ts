@@ -676,7 +676,7 @@ Deno.test('assignMaterial: only returns materials compatible with allowedMateria
 	}
 });
 
-Deno.test('assignMaterial: empty allowedMaterialTags treats every material as a candidate (2GN.10 stub)', () => {
+Deno.test('assignMaterial: empty allowedMaterialTags treats every material as a candidate (unrecognised primitive type)', () => {
 	const geology = mockGeologicalContext({ materialAvailability: new Map() });
 	const culture = mockCulturalProfile({ materialAffinities: [] });
 	const phase = mockPhaseCharacteristics();

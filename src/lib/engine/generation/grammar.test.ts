@@ -8,6 +8,7 @@ import {
 } from '@std/assert';
 import {
 	checkAccumulation,
+	deriveAllowedMaterialTags,
 	deriveComplexityBudget,
 	deriveInspectionDepth,
 	expandGrammar,
@@ -18,7 +19,11 @@ import {
 } from './grammar.ts';
 import { createPrng } from '../prng.ts';
 import { CORE_GRAMMAR_RULES } from '../../data/grammars/core.ts';
-import { isPrimitiveType, PRIMITIVE_PARAMETERS } from '../../data/grammars/primitives.ts';
+import {
+	isPrimitiveType,
+	PRIMITIVE_PARAMETERS,
+	PRIMITIVE_TYPES,
+} from '../../data/grammars/primitives.ts';
 import type {
 	AccumulationConstraints,
 	ComponentGroupNode,
@@ -1090,7 +1095,7 @@ Deno.test('normaliseArtefact: attachment count matches branch count', () => {
 	assertEquals(result.attachments.length, 2);
 });
 
-Deno.test('normaliseArtefact: allowedMaterialTags is stubbed empty (roadmap 2GN.10)', () => {
+Deno.test('normaliseArtefact: allowedMaterialTags is derived per component (roadmap 2GN.10)', () => {
 	const object: ExpandedObject = {
 		groups: [
 			sizedGroup(component('elongated'), [{ type: 'inline', child: component('disc-form') }]),
@@ -1100,7 +1105,55 @@ Deno.test('normaliseArtefact: allowedMaterialTags is stubbed empty (roadmap 2GN.
 	const result = normaliseArtefact(object, 'artefact-1');
 
 	for (const c of result.components) {
-		assertEquals(c.allowedMaterialTags, []);
+		assert(c.allowedMaterialTags.length > 0);
+	}
+});
+
+Deno.test('deriveAllowedMaterialTags: unrecognised primitive type returns empty (no constraint recorded)', () => {
+	assertEquals(deriveAllowedMaterialTags('not-a-primitive', new Map()), []);
+});
+
+Deno.test('deriveAllowedMaterialTags: elongated with no edge allows the full unedged set', () => {
+	const tags = deriveAllowedMaterialTags('elongated', new Map());
+	assertEquals([...tags].sort(), ['bone', 'fiber', 'metal', 'stone', 'wood'].sort());
+});
+
+Deno.test('deriveAllowedMaterialTags: elongated with a single edge narrows to metal and stone (doc 05 §6.1)', () => {
+	const tags = deriveAllowedMaterialTags('elongated', new Map([['edge', 'single']]));
+	assertEquals([...tags].sort(), ['metal', 'stone']);
+});
+
+Deno.test('deriveAllowedMaterialTags: elongated with a double edge narrows identically to a single edge', () => {
+	const tags = deriveAllowedMaterialTags('elongated', new Map([['edge', 'double']]));
+	assertEquals([...tags].sort(), ['metal', 'stone']);
+});
+
+Deno.test('deriveAllowedMaterialTags: elongated with a non-edge value leaves the base set untouched', () => {
+	const tags = deriveAllowedMaterialTags('elongated', new Map([['edge', 'none']]));
+	assertEquals([...tags].sort(), ['bone', 'fiber', 'metal', 'stone', 'wood'].sort());
+});
+
+Deno.test("deriveAllowedMaterialTags: hollow-enclosed matches doc 05 §6.1's worked example", () => {
+	const tags = deriveAllowedMaterialTags('hollow-enclosed', new Map());
+	for (const expected of ['clay', 'metal', 'wood', 'stone'] as const) {
+		assert(tags.includes(expected), `expected hollow-enclosed to allow ${expected}`);
+	}
+});
+
+Deno.test('deriveAllowedMaterialTags: every primitive type in the registry has a non-empty base set', () => {
+	for (const primitiveType of PRIMITIVE_TYPES) {
+		const tags = deriveAllowedMaterialTags(primitiveType, new Map());
+		assert(tags.length > 0, `expected ${primitiveType} to have a non-empty compatibility set`);
+	}
+});
+
+Deno.test('deriveAllowedMaterialTags: narrowing never introduces a tag outside the base set', () => {
+	// The edge-narrowing rule intersects with the base set rather than replacing it, so its
+	// tags must already be a subset of what the unedged primitive allows.
+	const base = deriveAllowedMaterialTags('elongated', new Map());
+	const narrowed = deriveAllowedMaterialTags('elongated', new Map([['edge', 'single']]));
+	for (const tag of narrowed) {
+		assert(base.includes(tag), `narrowed tag ${tag} was not in the base set`);
 	}
 });
 
