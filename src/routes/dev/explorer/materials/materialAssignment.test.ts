@@ -141,14 +141,29 @@ Deno.test('assignMaterials — a non-positive draw count still yields the canoni
 	assertEquals(model.assignments.length, model.artefact.components.length);
 });
 
-Deno.test("assignMaterials — candidates are not per-component compatibility-filtered, pinned to today's all-empty allowedMaterialTags stub", () => {
-	// `candidates` weighs every shipped material against the culture alone, skipping the
-	// `allowedMaterialTags` filter `assignMaterial` itself applies per component. That's only exact
-	// while every component's `allowedMaterialTags` is the roadmap-2GN.10 stub `[]`. If this
-	// assertion ever fails, 2GN.10 has landed real constraints and `materialAssignment.ts`'s
-	// `candidates` table needs a matching per-component filter (see its module doc comment).
-	const model = assignMaterials('mat-unfiltered-candidates', khaltiris, 1);
-	for (const component of model.artefact.components) {
-		assertEquals(component.allowedMaterialTags, [], component.id);
+Deno.test('assignMaterials — compatibleComponentCount matches how many components allow the material (roadmap 2GN.10)', () => {
+	const model = assignMaterials('mat-shape-compat', khaltiris, 1);
+	for (const candidate of model.candidates) {
+		const expected = model.artefact.components.filter(
+			(component) =>
+				component.allowedMaterialTags.length === 0 ||
+				candidate.material.tags.some((tag) => component.allowedMaterialTags.includes(tag)),
+		).length;
+		assertEquals(candidate.compatibleComponentCount, expected, candidate.material.id);
+	}
+});
+
+Deno.test('assignMaterials — compatibleComponentCount is 0 only for materials shape-incompatible with every component', () => {
+	const model = assignMaterials('mat-shape-zero', khaltiris, 1);
+	for (const candidate of model.candidates) {
+		if (candidate.compatibleComponentCount > 0) continue;
+		for (const component of model.artefact.components) {
+			assertEquals(
+				component.allowedMaterialTags.length > 0 &&
+					!candidate.material.tags.some((tag) => component.allowedMaterialTags.includes(tag)),
+				true,
+				`${candidate.material.id} claims 0 compatible components but ${component.id} allows it`,
+			);
+		}
 	}
 });

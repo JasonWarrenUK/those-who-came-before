@@ -12,15 +12,16 @@
  * the *best* across all regions, a divergence that stayed invisible only because explorer presets
  * author exactly one region each. Obtainability now has one source of truth.
  *
- * **`candidates` is culture-wide, not per-component compatibility-filtered.** `assignMaterial`
- * filters its candidate pool by `component.allowedMaterialTags` before weighting anything; this
- * module's `candidates` table skips that filter and weighs every shipped material against the
- * culture alone. That's exact today only because `allowedMaterialTags` is stubbed `[]` for every
- * component (roadmap 2GN.10, not yet landed), which makes the filter a no-op. Once 2GN.10 populates
- * real per-component constraints, this table will start showing materials as obtainable/weighted
- * for components that could never actually draw them, and needs a per-component filter added
- * alongside it — `materialAssignment.test.ts` pins today's "every material is a candidate" shape so
- * that change doesn't land unnoticed.
+ * **`candidates` stays culture-wide, not filtered down to one component's compatible set** —
+ * `assignMaterial` filters its own candidate pool by `component.allowedMaterialTags` before
+ * weighting anything, but this module's `candidates` table deliberately doesn't: it's the panel's
+ * one whole-culture obtainability view (roadmap 2GN.60's original design), not a per-component
+ * table, and splitting it per component would be a panel redesign, not a filter fix. Instead
+ * (roadmap 2GN.10) each candidate now carries `compatibleComponentCount` — how many of this
+ * artefact's components could actually draw it — so the panel can show a material as
+ * culturally/geologically obtainable yet shape-incompatible with everything present, which
+ * `allowedMaterialTags` being real (rather than the old all-permissive `[]` stub) now makes
+ * possible. `materialAssignment.test.ts` covers this field directly.
  *
  * Pure, no DOM/Svelte, so it's unit-testable directly per the `structureTree.ts` precedent.
  */
@@ -75,6 +76,15 @@ export interface CandidateMaterial {
 
 	/** Scarcity factor of `weight` (`explainMaterialWeight`). Not zeroed when blocked. */
 	scarcity: number;
+
+	/**
+	 * How many of this artefact's components could actually draw this material, i.e. carry it in
+	 * their `allowedMaterialTags` (roadmap 2GN.10). `0` means shape-incompatible with every
+	 * component present, even when culturally/geologically obtainable — a material an artefact of
+	 * this shape simply cannot be made from, distinct from `obtainability: 'blocked'`, which is
+	 * about the culture rather than the shape.
+	 */
+	compatibleComponentCount: number;
 }
 
 /** One component's resolved material, plus how often it wins across repeated draws. */
@@ -160,6 +170,12 @@ export function assignMaterials(
 		);
 		const weight = obtainability === 'blocked' ? 0 : explanation.weight;
 
+		const compatibleComponentCount = artefact.components.filter(
+			(component) =>
+				component.allowedMaterialTags.length === 0 ||
+				material.tags.some((tag) => component.allowedMaterialTags.includes(tag)),
+		).length;
+
 		return {
 			material,
 			level: explanation.level,
@@ -170,6 +186,7 @@ export function assignMaterials(
 			culturalAffinity: explanation.culturalAffinity,
 			phaseTechnology: explanation.phaseTechnology,
 			scarcity: explanation.scarcity,
+			compatibleComponentCount,
 		};
 	});
 
