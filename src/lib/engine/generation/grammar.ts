@@ -561,13 +561,108 @@ export function expandGrammar(
  * portability. Pure and PRNG-free: `expandGrammar` already rolled every physical parameter, so
  * normalisation only restructures and derives, never draws.
  *
- * Two fields normalisation cannot honestly fill are stubbed rather than fabricated:
- * `allowedMaterialTags` needs the primitive+property material-compatibility table (roadmap
- * 2GN.10) and stays `[]` until then; `arrangementGroup` needs a pattern-assignment decision the
- * grammar doesn't make yet (roadmap 2GN.67, descoped out of this task) and is simply omitted.
- * `deriveInspectionDepth` (originally roadmap 2GN.9) is folded in here since it is a three-line
- * function over dimensions this task already computes.
+ * One field normalisation cannot honestly fill is omitted rather than fabricated:
+ * `arrangementGroup` needs a pattern-assignment decision the grammar doesn't make yet (roadmap
+ * 2GN.67, descoped out of this task). `allowedMaterialTags` is now derived per component from the
+ * primitive+property compatibility table below (roadmap 2GN.10). `deriveInspectionDepth`
+ * (originally roadmap 2GN.9) is folded in here since it is a three-line function over dimensions
+ * this task already computes.
  */
+
+/**
+ * Per-primitive material-compatibility table (doc 05 §6.1, roadmap 2GN.10): which `MaterialTag`
+ * classes a component can physically be made from, given its primitive type alone. Physical
+ * reality, not the grammar or any culture's preference — the same table applies to every culture
+ * and phase; `assignMaterial` (doc 05 §7) layers availability and cultural affinity on top of
+ * whatever this returns.
+ *
+ * Ruled with Jason 2026-08-20 (per-item sign-off, one primitive at a time — doc 05 §6.1 only pins
+ * `elongated`+edge and `hollow-enclosed`; every other set below was reviewed and approved
+ * individually rather than authored in bulk):
+ * - `elongated` (unedged — pins, handles, shafts): `metal`, `stone`, `bone`, `wood`, `fiber` —
+ *   fibre kept for cord/plaited or fibre-wrapped composite shafts, not just rigid stock.
+ * - `cylindrical` (sockets, ferrules, beakers): `metal`, `wood`, `bone`, `clay`, `glass` — glass
+ *   added for a blown-glass beaker, the same hollow-tubular affordance `hollow-enclosed` has.
+ * - `flat-broad` (blade-like plaques, palettes): `stone`, `metal`, `wood`, `bone`, `clay` — bone
+ *   for a carved plaque, clay for a fired tablet/plaque form.
+ * - `hollow-enclosed` (vessels, boxes, flasks): `clay`, `metal`, `wood`, `stone` (doc's own
+ *   example) plus `glass` for a blown/cast hollow vessel.
+ * - `ring-form` (rings, torcs, loops): `metal`, `fiber`, `bone`, `wood` — metal and bent/carved
+ *   bone or wood hold a closed loop; fibre for cord/plaited loops.
+ * - `disc-form` (whorls, weights, mirrors): `stone`, `metal`, `clay`, `bone` — no glass; mirrors
+ *   were historically polished metal/stone, not glass, and whorls/weights are never glass.
+ * - `bar-form` (ingots, rods, awl bodies — this table describes finished *artefacts*, not raw
+ *   stock, so a fired-clay rod or awl body counts): `metal`, `wood`, `stone`, `bone`, `clay`.
+ * - `sheet-form` (fittings, facings, wrappings): `metal`, `leather`, `fiber`, `wood` — all work
+ *   thin and flex or wrap around a substrate. Revisit `metal`/`clay` here once structure
+ *   generation (buildings, not portable artefacts) is a real pipeline target — a sheet-form
+ *   facing on a *structure* has different material logic than one on a portable object.
+ */
+const PRIMITIVE_MATERIAL_TAGS: Record<string, readonly MaterialTag[]> = {
+	'elongated': ['metal', 'stone', 'bone', 'wood', 'fiber'],
+	'cylindrical': ['metal', 'wood', 'bone', 'clay', 'glass'],
+	'flat-broad': ['stone', 'metal', 'wood', 'bone', 'clay'],
+	'hollow-enclosed': ['clay', 'metal', 'wood', 'stone', 'glass'],
+	'ring-form': ['metal', 'fiber', 'bone', 'wood'],
+	'disc-form': ['stone', 'metal', 'clay', 'bone'],
+	'bar-form': ['metal', 'wood', 'stone', 'bone', 'clay'],
+	'sheet-form': ['metal', 'leather', 'fiber', 'wood'],
+};
+
+/**
+ * Per-property narrowing rules layered on top of `PRIMITIVE_MATERIAL_TAGS` (doc 05 §6.1's
+ * "primitive + properties" derivation). Each entry further restricts the primitive's base set for
+ * components whose rolled property matches — physical constraints a bare primitive type can't
+ * express alone.
+ *
+ * Doc 05 §6.1's example is the first of these: "an elongated form with an edge allows `metal` and
+ * `stone`" — narrower than the unedged base set, since ground/knapped edges are a metal-or-stone
+ * affordance and neither `wood`, `bone` nor `fiber` holds one under use.
+ */
+const PROPERTY_MATERIAL_NARROWING: ReadonlyArray<
+	{
+		primitiveType: string;
+		parameter: string;
+		values: readonly string[];
+		tags: readonly MaterialTag[];
+	}
+> = [
+	{
+		primitiveType: 'elongated',
+		parameter: 'edge',
+		values: ['single', 'double'],
+		tags: ['metal', 'stone'],
+	},
+];
+
+/**
+ * Derives `NormalisedComponent.allowedMaterialTags` from a component's primitive type and rolled
+ * properties (doc 05 §6.1, roadmap 2GN.10). Looks up the primitive's base compatibility set, then
+ * applies any property-driven narrowing that matches the component's rolled properties —
+ * intersecting rather than replacing, so a narrowing rule can only remove tags the base set
+ * already offered.
+ *
+ * An unrecognised primitive type returns `[]`, matching `assignMaterial`'s (doc 05 §7) documented
+ * "empty means no constraint recorded" contract — the same meaning the stub previously carried
+ * for every component, now reserved for the genuinely unmapped case.
+ */
+export function deriveAllowedMaterialTags(
+	primitiveType: string,
+	properties: ReadonlyMap<string, string | number>,
+): MaterialTag[] {
+	const base = PRIMITIVE_MATERIAL_TAGS[primitiveType];
+	if (!base) return [];
+
+	let allowed: readonly MaterialTag[] = base;
+	for (const rule of PROPERTY_MATERIAL_NARROWING) {
+		if (rule.primitiveType !== primitiveType) continue;
+		const value = properties.get(rule.parameter);
+		if (typeof value !== 'string' || !rule.values.includes(value)) continue;
+		allowed = allowed.filter((tag) => rule.tags.includes(tag));
+	}
+
+	return [...allowed];
+}
 
 /**
  * Provisional ordinal-band-to-centimetre tables (MVP-provisional per the 2GN.2 precedent — no
@@ -756,9 +851,9 @@ export function deriveInspectionDepth(dimensions: ObjectDimensions): InspectionD
  * has both endpoint ids in hand because visiting a child group returns its primary's id before the
  * parent records the join.
  *
- * `allowedMaterialTags` is stubbed `[]` (roadmap 2GN.10) and `arrangementGroup` is omitted
- * (roadmap 2GN.67) — see the module comment above. `properties` is defensively copied so the
- * artefact never aliases the source tree's maps.
+ * `allowedMaterialTags` is derived per component via `deriveAllowedMaterialTags` (roadmap 2GN.10)
+ * and `arrangementGroup` is omitted (roadmap 2GN.67) — see the module comment above. `properties`
+ * is defensively copied so the artefact never aliases the source tree's maps.
  *
  * @param object - The raw grammar tree from `expandGrammar` (2GN.3), typically post accumulation
  *   checking (2GN.6).
@@ -773,11 +868,12 @@ export function normaliseArtefact(object: ExpandedObject, id: string): Normalise
 
 	function mint(node: ComponentNode): string {
 		const componentId = `${id}-c${next}`;
+		const properties = new Map(node.properties);
 		components.push({
 			id: componentId,
 			primitiveType: node.primitiveType,
-			properties: new Map(node.properties),
-			allowedMaterialTags: [] as MaterialTag[], // STUB — owned by roadmap 2GN.10
+			properties,
+			allowedMaterialTags: deriveAllowedMaterialTags(node.primitiveType, properties),
 			position: next,
 			// arrangementGroup intentionally omitted — owned by roadmap 2GN.67
 		});

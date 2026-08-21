@@ -10,8 +10,9 @@
  *
  * This module is static data only, no behaviour. Grammar expansion resolves leaf primitives
  * against this registry (`expandGrammar`, roadmap 2GN.3); the material-compatibility table that
- * maps primitive + properties to `allowedMaterialTags` is engine logic (roadmap 2GN.10), and
- * dimension derivation happens at normalisation (roadmap 2GN.8) — neither lives here.
+ * maps primitive + properties to `allowedMaterialTags` is engine logic
+ * (`deriveAllowedMaterialTags`, `engine/generation/grammar.ts`, roadmap 2GN.10), and dimension
+ * derivation happens at normalisation (roadmap 2GN.8) — neither lives here.
  *
  * The registry is a single `as const` value with the type layer derived from it — a deliberate
  * deviation from the interfaces-first convention, per the `Serialised<T>` precedent in
