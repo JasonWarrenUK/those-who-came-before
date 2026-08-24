@@ -22,10 +22,12 @@
  *   those. This module's own material-access gate (below) operates at the culture level, not
  *   per-component, and is a different check. `enforceSubstrates` deliberately does not resolve
  *   `form` substrates (`wire-wrapping`/`wrapping`/`beading`'s "grippable"/"attachment point") —
- *   nothing in the pipeline yet answers a geometry question about a `NormalisedComponent`
- *   (`allowedMaterialTags` is stubbed empty until roadmap 2GN.10), so stripping on a check that
- *   cannot actually run would delete those three techniques from every artefact on no evidence.
- *   Those layers pass through unstripped until a follow-on task resolves component geometry.
+ *   nothing in the pipeline yet answers a geometry/role question about a `NormalisedComponent`.
+ *   `allowedMaterialTags` (real since roadmap 2GN.10) answers "what can this shape be made from",
+ *   a different question from "is this component grippable" — that role concept is still unbuilt
+ *   (roadmap 2GN.116's open spike). Stripping on a check that cannot actually run would delete
+ *   those three techniques from every artefact on no evidence. Those layers pass through
+ *   unstripped until a follow-on task resolves component geometry/role.
  * - sublayers / decoration-on-decoration (roadmap 2GN.31) — every emitted `DecorativeLayer` has
  *   `sublayers: []`.
  * - recursion depth cap (roadmap 2GN.32) — the per-category slot budget below produces a single
@@ -847,9 +849,9 @@ export function assignDecorativeDetails(
  * position rather than folding into expansion.
  *
  * **Why a post-pass and not a parameter on `expandDecoration`.** Materials are not known when layers
- * are created: `expandDecoration` iterates `NormalisedComponent`s, which carry
- * `allowedMaterialTags` (the candidate set, and stubbed empty until roadmap 2GN.10) but no assigned
- * material. The assignment lives in a parallel `MaterialAssignment[]` from `assignMaterials`, and
+ * are created: `expandDecoration` iterates `NormalisedComponent`s, which carry `allowedMaterialTags`
+ * (the candidate set, real since roadmap 2GN.10) but no assigned material. The assignment lives in
+ * a parallel `MaterialAssignment[]` from `assignMaterials`, and
  * threading that in would force every caller to run material assignment first — which consumes PRNG
  * draws, so it would perturb the decoration draw sequence and move every recorded fire rate for
  * reasons having nothing to do with grade. Splitting the pass keeps `expandDecoration`'s
@@ -924,11 +926,12 @@ export function gradeDecorativeLayers(
  * **Only `kind: 'material'` substrates are enforced.** `kind: 'none'` techniques have nothing to
  * check and always survive. `kind: 'form'` techniques (`wire-wrapping`, `wrapping`, `beading` —
  * "grippable"/"attachment point") are deliberately left unstripped: resolving them needs the target
- * component's geometry, and nothing in the pipeline supplies that yet (`NormalisedComponent.
- * allowedMaterialTags` is stubbed empty until roadmap 2GN.10). Stripping on a check that cannot
- * actually run would silently delete three of sixteen techniques from every artefact on no
- * evidence, so those layers pass through unevaluated until a follow-on task resolves component
- * geometry.
+ * component's role, and nothing in the pipeline supplies that yet — `allowedMaterialTags` (real
+ * since roadmap 2GN.10) answers what a shape can be made from, not whether it's grippable or an
+ * attachment point; that role concept remains an open spike (roadmap 2GN.116). Stripping on a
+ * check that cannot actually run would silently delete three of sixteen techniques from every
+ * artefact on no evidence, so those layers pass through unevaluated until a follow-on task
+ * resolves component geometry/role.
  *
  * **A layer with no resolvable assignment survives**, mirroring `gradeDecorativeLayers`' honest
  * degradation (above): no assigned material is no evidence to strip on, not a failure.

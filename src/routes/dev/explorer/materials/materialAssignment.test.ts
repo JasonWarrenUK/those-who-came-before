@@ -2,6 +2,7 @@
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 import { assignMaterials } from './materialAssignment.ts';
 import { isAvailable } from '../../../../lib/engine/generation/materials.ts';
+import { deriveAllowedMaterialTags } from '../../../../lib/engine/generation/grammar.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 
@@ -141,14 +142,29 @@ Deno.test('assignMaterials — a non-positive draw count still yields the canoni
 	assertEquals(model.assignments.length, model.artefact.components.length);
 });
 
-Deno.test("assignMaterials — candidates are not per-component compatibility-filtered, pinned to today's all-empty allowedMaterialTags stub", () => {
-	// `candidates` weighs every shipped material against the culture alone, skipping the
-	// `allowedMaterialTags` filter `assignMaterial` itself applies per component. That's only exact
-	// while every component's `allowedMaterialTags` is the roadmap-2GN.10 stub `[]`. If this
-	// assertion ever fails, 2GN.10 has landed real constraints and `materialAssignment.ts`'s
-	// `candidates` table needs a matching per-component filter (see its module doc comment).
-	const model = assignMaterials('mat-unfiltered-candidates', khaltiris, 1);
-	for (const component of model.artefact.components) {
-		assertEquals(component.allowedMaterialTags, [], component.id);
+Deno.test('assignMaterials — compatibleComponentCount matches deriveAllowedMaterialTags recomputed independently per component (roadmap 2GN.10)', () => {
+	// Recomputes each component's allowed tags from its primitiveType/properties via
+	// deriveAllowedMaterialTags directly, rather than reading component.allowedMaterialTags back
+	// off the artefact — catches assignMaterials computing compatibleComponentCount from a
+	// derivation that's drifted from grammar.ts's, not just from a shared filter expression.
+	const model = assignMaterials('mat-shape-compat', khaltiris, 1);
+	for (const candidate of model.candidates) {
+		const expected = model.artefact.components.filter((component) => {
+			const allowed = deriveAllowedMaterialTags(component.primitiveType, component.properties);
+			return allowed.length === 0 || candidate.material.tags.some((tag) => allowed.includes(tag));
+		}).length;
+		assertEquals(candidate.compatibleComponentCount, expected, candidate.material.id);
+	}
+});
+
+Deno.test('assignMaterials — every candidate reports a compatible count between 0 and the artefact component count', () => {
+	const model = assignMaterials('mat-shape-zero', khaltiris, 1);
+	for (const candidate of model.candidates) {
+		assertEquals(candidate.compatibleComponentCount >= 0, true, candidate.material.id);
+		assertEquals(
+			candidate.compatibleComponentCount <= model.artefact.components.length,
+			true,
+			candidate.material.id,
+		);
 	}
 });

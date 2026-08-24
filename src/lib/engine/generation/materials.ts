@@ -387,10 +387,10 @@ export function explainMaterialWeight(
  *
  * **Empty-candidate fallbacks** (`weightedSelect` throws on an empty list; `assignMaterial` never
  * should):
- * - `component.allowedMaterialTags` empty — treated as "no constraint", not "nothing fits". The
- *   real pipeline hits this today because 2GN.10 (the compatibility-table task) hasn't landed yet;
- *   2GN.8 stubs every component's `allowedMaterialTags` as `[]`. Once 2GN.10 lands and populates real
- *   constraints, an empty array becomes genuinely rare and this fallback stays correct either way.
+ * - `component.allowedMaterialTags` empty — treated as "no constraint", not "nothing fits". Since
+ *   roadmap 2GN.10, `deriveAllowedMaterialTags` (`engine/generation/grammar.ts`) only returns `[]`
+ *   for a primitive type it doesn't recognise, which the real pipeline never rolls — this fallback
+ *   now mainly guards test fixtures and hand-built components that skip normalisation.
  * - Availability excludes every compatible material — availability is a *preference* at MVP, not a
  *   hard requirement, so the compatible set is used unfiltered rather than failing generation.
  * - Both filters exhausted (pathological, e.g. a non-empty but incompatible `materials` slice
@@ -418,7 +418,7 @@ export function assignMaterial(
 	materials: readonly MaterialDefinition[] = MATERIALS,
 ): MaterialDefinition {
 	const compatible = component.allowedMaterialTags.length === 0
-		? materials // No constraint recorded yet (2GN.10 stub) — everything is a candidate.
+		? materials // No constraint recorded (unrecognised primitive type) — everything is a candidate.
 		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
 
 	const available = compatible.filter((m) => isAvailable(m, geology, trade));

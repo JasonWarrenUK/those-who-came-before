@@ -845,6 +845,62 @@ violations against 8 legitimate silences, with khaltiris required to state a pos
 materials. The presets were re-authored to fit the rule, not the reverse: they exist to showcase the
 engine. Full detail: `docs/spikes/2GN.127-affinity-silence.md`.
 
+### 2.16 Primitive→Material Compatibility Table (roadmap 2GN.10)
+
+**Decision:** `NormalisedComponent.allowedMaterialTags` is derived per component from
+`PRIMITIVE_MATERIAL_TAGS` (`engine/generation/grammar.ts`), an 8-primitive base table plus one
+property-narrowing rule, ruled with Jason one primitive at a time (per-item sign-off, not authored
+in bulk) on 2026-08-20:
+
+| Primitive                            | Allowed `MaterialTag`s            | Source                                                                                                            |
+| ------------------------------------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `elongated` (unedged)                | `metal, stone, bone, wood, fiber` | Ruled — fibre kept for cord/plaited or fibre-wrapped composite shafts, not just rigid stock                       |
+| `elongated` + `edge: single\|double` | `metal, stone`                    | Doc 05 §6.1, verbatim                                                                                             |
+| `cylindrical`                        | `metal, wood, bone, clay, glass`  | Ruled — glass added for a blown-glass beaker, the same hollow-tubular affordance as `hollow-enclosed`             |
+| `flat-broad`                         | `stone, metal, wood, bone, clay`  | Ruled — bone for a carved plaque, clay for a fired tablet/plaque form                                             |
+| `hollow-enclosed`                    | `clay, metal, wood, stone, glass` | Doc 05 §6.1's four plus ruled `glass` for a blown/cast hollow vessel                                              |
+| `ring-form`                          | `metal, fiber, bone, wood`        | Ruled — metal and bent/carved bone or wood hold a closed loop; fibre for cord/plaited loops                       |
+| `disc-form`                          | `stone, metal, clay, bone`        | Ruled — no `glass`: mirrors were historically polished metal/stone, not glass, and whorls/weights are never glass |
+| `bar-form`                           | `metal, wood, stone, bone, clay`  | Ruled — this table describes finished _artefacts_, not raw stock, so a fired-clay rod/awl body counts             |
+| `sheet-form`                         | `metal, leather, fiber, wood`     | Ruled — all work thin and flex/wrap around a substrate                                                            |
+
+The narrowing rule intersects rather than replaces: a component's final set is its primitive's base
+set filtered down by any matching property rule, so a rule can only remove tags the base already
+offered. `deriveAllowedMaterialTags` returns `[]` only for a primitive type it doesn't recognise —
+the empty-means-no-constraint contract `assignMaterial` (doc 05 §7) already documented, now reserved
+for the genuinely unmapped case rather than every component.
+
+**Follow-up flagged, not ruled here:** `sheet-form`'s `metal`/`clay` membership should be revisited
+once structure generation (buildings, not portable artefacts) is a real pipeline target — a
+sheet-form facing on a _structure_ has different material logic than one on a portable object
+(Jason, 2026-08-20).
+
+**Calibration consequence.** Before this task, `allowedMaterialTags` was `[]` for every component
+(the 2GN.8 stub), which made `assignMaterial`'s compatibility filter a no-op — every calibration pin
+in `materials.calibration.test.ts` was measured against an unconstrained candidate pool. Landing
+real per-component constraints redistributes weight even though geology continues to discriminate
+normally: `metal` gained a path on all eight primitives and rose everywhere; `leather` is now
+reachable only via `sheet-form` and collapsed everywhere it wasn't already low. Verified this was
+genuine redistribution and not a fallback-tier defect (`assignMaterial`'s
+`available → compatible → materials` empty-pool fallback) by instrumenting `available.length` across
+the full 6-region × 600-artefact calibration sample: `0.00%` before and after the table landed, so
+the fallback tier never fires and geology's per-material filtering stays intact throughout. All
+region/tag shares, intra-tag splits and the provenance mix were re-measured and re-recorded, with
+the mechanism annotated inline at each pin.
+
+`SPREAD_FLOOR_MIN_TAGS` (the same file's cross-region geology-discrimination guard) dropped from 7/8
+to 5/8: `fiber` and `leather` joined `glass` as tags whose cross-region spread is now
+shape-bottlenecked rather than geology-driven — `leather` sits on exactly one of eight primitives
+and `fiber` on three, so their reachability is gated by which component shape the grammar happens to
+roll at least as much as by regional geology. Ruled with Jason as the correct response (rather than
+widening the primitives to force a wider spread, which would have reopened the table ruling above).
+
+**Affects:** doc 05 §6.1 (`allowedMaterialTags` derivation, now real rather than stubbed), doc 12
+(propagation entry to be filed alongside this one). Roadmap: 2GN.10 implemented and ruled in one
+session, no separate spike — the table's per-primitive reasoning is recorded here rather than in
+`docs/spikes/`, since the ruling happened interactively against measured calibration output rather
+than as a standalone spike investigation.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

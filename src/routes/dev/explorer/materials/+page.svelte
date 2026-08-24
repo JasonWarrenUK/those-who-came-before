@@ -52,10 +52,13 @@ const BADGE: Record<Obtainability, string> = {
 
 <p class="text-base-content/70 mt-2 max-w-prose text-sm">
 	The candidate table below breaks weight into its three factors — cultural affinity, phase
-	technology, scarcity — multiplying to the combined weight in the last column for every obtainable
-	candidate. A blocked candidate keeps its three engine factors but shows a combined weight of zero,
-	since it never enters the draw whatever those factors say. The per-component distribution samples
-	the draw repeatedly, which shows the same bias empirically.
+	technology, scarcity — multiplying to the combined weight column for every obtainable candidate.
+	A blocked candidate keeps its three engine factors but shows a combined weight of zero, since it
+	never enters the draw whatever those factors say. Shape is a separate axis from obtainability: it
+	counts how many of this artefact's components could physically be made from the material at all,
+	regardless of whether the culture can obtain it — "no shape" means the material fits none of this
+	artefact's component forms. The per-component distribution samples the draw repeatedly, which
+	shows the same bias empirically.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -135,11 +138,15 @@ const BADGE: Record<Obtainability, string> = {
 						<th class="text-right">Technology</th>
 						<th class="text-right">Scarcity</th>
 						<th>Weight</th>
+						<th class="text-right">Shape</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each model.candidates as candidate (candidate.material.id)}
-						<tr class={candidate.obtainability === 'blocked' ? 'opacity-50' : ''}>
+						{@const shapeIncompatible = candidate.compatibleComponentCount === 0}
+						<tr
+							class={candidate.obtainability === 'blocked' || shapeIncompatible ? 'opacity-50' : ''}
+						>
 							<td class="font-mono">{candidate.material.displayName}</td>
 							<td class="font-mono text-xs">{candidate.level ?? '—'}</td>
 							<td>
@@ -160,6 +167,17 @@ const BADGE: Record<Obtainability, string> = {
 									</span>
 									<span class="font-mono text-xs">{candidate.weight.toFixed(2)}</span>
 								</span>
+							</td>
+							<td
+								class="text-right font-mono text-xs"
+								title="components this material can be made into, of {model.artefact.components
+									.length} on this artefact"
+							>
+								{#if shapeIncompatible}
+									<span class="badge badge-ghost badge-sm">no shape</span>
+								{:else}
+									{candidate.compatibleComponentCount}/{model.artefact.components.length}
+								{/if}
 							</td>
 						</tr>
 					{/each}

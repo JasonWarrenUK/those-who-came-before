@@ -2885,6 +2885,83 @@ re-recording**. Suite went 594 → 611 passing with no pin edited.
 | ⏳ | 2GN.129: `techniqueAffinities` + the `> 1` gate, with xoconahtl clay as the live case | 2026-08-14 |
 | ⏳ | 2GN.124/2GN.126 re-open violations; `findAffinitySilenceViolations` re-closes them    | 2026-08-14 |
 
+### 2.51 `allowedMaterialTags` Went From Stub to Real, Redistributing Every Calibration Pin (2026-08-20)
+
+Roadmap 2GN.10 gave `NormalisedComponent.allowedMaterialTags` real per-component values via
+`deriveAllowedMaterialTags` (`engine/generation/grammar.ts`), replacing the `[]` stub every
+component carried since 2GN.8. Doc 11 §2.16 records the ruled table and its per-primitive reasoning
+in full; this entry records what moved because of it.
+
+**The blocker was authoring content, not code.** Doc 05 §6.1 supplies exactly two data points
+(`elongated`+edge → `metal`/`stone`; `hollow-enclosed` → `clay`/`metal`/`wood`/`stone`); the other
+six primitives' sets had no doc section to source them from. Landing a fully authored 8-primitive
+table in one commit would have been exactly the bulk hand-tuned authoring the project's per-item
+oversight convention exists to prevent (mirroring §2.49's "a ruling that inventories code must still
+happen one item at a time" lesson, one level up — this time the inventory was materials, not
+affinities). The table was instead ruled interactively with Jason, one primitive at a time, against
+measured calibration output rather than as a standalone `docs/spikes/` investigation.
+
+**Mechanism check before re-recording.** A moved calibration pin is "usually right" per that file's
+own warning, but the first hypothesis this session raised — `assignMaterial`'s
+`available → compatible → materials` fallback tier silently dropping geology once the narrowed pool
+has no locally-available member — turned out wrong. Instrumenting `available.length` across the full
+6-region × 600-artefact calibration sample measured `0.00%` empty-pool hits both before and after
+the table landed: the fallback tier never fires, before or after. The real mechanism is the ordinary
+one `assignMaterial` was built for: narrowing the candidate pool by primitive shape before weighting
+shifts which materials can win at all, independent of geology continuing to discriminate correctly
+within whatever pool remains.
+
+**What moved, and why each is the ruled table's direct consequence, not a defect:**
+
+- `EXPECTED_TAG_SHARES` (17 region/tag pairs) — `metal` gained a path on all eight primitives and
+  rose in every region (e.g. `highlandMine/metal` 43.7%→57.8%); `leather` is reachable only via
+  `sheet-form` (1 of 8 primitives) and collapsed everywhere it wasn't already low (e.g.
+  `coastalPort/leather` 18.4%→1.8%).
+- `EXPECTED_INTRA_TAG_SHARES` — only `forestInterior/stone`'s flint/granite split moved past
+  tolerance; that region's narrower geology now interacts with a narrower candidate pool.
+- `EXPECTED_PROVENANCE_MIX` (6 entries) — more components filter down to a narrower compatible set
+  before availability is checked, shifting how often a local-scarce/trade-reachable material is the
+  only compatible option left.
+- `SPREAD_FLOOR_MIN_TAGS` (7/8 → 5/8) — `fiber` and `leather` joined the already-known-low `glass`
+  as tags whose cross-region spread is shape-bottlenecked rather than geology-driven: `leather` on 1
+  of 8 primitives, `fiber` on 3 of 8, so their reachability is gated by which shape the grammar
+  rolls roughly as much as by regional geology. Ruled as the correct response over widening those
+  primitives, which would have reopened §2.16's per-item ruling to force a wider spread rather than
+  accept a structural consequence of the table as ruled.
+
+**`materialAssignment.ts`'s own tripwire fired as designed.** Its module JSDoc named the exact
+follow-up before 2GN.10 landed: `candidates` (the Material Viewer Explorer panel's culture-wide
+obtainability table) skips the per-component `allowedMaterialTags` filter `assignMaterial` applies,
+which was exact only while the filter was a no-op. Rather than restructure the panel into a
+per-component table (real UI work, deferred), each `CandidateMaterial` now carries
+`compatibleComponentCount` — how many of the generated artefact's components could actually draw it
+— so the panel can badge a material `no shape` when it's culturally/geologically obtainable yet fits
+none of the artefact's component forms, distinct from `obtainability: 'blocked'` (a culture fact,
+not a shape fact). `materialAssignment.test.ts` covers the new field directly.
+
+**Stale stub language cleared** from `materials.ts`'s `assignMaterial` JSDoc and inline comment (the
+empty-`allowedMaterialTags` fallback now means "unrecognised primitive type", not "2GN.10 hasn't
+landed"), `materials.test.ts`'s matching test name, and two `decoration.ts` JSDoc blocks
+(`enforceSubstrates`'s module-scope note and its own doc comment) plus one `decoration.test.ts`
+comment that all cited the stub as the reason `kind: 'form'` substrates
+(`wire-wrapping`/`wrapping`/`beading`) go unresolved. That reason was never accurate — resolving
+`form` substrates needs a component **role** concept ("grippable", "attachment point"), which
+`allowedMaterialTags` (a **shape**→material-class question) was never going to answer; the real
+blocker is roadmap 2GN.116's still-open role-vocabulary spike, unrelated to 2GN.10's landing.
+
+**Follow-up flagged, not ruled:** `sheet-form`'s `metal`/`clay` membership should be revisited once
+structure generation (buildings) is a real pipeline target, per Jason's note recorded in doc 11
+§2.16.
+
+| §  | Propagation                                                                                                   | Date       |
+| -- | ------------------------------------------------------------------------------------------------------------- | ---------- |
+| —  | `PRIMITIVE_MATERIAL_TAGS` + `deriveAllowedMaterialTags` in `engine/generation/grammar.ts`                     | 2026-08-20 |
+| —  | `materials.calibration.test.ts`: all three pins re-recorded, `SPREAD_FLOOR_MIN_TAGS` 7→5                      | 2026-08-20 |
+| —  | `materialAssignment.ts`/`.svelte`: `compatibleComponentCount` field + Shape column                            | 2026-08-20 |
+| —  | Stale `2GN.10 stub` language cleared from `materials.ts`, `decoration.ts` and their tests                     | 2026-08-20 |
+| ⏳ | 2GN.116: component role vocabulary (grippable/attachment-point), needed for `form`-kind substrate enforcement | 2026-08-20 |
+| ⏳ | `sheet-form`'s `metal`/`clay` membership, pending structure (building) generation                             | 2026-08-20 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during
