@@ -422,8 +422,10 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.12",
-							"2GN.116"
+							"2GN.116",
+							"2GN.141"
 						],
+						"notes": "2GN.141 added 2026-08-21: load-path/cantilever rules are the same physical-plausibility family as 2GN.15's material-structural rules and would want the same worked-vs-finished rigidity-state question settled before authoring new physics thresholds.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -439,13 +441,14 @@
 					{
 						"id": "2GN.15",
 						"description": "`engine/generation/plausibility.ts` — material-structural compatibility (material tags constrain joins/forms)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.12",
 							"2GN.10",
 							"2GN.111"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"pr": 73
 					},
 					{
 						"id": "2GN.16",
@@ -1733,6 +1736,16 @@
 							"2GN.108"
 						],
 						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.69 is written as implementation but no doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.141",
+						"description": "`src/lib/data/plausibility.ts` — revisit the material-structural plausibility rules (roadmap 2GN.15) once `fragility` is re-authored to the working state: (1) reconsider whether `fragility` should be reintroduced as a genuine second axis in the wrapped-join check, alongside `rigidity`, and (2) confirm which state (worked vs finished) the rigid-fastener and wrapped-join rules actually want to read once 2GN.105 implements the per-state `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the pre-split scalar interface, since 2GN.105 hasn't landed yet)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.105"
+						],
+						"notes": "Filed 2026-08-21 during 2GN.15's implementation. 2GN.15's wrapped-join rule deliberately does not use `fragility` today: jade's currently-authored finished-state `fragility: 2` would have wrongly passed a rigid, unbendable stone as \"wrappable\" under an OR-with-rigidity test, and `fragility` is pinned by 2GN.105 (still open) to move to the working state `computeLayerGrade` actually needs, so today's values describe the wrong moment for a workability question either way.",
 						"assignee": "Jason Warren"
 					},
 					{

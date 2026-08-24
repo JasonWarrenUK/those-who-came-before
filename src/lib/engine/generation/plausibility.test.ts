@@ -3,6 +3,7 @@ import { assert, assertEquals } from '@std/assert';
 import { checkPlausibility } from './plausibility.ts';
 import { PLAUSIBILITY_RULES } from '../../data/plausibility.ts';
 import { mockNormalisedArtefact } from '../../../../tests/fixtures/artefact.ts';
+import type { MaterialTag } from '../../types/tags.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
 import type { PlausibilityRule } from '../../types/plausibility.ts';
 
@@ -12,12 +13,13 @@ function component(
 	primitiveType: string,
 	properties: Record<string, string> = {},
 	position = 0,
+	allowedMaterialTags: MaterialTag[] = [],
 ): NormalisedComponent {
 	return {
 		id,
 		primitiveType,
 		properties: new Map(Object.entries(properties)),
-		allowedMaterialTags: [],
+		allowedMaterialTags,
 		position,
 	};
 }
@@ -239,4 +241,196 @@ Deno.test('checkPlausibility: is pure — repeat calls on the same input agree a
 
 	assertEquals(first, second);
 	assertEquals(artefact, snapshot);
+});
+
+// --- Material-structural compatibility (roadmap 2GN.15) ------------------------------------------
+
+Deno.test('checkPlausibility: a riveted join onto a fiber/leather-only component fails', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, ['fiber', 'leather']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(!result.valid);
+	assert(
+		result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a threaded join onto a fiber/leather-only component fails', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, ['leather']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'threaded' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(!result.valid);
+	assert(
+		result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a hinged join onto a fiber/leather-only component fails', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, ['fiber']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'hinged' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(!result.valid);
+	assert(
+		result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a riveted join onto a metal-compatible component passes', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, ['metal']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a riveted join onto a component with no recorded constraint passes (permissive empty set)', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, []),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a wrapped join where neither endpoint can flex fails', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'disc-form', {}, 0, ['stone']),
+			component('c1', 'sheet-form', {}, 1, ['stone', 'glass']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'wrapped' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(!result.valid);
+	assert(
+		result.failures.includes(
+			'a wrapped join needs a material flexible enough to wrap around its substrate',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a wrapped join onto a leather-compatible component passes', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'sheet-form', {}, 1, ['leather']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'wrapped' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a wrapped join needs a material flexible enough to wrap around its substrate',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a wrapped join where only the parent (fromComponentId) can flex passes', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'sheet-form', {}, 0, ['leather']),
+			component('c1', 'disc-form', {}, 1, ['stone']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'wrapped' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a wrapped join needs a material flexible enough to wrap around its substrate',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a rigid-fastener join where only the parent (fromComponentId) fails still fails', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'sheet-form', {}, 0, ['fiber']),
+			component('c1', 'disc-form', {}, 1, ['metal']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(!result.valid);
+	assert(
+		result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: rigidity exactly at RIGID_FASTENER_MIN_RIGIDITY passes (boundary pin)', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			// `wood` is the only tag with no member above rigidity 5: oak and ash both sit
+			// exactly at the threshold, so this component cannot be rescued by a co-tagged
+			// material the way `bone`/`metal` would be by antler (6)/iron (6) — a genuine
+			// boundary pin against a later edit to RIGID_FASTENER_MIN_RIGIDITY.
+			component('c1', 'disc-form', {}, 1, ['wood']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'riveted' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+});
+
+Deno.test('checkPlausibility: a non-rigid-fastener, non-wrapped join is never checked by the new rules', () => {
+	const artefact = mockNormalisedArtefact({
+		components: [
+			component('c0', 'elongated'),
+			component('c1', 'disc-form', {}, 1, ['fiber']),
+		],
+		attachments: [{ fromComponentId: 'c0', toComponentId: 'c1', type: 'socketed' }],
+	});
+	const result = checkPlausibility(artefact);
+	assert(
+		!result.failures.includes(
+			'a riveted, threaded or hinged join needs a material rigid enough to hold the fastener',
+		),
+	);
+	assert(
+		!result.failures.includes(
+			'a wrapped join needs a material flexible enough to wrap around its substrate',
+		),
+	);
 });
