@@ -558,7 +558,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation: materials **the producing culture treats as precious** boost elite/ceremonial, derived from the material's situation rather than a catalogue fact. ⚠️ **Reframed 2026-08-11 by 2GN.78**: the original title read \"precious metals → elite/ceremonial boosts\", which presumed a static precious-material class that no longer exists — `MaterialTag`'s `precious-*` members are retired (doc 11 §2.9, doc 12 §2.40). Standing comes from availability × cultural affinity × provenance × stratification. `explainMaterialWeight` (2GN.74) supplies the first two (`level`, `culturalAffinity`, `tradeRescued`); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`; stratification from `PhaseCharacteristics.society.stratification`, unread today. Blocked on 2GN.110 for the same reason as 2GN.68: whether `materialAffinities` can express a per-material judgement determines how precisely \"this culture values this material\" can be read",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
@@ -568,9 +568,10 @@
 							"2GN.84",
 							"2GN.85",
 							"2GN.110",
-							"2GN.97"
+							"2GN.97",
+							"2GN.142"
 						],
-						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid. Depends on 2GN.78: that task retires `precious-metal`/`precious-stone` as classification inputs entirely, so this task's \"precious metals → elite/ceremonial\" rule must derive standing from material situation (availability × affinity × provenance × stratification) rather than a static precious-tag lookup — without 2GN.78 sequenced first, this task could restore the static reading 2GN.77 ruled against.",
+						"notes": "⚠️ breaking: `ExtractedFeatures` carries zero component-material fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves. Dependency sweep 2026-07-25 corrected the dependency to 2GN.75 (assignments, not just the single-component `assignMaterial`) and flagged the breaking scope the original line hid. Depends on 2GN.78: that task retires `precious-metal`/`precious-stone` as classification inputs entirely, so this task's \"precious metals → elite/ceremonial\" rule must derive standing from material situation (availability × affinity × provenance × stratification) rather than a static precious-tag lookup — without 2GN.78 sequenced first, this task could restore the static reading 2GN.77 ruled against. Blocked on 2GN.142 as of 2026-08-21: doc 11 §2.9 requires material baselines to be keyed by culture-phase × region, but `ClassificationContext`/`baselines.ts` carry no region dimension today, so the relative-tag threshold this task needs to rule (per Jason's ruling that session, percentiled against a sampled weight distribution, not a fixed constant) cannot be computed correctly until that gap closes. Provenance dropped from this task's own formula per the same session's ruling — see 2GN.143.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -734,7 +735,7 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins` from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer material's **situation in the producing culture**). ⚠️ **Rescoped 2026-08-11 by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read \"`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup\", which is exactly the static catalogue read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired. Populate the field from availability × cultural affinity × provenance instead: Doc 11 §2.9's formula has four terms sourced from three places: `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a material/culture pair (availability and cultural affinity); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`, since `tradeRescued` is a reachability boolean rather than a provenance substitute; and stratification from `PhaseCharacteristics.society.stratification`, which §2.9 makes live and nothing reads yet. The threshold over them is this task's to rule and has not been set. Blocked on 2GN.110 because the affinity term's keyspace (per-tag only, or per-material too) changes what \"this culture prizes it\" can even mean",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20",
@@ -743,9 +744,10 @@
 							"2GN.84",
 							"2GN.85",
 							"2GN.110",
-							"2GN.97"
+							"2GN.97",
+							"2GN.142"
 						],
-						"notes": "**Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false` in `extractFeatures`.",
+						"notes": "**Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false` in `extractFeatures`. Blocked on 2GN.142 as of 2026-08-21: this task shares 2GN.27's exact four-term formula and its region-keyed-baseline gap; see that task's note.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1731,6 +1733,22 @@
 							"2GN.108"
 						],
 						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.69 is written as implementation but no doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.142",
+						"description": "design spike — should `ClassificationContext`/`FeatureBaseline`/`baselines.ts`'s sampling machinery gain a region dimension, and if so what shape? Doc 11 §2.9 states plainly that \"material baselines are keyed by culture-phase × region\" (unlike decoration baselines, which need no region key, since geology is regional and culture is not — a culture spanning two regions faces different material availability in each), but `ClassificationContext` (`types/tags.ts`) carries only `cultureId`/`phaseId`, `FeatureBaseline` has no region field, and `baselines.ts`'s sampling pass has no region dimension anywhere (confirmed: zero hits for \"region\" in that file outside one comment). Rule: (1) whether `ClassificationContext` gains a region field alongside `cultureId`/`phaseId`, or region-keyed baselines live in a separate structure (e.g. a nested map); (2) whether the sampling pass needs a per-region pass mirroring §2.36's `EXPECTED_MEAN_GRADE_BY_REGION` precedent for `meanDecorativeGrade`'s identical regional-pooling problem; (3) how a rule reads a region-keyed baseline when an artefact's producing region isn't always known to the classification-time context",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-21 while scoping 2GN.27: this is a real gap in already-shipped baseline infrastructure, not new scope invented for that task — doc 11 §2.9 predates the code that should have implemented region-keying. 2GN.27 cannot percentile a material-derived weight signal correctly without it, since `explainMaterialWeight`'s availability/scarcity term is fundamentally regional (`bestRegionalLevel` reads `GeologicalContext` by region) and a culture-phase-only baseline would silently pool distinct regional distributions into one, understating or overstating precious-material fire rates for a culture spanning multiple regions. Also blocks 2GN.68, which shares 2GN.27's exact four-term formula and the same regional-pooling problem.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.143",
+						"description": "design spike — what role does `MaterialAssignment.provenance` (`local`/`trade`/`unknown`, from `deriveMaterialProvenance`) play in the material-standing formula doc 11 §2.9 states as \"availability × cultural affinity × provenance × stratification\"? Provenance is categorical, not numeric, so it cannot be a literal multiplicative term — the formula as stated in doc 11/roadmap prose is imprecise about provenance's actual mechanism. Measured 2026-08-21 while scoping 2GN.27: `explainMaterialWeight`'s existing weight (culturalAffinity × phaseTechnology × scarcity) already produces a real local/trade split with no separate provenance term (mean weight 0.371 for locally-sourced materials vs 0.119 for trade-sourced, across all 6 regional worlds × 16 materials) — provenance's effect may already be embedded in the scarcity term via `bestRegionalLevel`'s trade-only rung, not an independent signal. Rule whether provenance should (a) stay implicit in the weight as measured, (b) become an explicit categorical multiplier keyed by `provenance.source`, or (c) something else entirely, and update doc 11 §2.9's formula statement to match whichever is ruled",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-08-21 per Jason's ruling that session: 2GN.27 proceeds using the 3-term weight alone (availability × cultural affinity, folded through `explainMaterialWeight`, plus stratification once 2GN.96 lands), dropping provenance as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68, which shares the identical formula.",
 						"assignee": "Jason Warren"
 					}
 				]
