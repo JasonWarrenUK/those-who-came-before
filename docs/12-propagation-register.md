@@ -3088,7 +3088,7 @@ Full reasoning, all six findings and the complete consequences list:
 | -- | ------------------------------------------------------------------------------------------------ | ---------- |
 | ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                        | 2026-08-24 |
 | ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                             | 2026-08-24 |
-| ⏳ | `types/tags.ts`: `ClassificationContext` gains a region label alongside `cultureId`/`phaseId`     | 2026-08-24 |
+| ⏳ | `types/tags.ts`: `ClassificationContext` gains `geography.regions` alongside `cultureId`/`phaseId` | 2026-08-24 |
 | ⏳ | `materials.ts`: `bestRegionalLevel` resolves against occupied regions, not the whole world         | 2026-08-24 |
 | ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                 | 2026-08-24 |
 

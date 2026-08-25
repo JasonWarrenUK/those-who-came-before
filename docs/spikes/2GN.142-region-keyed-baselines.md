@@ -85,9 +85,13 @@ is not a fudge specific to this spike — every currently-authored world is sing
 values are identical in practice today regardless of which one a reader asks for. The type-level
 distinction between production and deposition region is kept (they are different facts and will
 diverge once trade/deposition modelling lands), but no separate production-region pipeline is built
-now. This makes Q3's original blocking concern moot: once `Provenance` exists (2GN.47), a
-classification-time reader has a real region to consult, standing in for production until something
-more precise is modelled.
+now. This makes Q3's original blocking concern moot for a different reason than `Provenance` timing:
+Finding 4/5 resolve the classification-time region source independently, via
+`CulturePhase.geography.regions` threaded through `CulturePhaseSample` into `ClassificationContext`
+at baseline-sampling time — before any rule runs, and without depending on `Provenance` existing at
+all. `Provenance.site.region` remains relevant only as the eventual *deposition* record that this
+production-region ruling must agree with once 2GN.47 constructs one; it is never itself the
+classification-time reader.
 
 ## Finding 4: region belongs on `CulturePhase`, grouped for future multi-region spans
 
@@ -165,7 +169,7 @@ the phase's `geography.regions` threaded in wherever they currently receive only
 > (plural, grouped for a future multi-region span). `bestRegionalLevel` resolves availability against
 > a culture-phase's occupied regions rather than scanning every region in the world, fixing the
 > collapse Finding 1 measured. `ClassificationContext` and `CulturePhaseSample` carry a matching
-> `geography`/region label sourced from the same field, for provenance — no rule reads it directly
+> `geography.regions` occupied-region set, for provenance — no rule reads it directly
 > (Finding 2), so `ClassificationRule.condition`'s signature does not widen again. Production region
 > is treated as a complete copy of deposition region (`Provenance.site.region`) for MVP; the two stay
 > type-distinct for when trade/deposition modelling makes them diverge, but no separate
@@ -182,9 +186,12 @@ the phase's `geography.regions` threaded in wherever they currently receive only
   `baselineFor` (`calibration.test.ts:298`), `baselineFor`
   (`routes/dev/explorer/shared/baselineCache.ts:42`), and the `tests/fixtures/artefact.ts:172`
   builder.
-- **`ClassificationContext`** (`types/tags.ts`) gains a region label sourced from the sampled
-  culture-phase's `geography.regions`, alongside the existing `cultureId`/`phaseId` provenance
-  labels. `emptyClassificationContext` needs an empty/placeholder value for it.
+- **`ClassificationContext`** (`types/tags.ts`) gains `geography: { regions: string[] }`, a verbatim
+  copy of the sampled culture-phase's occupied-region set, alongside the existing
+  `cultureId`/`phaseId` provenance labels. Plural for the same reason `CulturePhase`'s is (Finding
+  4): the label names the phase's whole footprint, never one winning region — `bestRegionalLevel`'s
+  winner is per-material, so no single region can stand for the context. Provenance only, read by
+  nothing (Finding 2). `emptyClassificationContext` uses `[]`.
 - **`bestRegionalLevel`** (`materials.ts`) signature widens to accept the culture-phase's occupied
   regions (or the whole `CulturePhaseSample`/equivalent) instead of scanning
   `GeologicalContext.materialAvailability` unconstrained. Its four callers (`isAvailable`,

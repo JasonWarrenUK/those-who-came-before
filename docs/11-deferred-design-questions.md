@@ -444,8 +444,8 @@ ones do.
 > anywhere to state which regions it occupied. 2GN.142 ruled region a world/geology-level fact,
 > referenced by a new `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more
 > than one region); `bestRegionalLevel` resolves against that occupied set rather than the whole
-> world; and `ClassificationContext`/`CulturePhaseSample` carry a matching label sourced from the
-> same field. No rule reads the region directly — the only surface a rule touches is
+> world; and `ClassificationContext`/`CulturePhaseSample` carry a matching `geography.regions`
+> occupied-region set. No rule reads the region directly — the only surface a rule touches is
 > `ClassificationContext.exceeds`, so `ClassificationRule.condition`'s signature does not widen
 > again. Production region is treated as a complete copy of deposition region
 > (`Provenance.site.region`) for MVP, since every currently-authored world is single-region and the
