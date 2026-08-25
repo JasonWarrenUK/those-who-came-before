@@ -3058,7 +3058,7 @@ dimension anywhere. The only thing resembling an implementation was `calibration
 (`engine/generation/materials.ts`) iterates every region in a `GeologicalContext` and returns the
 best availability level across all of them — not the regions the producing culture actually
 occupies. For doc 11's own motivating case (a culture spanning two regions), this produces one
-baseline against best-of-*every*-region availability, the exact defect the region key exists to
+baseline against best-of-_every_-region availability, the exact defect the region key exists to
 prevent. Invisible today only because every shipped preset models exactly one region.
 
 **No rule reads a region, so none needs to.** All ten `ClassificationRule.condition` call sites that
@@ -3074,8 +3074,8 @@ separate production-region pipeline is built now; every currently-authored world
 so the two are identical in practice regardless.
 
 **Region ruled world-level, referenced by a new `CulturePhase.geography.regions: string[]`.**
-Grouped under `geography` and plural from the start, per Jason's ruling in session, so the
-"culture spans two regions" case doc 11 already names doesn't force a second breaking change later.
+Grouped under `geography` and plural from the start, per Jason's ruling in session, so the "culture
+spans two regions" case doc 11 already names doesn't force a second breaking change later.
 `CulturePhaseSample` (the structural parameter bag `sampleBaselines` takes, standing in for a real
 `CulturePhase` until 3WS.3/3WS.4) gains the same `geography` field directly rather than being forced
 to hold a full `CulturePhase` early, preserving its documented "nothing here has to change when
@@ -3084,13 +3084,42 @@ to hold a full `CulturePhase` early, preserving its documented "nothing here has
 Full reasoning, all six findings and the complete consequences list:
 `docs/spikes/2GN.142-region-keyed-baselines.md`.
 
-| §  | Propagation                                                                                    | Date       |
-| -- | ------------------------------------------------------------------------------------------------ | ---------- |
-| ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                        | 2026-08-24 |
-| ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                             | 2026-08-24 |
+| §  | Propagation                                                                                        | Date       |
+| -- | -------------------------------------------------------------------------------------------------- | ---------- |
+| ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                          | 2026-08-24 |
+| ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                              | 2026-08-24 |
 | ⏳ | `types/tags.ts`: `ClassificationContext` gains `geography.regions` alongside `cultureId`/`phaseId` | 2026-08-24 |
 | ⏳ | `materials.ts`: `bestRegionalLevel` resolves against occupied regions, not the whole world         | 2026-08-24 |
-| ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                 | 2026-08-24 |
+| ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                  | 2026-08-24 |
+
+### 2.54 The Re-Expansion Cap Is 20; Measuring It Found Nearly Half of Worst-Cell Rolls Discarded (2026-08-25)
+
+**Origin:** roadmap 2GN.137. **Source of truth:** doc 11 §2.19 holds the ruling;
+`docs/spikes/2GN.137-re-expansion-attempt-cap.md` holds the measurements.
+
+Doc 05 §6.2 and §14 specified the exhaustion contract with "N attempts" as a placeholder. 2GN.137
+measured the per-attempt plausibility failure rate over 5000 seeds in seven cells (four Explorer
+presets, three `craftSpecialisation` corners) and ruled **N = 20** against the worst: xoconahtl at
+43.3%. Attempts were confirmed independent by simulating the loop on a continuing stream (75/5000
+artefacts needed more than 5 attempts, matching `0.433^5`), so exhaustion is `p^N`: 5.4e-8 per
+artefact at N = 20.
+
+**"Re-rolling is cheap" was true per roll and unmeasured in aggregate.** Between 13% and 43% of
+expansions are discarded depending on the cell. Two rules dominate: the wrapped-join rule (§2.52)
+and the rigid-shaft rule, both rejecting structure `expandGrammar` rolled without consulting
+`allowedMaterialTags`. Filed as 2GN.145 rather than fixed, since a grammar-side change moves every
+calibration pin.
+
+**No calibration pin moved.** `checkPlausibility` still has no production caller (2GN.16 remains
+`todo`); this entry ships two constants and a guard test, no behaviour.
+
+| § | Propagation                                                                                             | Date       |
+| - | ------------------------------------------------------------------------------------------------------- | ---------- |
+| — | `MAX_PLAUSIBILITY_ATTEMPTS = 20`, `PLAUSIBILITY_FAILURE_CEILING = 0.5` in `data/plausibility.ts`        | 2026-08-25 |
+| — | `plausibility.calibration.test.ts`: per-preset rate under the ceiling; `0.5^N < 1e-6`                   | 2026-08-25 |
+| — | Doc 11 §2.19: the ruling                                                                                | 2026-08-25 |
+| — | Doc 05 §6.2 and §14: "N attempts" replaced with 20; "re-rolling is cheap" qualified                     | 2026-08-25 |
+| — | Roadmap: 2GN.137 done; 2GN.16 unblocked; new 2GN.145 (grammar reads `allowedMaterialTags` at roll time) | 2026-08-25 |
 
 ---
 

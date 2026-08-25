@@ -297,3 +297,25 @@ export const PLAUSIBILITY_RULES: readonly PlausibilityRule[] = [
 		reason: 'a wrapped join needs a material flexible enough to wrap around its substrate',
 	},
 ];
+
+/**
+ * Attempt cap for the Stage 5 re-expansion loop (doc 05 §6.2, roadmap 2GN.16): on a plausibility
+ * failure the pipeline re-expands from Stage 4 up to this many times before throwing
+ * `PlausibilityExhaustedError`.
+ *
+ * Ruled at 20 by 2GN.137 (doc 11 §2.19), measured rather than guessed. Attempts are independent, so
+ * exhaustion probability is `p^N` for a cell's per-attempt failure rate `p`. The worst shipped cell
+ * (xoconahtl) fails 43.3% of rolls, giving 5.4e-8 per artefact and ~3e-5 per 500-artefact career;
+ * the cap keeps that bound while `p` stays below 0.5, which `plausibility.calibration.test.ts`
+ * guards. Exhaustion at this cap is therefore a grammar/rule disagreement, never bad luck, which is
+ * what doc 05 §14 needs the error to mean.
+ */
+export const MAX_PLAUSIBILITY_ATTEMPTS = 20;
+
+/**
+ * Ceiling on any cell's per-attempt plausibility failure rate, above which
+ * `MAX_PLAUSIBILITY_ATTEMPTS` no longer bounds exhaustion at the 2GN.137 tolerance. Guarded by
+ * `plausibility.calibration.test.ts`; a new rule that breaches it needs either the grammar fixed
+ * upstream or the cap re-ruled, not a silent raise here.
+ */
+export const PLAUSIBILITY_FAILURE_CEILING = 0.5;

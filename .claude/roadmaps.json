@@ -453,7 +453,7 @@
 					{
 						"id": "2GN.16",
 						"description": "`engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.12",
 							"2GN.137"
@@ -1703,11 +1703,11 @@
 					{
 						"id": "2GN.137",
 						"description": "design spike — rule the value of N for the plausibility re-expansion attempt cap. The exhaustion contract is already fully specified (doc 05 §5/§14 and doc 12: typed `PlausibilityExhaustedError`, no fallback artefact), but both docs use \"N attempts\" as a literal placeholder — no numeric value is pinned anywhere. Rule it measured rather than guessed: sample the plausibility-failure rate distribution over seeds with `checkPlausibility` (2GN.12, done) and pick the N that bounds exhaustion probability at an agreed tolerance",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.12"
 						],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: the narrowest of the audit's five gaps — 2GN.16's contract is real, only the constant is unruled. Deliberately small; may resolve in one measurement session.",
+						"notes": "Ruled 2026-08-25 — see docs/spikes/2GN.137-re-expansion-attempt-cap.md, doc 11 §2.19 and doc 12 §2.54. **N = 20**, shipped as `MAX_PLAUSIBILITY_ATTEMPTS` in `data/plausibility.ts` with `PLAUSIBILITY_FAILURE_CEILING = 0.5` and a per-preset guard in `plausibility.calibration.test.ts`. Measured over 5000 seeds × 7 cells: per-attempt failure runs 13.2% (craft 0.1) to 43.3% (xoconahtl); attempts confirmed independent, so exhaustion is p^N = 5.4e-8 per artefact at the worst cell (≈3e-5 per 500-artefact career). N=10 rejected (11% of careers would hit the error), N=15 rejected (no headroom against the next rule). The rate itself is a generator defect — wrapped-join and rigid-shaft rules reject structure `expandGrammar` rolls without reading `allowedMaterialTags` — filed as 2GN.145. Original notes: Filed 2026-08-20 from the M2 dependency audit: the narrowest of the audit's five gaps — 2GN.16's contract is real, only the constant is unruled. Deliberately small; may resolve in one measurement session.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1763,14 +1763,29 @@
 						"dependsOn": [],
 						"notes": "Filed 2026-08-21 per Jason's ruling that session: 2GN.27 proceeds using the 3-term weight alone (availability × cultural affinity, folded through `explainMaterialWeight`, plus stratification once 2GN.96 lands), dropping provenance as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68, which shares the identical formula.",
 						"assignee": "Jason Warren",
-						"softDependsOn": ["2GN.144"]
+						"softDependsOn": [
+							"2GN.144"
+						]
 					},
 					{
 						"id": "2GN.144",
 						"description": "`types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` + `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains `geography: { regions: string[] }` (plural, for a phase spanning several regions); `CulturePhaseSample` gains a matching `geography` field directly (not a nested `CulturePhase` — the sample bag stays structural until 3WS.3/3WS.4 land real culture/phase generation); `ClassificationContext` gains a region label sourced from the same field, alongside the existing `cultureId`/`phaseId` provenance labels (`emptyClassificationContext` needs a placeholder value); `bestRegionalLevel` (`materials.ts`) resolves against a culture-phase's occupied regions instead of scanning the whole `GeologicalContext` unconstrained — the actual collapse fix the spike measured, threaded through its four callers (`isAvailable`, `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor` (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder",
 						"status": "todo",
-						"dependsOn": ["2GN.142"],
+						"dependsOn": [
+							"2GN.142"
+						],
 						"notes": "Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that generates real `GeologicalContext`/regions for production cultures and needs `CulturePhase.geography.regions` to exist before it can populate it. 2GN.143 (provenance-formula spike) gets a soft link, since it measures directly against `bestRegionalLevel`, whose signature this task changes — not a hard blocker since 2GN.143 is unstarted design work, but re-measurement should happen in the right order. Recalibration risk noted in the spike: the `bestRegionalLevel` fix only changes behaviour once a culture-phase's `geography.regions` has more than one entry, which no shipped preset does yet, so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm with `deno task test` before landing. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.145",
+						"description": "`engine/generation/grammar.ts` — `expandGrammar` consults `allowedMaterialTags` (2GN.10) when rolling join types and head placements, so it stops producing structure the wrapped-join and rigid-shaft plausibility rules reject on sight. 2GN.137 measured 13–43% of expansions discarded at Stage 5 depending on the cell, dominated by those two rules; the rules are correct and the grammar is uninformed. Rule where in the draw sequence the constraint is read (a filter on the attachment option set before `selectGrammarOption`, so the draw count is unchanged, versus a re-roll, which is not), and re-record every calibration pin, since any change here moves `expandGrammar`'s draw sequence for every artefact",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.137",
+							"2GN.10"
+						],
+						"notes": "Filed 2026-08-25 from the 2GN.137 spike. ⚠️ calibration-shifting: `EXPECTED_FIRE_RATES`, `EXPECTED_TAG_SHARES` and the plausibility calibration guard all re-record. Not a blocker for 2GN.16 — the cap was ruled with headroom for today's rate — but landing it makes N=20 conservative rather than load-bearing.",
 						"assignee": "Jason Warren"
 					}
 				]

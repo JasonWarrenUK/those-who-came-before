@@ -845,10 +845,14 @@ Examples:
   hammer head to a cord)
 - Heavy components on top of thin-walled hollow forms are structurally implausible
 
-If plausibility fails, the pipeline re-expands from Stage 4 (up to N attempts). Grammar expansion is
-fast; re-rolling is cheap.
+If plausibility fails, the pipeline re-expands from Stage 4, up to **20 attempts**
+(`MAX_PLAUSIBILITY_ATTEMPTS`, ruled by 2GN.137, doc 11 §2.19). Grammar expansion is fast, so each
+re-roll is cheap; the aggregate is not negligible, since 13–43% of expansions fail plausibility
+depending on the culture-phase (measured 2026-08-25, mostly joins and head placements the grammar
+rolls without reading `allowedMaterialTags`; 2GN.145). Attempts are independent, so exhaustion
+probability is `p^20`, at most 5.4e-8 per artefact for the shipped presets.
 
-If all N attempts fail, the pipeline throws a typed `PlausibilityExhaustedError` (seed, attempt
+If all 20 attempts fail, the pipeline throws a typed `PlausibilityExhaustedError` (seed, attempt
 count, last failing rule set) rather than emitting anything. Exhaustion means the grammar and the
 rule set disagree — that's a generator defect to surface, not a runtime condition to paper over with
 a relaxed rule set or a canned fallback artefact; either would violate the Section 14 guarantee that
@@ -1565,7 +1569,7 @@ interface TagSuggestion {
 Every artefact that reaches the player satisfies these invariants:
 
 1. **Structural coherence.** All plausibility rules pass. No physically impossible configurations.
-   This holds vacuously through exhaustion: if Stage 5 re-expansion exhausts its N attempts, the
+   This holds vacuously through exhaustion: if Stage 5 re-expansion exhausts its 20 attempts, the
    pipeline throws instead of emitting an artefact (Section 6), so no artefact that fails a
    plausibility rule ever reaches the player.
 2. **Material compatibility.** Every component has a material its primitive type allows.

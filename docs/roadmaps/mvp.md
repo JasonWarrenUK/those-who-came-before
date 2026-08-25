@@ -388,7 +388,8 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.16** — `engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand
       from grammar up to N attempts; on exhaustion, throw `PlausibilityExhaustedError` (seed,
       attempt count, last failing rules) rather than emit — never a relaxed-rules or fallback
-      artefact (doc 05 §6, §14; doc 12 §2.23) _(blocked — depends on 2GN.137; 2GN.12 done)_
+      artefact (doc 05 §6, §14; doc 12 §2.23) _(depends on 2GN.137, 2GN.12 — both done; unblocked)_
+      — N is 20 (`MAX_PLAUSIBILITY_ATTEMPTS`, 2GN.137)
 - [x] **2GN.17** — `src/lib/data/classification.ts` — classification rules: feature→tag scoring,
       structural/container/decorative/cross-layer contributions — rules were derived from first
       principles against the signals `data/grammars/primitives.ts` actually rolls, not transcribed
@@ -1670,9 +1671,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins`
       from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer
-      material's **situation in the producing culture**) _(depends on 2GN.33, 2GN.20, 2GN.82, 2GN.83,
-      2GN.84, 2GN.85, 2GN.110, 2GN.97, 2GN.142 — all done)_ — ⚠️ **rescoped 2026-08-11
-      by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read
+      material's **situation in the producing culture**) _(depends on 2GN.33, 2GN.20, 2GN.82,
+      2GN.83, 2GN.84, 2GN.85, 2GN.110, 2GN.97, 2GN.142 — all done)_ — ⚠️ **rescoped 2026-08-11 by
+      2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read
       "`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup",
       which is exactly the static catalogue read 2GN.77 ruled against and which no longer has
       anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired.
@@ -1905,16 +1906,22 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no
     doc section defines selection criteria or a target catalogue size, and the change is
     calibration-shifting. This spike rules the scope; 2GN.124 implements it.
-- [ ] **2GN.137** — design spike — rule the value of N for the plausibility re-expansion attempt
+- [x] **2GN.137** — design spike — rule the value of N for the plausibility re-expansion attempt
       cap. The exhaustion contract is already fully specified (doc 05 §5/§14 and doc 12: typed
       `PlausibilityExhaustedError`, no fallback artefact), but both docs use "N attempts" as a
       literal placeholder — no numeric value is pinned anywhere. Rule it measured rather than
       guessed: sample the plausibility-failure rate distribution over seeds with `checkPlausibility`
       (2GN.12, done) and pick the N that bounds exhaustion probability at an agreed tolerance
-      _(depends on 2GN.12 — done; unblocked)_
-  - Note: Filed 2026-08-20 from the M2 dependency audit: the narrowest of the audit's five gaps —
-    2GN.16's contract is real, only the constant is unruled. Deliberately small; may resolve in one
-    measurement session.
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.137-re-expansion-attempt-cap.md`, doc 11 §2.19
+    and doc 12 §2.54. N = 20**, shipped as `MAX_PLAUSIBILITY_ATTEMPTS` in `data/plausibility.ts`
+    with `PLAUSIBILITY_FAILURE_CEILING = 0.5` and a per-preset guard in
+    `plausibility.calibration.test.ts`. Measured over 5000 seeds × 7 cells: per-attempt failure runs
+    13.2% (craft 0.1) to 43.3% (xoconahtl); attempts confirmed independent, so exhaustion is p^N =
+    5.4e-8 per artefact at the worst cell (≈3e-5 per 500-artefact career). N=10 rejected (11% of
+    careers would hit the error), N=15 rejected (no headroom against the next rule). The rate itself
+    is a generator defect (wrapped-join and rigid-shaft rules reject structure `expandGrammar` rolls
+    without reading `allowedMaterialTags`), filed as 2GN.145. Originally filed 2026-08-20 from the
+    M2 dependency audit as the narrowest of its five gaps.
 - [ ] **2GN.138** — design spike — define "interpretive challenge" as a measurable per-artefact
       quantity and rule the excavation ambiguity distribution targets. Doc 05 §11.3 specifies the
       principle (measure the interpretive-challenge distribution of a batch, steer the next
@@ -2015,8 +2022,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       collapse fix the spike measured, threaded through its four callers (`isAvailable`,
       `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s
       call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor`
-      (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s
-      `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder
+      (stops abusing `cultureId` to hold a region name),
+      `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the
+      `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder
   - Note: Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not
     a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and
     both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that
@@ -2028,6 +2036,19 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm
     with `deno task test` before landing. Full reasoning:
     `docs/spikes/2GN.142-region-keyed-baselines.md`.
+- [ ] **2GN.145** — `engine/generation/grammar.ts` — `expandGrammar` consults `allowedMaterialTags`
+      (2GN.10) when rolling join types and head placements, so it stops producing structure the
+      wrapped-join and rigid-shaft plausibility rules reject on sight. 2GN.137 measured 13–43% of
+      expansions discarded at Stage 5 depending on the cell, dominated by those two rules; the rules
+      are correct and the grammar is uninformed. Rule where in the draw sequence the constraint is
+      read (a filter on the attachment option set before `selectGrammarOption`, so the draw count is
+      unchanged, versus a re-roll, which is not), and re-record every calibration pin, since any
+      change here moves `expandGrammar`'s draw sequence for every artefact _(depends on 2GN.137,
+      2GN.10 — both done; unblocked)_
+  - Note: Filed 2026-08-25 from the 2GN.137 spike. ⚠️ calibration-shifting: `EXPECTED_FIRE_RATES`,
+    `EXPECTED_TAG_SHARES` and the plausibility calibration guard all re-record. Not a blocker for
+    2GN.16 (the cap was ruled with headroom for today's rate), but landing it makes N=20
+    conservative rather than load-bearing.
 - [ ] **2GN.67** — `engine/generation/grammar.ts` — arrangement detection + pattern assignment:
       annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten
       time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3
@@ -2495,9 +2516,8 @@ integration with real culture data
       reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.
       That decision is now ruled by 2GN.142 (2026-08-24), with implementation filed as 2GN.144
       (2026-08-25): region is world-level, referenced by `CulturePhase.geography.regions: string[]`
-      — this task generates
-      the real `GeologicalContext`/regions for production cultures and needs that field to exist
-      before it can populate it
+      — this task generates the real `GeologicalContext`/regions for production cultures and needs
+      that field to exist before it can populate it
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
       sets for cultural fingerprinting) _(blocked — depends on 3WS.3)_ — generated vocabularies must
       be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's

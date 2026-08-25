@@ -33,6 +33,7 @@ where it landed. Task status and dependency edges live in `.claude/roadmaps.json
 | 2GN.127 | What an absent affinity entry means                                    | 2026-08-14 | doc 11 §2.15, doc 12 §2.49 | [2GN.127](2GN.127-affinity-silence.md)               |
 | 2GN.66  | Naming grammars and the language layer beneath them                    | 2026-08-15 | doc 11 §2.18               | [2GN.66](2GN.66-naming-grammars.md)                  |
 | 2GN.142 | Region dimension for classification baselines (unimplemented; 2GN.144) | 2026-08-24 | doc 11 §2.9, doc 12 §2.53  | [2GN.142](2GN.142-region-keyed-baselines.md)         |
+| 2GN.137 | Value of N for the plausibility re-expansion cap                       | 2026-08-25 | doc 11 §2.19, doc 12 §2.54 | [2GN.137](2GN.137-re-expansion-attempt-cap.md)       |
 
 Not in this directory by design: 2GN.10 (primitive→material table) was ruled interactively and lives
 only in doc 11 §2.16.
@@ -54,7 +55,6 @@ is ruled, create its file and move the row up.
 | 2GN.134 | Should cultural affinity gate substrate access at all?                           | —          | 2GN.129                         |
 | 2GN.135 | Inputs to the derived `wallThickness`/`diameter` quantity                        | —          | 2GN.120                         |
 | 2GN.136 | Material catalogue widening: criteria and target size                            | —          | 2GN.124                         |
-| 2GN.137 | Value of N for the plausibility re-expansion cap (measure it)                    | —          | 2GN.16                          |
 | 2GN.138 | Define "interpretive challenge" as a per-artefact metric; ratify ambiguity bands | —          | 2GN.45, 2GN.46                  |
 | 2GN.139 | Arrangement-pattern assignment mechanism                                         | —          | 2GN.67                          |
 | 2GN.140 | Intentional assemblage vs stray components                                       | —          | 2GN.69                          |

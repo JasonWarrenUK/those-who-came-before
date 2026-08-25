@@ -967,6 +967,28 @@ culture `languageId` binding, toponymy, Explorer phonology inspector) are listed
 yet filed as tasks. Full detail, including the eight defects found by measurement and by reading
 output, and the `the-tongue` prior-art table: `docs/spikes/2GN.66-naming-grammars.md`.
 
+### 2.19 Plausibility Re-Expansion Cap: N = 20 (roadmap 2GN.137)
+
+**Decision (2026-08-25):** the Stage 5 re-expansion loop (doc 05 §6.2, built by 2GN.16) retries up
+to **20** times before throwing `PlausibilityExhaustedError`. Shipped as `MAX_PLAUSIBILITY_ATTEMPTS`
+in `data/plausibility.ts`.
+
+Measured, not guessed. Attempts are independent draws from one PRNG stream (empirically confirmed),
+so per-artefact exhaustion is `p^N` for a cell's per-attempt failure rate `p`. The worst shipped
+cell (xoconahtl) fails 43.3% of rolls; at N = 20 that is 5.4e-8 per artefact, about 3e-5 per
+500-artefact career. The per-artefact tolerance adopted is 1e-6, which N = 20 keeps while `p` stays
+under 0.5: `PLAUSIBILITY_FAILURE_CEILING = 0.5` is guarded per Explorer preset by
+`plausibility.calibration.test.ts`, so a new rule that breaches it fails a test rather than eroding
+the bound.
+
+The high rate is itself a finding: the wrapped-join and rigid-shaft rules reject joins and head
+placements `expandGrammar` rolls without reading `allowedMaterialTags`. Filed as 2GN.145 (grammar
+consults the material constraint at roll time), separate because it moves every calibration pin.
+
+**Affects:** doc 05 §6.2 and §14 ("N attempts" now has a value; "re-rolling is cheap" is true per
+roll and the aggregate rate is recorded), `data/plausibility.ts`, 2GN.16. Full detail:
+`docs/spikes/2GN.137-re-expansion-attempt-cap.md`.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge
