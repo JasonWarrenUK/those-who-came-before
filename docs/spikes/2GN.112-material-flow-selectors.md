@@ -1,11 +1,12 @@
 # 2GN.112 — Should `MaterialFlow.specificMaterials` Narrow a Flow or Widen It?
 
-| Prop      | Value                                                                                             |
-| --------- | ------------------------------------------------------------------------------------------------- |
-| Status    | Ruled; implemented same branch (PR #57)                                                           |
-| Ruled     | 2026-08-12                                                                                        |
-| Ruling in | Doc 05 §3.4 and doc 12 §2.41; the roadmap entry for 2GN.112 carries the full argument             |
-| Outcome   | Neither: field removed; `includes: MaterialSelector[]` + optional `excludes`, union then subtract |
+| Prop        | Value                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| Status      | Ruled; implemented                                                                                |
+| Implemented | 2026-08-12, same branch (PR #57)                                                                  |
+| Ruled       | 2026-08-12                                                                                        |
+| Ruling in   | Doc 05 §3.4 and doc 12 §2.41; the roadmap entry for 2GN.112 carries the full argument             |
+| Outcome     | Neither: field removed; `includes: MaterialSelector[]` + optional `excludes`, union then subtract |
 
 ## Why this file is a stub
 

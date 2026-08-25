@@ -39,13 +39,13 @@ stream (per 2GN.132's placement ruling):
 
 ## Finding 1: the split reproduces the corners in kind
 
-| craft | emphasis | ceiling | layers/component (flat) | artefacts reaching depth 1 / 2 / 3 | total layers with sublayers vs flat |
-| ----: | -------: | ------: | ----------------------: | ---------------------------------- | ----------------------------------: |
-|   0.1 |      0.1 |       1 |                    0.29 | 41% / 0 / 0 (59% undecorated)      |                        0.56 vs 0.56 |
-|   0.9 |      0.1 |       3 |                    0.28 | 73% / 7% / 0                       |                        1.85 vs 1.77 |
-|   0.1 |      0.9 |       1 |                    3.40 | 100% / 0 / 0                       |                        6.99 vs 6.99 |
-|   0.9 |      0.9 |       3 |                    3.41 | 0 / 15% / 85%                      |                        32.6 vs 21.2 |
-|   0.5 |      0.5 |       2 |                    1.63 | 22% / 78% / 0                      |                        8.31 vs 6.67 |
+| craft | emphasis | ceiling | layers/component (flat) | maximum depth = 1 / 2 / 3 (exclusive buckets; undecorated artefacts excluded, share noted) | total layers with sublayers vs flat |
+| ----: | -------: | ------: | ----------------------: | ------------------------------------------------------------------------------------------ | ----------------------------------: |
+|   0.1 |      0.1 |       1 |                    0.29 | 41% / 0 / 0 (59% undecorated)                                                              |                        0.56 vs 0.56 |
+|   0.9 |      0.1 |       3 |                    0.28 | 73% / 7% / 0                                                                               |                        1.85 vs 1.77 |
+|   0.1 |      0.9 |       1 |                    3.40 | 100% / 0 / 0                                                                               |                        6.99 vs 6.99 |
+|   0.9 |      0.9 |       3 |                    3.41 | 0 / 15% / 85%                                                                              |                        32.6 vs 21.2 |
+|   0.5 |      0.5 |       2 |                    1.63 | 22% / 78% / 0                                                                              |                        8.31 vs 6.67 |
 
 The two middle corners finally differ. A skilled austere culture is _allowed_ three deep and rarely
 bothers (7% reach depth 2); a lavish unskilled one piles layers side by side and can never nest.

@@ -1,11 +1,12 @@
 # 2GN.98 — What Does Decorative Volume Key On?
 
-| Prop      | Value                                                                                          |
-| --------- | ---------------------------------------------------------------------------------------------- |
-| Status    | Ruled; implemented same task (`DecorativeLayer.grade`, `TECHNIQUE_DIFFICULTY`, rule R44)       |
-| Ruled     | 2026-08-06                                                                                     |
-| Ruling in | Doc 11 §2.10 (locked decision; closes doc 11 §1.5); doc 12 §2.33 (measurements)                |
-| Outcome   | Volume reads `decorativeEmphasis` alone; a separate `grade` reads craft × technique difficulty |
+| Prop        | Value                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| Status      | Ruled; implemented                                                                             |
+| Implemented | 2026-08-06, same task: `DecorativeLayer.grade`, `TECHNIQUE_DIFFICULTY`, rule R44               |
+| Ruled       | 2026-08-06                                                                                     |
+| Ruling in   | Doc 11 §2.10 (locked decision; closes doc 11 §1.5); doc 12 §2.33 (measurements)                |
+| Outcome     | Volume reads `decorativeEmphasis` alone; a separate `grade` reads craft × technique difficulty |
 
 ## Why this file is a stub
 

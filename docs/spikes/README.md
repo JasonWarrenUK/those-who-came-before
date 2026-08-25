@@ -15,6 +15,9 @@ where it landed. Task status and dependency edges live in `.claude/roadmaps.json
 | Ruling in   | doc 11 § and doc 12 § the ruling was propagated to               |
 | Outcome     | one line                                                         |
 
+Files written before this convention (2GN.66 to 2GN.127) carry looser `Status` text; leave them as
+they are and use the closed set for new files.
+
 ## Ruled
 
 | ID      | Question                                                                 | Ruled      | Ruling in                  | File                                                  |
