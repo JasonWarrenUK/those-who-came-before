@@ -732,6 +732,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s
     sample loop and both Explorer sample paths, re-records the pins that move with drift annotated,
     and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131.
+    Sequencing note (PR #76 review): `gradeDecorativeLayers`/`enforceSubstrates` resolve material by
+    `targetComponentId`, so until 2GN.133 lands a sublayer over an introduced material is
+    graded/checked against the component's material; `expandSublayers` resolves the parent material
+    for its own draw, and 2GN.133 remains the sequenced follow-on.
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
       `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(blocked: depends on 2GN.29,
       2GN.131)_

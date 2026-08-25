@@ -1034,9 +1034,12 @@ spread floor). Roadmap: 2GN.134 ruled; implementation folded into 2GN.129 alongs
 **Decision (2026-08-25):** decoration-on-decoration (`DecorativeLayer.sublayers`, doc 05 §8.3) is
 produced by a separate pure pass over `expandDecoration`'s flat output, seeded from its own PRNG
 stream (`${seed}-sublayers`), running after `assignMaterials` and `assignDecorativeDetails` and
-before `gradeDecorativeLayers` and `enforceSubstrates`. It is wired into the calibration harness and
-both Explorer sample paths in the same PR that builds it (2GN.31), never shipped unwired.
-`expandDecoration`'s slot loop and draw sequence are untouched.
+before `gradeDecorativeLayers` and `enforceSubstrates`. The pass resolves each sublayer's parent
+material for its own draw; those two consumers still resolve by `targetComponentId` until 2GN.133
+(blocked on 2GN.31) makes them parent-aware, so that task is the sequenced follow-on rather than
+optional polish. It is wired into the calibration harness and both Explorer sample paths in the same
+PR that builds it (2GN.31), never shipped unwired. `expandDecoration`'s slot loop and draw sequence
+are untouched.
 
 Why: a sublayer's substrate is its parent layer (paint over gilding sits on gold; engraving on an
 inlaid bone element cuts bone), so its material is known only once `assignMaterials` and

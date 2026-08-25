@@ -75,8 +75,11 @@ sampled paths in the same PR as the producer is what makes the pins re-record on
   (name provisional) as a pure function over the flat list, mirroring `gradeDecorativeLayers`'
   signature shape.
 - Pipeline position: after `assignMaterials` and `assignDecorativeDetails`, before
-  `gradeDecorativeLayers` and `enforceSubstrates`, so sublayers are graded and substrate-checked by
-  the passes that already recurse into `sublayers`.
+  `gradeDecorativeLayers` and `enforceSubstrates`. Those two passes recurse into `sublayers` but
+  resolve material by `layer.targetComponentId`, so until 2GN.133 makes them parent-aware a sublayer
+  over gilding is graded and substrate-checked against the component's material, not the gold.
+  `expandSublayers` resolves the parent material for its own draw regardless; 2GN.133 (blocked on
+  2GN.31) is the sequenced follow-on that teaches the consumers the same rule.
 - Stream: `${seed}-sublayers`, seeded by the caller like every other stage.
 - Substrate for a sublayer: the parent's introduced material where the parent's technique introduces
   one, otherwise the parent's target component's assigned material.
