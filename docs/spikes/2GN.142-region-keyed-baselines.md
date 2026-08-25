@@ -1,11 +1,11 @@
 # 2GN.142 — Region Dimension for Classification Baselines
 
-| Prop        | Value                                                                              |
-| ----------- | ----------------------------------------------------------------------------------- |
-| Status      | Ruled; unimplemented                                                                |
-| Ruled       | 2026-08-24                                                                           |
-| Implemented | —                                                                                    |
-| Ruling in   | This document; propagated to doc 11 §2.9 and doc 12                                 |
+| Prop        | Value                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status      | Ruled; unimplemented                                                                                                                                                                                          |
+| Ruled       | 2026-08-24                                                                                                                                                                                                    |
+| Implemented | —                                                                                                                                                                                                             |
+| Ruling in   | This document; propagated to doc 11 §2.9 and doc 12 §2.53                                                                                                                                                     |
 | Outcome     | Region is world-level, referenced by `CulturePhase.geography.regions`; production region := deposition region for MVP; `bestRegionalLevel` resolves against the phase's occupied regions, not the whole world |
 
 ## The question
@@ -38,7 +38,7 @@ Three questions, ruled in dependency order (Q3 constrains Q1, Q1 constrains Q2):
 its best-case region regardless of which region the producing culture actually occupies.
 
 For doc 11's own motivating case — a culture spanning two regions — the current code produces one
-baseline against best-of-*every*-region availability, which is precisely the defect the region key
+baseline against best-of-_every_-region availability, which is precisely the defect the region key
 exists to prevent. It reads as region-sensitive only because every shipped preset happens to model
 exactly one region: `geology(region, levels)` (`data/explorer-cultures.ts:109`) builds
 `regions: new Map([[region, level]])`, a single key. The calibration test's measured per-region
@@ -61,21 +61,21 @@ directly; none calls `hasBaseline`.
 So a region dimension can be added **without touching any rule or widening
 `ClassificationRule.condition`'s signature again**, provided it is resolved by whichever caller
 selects the context for a given artefact, not exposed as a new `exceeds` parameter. Widening
-`exceeds` itself would touch all ten call sites for no benefit, since nothing downstream of `exceeds`
-needs to know which region produced the threshold it compared against.
+`exceeds` itself would touch all ten call sites for no benefit, since nothing downstream of
+`exceeds` needs to know which region produced the threshold it compared against.
 
 ## Finding 3: classification time cannot know the producing region today, but a landable path exists
 
 Traced end to end: `NormalisedArtefact` carries no provenance; `ExtractedFeatures` carries none, and
-`extractFeatures(artefact, layers)` does not even receive the `MaterialAssignment[]` that would carry
-a region signal. `ClassifiedArtefact` does carry `provenance: Provenance` (hence
-`provenance.site.region`) — but it is the pipeline's terminal product, assembled *after*
+`extractFeatures(artefact, layers)` does not even receive the `MaterialAssignment[]` that would
+carry a region signal. `ClassifiedArtefact` does carry `provenance: Provenance` (hence
+`provenance.site.region`) — but it is the pipeline's terminal product, assembled _after_
 classification, and nothing in `src/` constructs one yet.
 
 `Provenance.site.region` (`types/world.ts:558`) is **deposition** region — where the artefact was
 found — not **production** region — where it was made. These are different facts in general (an
-artefact made in one region can be deposited, traded or lost in another), and doc 11's geology-driven
-reasoning is about production. `deriveMaterialProvenance`'s `likelyOriginRegion`
+artefact made in one region can be deposited, traded or lost in another), and doc 11's
+geology-driven reasoning is about production. `deriveMaterialProvenance`'s `likelyOriginRegion`
 (`materials.ts:519-536`) is the only production-region-shaped signal that exists, and it is set only
 on the `'local'` assignment branch — `'regional'` is never produced at all, since no inter-region
 distance is modelled.
@@ -89,17 +89,17 @@ now. This makes Q3's original blocking concern moot for a different reason than 
 Finding 4/5 resolve the classification-time region source independently, via
 `CulturePhase.geography.regions` threaded through `CulturePhaseSample` into `ClassificationContext`
 at baseline-sampling time — before any rule runs, and without depending on `Provenance` existing at
-all. `Provenance.site.region` remains relevant only as the eventual *deposition* record that this
+all. `Provenance.site.region` remains relevant only as the eventual _deposition_ record that this
 production-region ruling must agree with once 2GN.47 constructs one; it is never itself the
 classification-time reader.
 
 ## Finding 4: region belongs on `CulturePhase`, grouped for future multi-region spans
 
 Region is a fact about geology — prescribed once at world generation, occluded, unchanging
-(`GeologicalContext`'s own doc) — not a fact about culture identity. A culture does not own a region;
-it occupies one (or several) during a phase, consistent with cultures migrating or expanding over
-their timeline, and consistent with baselines already being keyed at the culture-**phase** level
-rather than the culture level.
+(`GeologicalContext`'s own doc) — not a fact about culture identity. A culture does not own a
+region; it occupies one (or several) during a phase, consistent with cultures migrating or expanding
+over their timeline, and consistent with baselines already being keyed at the culture-**phase**
+level rather than the culture level.
 
 `CulturePhase` (`types/world.ts:136-151`) is the real world-model type — `id`, `label`, `startYear`,
 `endYear`, `characteristics` — with no geography grouping today. It gains one:
@@ -126,15 +126,16 @@ promised a culture-phase maps to exactly one region.
 
 `region`/`regions` stays a bare `string`/`string[]` rather than a minted `RegionId` type. No reader
 anywhere needs nominal typing today, and inventing one now would be authoring a contract against
-unobserved behaviour — the precedent 2GN.127 Finding 1 states directly and this spike follows.
-Filed rather than absorbed if a future task needs it.
+unobserved behaviour — the precedent 2GN.127 Finding 1 states directly and this spike follows. Filed
+rather than absorbed if a future task needs it.
 
 ## Finding 5: `CulturePhaseSample` gains `geography` directly, not a real `CulturePhase`
 
-`CulturePhaseSample` (`baselines.ts:74-81`) is a structural parameter bag, not a real `CulturePhase`,
-precisely because no culture/phase generator exists yet (3WS.3/3WS.4) — its own doc states "nothing
-here has to change when 3WS.9 lands". Forcing it to hold a full `CulturePhase` now to get at
-`geography` would violate that property for no benefit. It gains the field directly instead:
+`CulturePhaseSample` (`baselines.ts:74-81`) is a structural parameter bag, not a real
+`CulturePhase`, precisely because no culture/phase generator exists yet (3WS.3/3WS.4) — its own doc
+states "nothing here has to change when 3WS.9 lands". Forcing it to hold a full `CulturePhase` now
+to get at `geography` would violate that property for no benefit. It gains the field directly
+instead:
 
 ```typescript
 export interface CulturePhaseSample {
@@ -153,10 +154,10 @@ export interface CulturePhaseSample {
 With `CulturePhase.geography.regions` established, the collapse in Finding 1 has a real fix:
 `bestRegionalLevel` resolves the best availability level across the region(s) the culture-phase
 actually occupies, not every region `GeologicalContext.materialAvailability` happens to model. A
-culture confined to `riverValley`/`highlandMine` should not be credited with `coastalPort`'s abundant
-fish-glue.
+culture confined to `riverValley`/`highlandMine` should not be credited with `coastalPort`'s
+abundant fish-glue.
 
-This still returns a *best-of* result when a phase spans multiple regions (unavoidable — one
+This still returns a _best-of_ result when a phase spans multiple regions (unavoidable — one
 material weight has to come from somewhere when several regions are candidates), but the set it
 scans over is now the phase's real footprint rather than the whole world's. `bestRegionalLevel`'s
 callers (`isAvailable`, `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) need
@@ -166,12 +167,12 @@ the phase's `geography.regions` threaded in wherever they currently receive only
 ## The ruling
 
 > Region is a world/geology-level fact, referenced by `CulturePhase.geography.regions: string[]`
-> (plural, grouped for a future multi-region span). `bestRegionalLevel` resolves availability against
-> a culture-phase's occupied regions rather than scanning every region in the world, fixing the
-> collapse Finding 1 measured. `ClassificationContext` and `CulturePhaseSample` carry a matching
-> `geography.regions` occupied-region set, for provenance — no rule reads it directly
-> (Finding 2), so `ClassificationRule.condition`'s signature does not widen again. Production region
-> is treated as a complete copy of deposition region (`Provenance.site.region`) for MVP; the two stay
+> (plural, grouped for a future multi-region span). `bestRegionalLevel` resolves availability
+> against a culture-phase's occupied regions rather than scanning every region in the world, fixing
+> the collapse Finding 1 measured. `ClassificationContext` and `CulturePhaseSample` carry a matching
+> `geography.regions` occupied-region set, for provenance — no rule reads it directly (Finding 2),
+> so `ClassificationRule.condition`'s signature does not widen again. Production region is treated
+> as a complete copy of deposition region (`Provenance.site.region`) for MVP; the two stay
 > type-distinct for when trade/deposition modelling makes them diverge, but no separate
 > production-region pipeline is built now (Finding 3). No `RegionId` nominal type is minted (Finding
 > 4) — filed if a future reader needs one.
@@ -195,8 +196,8 @@ the phase's `geography.regions` threaded in wherever they currently receive only
 - **`bestRegionalLevel`** (`materials.ts`) signature widens to accept the culture-phase's occupied
   regions (or the whole `CulturePhaseSample`/equivalent) instead of scanning
   `GeologicalContext.materialAvailability` unconstrained. Its four callers (`isAvailable`,
-  `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) need the region set threaded
-  through, which touches `assignMaterials`'s call chain.
+  `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) need the region set
+  threaded through, which touches `assignMaterials`'s call chain.
 - **`calibration.test.ts`'s `baselineFor`** stops abusing `cultureId` to hold a region name (Finding
   in the original task text) — it can pass the region through the new `geography` field instead,
   which is the more honest fix its workaround was standing in for.

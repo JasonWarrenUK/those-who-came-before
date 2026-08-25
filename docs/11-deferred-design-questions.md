@@ -437,15 +437,15 @@ culture is not — nothing binds a culture to a single region — so a culture s
 faces different material availability in each. Decoration baselines need no region key; material
 ones do.
 
-> **Shaped by §2.9's own spike, roadmap 2GN.142 (2026-08-24).** This paragraph named the
-> requirement but no type implemented it: `ClassificationContext` carried no region field,
-> `bestRegionalLevel` (`engine/generation/materials.ts`) resolved availability across every region
-> in the world rather than the ones a culture-phase actually occupies, and no `CulturePhase` had
-> anywhere to state which regions it occupied. 2GN.142 ruled region a world/geology-level fact,
-> referenced by a new `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more
-> than one region); `bestRegionalLevel` resolves against that occupied set rather than the whole
-> world; and `ClassificationContext`/`CulturePhaseSample` carry a matching `geography.regions`
-> occupied-region set. No rule reads the region directly — the only surface a rule touches is
+> **Shaped by §2.9's own spike, roadmap 2GN.142 (2026-08-24).** This paragraph named the requirement
+> but no type implemented it: `ClassificationContext` carried no region field, `bestRegionalLevel`
+> (`engine/generation/materials.ts`) resolved availability across every region in the world rather
+> than the ones a culture-phase actually occupies, and no `CulturePhase` had anywhere to state which
+> regions it occupied. 2GN.142 ruled region a world/geology-level fact, referenced by a new
+> `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more than one region);
+> `bestRegionalLevel` resolves against that occupied set rather than the whole world; and
+> `ClassificationContext`/`CulturePhaseSample` carry a matching `geography.regions` occupied-region
+> set. No rule reads the region directly — the only surface a rule touches is
 > `ClassificationContext.exceeds`, so `ClassificationRule.condition`'s signature does not widen
 > again. Production region is treated as a complete copy of deposition region
 > (`Provenance.site.region`) for MVP, since every currently-authored world is single-region and the
@@ -915,6 +915,57 @@ widening the primitives to force a wider spread, which would have reopened the t
 session, no separate spike — the table's per-primitive reasoning is recorded here rather than in
 `docs/spikes/`, since the ruling happened interactively against measured calibration output rather
 than as a standalone spike investigation.
+
+### 2.17 Primitive Parameter Value-Sets (roadmap 2GN.118)
+
+**Decision (2026-08-13):** `PRIMITIVE_PARAMETERS` (`data/grammars/primitives.ts`, reproducing doc 05
+§5.3) has seven shared-name parameters with disjoint per-primitive vocabularies. Ruled one by one:
+
+| Parameter                        | Ruling                                                                                                                                                                                       |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `base`                           | Unions to `['flat', 'rounded', 'pointed', 'pedestal']` on both `cylindrical` and `hollow-enclosed`. The split made `base-pointed-amphora` unfireable on anything amphora-shaped              |
+| `diameter`                       | Unifies to `small/medium/large`; the underlying derivation (ratio to length, not an absolute table) is 2GN.135's to rule and 2GN.120's to implement                                          |
+| `opening`, `perforation`         | Deferred whole to 2GN.122. Neither is a vocabulary split: each is two axes (presence/count and aperture size; count and position) crushed into one field, and they may be one aperture model |
+| `crossSection`, `shape`, `taper` | Stay as authored: genuinely different geometry under one name                                                                                                                                |
+
+The extractor's primitive-type branch (`classification.ts`) stays as a marked seam: it can express
+only impossible-versus-equally-likely, and per-primitive frequency has to return as weights
+(2GN.121, M3). The two base rules keep their authored weights; `EXPECTED_FIRE_RATES` re-records once
+at implementation. `bar-form`'s `taper: single-end` is not reversal-invariant, so it constrains
+2GN.115's orientation ruling.
+
+**Affects:** doc 05 §5.3 (vocabularies), `data/grammars/primitives.ts`, rules
+`base-pedestal-display` and `base-pointed-amphora`. Roadmap: 2GN.118 done (no `src/` change; each
+ruling lands in its own task). Full detail, including the seven-pair cross-tabulation and rejected
+alternatives: `docs/spikes/2GN.118-primitive-parameter-value-sets.md`.
+
+### 2.18 Naming Is the Surface of a Language Layer (roadmap 2GN.66)
+
+**Decision (2026-08-15):** names for sites, cultures and scholars are synthesised from a generated
+phonology, not drawn from authored fragment lists. Five rulings:
+
+1. **Phonotactic synthesis, not word-lists.** Doc 01 already lists language documents and language
+   evolution among mapped features; a name-only generator would be thrown away when tablets land.
+2. **Phonology is generated per language** from the seeded PRNG: a universal core (`p t k m n s l`)
+   plus probability-gated extras, with frequency-ranked selection (`pickRanked`, geometric dropoff)
+   rather than uniform draws.
+3. **A name is a segment list rendered at read time.** `Provenance.site.name` is a `NameForm`
+   (phoneme ids + coining phase), not a string, so a site named early and met later under a drifted
+   form is a genuine interpretive puzzle (pillar 1).
+4. **Languages form a forest of families**, not one proto-language per world. Family count derives
+   from culture count so N=2 stays sensible. Sound change is not built: sisters are identical today,
+   stated rather than faked.
+5. **Constrain combinations, never the vocabulary.** A 65-phoneme table with one-directional
+   coherence prerequisites and phonotactic rules, so no inventory can be made unsatisfiable.
+
+**Not modelled:** sound change, phase-evolved name forms, scholar naming conventions (one name per
+scholar), orthography beyond one grapheme per phone.
+
+**Affects:** doc 08 `data/names/`, `types/language.ts`,
+`engine/world/{phonology,naming,syllable}.ts`. Roadmap: 2GN.66 done; follow-ons (sound change,
+culture `languageId` binding, toponymy, Explorer phonology inspector) are listed in the spike, not
+yet filed as tasks. Full detail, including the eight defects found by measurement and by reading
+output, and the `the-tongue` prior-art table: `docs/spikes/2GN.66-naming-grammars.md`.
 
 ---
 

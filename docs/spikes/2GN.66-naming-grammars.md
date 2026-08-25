@@ -5,7 +5,7 @@
 | Status      | Ruled; implemented                                                                |
 | Ruled       | 2026-08-15                                                                        |
 | Implemented | 2026-08-15 — `data/names/`, `engine/world/phonology.ts`, `engine/world/naming.ts` |
-| Ruling in   | This document                                                                     |
+| Ruling in   | This document; propagated to doc 11 §2.18                                         |
 | Outcome     | Generated phonology per language, names as segment lists, flat forest, no descent |
 
 ## The question
