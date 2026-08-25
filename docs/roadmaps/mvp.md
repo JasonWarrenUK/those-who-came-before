@@ -2493,8 +2493,9 @@ integration with real culture data
       decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class
       (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and
       reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.
-      That decision is now ruled and implemented by 2GN.142/2GN.144 (2026-08-24/25): region is
-      world-level, referenced by `CulturePhase.geography.regions: string[]` — this task generates
+      That decision is now ruled by 2GN.142 (2026-08-24), with implementation filed as 2GN.144
+      (2026-08-25): region is world-level, referenced by `CulturePhase.geography.regions: string[]`
+      — this task generates
       the real `GeologicalContext`/regions for production cultures and needs that field to exist
       before it can populate it
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
