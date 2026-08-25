@@ -1,11 +1,11 @@
 # 2GN.77 — Does a Material's Classificatory Value Come From a Catalogue or From the World?
 
-| Prop      | Value                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------ |
-| Status    | Ruled; implemented (2GN.78 retired the `precious-*` tags, 2GN.82–85 recalibrated)                |
-| Ruled     | 2026-08-04, jointly with 2GN.80                                                                  |
-| Ruling in | Doc 11 §2.9 (locked decision); doc 12 §2.28 (rationale and measurements)                         |
-| Outcome   | World-relative: availability × cultural affinity × provenance × stratification; no catalogue tag |
+| Prop      | Value                                                                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Status    | Ruled; implemented (2GN.78 retired the `precious-*` tags, 2GN.82–85 recalibrated)                                                        |
+| Ruled     | 2026-08-04, jointly with 2GN.80                                                                                                          |
+| Ruling in | Doc 11 §2.9 (locked decision); doc 12 §2.28 (rationale and measurements)                                                                 |
+| Outcome   | World-relative, never a catalogue tag; formula as restated by 2GN.143 in doc 11 §2.9 (availability⁻¹, cultural affinity, stratification) |
 
 ## Why this file is a stub
 
@@ -30,5 +30,6 @@ members, or from the material's situation in the generated world?
   percentile thresholds, drift against the immediately preceding phase only.
 - **`docs/spikes/2GN.78-precious-material-tags.md`** is the follow-on that retired the `precious-*`
   members once this ruling made them dead inputs.
-- **Open follow-ups:** 2GN.143 (provenance's exact role in the formula, since it is categorical and
-  cannot be a literal multiplier), 2GN.27 and 2GN.68 (the consumers).
+- **2GN.143** (ruled 2026-08-25, `docs/spikes/2GN.143-provenance-in-material-standing.md`) settled
+  provenance's role: implicit in availability, which enters standing inverted. Open consumers:
+  2GN.27 and 2GN.68.
