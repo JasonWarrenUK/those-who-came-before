@@ -1002,6 +1002,33 @@ consults the material constraint at roll time), separate because it moves every 
 roll and the aggregate rate is recorded), `data/plausibility.ts`, 2GN.16. Full detail:
 `docs/spikes/2GN.137-re-expansion-attempt-cap.md`.
 
+### 2.20 Cultural Affinity Does Not Gate Substrate Access (roadmap 2GN.134)
+
+**Decision (2026-08-25):** `materialAccessGate`'s substrate check
+(`engine/generation/decoration.ts`) reads **availability only**: a technique with a material
+substrate is ungated when at least one qualifying material is obtainable (`isAvailable`) and carries
+an affinity above 0. The `> 1` "favoured" requirement is removed. This matches
+`hasIntroducedMaterialAccess`, the sibling check, which already gated on availability alone with the
+reasoning written beside it.
+
+Why: `materialAffinities` is a preference table, and §2.15 obliges cultures to state a preference
+for every material they can reach. The gate read preference as access, so an authored `1.0`
+(indifference) or `0.7` (mild dislike) suppressed a technique to 0.05× exactly as if the material
+were unobtainable. Measured over 252 (culture, world, technique) pairs: 28 gated, every one over a
+material the culture has. Affinity's proper effect is already realised upstream at
+`assignMaterials`, where it weights which material a component gets; the gate applied it a second
+time as a cliff. An authored 0 stays a hard gate, since `weightedSelect` treats 0 as never-assigned.
+
+**Cost measured before ruling:** with the gate switched, no calibration pin leaves tolerance; one
+unit test whose fixture tests the affinity gate rather than availability is rewritten, and R43's
+regional-spread guard narrows from 4.0pp to 2.7pp against a 3pp floor (forestInterior stops being
+the outlier), to be re-justified at implementation.
+
+**Affects:** `engine/generation/decoration.ts`, `decoration.test.ts`, `calibration.test.ts` (R43
+spread floor). Roadmap: 2GN.134 ruled; implementation folded into 2GN.129 alongside the
+`techniqueAffinities` silence rule, so both share one recalibration pass. Full detail:
+`docs/spikes/2GN.134-affinity-substrate-gate.md`.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

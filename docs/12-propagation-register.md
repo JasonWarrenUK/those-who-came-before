@@ -3150,6 +3150,32 @@ corrected.
 | — | `types/artefact.ts` `preciousMaterialsInDecoration` JSDoc: three components, availability inverted | 2026-08-25 |
 | — | Roadmap: 2GN.143 done; 2GN.27/2GN.68 notes amended                                                 | 2026-08-25 |
 
+### 2.56 The Substrate Gate Read a Preference Table as an Access Table (2026-08-25)
+
+**Origin:** roadmap 2GN.134, deferred by name from 2GN.127 (§2.49). **Source of truth:** doc 11
+§2.20 holds the ruling; `docs/spikes/2GN.134-affinity-substrate-gate.md` holds the measurements.
+
+`materialAccessGate`'s substrate check required `culturalAffinityWeight > 1` as well as
+`isAvailable`. Once §2.49's silence rule made cultures author an affinity for every reachable
+material, that predicate turned indifference and mild dislike into suppression: 28 of 252 (culture,
+world, technique) pairs gated to 0.05×, every one over a material the culture has (xoconahtl clay
+1.0, tarpan clay 0.7, khaltiris clay 0.8 and oak/ash 0.9, thalassar oak/ash 1.0). Ruled:
+**availability only**, affinity kept as a hard gate at 0 alone. `>= 1` was rejected because it
+rescues only the value 2GN.127 happened to catch; re-authoring presets past the gate was rejected as
+2GN.127 already had.
+
+**Cost measured with the gate live before ruling, then reverted:** 758/760. No `EXPECTED_*` pin
+leaves tolerance. The two failures are a `decoration.test.ts` fixture that tests the affinity gate
+under an availability-gate name (`materialAffinities: []` against a geology with engravable
+material) and `calibration.test.ts`'s R43 spread floor (4.0pp → 2.7pp, floor 3pp). Both are
+2GN.129's to resolve; the ruling ships no code.
+
+| §  | Propagation                                                                                        | Date       |
+| -- | -------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.20: the ruling                                                                           | 2026-08-25 |
+| —  | Roadmap: 2GN.134 done; 2GN.129 amended to carry the gate change, fixture rewrite and R43 floor     | 2026-08-25 |
+| ⏳ | 2GN.129: `materialAccessGate` substrate check → `isAvailable && affinity > 0`; re-record R43 floor | 2026-08-25 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

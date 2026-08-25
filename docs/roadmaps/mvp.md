@@ -1873,7 +1873,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2GN.31 rather than absorbed into its scope, per the project's convention of naming a surfaced
       model gap rather than working around it silently. Surfaced 2026-08-19 during an attempt to
       implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
-- [ ] **2GN.134** — design spike — should cultural affinity gate substrate access at all?
+- [x] **2GN.134** — design spike — should cultural affinity gate substrate access at all?
       `materialAccessGate` (`engine/generation/decoration.ts`) requires
       `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral, so a material
       authored at exactly `1.0` — explicit indifference under the 2GN.127 ruling — fails the gate
@@ -1885,11 +1885,20 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `1.0` so the evidence survives for this ruling. Rules the gate question so 2GN.129 can extend
       the silence rule without inheriting the defect. ⚠️ any change moves technique-selection
       distributions, so the recalibration cost must be measured before a mechanism is chosen
-      _(depends on 2GN.128 — done; unblocked)_
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.129 was written as implementation but
     its own text names this as "this task's to rule", and its dependency 2GN.128 only implements the
     `materialAffinities` half — the spike (2GN.127) scoped itself to materials and deferred the
     substrate-gate question by name. Splitting the ruling out leaves 2GN.129 as pure implementation.
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.134-affinity-substrate-gate.md`, doc 11 §2.20
+    and doc 12 §2.56. No: the substrate gate reads availability only**
+    (`isAvailable && culturalAffinityWeight > 0`), matching `hasIntroducedMaterialAccess`. Measured
+    over 252 (culture, world, technique) pairs: 28 gated today, every one over a material the
+    culture has; `>= 1` would rescue 11, availability-only all 28 (tarpan clay 0.7 and khaltiris
+    clay 0.8 are the tell: a mild dislike suppressing glaze to 0.05×). Affinity's effect is already
+    realised upstream at `assignMaterials`. Cost measured with the gate live then reverted: 758/760,
+    no `EXPECTED_*` pin leaves tolerance; one `decoration.test.ts` fixture tests the affinity gate
+    under an availability name, and R43's spread floor narrows 4.0pp → 2.7pp (floor 3pp).
+    Implementation folded into 2GN.129 per Jason.
 - [ ] **2GN.135** — design spike — rule the inputs to the derived `wallThickness`/`diameter`
       quantity 2GN.120 implements: which modelled quantities feed the derivation
       (`craftSpecialisation`, the component's assigned material, vessel role for thickness; the
@@ -2490,6 +2499,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 **Goal:** WorldState generation (seed → chronology → cultures), stores architecture, pipeline
 integration with real culture data
 
+- Note: **Ruled 2026-08-25 by 2GN.134** (doc 11 §2.20, doc 12 §2.56): affinity does not gate
+  substrate access. This task now carries the fix: `materialAccessGate`'s substrate check becomes
+  `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s "material gate — no
+  plausible engravable material" fixture to an absent geology (today it fixtures
+  `materialAffinities: []` against a geology that has engravable material); and re-justify
+  `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp. No
+  other pin left tolerance in the measurement.
 - [ ] **3WS.1** — `engine/world/seed.ts` — `createWorldSeed(raw: string): WorldSeed` — seed string →
       PRNG _(blocked — depends on 2GN.56, M2)_
 - [ ] **3WS.2** — `engine/world/chronology.ts` — `generateChronology(seed, prng): WorldChronology` —

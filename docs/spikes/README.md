@@ -17,24 +17,25 @@ where it landed. Task status and dependency edges live in `.claude/roadmaps.json
 
 ## Ruled
 
-| ID      | Question                                                               | Ruled      | Ruling in                  | File                                                  |
-| ------- | ---------------------------------------------------------------------- | ---------- | -------------------------- | ----------------------------------------------------- |
-| 2GN.77  | Material value from catalogue tag or from the world?                   | 2026-08-04 | doc 11 §2.9, doc 12 §2.28  | [stub](2GN.77-world-relative-material-value.md)       |
-| 2GN.80  | Status tags absolute or culture-relative?                              | 2026-08-04 | doc 11 §2.9, doc 12 §2.28  | [stub](2GN.80-status-tag-relativity.md)               |
-| 2GN.98  | What does decorative volume key on?                                    | 2026-08-06 | doc 11 §2.10, doc 12 §2.33 | [stub](2GN.98-decorative-volume.md)                   |
-| 2GN.78  | Should `MaterialTag` carry `precious-*` members?                       | 2026-08-11 | doc 11 §2.9, doc 12 §2.40  | [2GN.78](2GN.78-precious-material-tags.md)            |
-| 2GN.87  | R4's edge-family safety net catches nothing                            | 2026-08-11 | doc 12 §2.39               | [2GN.87](2GN.87-r4-unsatisfiable-condition.md)        |
-| 2GN.112 | `MaterialFlow.specificMaterials`: narrow or widen?                     | 2026-08-12 | doc 05 §3.4, doc 12 §2.41  | [stub](2GN.112-material-flow-selectors.md)            |
-| 2GN.97  | Categorical relative-award rules under the 2GN.80 ruling               | 2026-08-13 | doc 11 §2.12, doc 12 §2.44 | [2GN.97](2GN.97-categorical-relative-award-rules.md)  |
-| 2GN.108 | Short-bodied edged tool in the vocabulary? Orientation                 | 2026-08-13 | doc 11 §2.11, doc 12 §2.43 | [2GN.108](2GN.108-short-bodied-edged-tools.md)        |
-| 2GN.110 | Per-material entries in `materialAffinities`                           | 2026-08-13 | doc 11 §2.13, doc 12 §2.45 | [2GN.110](2GN.110-per-material-affinities.md)         |
-| 2GN.111 | Per-state values in `physicalProperties`                               | 2026-08-13 | doc 11 §2.14, doc 12 §2.46 | [2GN.111](2GN.111-per-state-physical-properties.md)   |
-| 2GN.118 | Are the primitive grammar's value-sets rational?                       | 2026-08-13 | doc 11 §2.17               | [2GN.118](2GN.118-primitive-parameter-value-sets.md)  |
-| 2GN.127 | What an absent affinity entry means                                    | 2026-08-14 | doc 11 §2.15, doc 12 §2.49 | [2GN.127](2GN.127-affinity-silence.md)                |
-| 2GN.66  | Naming grammars and the language layer beneath them                    | 2026-08-15 | doc 11 §2.18               | [2GN.66](2GN.66-naming-grammars.md)                   |
-| 2GN.142 | Region dimension for classification baselines (unimplemented; 2GN.144) | 2026-08-24 | doc 11 §2.9, doc 12 §2.53  | [2GN.142](2GN.142-region-keyed-baselines.md)          |
-| 2GN.137 | Value of N for the plausibility re-expansion cap                       | 2026-08-25 | doc 11 §2.19, doc 12 §2.54 | [2GN.137](2GN.137-re-expansion-attempt-cap.md)        |
-| 2GN.143 | Role of `provenance` in the material-standing formula                  | 2026-08-25 | doc 11 §2.9, doc 12 §2.55  | [2GN.143](2GN.143-provenance-in-material-standing.md) |
+| ID      | Question                                                                 | Ruled      | Ruling in                  | File                                                  |
+| ------- | ------------------------------------------------------------------------ | ---------- | -------------------------- | ----------------------------------------------------- |
+| 2GN.77  | Material value from catalogue tag or from the world?                     | 2026-08-04 | doc 11 §2.9, doc 12 §2.28  | [stub](2GN.77-world-relative-material-value.md)       |
+| 2GN.80  | Status tags absolute or culture-relative?                                | 2026-08-04 | doc 11 §2.9, doc 12 §2.28  | [stub](2GN.80-status-tag-relativity.md)               |
+| 2GN.98  | What does decorative volume key on?                                      | 2026-08-06 | doc 11 §2.10, doc 12 §2.33 | [stub](2GN.98-decorative-volume.md)                   |
+| 2GN.78  | Should `MaterialTag` carry `precious-*` members?                         | 2026-08-11 | doc 11 §2.9, doc 12 §2.40  | [2GN.78](2GN.78-precious-material-tags.md)            |
+| 2GN.87  | R4's edge-family safety net catches nothing                              | 2026-08-11 | doc 12 §2.39               | [2GN.87](2GN.87-r4-unsatisfiable-condition.md)        |
+| 2GN.112 | `MaterialFlow.specificMaterials`: narrow or widen?                       | 2026-08-12 | doc 05 §3.4, doc 12 §2.41  | [stub](2GN.112-material-flow-selectors.md)            |
+| 2GN.97  | Categorical relative-award rules under the 2GN.80 ruling                 | 2026-08-13 | doc 11 §2.12, doc 12 §2.44 | [2GN.97](2GN.97-categorical-relative-award-rules.md)  |
+| 2GN.108 | Short-bodied edged tool in the vocabulary? Orientation                   | 2026-08-13 | doc 11 §2.11, doc 12 §2.43 | [2GN.108](2GN.108-short-bodied-edged-tools.md)        |
+| 2GN.110 | Per-material entries in `materialAffinities`                             | 2026-08-13 | doc 11 §2.13, doc 12 §2.45 | [2GN.110](2GN.110-per-material-affinities.md)         |
+| 2GN.111 | Per-state values in `physicalProperties`                                 | 2026-08-13 | doc 11 §2.14, doc 12 §2.46 | [2GN.111](2GN.111-per-state-physical-properties.md)   |
+| 2GN.118 | Are the primitive grammar's value-sets rational?                         | 2026-08-13 | doc 11 §2.17               | [2GN.118](2GN.118-primitive-parameter-value-sets.md)  |
+| 2GN.127 | What an absent affinity entry means                                      | 2026-08-14 | doc 11 §2.15, doc 12 §2.49 | [2GN.127](2GN.127-affinity-silence.md)                |
+| 2GN.66  | Naming grammars and the language layer beneath them                      | 2026-08-15 | doc 11 §2.18               | [2GN.66](2GN.66-naming-grammars.md)                   |
+| 2GN.142 | Region dimension for classification baselines (unimplemented; 2GN.144)   | 2026-08-24 | doc 11 §2.9, doc 12 §2.53  | [2GN.142](2GN.142-region-keyed-baselines.md)          |
+| 2GN.137 | Value of N for the plausibility re-expansion cap                         | 2026-08-25 | doc 11 §2.19, doc 12 §2.54 | [2GN.137](2GN.137-re-expansion-attempt-cap.md)        |
+| 2GN.143 | Role of `provenance` in the material-standing formula                    | 2026-08-25 | doc 11 §2.9, doc 12 §2.55  | [2GN.143](2GN.143-provenance-in-material-standing.md) |
+| 2GN.134 | Should cultural affinity gate substrate access? (unimplemented; 2GN.129) | 2026-08-25 | doc 11 §2.20, doc 12 §2.56 | [2GN.134](2GN.134-affinity-substrate-gate.md)         |
 
 Not in this directory by design: 2GN.10 (primitive→material table) was ruled interactively and lives
 only in doc 11 §2.16.
@@ -53,7 +54,6 @@ is ruled, create its file and move the row up.
 | 2GN.125 | Does `AvailabilityLevel` conflate found with produced materials?                 | 2GN.124    |                                 |
 | 2GN.131 | What the decorative recursion depth cap computes                                 | —          | 2GN.32                          |
 | 2GN.132 | Sublayer generation inside `expandDecoration`'s slot loop or a post-pass?        | —          | 2GN.31                          |
-| 2GN.134 | Should cultural affinity gate substrate access at all?                           | —          | 2GN.129                         |
 | 2GN.135 | Inputs to the derived `wallThickness`/`diameter` quantity                        | —          | 2GN.120                         |
 | 2GN.136 | Material catalogue widening: criteria and target size                            | —          | 2GN.124                         |
 | 2GN.138 | Define "interpretive challenge" as a per-artefact metric; ratify ambiguity bands | —          | 2GN.45, 2GN.46                  |
