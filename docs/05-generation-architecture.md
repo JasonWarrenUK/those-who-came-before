@@ -850,7 +850,8 @@ If plausibility fails, the pipeline re-expands from Stage 4, up to **20 attempts
 re-roll is cheap; the aggregate is not negligible, since 13–43% of expansions fail plausibility
 depending on the culture-phase (measured 2026-08-25, mostly joins and head placements the grammar
 rolls without reading `allowedMaterialTags`; 2GN.145). Attempts are independent, so exhaustion
-probability is `p^20`, at most 5.4e-8 per artefact for the shipped presets.
+probability is `p^20`: 5.4e-8 per artefact at the worst shipped preset (p = 0.433), and 9.5e-7 at
+the `PLAUSIBILITY_FAILURE_CEILING` of 0.5 that the calibration guard enforces.
 
 If all 20 attempts fail, the pipeline throws a typed `PlausibilityExhaustedError` (seed, attempt
 count, last failing rule set) rather than emitting anything. Exhaustion means the grammar and the

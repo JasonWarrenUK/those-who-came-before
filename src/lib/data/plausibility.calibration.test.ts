@@ -5,9 +5,9 @@
  * `MAX_PLAUSIBILITY_ATTEMPTS = 20` was ruled against a measured worst-cell per-attempt failure rate
  * of 43.3% (xoconahtl, 5000 seeds, 2026-08-25). Exhaustion probability is `p^N` because attempts
  * are independent draws from one PRNG stream, so the cap only holds its bound while every cell
- * stays under `PLAUSIBILITY_FAILURE_CEILING`. This test pins that, per Explorer preset. Measured
- * rates at ruling time, for drift comparison: tarpan 15.4%, thalassar 31.6%, xoconahtl 43.3%,
- * khaltiris 32.3%.
+ * stays under `PLAUSIBILITY_FAILURE_CEILING`. This test pins that for the seven cells the ruling
+ * measured. Rates at ruling time, for drift comparison: tarpan 15.4%, thalassar 31.6%, xoconahtl
+ * 43.3%, khaltiris 32.3%, fixture craft 0.1 / 0.5 / 0.9 at 13.2% / 18.0% / 27.3%.
  *
  * Runs Stages 4–5 only (`expandGrammar` → `normaliseArtefact` → `checkPlausibility`); materials and
  * decoration never enter the plausibility verdict.
@@ -20,28 +20,53 @@ import { checkPlausibility } from '../engine/generation/plausibility.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
 import { EXPLORER_CULTURES } from './explorer-cultures.ts';
 import { MAX_PLAUSIBILITY_ATTEMPTS, PLAUSIBILITY_FAILURE_CEILING } from './plausibility.ts';
+import { mockCulturalProfile, mockPhaseCharacteristics } from '../../../tests/fixtures/culture.ts';
+import type { CulturalProfile, PhaseCharacteristics } from '../types/world.ts';
 
-const SEEDS_PER_PRESET = 1000;
+const SEEDS_PER_CELL = 1000;
 
 /** Per-artefact exhaustion tolerance the cap was ruled against (doc 11 §2.19). */
 const EXHAUSTION_TOLERANCE = 1e-6;
 
-Deno.test('plausibility calibration: every preset fails under the ceiling, so the cap bounds exhaustion', () => {
+interface CalibrationCell {
+	id: string;
+	profile: CulturalProfile;
+	phase: PhaseCharacteristics;
+}
+
+/**
+ * The seven cells the ruling measured: the four Explorer presets plus the default fixture profile
+ * at three `craftSpecialisation` corners (measured 13.2% / 18.0% / 27.3% at ruling time).
+ */
+const CELLS: readonly CalibrationCell[] = [
+	...EXPLORER_CULTURES.map((preset) => ({
+		id: preset.id,
+		profile: preset.profile,
+		phase: preset.phase,
+	})),
+	...[0.1, 0.5, 0.9].map((craft) => ({
+		id: `fixture-craft-${craft}`,
+		profile: mockCulturalProfile(),
+		phase: mockPhaseCharacteristics({ society: { craftSpecialisation: craft } }),
+	})),
+];
+
+Deno.test('plausibility calibration: every measured cell fails under the ceiling, so the cap bounds exhaustion', () => {
 	const failures: string[] = [];
 
-	for (const preset of EXPLORER_CULTURES) {
+	for (const cell of CELLS) {
 		let failed = 0;
-		for (let i = 0; i < SEEDS_PER_PRESET; i++) {
-			const seed = `2GN.137-${preset.id}-${i}`;
+		for (let i = 0; i < SEEDS_PER_CELL; i++) {
+			const seed = `2GN.137-${cell.id}-${i}`;
 			const artefact = normaliseArtefact(
-				expandGrammar(CORE_GRAMMAR_RULES, preset.profile, preset.phase, createPrng(seed)),
+				expandGrammar(CORE_GRAMMAR_RULES, cell.profile, cell.phase, createPrng(seed)),
 				seed,
 			);
 			if (!checkPlausibility(artefact).valid) failed++;
 		}
-		const rate = failed / SEEDS_PER_PRESET;
+		const rate = failed / SEEDS_PER_CELL;
 		if (rate >= PLAUSIBILITY_FAILURE_CEILING) {
-			failures.push(`${preset.id}: ${(rate * 100).toFixed(1)}% per-attempt failure`);
+			failures.push(`${cell.id}: ${(rate * 100).toFixed(1)}% per-attempt failure`);
 		}
 	}
 
