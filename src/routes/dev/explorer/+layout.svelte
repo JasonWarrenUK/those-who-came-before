@@ -11,7 +11,7 @@ const milestones = [...new Set(panels.map((panel) => panel.milestone))].sort((a,
 <div class="flex min-h-screen flex-col">
 	<header class="navbar bg-base-200 border-base-300 border-b">
 		<div class="flex-1 gap-3">
-			<span class="text-lg font-bold">Project Explorer</span>
+			<a href="/dev" class="text-lg font-bold">Project Explorer</a>
 			<span class="badge badge-neutral badge-sm">dev workbench</span>
 		</div>
 		<div class="flex-none">
