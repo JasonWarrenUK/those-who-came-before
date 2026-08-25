@@ -3176,6 +3176,34 @@ material) and `calibration.test.ts`'s R43 spread floor (4.0pp → 2.7pp, floor 3
 | —  | Roadmap: 2GN.134 done; 2GN.129 amended to carry the gate change, fixture rewrite and R43 floor     | 2026-08-25 |
 | ⏳ | 2GN.129: `materialAccessGate` substrate check → `isAvailable && affinity > 0`; re-record R43 floor | 2026-08-25 |
 
+### 2.57 Sublayers Are a Separate Pass; the Feared Draw-Sequence Cost Moved No Pin (2026-08-25)
+
+**Origin:** roadmap 2GN.132. **Source of truth:** doc 11 §2.21 holds the ruling;
+`docs/spikes/2GN.132-sublayer-placement.md` holds the measurements.
+
+2GN.132 asked whether 2GN.31's sublayer producer lives inside `expandDecoration`'s slot loop or as a
+separate pass. Ruled: **separate pass, own `${seed}-sublayers` stream, after `assignMaterials` and
+`assignDecorativeDetails`, wired into the harness and Explorer in the same PR.** The deciding fact
+is ordering: a sublayer's substrate is its parent layer's material, which the loop cannot know (the
+same ordering 2GN.99, §2.35, resolved for grading).
+
+**The cost the task notes predicted was measured and did not occur.** One extra `prng()` draw per
+selected layer inside the loop, the minimum a sublayer roll would cost, changed 1114 of 1200 seeds'
+layer lists (12790 → 12771 total layers) and left every pin in `calibration.test.ts`,
+`statistics.regression.test.ts`, `classification.test.ts` and `materials.calibration.test.ts` within
+tolerance. Sequence perturbation is a per-artefact concern; the pins guard distributions. Recorded
+so the next task that reasons "this changes the draw sequence, so every pin moves" checks before
+acting on it. The notes' reference to a repo-root `BLOCKED.md` is stale; no such file exists.
+
+**No code changed.** 2GN.31's deliverables now name the pass, its position, its stream, the
+substrate rule for sublayers, and the wiring.
+
+| §  | Propagation                                                                                           | Date       |
+| -- | ----------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.21: the ruling                                                                              | 2026-08-25 |
+| —  | Roadmap: 2GN.132 done; 2GN.31 amended with placement, stream, substrate rule and wiring deliverables  | 2026-08-25 |
+| ⏳ | 2GN.31: `expandSublayers` pass; harness + Explorer wiring; pins re-recorded; regression guard retired | 2026-08-25 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

@@ -36,6 +36,7 @@ where it landed. Task status and dependency edges live in `.claude/roadmaps.json
 | 2GN.137 | Value of N for the plausibility re-expansion cap                         | 2026-08-25 | doc 11 §2.19, doc 12 §2.54 | [2GN.137](2GN.137-re-expansion-attempt-cap.md)        |
 | 2GN.143 | Role of `provenance` in the material-standing formula                    | 2026-08-25 | doc 11 §2.9, doc 12 §2.55  | [2GN.143](2GN.143-provenance-in-material-standing.md) |
 | 2GN.134 | Should cultural affinity gate substrate access? (unimplemented; 2GN.129) | 2026-08-25 | doc 11 §2.20, doc 12 §2.56 | [2GN.134](2GN.134-affinity-substrate-gate.md)         |
+| 2GN.132 | Sublayer generation: slot loop or separate pass? (unimplemented; 2GN.31) | 2026-08-25 | doc 11 §2.21, doc 12 §2.57 | [2GN.132](2GN.132-sublayer-placement.md)              |
 
 Not in this directory by design: 2GN.10 (primitive→material table) was ruled interactively and lives
 only in doc 11 §2.16.
@@ -53,7 +54,6 @@ is ruled, create its file and move the row up.
 | 2GN.122 | One aperture model; does it subsume `perforation`?                               | —          | 1 direct                        |
 | 2GN.125 | Does `AvailabilityLevel` conflate found with produced materials?                 | 2GN.124    |                                 |
 | 2GN.131 | What the decorative recursion depth cap computes                                 | —          | 2GN.32                          |
-| 2GN.132 | Sublayer generation inside `expandDecoration`'s slot loop or a post-pass?        | —          | 2GN.31                          |
 | 2GN.135 | Inputs to the derived `wallThickness`/`diameter` quantity                        | —          | 2GN.120                         |
 | 2GN.136 | Material catalogue widening: criteria and target size                            | —          | 2GN.124                         |
 | 2GN.138 | Define "interpretive challenge" as a per-artefact metric; ratify ambiguity bands | —          | 2GN.45, 2GN.46                  |

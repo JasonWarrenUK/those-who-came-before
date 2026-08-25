@@ -1029,6 +1029,29 @@ spread floor). Roadmap: 2GN.134 ruled; implementation folded into 2GN.129 alongs
 `techniqueAffinities` silence rule, so both share one recalibration pass. Full detail:
 `docs/spikes/2GN.134-affinity-substrate-gate.md`.
 
+### 2.21 Sublayer Generation Is a Separate Pass After Material Assignment (roadmap 2GN.132)
+
+**Decision (2026-08-25):** decoration-on-decoration (`DecorativeLayer.sublayers`, doc 05 §8.3) is
+produced by a separate pure pass over `expandDecoration`'s flat output, seeded from its own PRNG
+stream (`${seed}-sublayers`), running after `assignMaterials` and `assignDecorativeDetails` and
+before `gradeDecorativeLayers` and `enforceSubstrates`. It is wired into the calibration harness and
+both Explorer sample paths in the same PR that builds it (2GN.31), never shipped unwired.
+`expandDecoration`'s slot loop and draw sequence are untouched.
+
+Why: a sublayer's substrate is its parent layer (paint over gilding sits on gold; engraving on an
+inlaid bone element cuts bone), so its material is known only once `assignMaterials` and
+`assignDecorativeDetails` have run, both of which follow `expandDecoration` by design. A draw inside
+the slot loop cannot gate substrate and would rely on `enforceSubstrates` to strip its mistakes. The
+determinism cost the task feared for the in-loop shape was measured and found to be per-artefact
+only: one extra draw per layer changed 1114 of 1200 seeds' output and moved no calibration pin, so
+that axis never separated the options. Pins move when sublayers land under either placement, for the
+real reason that `maxDepth` and `techniqueComplexity` change; they re-record once.
+
+**Affects:** `engine/generation/decoration.ts` (new pass), `calibration.test.ts` and the Explorer
+sample paths (wiring), `classification.test.ts`'s 2GN.31 regression guard (retired by that PR).
+Roadmap: 2GN.132 ruled; 2GN.31 carries the implementation; depth cap remains 2GN.131's. Full detail:
+`docs/spikes/2GN.132-sublayer-placement.md`.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

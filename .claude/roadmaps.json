@@ -623,12 +623,13 @@
 					{
 						"id": "2GN.31",
 						"description": "`engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.29",
 							"2GN.132"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "**Ruled 2026-08-25 by 2GN.132 (doc 11 §2.21, doc 12 §2.57):** ship `expandSublayers(layers, assignments, details, culture, phase, geology, trade, prng)` (name provisional) as a pure pass over `expandDecoration`'s flat output, seeded `${seed}-sublayers`, positioned after `assignMaterials`/`assignDecorativeDetails` and before `gradeDecorativeLayers`/`enforceSubstrates`. A sublayer's substrate is the parent's introduced material where its technique introduces one, otherwise the parent's target component's assigned material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s sample loop and both Explorer sample paths (`decorationLayers.ts`, `tagInspector.ts`), re-records the pins that move (`maxDepth`/`techniqueComplexity`, R39/R40 thresholds) with drift annotated, and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131."
 					},
 					{
 						"id": "2GN.32",
@@ -1657,9 +1658,9 @@
 					{
 						"id": "2GN.132",
 						"description": "design spike — does sublayer generation live inside `expandDecoration`'s existing slot loop, or as a separate unwired post-pass?",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [],
-						"notes": "Folding sublayer draws into `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION` in `calibration.test.ts`, the p75 pin in `statistics.regression.test.ts`, and breaking `classification.test.ts`'s explicit `maxDepth === 1` regression guard (the '2GN.31 regression guard' test) — all three carry the 'when this fails, it is usually right, widening the band is usually wrong' warning, so re-recording them correctly requires deliberately re-measuring the new distribution, not just making the assertion pass. The alternative, a separate post-pass, matches the precedent `enforceSubstrates` (2GN.30) and the material-sensitivity extension (2GN.99) already set: both shipped unwired specifically to avoid perturbing the draw sequence and moving any calibration pin. `assignDecorativeDetails`/`gradeDecorativeLayers` are already written recursion-ready in this shape, waiting for something to populate `sublayers`. Neither option is free: the first is real integration at calibration-breaking cost; the second is safe to ship but leaves `expandDecoration` itself flat, and nothing currently calls `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"notes": "Ruled 2026-08-25 — see docs/spikes/2GN.132-sublayer-placement.md, doc 11 §2.21 and doc 12 §2.57. **Separate pass, own `${seed}-sublayers` stream, after `assignMaterials` and `assignDecorativeDetails`, wired into the calibration harness and Explorer in the same PR as 2GN.31.** Deciding fact: a sublayer's substrate is its parent layer's material, which the slot loop cannot know (2GN.99's ordering). The determinism cost predicted below was measured and did not occur: one extra draw per layer changed 1114/1200 seeds' output and moved no calibration pin. `BLOCKED.md` does not exist. Original notes: Folding sublayer draws into `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION` in `calibration.test.ts`, the p75 pin in `statistics.regression.test.ts`, and breaking `classification.test.ts`'s explicit `maxDepth === 1` regression guard (the '2GN.31 regression guard' test) — all three carry the 'when this fails, it is usually right, widening the band is usually wrong' warning, so re-recording them correctly requires deliberately re-measuring the new distribution, not just making the assertion pass. The alternative, a separate post-pass, matches the precedent `enforceSubstrates` (2GN.30) and the material-sensitivity extension (2GN.99) already set: both shipped unwired specifically to avoid perturbing the draw sequence and moving any calibration pin. `assignDecorativeDetails`/`gradeDecorativeLayers` are already written recursion-ready in this shape, waiting for something to populate `sublayers`. Neither option is free: the first is real integration at calibration-breaking cost; the second is safe to ship but leaves `expandDecoration` itself flat, and nothing currently calls `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
 						"assignee": "Jason Warren"
 					},
 					{

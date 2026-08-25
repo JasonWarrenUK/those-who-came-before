@@ -723,6 +723,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       fraction of its current technique breadth with no code change and needs re-measuring against
       real nested output; a Deno test in `engine/generation/classification.test.ts` pins today's
       flat-layer contract so this breaks loudly rather than silently
+  - Note: **Ruled 2026-08-25 by 2GN.132** (doc 11 §2.21, doc 12 §2.57): ship
+    `expandSublayers(layers, assignments, details, culture, phase, geology, trade, prng)` (name
+    provisional) as a pure pass over `expandDecoration`'s flat output, seeded `${seed}-sublayers`,
+    positioned after `assignMaterials`/`assignDecorativeDetails` and before
+    `gradeDecorativeLayers`/`enforceSubstrates`. A sublayer's substrate is the parent's introduced
+    material where its technique introduces one, otherwise the parent's target component's assigned
+    material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s
+    sample loop and both Explorer sample paths, re-records the pins that move with drift annotated,
+    and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131.
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
       `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(blocked: depends on 2GN.29,
       2GN.131)_
@@ -1844,7 +1853,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19
       during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full
       research trail)
-- [ ] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
+- [x] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
       existing slot loop, or as a separate unwired post-pass? — folding sublayer draws into
       `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every
       artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION`
@@ -1862,6 +1871,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship
       it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to
       implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.132-sublayer-placement.md`, doc 11 §2.21 and doc
+    12 §2.57. Separate pass, own `${seed}-sublayers` stream, after `assignMaterials` and
+    `assignDecorativeDetails`, wired into the calibration harness and Explorer in the same PR as
+    2GN.31.** Deciding fact: a sublayer's substrate is its parent layer's material, which the slot
+    loop cannot know (2GN.99's ordering). The determinism cost predicted below was measured and did
+    not occur: one extra draw per layer changed 1114/1200 seeds' output and moved no calibration
+    pin. `BLOCKED.md` does not exist.
 - [ ] **2GN.133** — `engine/generation/decoration.ts` — make `enforceSubstrates` and
       `gradeDecorativeLayers` parent-material-aware for sublayers _(blocked: depends on 2GN.31)_ —
       `satisfiesSubstrate` (`enforceSubstrates`) and `regrade` (`gradeDecorativeLayers`) both read
