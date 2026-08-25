@@ -1762,6 +1762,15 @@
 						"status": "todo",
 						"dependsOn": [],
 						"notes": "Filed 2026-08-21 per Jason's ruling that session: 2GN.27 proceeds using the 3-term weight alone (availability × cultural affinity, folded through `explainMaterialWeight`, plus stratification once 2GN.96 lands), dropping provenance as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68, which shares the identical formula.",
+						"assignee": "Jason Warren",
+						"softDependsOn": ["2GN.144"]
+					},
+					{
+						"id": "2GN.144",
+						"description": "`types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` + `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains `geography: { regions: string[] }` (plural, for a phase spanning several regions); `CulturePhaseSample` gains a matching `geography` field directly (not a nested `CulturePhase` — the sample bag stays structural until 3WS.3/3WS.4 land real culture/phase generation); `ClassificationContext` gains a region label sourced from the same field, alongside the existing `cultureId`/`phaseId` provenance labels (`emptyClassificationContext` needs a placeholder value); `bestRegionalLevel` (`materials.ts`) resolves against a culture-phase's occupied regions instead of scanning the whole `GeologicalContext` unconstrained — the actual collapse fix the spike measured, threaded through its four callers (`isAvailable`, `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor` (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder",
+						"status": "todo",
+						"dependsOn": ["2GN.142"],
+						"notes": "Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that generates real `GeologicalContext`/regions for production cultures and needs `CulturePhase.geography.regions` to exist before it can populate it. 2GN.143 (provenance-formula spike) gets a soft link, since it measures directly against `bestRegionalLevel`, whose signature this task changes — not a hard blocker since 2GN.143 is unstarted design work, but re-measurement should happen in the right order. Recalibration risk noted in the spike: the `bestRegionalLevel` fix only changes behaviour once a culture-phase's `geography.regions` has more than one entry, which no shipped preset does yet, so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm with `deno task test` before landing. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`.",
 						"assignee": "Jason Warren"
 					}
 				]
@@ -1836,9 +1845,10 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.1",
-							"2GN.126"
+							"2GN.126",
+							"2GN.144"
 						],
-						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.",
+						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures. That decision is now ruled and implemented by 2GN.142/2GN.144 (2026-08-24/25): region is world-level, referenced by `CulturePhase.geography.regions: string[]` — this task generates the real `GeologicalContext`/regions for production cultures and needs that field to exist before it can populate it.",
 						"assignee": "Jason Warren"
 					},
 					{
