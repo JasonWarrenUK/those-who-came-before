@@ -1,4 +1,8 @@
-<h1>Those Who Came Before</h1>
+<div>
+  <h2>Hub</h2>
 
-<a href="/dev">Dev tools</a>
-<a href="https://jasonwarrenuk.github.io/those-who-came-before/">Articles</a>
+  <ul>
+    <li><a href="/dev">Dev tools</a></li>
+    <li><a href="https://jasonwarrenuk.github.io/those-who-came-before/">Articles</a></li>
+  </ul>
+</div>
