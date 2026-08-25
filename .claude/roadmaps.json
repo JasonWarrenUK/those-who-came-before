@@ -561,7 +561,7 @@
 					{
 						"id": "2GN.27",
 						"description": "`engine/generation/materials.ts` + `engine/generation/classification.ts` — material influence on tag accumulation: materials **the producing culture treats as precious** boost elite/ceremonial, derived from the material's situation rather than a catalogue fact. ⚠️ **Reframed 2026-08-11 by 2GN.78**: the original title read \"precious metals → elite/ceremonial boosts\", which presumed a static precious-material class that no longer exists — `MaterialTag`'s `precious-*` members are retired (doc 11 §2.9, doc 12 §2.40). Standing comes from availability × cultural affinity × provenance × stratification. `explainMaterialWeight` (2GN.74) supplies the first two (`level`, `culturalAffinity`, `tradeRescued`); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`; stratification from `PhaseCharacteristics.society.stratification`, unread today. Blocked on 2GN.110 for the same reason as 2GN.68: whether `materialAffinities` can express a per-material judgement determines how precisely \"this culture values this material\" can be read",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.20",
 							"2GN.75",
@@ -738,7 +738,7 @@
 					{
 						"id": "2GN.68",
 						"description": "`engine/generation/classification.ts` — update: decorative motif and introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins` from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer material's **situation in the producing culture**). ⚠️ **Rescoped 2026-08-11 by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read \"`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup\", which is exactly the static catalogue read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired. Populate the field from availability × cultural affinity × provenance instead: Doc 11 §2.9's formula has four terms sourced from three places: `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a material/culture pair (availability and cultural affinity); provenance comes separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`, since `tradeRescued` is a reachability boolean rather than a provenance substitute; and stratification from `PhaseCharacteristics.society.stratification`, which §2.9 makes live and nothing reads yet. The threshold over them is this task's to rule and has not been set. Blocked on 2GN.110 because the affinity term's keyspace (per-tag only, or per-material too) changes what \"this culture prizes it\" can even mean",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.33",
 							"2GN.20",
@@ -1751,9 +1751,9 @@
 					{
 						"id": "2GN.142",
 						"description": "design spike — should `ClassificationContext`/`FeatureBaseline`/`baselines.ts`'s sampling machinery gain a region dimension, and if so what shape? Doc 11 §2.9 states plainly that \"material baselines are keyed by culture-phase × region\" (unlike decoration baselines, which need no region key, since geology is regional and culture is not — a culture spanning two regions faces different material availability in each), but `ClassificationContext` (`types/tags.ts`) carries only `cultureId`/`phaseId`, `FeatureBaseline` has no region field, and `baselines.ts`'s sampling pass has no region dimension anywhere (confirmed: zero hits for \"region\" in that file outside one comment). Rule: (1) whether `ClassificationContext` gains a region field alongside `cultureId`/`phaseId`, or region-keyed baselines live in a separate structure (e.g. a nested map); (2) whether the sampling pass needs a per-region pass mirroring §2.36's `EXPECTED_MEAN_GRADE_BY_REGION` precedent for `meanDecorativeGrade`'s identical regional-pooling problem; (3) how a rule reads a region-keyed baseline when an artefact's producing region isn't always known to the classification-time context",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [],
-						"notes": "Filed 2026-08-21 while scoping 2GN.27: this is a real gap in already-shipped baseline infrastructure, not new scope invented for that task — doc 11 §2.9 predates the code that should have implemented region-keying. 2GN.27 cannot percentile a material-derived weight signal correctly without it, since `explainMaterialWeight`'s availability/scarcity term is fundamentally regional (`bestRegionalLevel` reads `GeologicalContext` by region) and a culture-phase-only baseline would silently pool distinct regional distributions into one, understating or overstating precious-material fire rates for a culture spanning multiple regions. Also blocks 2GN.68, which shares 2GN.27's exact four-term formula and the same regional-pooling problem.",
+						"notes": "Filed 2026-08-21 while scoping 2GN.27: this is a real gap in already-shipped baseline infrastructure, not new scope invented for that task — doc 11 §2.9 predates the code that should have implemented region-keying. 2GN.27 cannot percentile a material-derived weight signal correctly without it, since `explainMaterialWeight`'s availability/scarcity term is fundamentally regional (`bestRegionalLevel` reads `GeologicalContext` by region) and a culture-phase-only baseline would silently pool distinct regional distributions into one, understating or overstating precious-material fire rates for a culture spanning multiple regions. Also blocks 2GN.68, which shares 2GN.27's exact four-term formula and the same regional-pooling problem. Ruled 2026-08-24: region is world-level, referenced by a new `CulturePhase.geography.regions: string[]` (plural, for a phase spanning several); `bestRegionalLevel` resolves against a phase's occupied regions rather than collapsing across the whole world (the measured defect); production region is a complete copy of deposition region for MVP; no rule reads region directly, so `ClassificationRule.condition` doesn't widen again. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`, propagated to doc 11 §2.9 and doc 12 §2.53. Implementation (the consequences list: `CulturePhase.geography`, `CulturePhaseSample`, `ClassificationContext` region label, `bestRegionalLevel` fix) is unimplemented and filed as a follow-up task rather than folded into this spike.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1762,6 +1762,15 @@
 						"status": "todo",
 						"dependsOn": [],
 						"notes": "Filed 2026-08-21 per Jason's ruling that session: 2GN.27 proceeds using the 3-term weight alone (availability × cultural affinity, folded through `explainMaterialWeight`, plus stratification once 2GN.96 lands), dropping provenance as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68, which shares the identical formula.",
+						"assignee": "Jason Warren",
+						"softDependsOn": ["2GN.144"]
+					},
+					{
+						"id": "2GN.144",
+						"description": "`types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` + `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains `geography: { regions: string[] }` (plural, for a phase spanning several regions); `CulturePhaseSample` gains a matching `geography` field directly (not a nested `CulturePhase` — the sample bag stays structural until 3WS.3/3WS.4 land real culture/phase generation); `ClassificationContext` gains a region label sourced from the same field, alongside the existing `cultureId`/`phaseId` provenance labels (`emptyClassificationContext` needs a placeholder value); `bestRegionalLevel` (`materials.ts`) resolves against a culture-phase's occupied regions instead of scanning the whole `GeologicalContext` unconstrained — the actual collapse fix the spike measured, threaded through its four callers (`isAvailable`, `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor` (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder",
+						"status": "todo",
+						"dependsOn": ["2GN.142"],
+						"notes": "Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that generates real `GeologicalContext`/regions for production cultures and needs `CulturePhase.geography.regions` to exist before it can populate it. 2GN.143 (provenance-formula spike) gets a soft link, since it measures directly against `bestRegionalLevel`, whose signature this task changes — not a hard blocker since 2GN.143 is unstarted design work, but re-measurement should happen in the right order. Recalibration risk noted in the spike: the `bestRegionalLevel` fix only changes behaviour once a culture-phase's `geography.regions` has more than one entry, which no shipped preset does yet, so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm with `deno task test` before landing. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`.",
 						"assignee": "Jason Warren"
 					}
 				]
@@ -1836,9 +1845,10 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.1",
-							"2GN.126"
+							"2GN.126",
+							"2GN.144"
 						],
-						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.",
+						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures. That decision is now ruled by 2GN.142 (2026-08-24), with implementation filed as 2GN.144 (2026-08-25): region is world-level, referenced by `CulturePhase.geography.regions: string[]` — this task generates the real `GeologicalContext`/regions for production cultures and needs that field to exist before it can populate it.",
 						"assignee": "Jason Warren"
 					},
 					{
