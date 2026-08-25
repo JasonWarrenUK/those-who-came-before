@@ -39,7 +39,7 @@ availability-only and run the full suite to measure recalibration cost, revertin
 | `>= 1`            |          17 |             11 | xoconahtl glaze (all worlds), xoconahtl painting@desertMargin, thalassar patina/engraving/inlay@forestInterior (oak, ash at 1.0) |
 | availability-only |           0 |             28 | the above plus tarpan glaze (clay 0.7) and khaltiris glaze/patina/engraving/inlay (clay 0.8, oak/ash 0.9)                        |
 
-Every gated pair has the substrate material obtainable. The 18 pairs `>= 1` leaves gated are
+Every gated pair has the substrate material obtainable. The 17 pairs `>= 1` leaves gated are
 cultures with a _mild dislike_: tarpan at clay 0.7 loses glaze at 0.05× for having a preference.
 `>= 1` rescues the literal 1.0 case and leaves the same collapse for every value under it.
 
@@ -76,8 +76,10 @@ never-assigned, so an authored zero is a declared "never" and stays a hard gate.
 ## Ruling
 
 **Affinity does not gate substrate access.** `materialAccessGate`'s substrate check becomes
-availability plus `culturalAffinityWeight > 0`, matching `hasIntroducedMaterialAccess`. Ruled by
-Jason 2026-08-25.
+`isAvailable(material) && culturalAffinityWeight(material, culture) > 0` for at least one material
+passing the substrate test, matching `hasIntroducedMaterialAccess`. The `> 0` term is not a
+preference threshold; it keeps an authored zero as a hard gate (Finding 3). Ruled by Jason
+2026-08-25.
 
 Implementation lands inside 2GN.129 rather than as its own task: that task already names the gate as
 its own to fix and extends the same silence rule to `techniqueAffinities`, so the two changes share

@@ -2527,6 +2527,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     already means an authored-neutral material cannot serve as a substrate, which no ruling ever
     established.
 
+  - Note: **Ruled 2026-08-25 by 2GN.134** (doc 11 §2.20, doc 12 §2.56): affinity does not gate
+    substrate access. This task now carries the fix: `materialAccessGate`'s substrate check becomes
+    `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s "material gate — no
+    plausible engravable material" fixture to an absent geology (today it fixtures
+    `materialAffinities: []` against a geology that has engravable material); and re-justify
+    `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp. No
+    other pin left tolerance in the measurement.
+
 ---
 
 ## Milestone 3 — World State & Integration
@@ -2534,13 +2542,6 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 **Goal:** WorldState generation (seed → chronology → cultures), stores architecture, pipeline
 integration with real culture data
 
-- Note: **Ruled 2026-08-25 by 2GN.134** (doc 11 §2.20, doc 12 §2.56): affinity does not gate
-  substrate access. This task now carries the fix: `materialAccessGate`'s substrate check becomes
-  `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s "material gate — no
-  plausible engravable material" fixture to an absent geology (today it fixtures
-  `materialAffinities: []` against a geology that has engravable material); and re-justify
-  `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp. No
-  other pin left tolerance in the measurement.
 - [ ] **3WS.1** — `engine/world/seed.ts` — `createWorldSeed(raw: string): WorldSeed` — seed string →
       PRNG _(blocked — depends on 2GN.56, M2)_
 - [ ] **3WS.2** — `engine/world/chronology.ts` — `generateChronology(seed, prng): WorldChronology` —

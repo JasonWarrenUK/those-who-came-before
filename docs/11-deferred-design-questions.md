@@ -1005,11 +1005,13 @@ roll and the aggregate rate is recorded), `data/plausibility.ts`, 2GN.16. Full d
 ### 2.20 Cultural Affinity Does Not Gate Substrate Access (roadmap 2GN.134)
 
 **Decision (2026-08-25):** `materialAccessGate`'s substrate check
-(`engine/generation/decoration.ts`) reads **availability only**: a technique with a material
-substrate is ungated when at least one qualifying material is obtainable (`isAvailable`) and carries
-an affinity above 0. The `> 1` "favoured" requirement is removed. This matches
-`hasIntroducedMaterialAccess`, the sibling check, which already gated on availability alone with the
-reasoning written beside it.
+(`engine/generation/decoration.ts`) becomes
+`isAvailable(material) && culturalAffinityWeight(material,
+culture) > 0` for at least one material
+passing the technique's substrate test. The `> 1` "favoured" requirement is removed; the `> 0` term
+is not a preference threshold but the guard that an authored zero (never used) stays a hard gate.
+This matches `hasIntroducedMaterialAccess`, the sibling check, which already gated on availability
+alone with the reasoning written beside it.
 
 Why: `materialAffinities` is a preference table, and §2.15 obliges cultures to state a preference
 for every material they can reach. The gate read preference as access, so an authored `1.0`
