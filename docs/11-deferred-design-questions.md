@@ -437,6 +437,21 @@ culture is not — nothing binds a culture to a single region — so a culture s
 faces different material availability in each. Decoration baselines need no region key; material
 ones do.
 
+> **Shaped by §2.9's own spike, roadmap 2GN.142 (2026-08-24).** This paragraph named the
+> requirement but no type implemented it: `ClassificationContext` carried no region field,
+> `bestRegionalLevel` (`engine/generation/materials.ts`) resolved availability across every region
+> in the world rather than the ones a culture-phase actually occupies, and no `CulturePhase` had
+> anywhere to state which regions it occupied. 2GN.142 ruled region a world/geology-level fact,
+> referenced by a new `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more
+> than one region); `bestRegionalLevel` resolves against that occupied set rather than the whole
+> world; and `ClassificationContext`/`CulturePhaseSample` carry a matching label sourced from the
+> same field. No rule reads the region directly — the only surface a rule touches is
+> `ClassificationContext.exceeds`, so `ClassificationRule.condition`'s signature does not widen
+> again. Production region is treated as a complete copy of deposition region
+> (`Provenance.site.region`) for MVP, since every currently-authored world is single-region and the
+> two are identical in practice; the types stay distinct for when trade/deposition modelling makes
+> them diverge. Full reasoning and consequences: `docs/spikes/2GN.142-region-keyed-baselines.md`.
+
 **Consequence: `FunctionTag`/`ContextTag` retire in favour of `AbsoluteTag`/`RelativeTag`.** ⚠️
 Breaking type change, landed with this decision. `ArtefactTag` is the union and replaces every
 `FunctionTag | ContextTag` site. Two fields widen from `FunctionTag[]` to `ArtefactTag[]`:

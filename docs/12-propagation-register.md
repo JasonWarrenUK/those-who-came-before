@@ -3045,6 +3045,53 @@ this file.
 | ⏳ | 2GN.141: revisit both rules' state/axis choices once 2GN.105 lands                            | 2026-08-20 |
 | ⏳ | 2GN.124: widening the catalogue may make the rigid-fastener rule reachable                    | 2026-08-20 |
 
+### 2.53 Doc 11 §2.9's Region Key Named a Requirement No Type Implemented; `bestRegionalLevel` Was Collapsing Across the Whole World (2026-08-24)
+
+2GN.142 was filed to rule whether `ClassificationContext`/`FeatureBaseline`/`baselines.ts` need a
+region dimension. Doc 11 §2.9 already stated the requirement — "material baselines are keyed by
+culture-phase × region" — but nothing implemented it: `ClassificationContext` carried only
+`cultureId`/`phaseId`, `FeatureBaseline` had no region field, and `sampleBaselines` had no region
+dimension anywhere. The only thing resembling an implementation was `calibration.test.ts`'s
+`baselineFor`, which built eighteen contexts by abusing `cultureId` to hold a region name.
+
+**The sampler was measured as region-collapsing, not region-sensitive.** `bestRegionalLevel`
+(`engine/generation/materials.ts`) iterates every region in a `GeologicalContext` and returns the
+best availability level across all of them — not the regions the producing culture actually
+occupies. For doc 11's own motivating case (a culture spanning two regions), this produces one
+baseline against best-of-*every*-region availability, the exact defect the region key exists to
+prevent. Invisible today only because every shipped preset models exactly one region.
+
+**No rule reads a region, so none needs to.** All ten `ClassificationRule.condition` call sites that
+touch `ClassificationContext` call only `exceeds(feature, percentile, value)` — none reads
+`cultureId`, `phaseId` or `baselines` directly. A region label can therefore be added without
+widening `ClassificationRule.condition`'s signature again (already widened once by 2GN.80).
+
+**Production region ruled a complete copy of deposition region for MVP.** Classification-time code
+has no producer of production region — `ClassifiedArtefact.provenance` is the pipeline's terminal
+product and nothing in `src/` constructs one yet. `Provenance.site.region` (deposition) is kept
+type-distinct from production region for when trade/deposition modelling makes them diverge, but no
+separate production-region pipeline is built now; every currently-authored world is single-region,
+so the two are identical in practice regardless.
+
+**Region ruled world-level, referenced by a new `CulturePhase.geography.regions: string[]`.**
+Grouped under `geography` and plural from the start, per Jason's ruling in session, so the
+"culture spans two regions" case doc 11 already names doesn't force a second breaking change later.
+`CulturePhaseSample` (the structural parameter bag `sampleBaselines` takes, standing in for a real
+`CulturePhase` until 3WS.3/3WS.4) gains the same `geography` field directly rather than being forced
+to hold a full `CulturePhase` early, preserving its documented "nothing here has to change when
+3WS.9 lands" property.
+
+Full reasoning, all six findings and the complete consequences list:
+`docs/spikes/2GN.142-region-keyed-baselines.md`.
+
+| §  | Propagation                                                                                    | Date       |
+| -- | ------------------------------------------------------------------------------------------------ | ---------- |
+| ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                        | 2026-08-24 |
+| ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                             | 2026-08-24 |
+| ⏳ | `types/tags.ts`: `ClassificationContext` gains a region label alongside `cultureId`/`phaseId`     | 2026-08-24 |
+| ⏳ | `materials.ts`: `bestRegionalLevel` resolves against occupied regions, not the whole world         | 2026-08-24 |
+| ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                 | 2026-08-24 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during
