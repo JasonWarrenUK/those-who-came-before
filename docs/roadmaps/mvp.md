@@ -735,6 +735,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
       `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(blocked: depends on 2GN.29,
       2GN.131)_
+  - Note: **Ruled 2026-08-25 by 2GN.131** (doc 11 §2.22, doc 12 §2.58): the formula is fixed
+    (continuation chance
+    `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, ceiling
+    `1 + round(craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))`, MAX 3) and lives inside 2GN.31's
+    `expandSublayers` pass. Remaining scope is calibration: choose BASE, DECAY and the ceiling
+    rounding against measured `maxDepth` per cell so high/high is not near-certainly depth 3, record
+    the four-corner table, add `maxDepth` guards alongside the re-recorded R39/R40 pins.
 - [x] **2GN.33** — `engine/generation/decoration.ts` — motif assignment from culture's
       `motifVocabulary`, shared motifs via cultural exchange — landed as
       `assignDecorativeDetails(layers, culture, phase, geology, trade, sharedMotifSources, materials, techniques, prng): DecorativeLayer[]`,
@@ -1836,7 +1843,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       belongs to no ancient family and must never be assigned to a culture — ruled during the 2GN.66
       spike conversation: the modern language sits **outside** `LanguageForest`, not as a family of
       one inside it, since the forest is per-world-seed and generated where this is global and fixed
-- [ ] **2GN.131** — design spike — what does the decorative recursion depth cap actually compute
+- [x] **2GN.131** — design spike — what does the decorative recursion depth cap actually compute
       from `craftSpecialisation` and `aesthetics.decorativeEmphasis`? — 2GN.32's own title names
       both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's
       four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as
@@ -1853,6 +1860,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19
       during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full
       research trail)
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.131-recursion-depth-cap.md`, doc 11 §2.22 and
+    doc 12 §2.58. Emphasis drives the per-depth chance of a sublayer
+    (`BASE × decorationVolume(phase) × DECAY^(d−1)`); craft drives the ceiling
+    (`1 + round(craft × (MAX − 1))`, `MAX_SUBLAYER_DEPTH = 3`).** Doc 05 §8.3's middle corners force
+    the assignment; a craft×emphasis product gives both 0.09 and collapses them. Simulated over real
+    `expandDecoration` output at five cells, 500 seeds each: reproduces all four corners in kind.
+    Constants provisional; 85% of high/high artefacts hit depth 3 at BASE 0.5, so 2GN.32 calibrates.
+    `types/world.ts` JSDoc corrected. `BLOCKED.md` does not exist.
 - [x] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
       existing slot loop, or as a separate unwired post-pass? — folding sublayer draws into
       `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every

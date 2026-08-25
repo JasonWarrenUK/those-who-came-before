@@ -1052,6 +1052,32 @@ sample paths (wiring), `classification.test.ts`'s 2GN.31 regression guard (retir
 Roadmap: 2GN.132 ruled; 2GN.31 carries the implementation; depth cap remains 2GN.131's. Full detail:
 `docs/spikes/2GN.132-sublayer-placement.md`.
 
+### 2.22 Decorative Recursion Depth: Emphasis Drives the Chance, Craft Drives the Ceiling (roadmap 2GN.131)
+
+**Decision (2026-08-25):** decoration-on-decoration depth (doc 05 §8.3, produced by 2GN.31's
+sublayer pass, calibrated by 2GN.32) is governed by two levers, one per phase attribute, extending
+§2.10's axis split to depth:
+
+- **Chance.** A layer at depth `d` gains a sublayer with probability
+  `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, reading
+  `aesthetics.decorativeEmphasis` through the same `decorationVolume` the slot loop uses.
+- **Ceiling.** Depth never exceeds
+  `1 + round(society.craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))` with `MAX_SUBLAYER_DEPTH = 3`
+  (§8.3's "up to 3 layers deep"), so a low-craft culture cannot nest at all.
+
+Why: §8.3's middle corners ("0–1 layers but technically refined" versus "1 layer, simple
+techniques") force the assignment: craft caps depth, emphasis caps count. Simulated over real
+`expandDecoration` output at the four corners (500 seeds each), the split reproduces all four in
+kind and separates the middle two (skilled-austere: 7% reach depth 2; lavish-unskilled: never
+nests). A product of the two attributes gives both middle corners 0.09 and collapses them, the same
+failure §2.10 measured for volume. Constants (0.5, 0.5, `round`) are provisional: 85% of high/high
+artefacts reach depth 3 at BASE 0.5, which 2GN.32 lowers against measured output.
+
+**Affects:** `engine/generation/decoration.ts` (inside 2GN.31's pass), `types/world.ts`
+`PhaseCharacteristics` JSDoc (corrected: craft no longer "raises the recursion cap" alone). Roadmap:
+2GN.131 ruled; 2GN.32 scope narrows to calibrating the constants. Full detail:
+`docs/spikes/2GN.131-recursion-depth-cap.md`.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

@@ -3204,6 +3204,31 @@ substrate rule for sublayers, and the wiring.
 | —  | Roadmap: 2GN.132 done; 2GN.31 amended with placement, stream, substrate rule and wiring deliverables  | 2026-08-25 |
 | ⏳ | 2GN.31: `expandSublayers` pass; harness + Explorer wiring; pins re-recorded; regression guard retired | 2026-08-25 |
 
+### 2.58 Depth Gets the Same Axis Split as Volume and Grade (2026-08-25)
+
+**Origin:** roadmap 2GN.131. **Source of truth:** doc 11 §2.22 holds the ruling;
+`docs/spikes/2GN.131-recursion-depth-cap.md` holds the simulation.
+
+2GN.32's title named `craftSpecialisation × decorativeEmphasis` as the depth cap's inputs with no
+formula behind it. Ruled: **emphasis drives the per-depth chance of a sublayer (through
+`decorationVolume`), craft drives the ceiling (`1 + round(craft × 2)`, anchor
+`MAX_SUBLAYER_DEPTH
+= 3`).** Doc 05 §8.3's middle corners force the assignment; a product of the two
+gives both corners 0.09 and collapses them, which is §2.32/§2.33's volume finding one level down.
+Simulated over real `expandDecoration` output at five (craft, emphasis) cells with a
+`${seed}-sublayers` stream, the split reproduces the four corners in kind. Constants are provisional
+and 2GN.32's to calibrate: 85% of high/high artefacts reach depth 3 at BASE 0.5.
+
+**One comment corrected.** `types/world.ts`'s `PhaseCharacteristics` JSDoc said craft alone raises
+"the decorative grammar's recursion cap", predating §2.10's split; it now names both levers.
+
+| §  | Propagation                                                                                         | Date       |
+| -- | --------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.22: the ruling                                                                            | 2026-08-25 |
+| —  | `types/world.ts` `PhaseCharacteristics` JSDoc: both levers named                                    | 2026-08-25 |
+| —  | Roadmap: 2GN.131 done; 2GN.32 amended to the formula and narrowed to calibration                    | 2026-08-25 |
+| ⏳ | 2GN.31/2GN.32: implement inside `expandSublayers`; calibrate BASE/DECAY/rounding; sample `maxDepth` | 2026-08-25 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

@@ -634,12 +634,13 @@
 					{
 						"id": "2GN.32",
 						"description": "`engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis`",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.29",
 							"2GN.131"
 						],
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"notes": "**Ruled 2026-08-25 by 2GN.131 (doc 11 §2.22, doc 12 §2.58):** the formula is fixed — continuation chance `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, ceiling `1 + round(craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))` with MAX 3 — and lives inside 2GN.31's `expandSublayers` pass. This task's remaining scope is calibration: choose BASE, DECAY and the ceiling rounding against measured `maxDepth` distributions per cell so high/high is not near-certainly depth 3 (85% at BASE 0.5 in the spike's simulation), record the four-corner table, and add `maxDepth` guards alongside the re-recorded R39/R40 pins."
 					},
 					{
 						"id": "2GN.33",
@@ -1650,9 +1651,9 @@
 					{
 						"id": "2GN.131",
 						"description": "design spike — what does the decorative recursion depth cap actually compute from `craftSpecialisation` and `aesthetics.decorativeEmphasis`?",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [],
-						"notes": "2GN.32's own title names both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as a single volume scalar by doc 11 §2.10 (roadmap 2GN.98), which deliberately split the table into `decorationVolume` (reads `decorativeEmphasis` alone) and `DecorativeLayer.grade` (reads `craftSpecialisation` alone) — leaving recursion depth itself unresolved; doc 12 §2.24 records 'defer to 2GN.31' as one of the rejected candidate answers, confirming depth was consciously left open rather than decided in advance. Nearest in-codebase precedent: `grammar.ts`'s attachment recursion (`MAX_ATTACHMENT_DEPTH = 3`, `ATTACHMENT_PROBABILITY = 0.4`, `ATTACHMENT_DEPTH_DECAY = 0.5`, gated via `prng() < probability * decay ** depth`) — the same shape, but with fixed constants rather than values derived from two phase attributes. Doc 05 §8.3's 'up to 3 layers deep' corner is the only numeric ceiling anchor in the docs. Also stale and worth correcting alongside this ruling: `types/world.ts` lines 42–44 still say craft alone drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
+						"notes": "Ruled 2026-08-25 — see docs/spikes/2GN.131-recursion-depth-cap.md, doc 11 §2.22 and doc 12 §2.58. **Emphasis drives the per-depth chance of a sublayer (`BASE × decorationVolume(phase) × DECAY^(d−1)`); craft drives the ceiling (`1 + round(craft × (MAX − 1))`, `MAX_SUBLAYER_DEPTH = 3`).** Doc 05 §8.3's middle corners force the assignment; a craft×emphasis product gives both 0.09 and collapses them (§2.10's volume finding one level down). Simulated over real `expandDecoration` output at five cells, 500 seeds each: reproduces all four corners in kind; skilled-austere reaches depth 2 in 7%, lavish-unskilled never nests. Constants 0.5/0.5/round provisional — 85% of high/high artefacts hit depth 3, so 2GN.32 lowers BASE against measured `maxDepth`. `types/world.ts` JSDoc corrected in this commit. `BLOCKED.md` does not exist. Original notes: 2GN.32's own title names both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as a single volume scalar by doc 11 §2.10 (roadmap 2GN.98), which deliberately split the table into `decorationVolume` (reads `decorativeEmphasis` alone) and `DecorativeLayer.grade` (reads `craftSpecialisation` alone) — leaving recursion depth itself unresolved; doc 12 §2.24 records 'defer to 2GN.31' as one of the rejected candidate answers, confirming depth was consciously left open rather than decided in advance. Nearest in-codebase precedent: `grammar.ts`'s attachment recursion (`MAX_ATTACHMENT_DEPTH = 3`, `ATTACHMENT_PROBABILITY = 0.4`, `ATTACHMENT_DEPTH_DECAY = 0.5`, gated via `prng() < probability * decay ** depth`) — the same shape, but with fixed constants rather than values derived from two phase attributes. Doc 05 §8.3's 'up to 3 layers deep' corner is the only numeric ceiling anchor in the docs. Also stale and worth correcting alongside this ruling: `types/world.ts` lines 42–44 still say craft alone drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19 during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail).",
 						"assignee": "Jason Warren"
 					},
 					{
