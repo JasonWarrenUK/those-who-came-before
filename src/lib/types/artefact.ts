@@ -659,19 +659,21 @@ export interface ExtractedFeatures {
 	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
 	 * forbids, and there is no longer a tag to look up.
 	 *
-	 * Populate it from the material's *situation* instead. Doc 11 §2.9's formula has four terms —
-	 * availability × cultural affinity × provenance × stratification — and they come from three
-	 * places, none of them a catalogue lookup:
+	 * Populate it from the material's *situation* instead. Doc 11 §2.9's formula (restated by
+	 * roadmap 2GN.143, doc 12 §2.55) is standing = f(availability⁻¹, cultural affinity,
+	 * stratification), from two places, neither a catalogue lookup:
 	 *
 	 * - **availability** and **cultural affinity**: `explainMaterialWeight`
 	 *   (`engine/generation/materials.ts`, roadmap 2GN.74) returns `level` (how scarce the material is
-	 *   here), `culturalAffinity` (whether this culture prizes it) and `tradeRescued` (whether it only
-	 *   arrives by trade) for a given material/culture pair.
-	 * - **provenance**: `MaterialAssignment.provenance`, produced by `deriveMaterialProvenance` — a
-	 *   separate input, not part of `explainMaterialWeight`'s result. `tradeRescued` is a boolean
-	 *   about reachability and is not a substitute for it.
+	 *   here) and `culturalAffinity` (whether this culture prizes it) for a material/culture pair.
+	 *   Availability enters **inverted**: `trade-only`/`scarce` raise standing, `abundant` lowers it.
+	 *   Provenance is not a separate input — `MaterialAssignment.provenance.source` is a coarsening of
+	 *   `level` (2GN.143 measured the mapping as total), so `level` already carries it.
 	 * - **stratification**: `PhaseCharacteristics.society.stratification`, which doc 11 §2.9 makes a
 	 *   live input and which nothing reads yet.
+	 *
+	 * ⚠️ Do not use `explainMaterialWeight().weight` as the score: it is a *selection* weight whose
+	 * availability axis points the other way (trade-only 0.15, abundant 1.0).
 	 *
 	 * The threshold over those inputs is 2GN.68's to rule and has not been set.
 	 *

@@ -3121,6 +3121,35 @@ calibration pin.
 | — | Doc 05 §6.2 and §14: "N attempts" replaced with 20; "re-rolling is cheap" qualified                     | 2026-08-25 |
 | — | Roadmap: 2GN.137 done; 2GN.16 unblocked; new 2GN.145 (grammar reads `allowedMaterialTags` at roll time) | 2026-08-25 |
 
+### 2.55 Provenance Was Already Inside Availability; the Selection Weight Points the Wrong Way for Standing (2026-08-25)
+
+**Origin:** roadmap 2GN.143. **Source of truth:** doc 11 §2.9 (restated formula);
+`docs/spikes/2GN.143-provenance-in-material-standing.md` holds the measurement.
+
+Doc 11 §2.9 stated material standing as "availability × cultural affinity × provenance ×
+stratification", with provenance categorical and therefore not a literal term. Measured over 448
+material/culture/world pairs: `deriveMaterialProvenance`'s `source` is a total, deterministic
+coarsening of `explainMaterialWeight`'s `level` (locally obtainable → `local` 286/286, reachable
+`trade-only` → `trade` 100/100), both derived from the same `bestRegionalLevel` call. Ruled **(a)**:
+provenance stays implicit in availability; the formula is restated as
+`f(availability⁻¹, cultural affinity, stratification)`.
+
+**The direction trap, caught by Jason at ruling.** `weight` is a selection quantity (trade-only
+0.15, abundant 1.0): low means rare in the culture's output. Standing is the reverse on that axis.
+Affinity is direct, availability inverse, so `weight` as a scalar cannot be the standing score;
+2GN.27/2GN.68 compose standing from the returned components instead. Their roadmap notes, which read
+"the 3-term weight alone", are amended.
+
+**No code changed.** `MaterialAssignment.provenance` keeps doc 05 §7.1's role as the occluded fact
+the player infers; the `types/artefact.ts` JSDoc that listed provenance as a separate input is
+corrected.
+
+| § | Propagation                                                                                        | Date       |
+| - | -------------------------------------------------------------------------------------------------- | ---------- |
+| — | Doc 11 §2.9: formula restated, direction and `weight` caveat recorded                              | 2026-08-25 |
+| — | `types/artefact.ts` `preciousMaterialsInDecoration` JSDoc: three components, availability inverted | 2026-08-25 |
+| — | Roadmap: 2GN.143 done; 2GN.27/2GN.68 notes amended                                                 | 2026-08-25 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

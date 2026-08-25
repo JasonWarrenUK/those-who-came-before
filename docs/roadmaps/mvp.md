@@ -601,6 +601,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       threshold this task needs (ruled by Jason: percentile the weight, not a fixed constant) can't
       be computed correctly until that gap closes. Provenance dropped from this task's own formula
       per the same ruling session — see 2GN.143
+  - Note: **Amended 2026-08-25 by 2GN.143** (doc 11 §2.9 restated, doc 12 §2.55): standing =
+    f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
+    coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
+    availability inverted; never use its `weight`, a selection quantity pointing the other way.
 - [x] **2GN.28** — `src/lib/data/decorations.ts` — decorative technique definitions: surface
       treatments (polish, patina, scoring, engraving, relief, painting, glaze), applied elements
       (inlay, overlay, studs, wire-wrapping, gilding), textile elements (wrapping, tassels, beading)
@@ -1693,6 +1697,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `preciousMaterialsInDecoration` is hardcoded `false`. **Blocked on 2GN.142 (2026-08-21):**
       this task shares 2GN.27's exact four-term formula and the same region-keyed-baseline gap; see
       that task's note
+  - Note: **Amended 2026-08-25 by 2GN.143** (doc 11 §2.9 restated, doc 12 §2.55): standing =
+    f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
+    coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
+    availability inverted; never use its `weight`, a selection quantity pointing the other way.
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [x] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -1995,21 +2003,22 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     `ClassificationRule.condition` doesn't widen again. Full reasoning:
     `docs/spikes/2GN.142-region-keyed-baselines.md`, propagated to doc 11 §2.9 and doc 12 §2.53.
     Implementation is unimplemented and belongs to a follow-up task.
-- [ ] **2GN.143** — design spike — what role does `MaterialAssignment.provenance`
+- [x] **2GN.143** — design spike — what role does `MaterialAssignment.provenance`
       (`local`/`trade`/`unknown`) play in the material-standing formula doc 11 §2.9 states as
       "availability × cultural affinity × provenance × stratification"? Provenance is categorical,
-      not numeric, so it cannot be a literal multiplicative term. Measured 2026-08-21: local
-      materials already score higher via `explainMaterialWeight`'s existing weight alone (mean 0.371
-      vs trade's 0.119, across all 6 regional worlds × 16 materials) with no separate provenance
-      term — provenance's effect may already be embedded in the scarcity term. Rule whether
-      provenance should stay implicit, become an explicit categorical multiplier, or something else,
-      and update doc 11 §2.9's formula statement to match
-  - Note: Filed 2026-08-21 per Jason's ruling: 2GN.27 proceeds using the 3-term weight alone
-    (availability × cultural affinity, plus stratification once 2GN.96 lands), dropping provenance
-    as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68.
-    Soft-linked to 2GN.144 (2026-08-25): that task changes `bestRegionalLevel`'s signature, which
-    this spike's own measurement reads directly, so re-measurement should follow it rather than
-    precede it.
+      not numeric, so it cannot be a literal multiplicative term. Rule whether provenance should
+      stay implicit, become an explicit categorical multiplier, or something else, and update doc 11
+      §2.9's formula statement to match
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.143-provenance-in-material-standing.md`, doc 11
+    §2.9 (restated) and doc 12 §2.55. (a): provenance stays implicit in availability.** Measured
+    over 448 material/culture/world pairs: `deriveMaterialProvenance`'s `source` is a total
+    deterministic coarsening of `explainMaterialWeight`'s `level` (locally obtainable → local
+    286/286, reachable trade-only → trade 100/100), both from the same `bestRegionalLevel` call, so
+    an explicit multiplier would count `level` twice. Formula restated as standing =
+    f(availability⁻¹, cultural affinity, stratification). Direction trap caught by Jason at ruling:
+    `weight` is a _selection_ weight (trade-only 0.15) and points the wrong way for standing, so
+    2GN.27/2GN.68 compose from the components, never from `weight`. Reopen only if trade flows gain
+    distance/intensity. Originally filed 2026-08-21 while scoping 2GN.27; soft-linked to 2GN.144.
 - [ ] **2GN.144** — `types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` +
       `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains
       `geography: { regions: string[] }` (plural, for a phase spanning several regions);

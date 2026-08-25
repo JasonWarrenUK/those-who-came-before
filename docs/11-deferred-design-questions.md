@@ -402,7 +402,20 @@ made `extractFeatures` depend on world context and broken its purity instead.
 **Consequence: `MaterialTag`'s `precious-*` members are retired entirely.** _(Revised 2026-08-11 by
 roadmap 2GN.78 — see below for what this replaced.)_ `precious-metal` and `precious-stone` are no
 longer members of `MaterialTag`. Material-derived status comes from the material's situation in the
-world (availability × cultural affinity × provenance × stratification), never from a catalogue tag.
+world, never from a catalogue tag. _(Formula restated 2026-08-25 by roadmap 2GN.143, doc 12 §2.55;
+the original read "availability × cultural affinity × provenance × stratification".)_
+
+> **Standing = f(availability⁻¹, cultural affinity, stratification).** Provenance is not a separate
+> term: `MaterialAssignment.provenance.source` is a deterministic coarsening of the availability
+> `level` (locally obtainable levels → `local`, reachable `trade-only` → `trade`), so availability
+> already encodes it. Availability enters **inverted**: rare here means precious here, so
+> `trade-only` and `scarce` push standing up and `abundant` pushes it down. Cultural affinity enters
+> directly. `explainMaterialWeight().weight` is a _selection_ weight (how often the culture makes
+> things from the material) and must not be used as the standing score, since its availability axis
+> points the other way; compose standing from the components it returns (`level`,
+> `culturalAffinity`) plus `PhaseCharacteristics.society.stratification`. The threshold is
+> 2GN.27/2GN.68's to set. Provenance earns its own term only if trade flows ever carry distance or
+> intensity. Full detail: `docs/spikes/2GN.143-provenance-in-material-standing.md`.
 
 This ruling originally kept the two members "as material descriptors, not as classification inputs",
 barring rules from reading them while leaving them to feed generation. 2GN.78 found that boundary
