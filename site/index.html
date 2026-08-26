@@ -5,6 +5,9 @@
 <script>try{var t=localStorage.getItem("twcb-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Those Who Came Before · Engineering Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -12,6 +15,8 @@
 <nav id="topbar">
   <div class="inner">
     <span class="site"><a href="index.html">Those Who Came Before</a></span>
+    <span>Engineering Notes</span>
+    <span class="here">Milestone 2 · Aug 2026</span>
     <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><span class="tt-icon">☾</span></button>
   </div>
 </nav>
@@ -20,347 +25,188 @@
 
 <div class="hero">
   <div class="text">
-    <div class="kicker">Engineering Notes</div>
-    <h1>How an Artefact Gets Made, and Why the Design Argues Back</h1>
-    <p class="lede">Those Who Came Before is a game about an archaeologist whose mistakes compound into an unreliable narrative. These pages document three things: the ideas underneath it, in plain language; the design that turns misreading an artefact into the point; and the generation pipeline that makes every artefact a real object with a structure, materials and a ground truth the player never reads directly.</p>
-    <p class="lede">No prior archaeology required. No prior game development either, and no prior software background: the Ideas pages need neither.</p>
+    <div class="over">39 short pages about one game, in five sections</div>
+    <h1><span class="h1-main">Those Who Came Before</span><span class="h1-sub">Design Notes</span></h1>
+    <p class="h1-quote">or &ldquo;How an Artefact Gets Made and Why the Design Argues Back&rdquo;</p>
+    <p class="lede">A game about an archaeologist whose mistakes compound into an unreliable narrative. These pages document the ideas underneath it, the design that turns misreading an artefact into the point, and the pipeline that makes every artefact a real object with a ground truth the player never reads directly.</p>
+    <p class="note">No prior archaeology required. No prior game development either, and no prior software background: the Ideas section needs neither.</p>
   </div>
   <div class="heroaside">
-    <div class="statusline">
-      <span class="row"><span class="lbl">Runtime</span><b>Deno · SvelteKit 2 · Svelte 5</b></span>
-      <span class="row"><span class="lbl">Engine</span><b>pure TypeScript, framework-free</b></span>
-      <span class="row"><span class="lbl">Status</span><b>Milestone 2, August 2026</b></span>
-    </div>
+    <details class="hsection">
+      <summary class="htitle">Ledger</summary>
+      <div class="statusline">
+        <span class="lbl">runtime</span><span>Deno · SvelteKit 2</span>
+        <span class="lbl">engine</span><span>TypeScript, framework-free</span>
+        <span class="lbl">roadmap</span><span>115 / 359 tasks</span>
+        <span class="lbl">pipeline</span><span>6 of 9 stages shipped</span>
+        <span class="lbl">spec</span><span>14 documents, doc 11 closed</span>
+      </div>
+    </details>
+    <details class="hsection">
+      <summary class="htitle">Legend</summary>
+      <div class="legend">
+        <span><b style="color:var(--strand-fieldnotes-text)">How settled the thinking is.</b> Six rungs, drawn as dots: <span style="font-family:var(--mono);font-size:.8rem">○○○○○</span> an itch nobody has resolved, through to <span style="font-family:var(--mono);font-size:.8rem">●●●●●</span> a position taken.</span>
+        <span><b style="color:var(--strand-mechanism)">How much of it exists in code.</b> Unbuilt, designed only, partial, or shipped.</span>
+        <span style="color:var(--faint);font-style:italic">They move independently: a page can be a firm position nothing has built, or shipped code whose thinking is still a draft.</span>
+      </div>
+    </details>
   </div>
 </div>
 
-<div class="cardstack">
+<div class="huborient">
+  <h3>New here? pick a way in</h3>
+  <div class="picks">
+    <span><a href="ideas/vision.html">The Vision</a> <span style="color:var(--muted)">: if you've never seen the game. No code, no archaeology.</span></span>
+    <span><a href="design/two-readings.html">Two Readings of the Same Sword</a> <span style="color:var(--muted)">: if you want to know why it's built this way.</span></span>
+    <span><a href="mechanism/determinism.html">Seeding &amp; Determinism</a> <span style="color:var(--muted)">: if you're about to read the code.</span></span>
+  </div>
+</div>
 
-  <details class="cardgroup group-fieldnotes">
-    <summary><span class="strand fieldnotes">Fieldnotes</span>What we're still working out<span class="gcount">7 pages</span></summary>
-    <div class="cards">
-      <div class="headline">
-        <div class="settlekey">
-          <div class="row"><span class="rung">itch</span><span class="dots">○○○○○</span><span class="means">something caught your attention and hasn't resolved into a thought</span></div>
-          <div class="row"><span class="rung">hunch</span><span class="dots">●○○○○</span><span class="means">you think you know the answer and can't yet say why</span></div>
-          <div class="row"><span class="rung">sketch</span><span class="dots">●●○○○</span><span class="means">the shape of an answer is on the page, but the parts don't connect</span></div>
-          <div class="row"><span class="rung">draft</span><span class="dots">●●●○○</span><span class="means">it holds together and reads through, with nothing decided</span></div>
-          <div class="row"><span class="rung">call</span><span class="dots">●●●●○</span><span class="means">something has been chosen, not committed to</span></div>
-          <div class="row"><span class="rung">stand</span><span class="dots">●●●●●</span><span class="means">it's taken a position; it moves to Design when Jason says so</span></div>
+<div class="strands">
+
+  <details class="strandsec">
+    <summary>
+      <span class="chip fieldnotes">Fieldnotes</span>
+      <h2>What we're still working out</h2>
+      <span class="scount">7 entries</span>
+    </summary>
+    <div class="strandbody">
+      <div class="spine"><span style="color:var(--strand-fieldnotes-text)">Fieldnotes</span></div>
+      <div>
+        <p class="sdesc">Settledness is the subject, not a caveat: each entry carries how far it has travelled from an itch to a stand.</p>
+        <div class="headline">
+          <div class="settlekey">
+            <div class="row"><span class="rung">itch</span><span class="dots">○○○○○</span><span class="means">something caught your attention and hasn't resolved into a thought</span></div>
+            <div class="row"><span class="rung">hunch</span><span class="dots">●○○○○</span><span class="means">you think you know the answer and can't yet say why</span></div>
+            <div class="row"><span class="rung">sketch</span><span class="dots">●●○○○</span><span class="means">the shape of an answer is on the page, but the parts don't connect</span></div>
+            <div class="row"><span class="rung">draft</span><span class="dots">●●●○○</span><span class="means">it holds together and reads through, with nothing decided</span></div>
+            <div class="row"><span class="rung">call</span><span class="dots">●●●●○</span><span class="means">something has been chosen, not committed to</span></div>
+            <div class="row"><span class="rung">stand</span><span class="dots">●●●●●</span><span class="means">it's taken a position; it moves to Design when Jason says so</span></div>
+          </div>
+        </div>
+        <div class="rowlist">
+          <a href="fieldnotes/itch.html"><span class="idx start">01</span><span><span class="topic">The Itch Page</span><span class="desc">every oversight caught in the making of this, in the order it was caught</span></span><span class="stat itch">○○○○○ itch</span></a>
+          <a href="fieldnotes/scrutiny.html"><span class="idx">02</span><span><span class="topic">Scrutiny With a Name on It</span><span class="desc">a reviewer whose own positions you can check</span></span><span class="stat call">●●●●○ call</span></a>
+          <a href="fieldnotes/rewards.html"><span class="idx">03</span><span><span class="topic">What the Profession Rewards</span><span class="desc">five reputations, moving in opposite directions at once</span></span><span class="stat draft">●●●○○ draft</span></a>
+          <a href="fieldnotes/schools.html"><span class="idx">04</span><span><span class="topic">Schools You Discover Rather Than Join</span><span class="desc">inferred from who agrees with whom, never named</span></span><span class="stat hunch">●○○○○ hunch</span></a>
+          <a href="fieldnotes/corpus-cycle.html"><span class="idx">05</span><span><span class="topic">The Corpus Cycle</span><span class="desc">what happens once a claim leaves you</span></span><span class="stat call">●●●●○ call</span></a>
+          <a href="fieldnotes/academic-year.html"><span class="idx">06</span><span><span class="topic">The Academic Year</span><span class="desc">energy runs out before time does</span></span><span class="stat stand">●●●●● stand</span></a>
+          <a href="fieldnotes/how-much-of-a-person.html"><span class="idx">07</span><span><span class="topic">How Much of a Person Does a Scholar Need to Be?</span><span class="desc">a surface you bounce off</span></span><span class="stat sketch">●●○○○ sketch</span></a>
         </div>
       </div>
-      <a class="card" href="fieldnotes/itch.html">
-        <span class="num">Itch</span>
-        <span class="topic">The Itch Page</span>
-        <span class="t">What Nearly Got Past Us</span>
-        <span class="d">Every oversight and blind spot caught in the making of this, in the order it was caught. Struck through once it's dealt with; nothing is ever deleted.</span>
-        <span class="settled"><span class="dots">○○○○○</span><span class="rung">itch</span></span>
-      </a>
-      <a class="card" href="fieldnotes/scrutiny.html">
-        <span class="num">02</span>
-        <span class="topic">Scrutiny With a Name on It</span>
-        <span class="t">Read By Someone in Particular</span>
-        <span class="d">A reviewer whose own positions you can check. Reviewing someone else and watching them be plausibly wrong. A student's question that lands by accident on your weakest step.</span>
-        <span class="settled"><span class="dots">●●●●○</span><span class="rung">call</span></span>
-      </a>
-      <a class="card" href="fieldnotes/rewards.html">
-        <span class="num">03</span>
-        <span class="topic">What the Profession Rewards</span>
-        <span class="t">Famous Isn't the Same as Right</span>
-        <span class="d">Five separate reputations, not one score. Influence and reliability can move in opposite directions at once, and unwinding fame is harder than building it.</span>
-        <span class="settled"><span class="dots">●●●○○</span><span class="rung">draft</span></span>
-      </a>
-      <a class="card" href="fieldnotes/schools.html">
-        <span class="num">04</span>
-        <span class="topic">Schools You Discover Rather Than Join</span>
-        <span class="t">Nobody Announces One</span>
-        <span class="d">Inferred from who agrees with whom, never named outright. You might found one without meaning to.</span>
-        <span class="settled"><span class="dots">●○○○○</span><span class="rung">hunch</span></span>
-      </a>
-      <a class="card" href="fieldnotes/corpus-cycle.html">
-        <span class="num">05</span>
-        <span class="topic">The Corpus Cycle</span>
-        <span class="t">What Happens Once It Leaves You</span>
-        <span class="d">The whole life of a published claim: frozen the moment it's seen, received differently from how it was written, and eventually returning changed.</span>
-        <span class="settled"><span class="dots">●●●●○</span><span class="rung">call</span></span>
-      </a>
-      <a class="card" href="fieldnotes/academic-year.html">
-        <span class="num">06</span>
-        <span class="topic">The Academic Year</span>
-        <span class="t">Energy Runs Out Before Time Does</span>
-        <span class="d">Four terms, one binding constraint, and a promotion that taxes the very curiosity that earned it.</span>
-        <span class="settled"><span class="dots">●●●●●</span><span class="rung">stand</span></span>
-      </a>
-      <a class="card" href="fieldnotes/how-much-of-a-person.html">
-        <span class="num">07</span>
-        <span class="topic">How Much of a Person Does a Scholar Need to Be?</span>
-        <span class="t">A Surface You Bounce Off</span>
-        <span class="d">At MVP, the other scholars react; they don't yet want anything. What it would take for that to change.</span>
-        <span class="settled"><span class="dots">●●○○○</span><span class="rung">sketch</span></span>
-      </a>
     </div>
   </details>
 
-  <details class="cardgroup group-ideas">
-    <summary><span class="strand ideas">Ideas</span>What this is about<span class="gcount">5 pages</span></summary>
-    <div class="cards">
-      <div class="headline">
-        <pre style="margin:0"><code>✘ obsidian is not available locally
-     │  (found to be false, year 23)
-     ↓
-✓ therefore it was imported
-     ↓
-✓ therefore contact existed
-     ↓
-✓ therefore the river carried goods
-     ↓
-✓ therefore the fort protected trade
-
-four valid inferences. no mistake was
-made after the first.</code></pre>
-      </div>
-      <a class="card" href="ideas/vision.html">
-        <span class="num">Start here</span>
-        <span class="topic">The Vision</span>
-        <span class="t">Nobody Wrote the Answer Down</span>
-        <span class="d">A true history exists, and nothing in the game will ever confirm it, not even to the scholars who lived it. Why the past has no author, and why one seed is never enough.</span>
-      </a>
-      <a class="card" href="ideas/corpus.html">
-        <span class="num">02</span>
-        <span class="topic">The Discipline That Already Happened</span>
-        <span class="t">A Whole Career, Simulated</span>
-        <span class="d">Decades of scholarship exist before you start, built by simulating dead researchers' careers. Roughly seven claims in ten hold up. The other three are wrong for reasons real archaeology recognises.</span>
-      </a>
-      <a class="card" href="ideas/lens.html">
-        <span class="num">03</span>
-        <span class="topic">How You Get Fooled</span>
-        <span class="t">Selected, Not Invented</span>
-        <span class="d">Two readers, one true object, two confident and opposite conclusions. Nothing shown to either of them was false.</span>
-      </a>
-      <a class="card" href="ideas/time.html">
-        <span class="num">04</span>
-        <span class="topic">Time You Have to Earn</span>
-        <span class="t">Nobody Shares a Calendar</span>
-        <span class="d">Every culture keeps its own periods, and nothing tells you where they overlap. Order is free. A date costs you time, standing, and sometimes part of the object.</span>
-      </a>
-      <a class="card" href="ideas/culture.html">
-        <span class="num">05</span>
-        <span class="topic">Culture Over Time</span>
-        <span class="t">Rich Compared to When?</span>
-        <span class="d">Independent attributes rather than a single score, shifting across phases nobody announces. What counts as lavish is judged against what came just before, never the culture's own average.</span>
-      </a>
-    </div>
-  </details>
-
-  <details class="cardgroup group-design">
-    <summary><span class="strand design">Design</span>Why it's like this<span class="gcount">14 pages</span></summary>
-    <div class="cards">
-      <div class="headline">
-        <pre style="margin:0"><code>        one object, two contexts
-
-     in culture A          in culture B
-   ┌─────────────┐        ┌─────────────┐
-   │ unremarkable │        │    elite     │
-   └─────────────┘        └─────────────┘
-
-   nothing about the object changed.
-   the rule never asked which culture
-   it was standing in.</code></pre>
-      </div>
-      <p class="groupnote">Nothing on this strand carries a shipped/partial/designed badge. Those badges answer "does it run", which is the wrong question for a page whose subject is a decision, not a component. Each page says plainly in prose what's a shipped type a reader can open and what's still a doc's intention with no type behind it.</p>
-      <a class="card" href="design/two-readings.html">
-        <span class="num">Start here</span>
-        <span class="topic">Two Readings of the Same Sword</span>
-        <span class="t">The Entry Point</span>
-        <span class="d">Two players, one artefact, two coherent theories, both wrong. Needs nothing else on this site.</span>
-      </a>
-      <a class="card" href="design/channels.html">
-        <span class="num">02</span>
-        <span class="topic">Five Channels of Filtering</span>
-        <span class="t">Misleading Without Ever Lying</span>
-        <span class="d">The lens as five distinct, individually auditable interventions on perception, one of which works by removing information, on a cap.</span>
-      </a>
-      <a class="card" href="design/classification.html">
-        <span class="num">03</span>
-        <span class="topic">Relative vs Absolute Classification</span>
-        <span class="t">Whose Culture Is the Classifier Judging?</span>
-        <span class="d">A fixed threshold fired on 4.3% of one culture's output and 48% of another's. The fix, and the tag it cost.</span>
-      </a>
-      <a class="card" href="design/agent-generic.html">
-        <span class="num">04</span>
-        <span class="topic">The Engine Doesn&rsquo;t Know Whose Beliefs These Are</span>
-        <span class="t">One Interface, Player and NPC</span>
-        <span class="d">Needs §2. NPC wrongness is just claims in the same container the player uses, which is what lets an NPC's error become the player's.</span>
-      </a>
-      <a class="card" href="design/contradiction.html">
-        <span class="num">05</span>
-        <span class="topic">Contradictions Are Revealed by Consequences</span>
-        <span class="t">Not by Checking Answers</span>
-        <span class="d">Needs §3. Full ground truth exists and is deliberately never diffed against directly. Denial is a supported code path with a cost.</span>
-      </a>
-      <a class="card" href="design/publishing.html">
-        <span class="num">06</span>
-        <span class="topic">Immutable Documents</span>
-        <span class="t">Retraction Is a Social Act, Not a Delete</span>
-        <span class="d">A document freezes when it's seen, not when it's saved. Retraction cascades forward through lineage, by degree.</span>
-      </a>
-      <a class="card" href="design/ratchet.html">
-        <span class="num">07</span>
-        <span class="topic">The Commitment Ratchet</span>
-        <span class="t">Why Publishing Makes You Blinder</span>
-        <span class="d">Needs §2. The object that measures your career success is the same object measuring how badly you're about to misread the next artefact.</span>
-      </a>
-      <a class="card" href="design/labels.html">
-        <span class="num">08</span>
-        <span class="topic">Labels That Emerge Instead of Being Assigned</span>
-        <span class="t">Nobody Chooses a Category</span>
-        <span class="d">Needs §6. A document classifies itself from its own content, then a venue classifies it again. The gap between the two is the mechanic.</span>
-      </a>
-      <a class="card" href="design/ground-truth.html">
-        <span class="num">09</span>
-        <span class="topic">A Truth Nobody Consults</span>
-        <span class="t">Ground Truth That Stays Buried</span>
-        <span class="d">Why the engine holds a complete, occluded layer of fact and is built never to check the player's claims against it directly.</span>
-      </a>
-      <a class="card" href="design/periodisation.html">
-        <span class="num">10</span>
-        <span class="topic">Every Culture Keeps Its Own Calendar</span>
-        <span class="t">No World Timeline</span>
-        <span class="d">Why periodisation is per-culture rather than a single shared chronology, and what that costs a player trying to connect two cultures' events.</span>
-      </a>
-      <a class="card" href="design/survival-bias.html">
-        <span class="num">11</span>
-        <span class="topic">What Rotted and What Was Dug</span>
-        <span class="t">Reading an Absence</span>
-        <span class="d">Why survival and excavation bias are modelled at all, and why burials get dug before rubbish heaps in the simulated record.</span>
-      </a>
-      <a class="card" href="design/perceived-rarity.html">
-        <span class="num">12</span>
-        <span class="topic">Perceived Versus Actual Rarity</span>
-        <span class="t">What Everyone Believes Is Scarce</span>
-        <span class="d">Why what the profession believes is scarce is tracked apart from what actually is, and how the gap between them is where publication impact lives.</span>
-      </a>
-      <a class="card" href="design/phonology.html">
-        <span class="num">13</span>
-        <span class="topic">Why Names Get a Phoneme Engine</span>
-        <span class="t">Sounds, Not Spellings</span>
-        <span class="d">The cheap version was a syllable table. Why it was rejected, and what a name being a sequence of sounds rather than a fixed spelling actually buys.</span>
-      </a>
-      <a class="card" href="design/object-label.html">
-        <span class="num">14</span>
-        <span class="topic">The Grammar May Not Know What It's Building</span>
-        <span class="t">Naming It Is Your Job</span>
-        <span class="d">Why the structural grammar is forbidden from branching on intent, why an object's own label stays deliberately unusable as an interpretation, and why contradictory tags are left unresolved.</span>
-      </a>
-    </div>
-  </details>
-
-  <details class="cardgroup group-mechanism group-break">
-    <summary><span class="strand mechanism">Mechanism</span>How it works<span class="gcount">9 pages</span></summary>
-    <div class="cards">
-      <div class="headline">
-        <div class="pipestrip" style="margin:0;padding:0">
-          <svg viewBox="0 0 1334 150" role="img" aria-label="The nine pipeline stages in order">
-            <g id="pipe"></g>
-          </svg>
+  <details class="strandsec">
+    <summary>
+      <span class="chip ideas">Ideas</span>
+      <h2>What this is about</h2>
+      <span class="scount">5 entries</span>
+    </summary>
+    <div class="strandbody">
+      <div class="spine"><span style="color:var(--strand-ideas)">Ideas</span></div>
+      <div>
+        <div class="workedbox">
+          <pre>✘ obsidian is not available locally  (found to be false, year 23)
+↓  ✓ therefore it was imported
+↓  ✓ therefore contact existed
+↓  ✓ therefore the river carried goods
+↓  ✓ therefore the fort protected trade</pre>
+          <div class="conclusion">four valid inferences. no mistake was made after the first.</div>
+        </div>
+        <div class="rowlist wide">
+          <a href="ideas/vision.html"><span class="idx start" style="color:var(--strand-ideas)">start</span><span><span class="topic">The Vision</span><span class="desc">nobody wrote the answer down</span></span></a>
+          <a href="ideas/corpus.html"><span class="idx">02</span><span><span class="topic">The Discipline That Already Happened</span><span class="desc">a whole career, simulated</span></span></a>
+          <a href="ideas/lens.html"><span class="idx">03</span><span><span class="topic">How You Get Fooled</span><span class="desc">selected, not invented</span></span></a>
+          <a href="ideas/time.html"><span class="idx">04</span><span><span class="topic">Time You Have to Earn</span><span class="desc">nobody shares a calendar</span></span></a>
+          <a href="ideas/culture.html"><span class="idx">05</span><span><span class="topic">Culture Over Time</span><span class="desc">rich compared to when?</span></span></a>
         </div>
       </div>
-      <a class="card" href="mechanism/overview.html">
-        <span class="num">Stages 1–9</span>
-        <span class="topic">Pipeline Overview</span>
-        <span class="t">Nine Stages, Three Cadences</span>
-        <span class="d">The whole pipeline at a glance: what runs once per world, per artefact and per inspection, and what exists today.</span>
-        <span class="badge partial">Partial</span>
-      </a>
-      <a class="card" href="mechanism/determinism.html">
-        <span class="num">Stage 1</span>
-        <span class="topic">Seeding & Determinism</span>
-        <span class="t">Every Draw Is Accounted For</span>
-        <span class="d">One seed string drives everything. Why the PRNG is a contract, and how draw ordering becomes an API.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/world.html">
-        <span class="num">Stages 2–3</span>
-        <span class="topic">World Generation</span>
-        <span class="t">The World Is Still a Fixture</span>
-        <span class="d">Chronology, cultures, geology and a pre-faked scholarly corpus: designed in depth, not yet built.</span>
-        <span class="badge designed">Designed</span>
-      </a>
-      <a class="card" href="mechanism/structure.html">
-        <span class="num">Stage 4</span>
-        <span class="topic">Structural Grammar</span>
-        <span class="t">The Grammar Doesn&rsquo;t Know What a Sword Is</span>
-        <span class="d">Eight geometric primitives, four production rules and a hard ban on generating by intent.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/plausibility.html">
-        <span class="num">Stage 5</span>
-        <span class="topic">Normalisation & Plausibility</span>
-        <span class="t">Exhaustion Throws</span>
-        <span class="d">Flattening the grammar tree, physical plausibility rules and the case for throwing instead of shipping a fallback.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/materials.html">
-        <span class="num">Stage 6</span>
-        <span class="topic">Material Assignment</span>
-        <span class="t">Fake Relics Obey Real Geology</span>
-        <span class="d">Sixteen materials, a five-rung availability ladder and a weighting product that keeps trade materials rare.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/decoration.html">
-        <span class="num">Stage 7</span>
-        <span class="topic">Decorative Grammar</span>
-        <span class="t">Every Layer Is an Act of Craft</span>
-        <span class="d">Sixteen techniques, substrate physics, borrowed motifs and the split between how much and how well.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/classification.html">
-        <span class="num">Stage 8</span>
-        <span class="topic">Features & Classification</span>
-        <span class="t">Tags Are Evidence Tallies</span>
-        <span class="d">Feature extraction, 43 scoring rules and baselines sampled from a culture&rsquo;s own output.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="mechanism/description.html">
-        <span class="num">Stage 9</span>
-        <span class="topic">Description Generation</span>
-        <span class="t">The Engine Never Says &lsquo;Dagger&rsquo;</span>
-        <span class="d">Registers, templates and the lens: how ground truth becomes prose without leaking.</span>
-        <span class="badge partial">Partial</span>
-      </a>
     </div>
   </details>
 
-  <details class="cardgroup group-practice group-break">
-    <summary><span class="strand practice">Practice</span>How the work is done<span class="gcount">3 pages</span></summary>
-    <div class="cards">
-      <div class="headline">
+  <details class="strandsec">
+    <summary>
+      <span class="chip design">Design</span>
+      <h2>Why it's like this</h2>
+      <span class="scount">14 entries</span>
+    </summary>
+    <div class="strandbody">
+      <div class="spine"><span style="color:var(--strand-design)">Design</span></div>
+      <div>
+        <p class="sdesc">One decision per page, and the alternative that lost. No status column here: these are arguments, not components, so &ldquo;does it run&rdquo; is the wrong question.</p>
+        <div class="rowlist wide">
+          <a href="design/two-readings.html"><span class="idx start" style="color:var(--strand-design)">start</span><span><span class="topic">Two Readings of the Same Sword</span><span class="desc">the entry point</span></span></a>
+          <a href="design/channels.html"><span class="idx">02</span><span><span class="topic">Five Channels of Filtering</span><span class="desc">misleading without ever lying</span></span></a>
+          <a href="design/classification.html"><span class="idx">03</span><span><span class="topic">Relative vs Absolute Classification</span><span class="desc">whose culture is the classifier judging?</span></span></a>
+          <a href="design/agent-generic.html"><span class="idx">04</span><span><span class="topic">The Engine Doesn't Know Whose Beliefs These Are</span><span class="desc">one interface, player and NPC</span></span></a>
+          <a href="design/contradiction.html"><span class="idx">05</span><span><span class="topic">Contradictions Are Revealed by Consequences</span><span class="desc">not by checking answers</span></span></a>
+          <a href="design/publishing.html"><span class="idx">06</span><span><span class="topic">Immutable Documents</span><span class="desc">retraction is a social act, not a delete</span></span></a>
+          <a href="design/ratchet.html"><span class="idx">07</span><span><span class="topic">The Commitment Ratchet</span><span class="desc">why publishing makes you blinder</span></span></a>
+          <a href="design/labels.html"><span class="idx">08</span><span><span class="topic">Labels That Emerge Instead of Being Assigned</span><span class="desc">nobody chooses a category</span></span></a>
+          <a href="design/ground-truth.html"><span class="idx">09</span><span><span class="topic">A Truth Nobody Consults</span><span class="desc">ground truth that stays buried</span></span></a>
+          <a href="design/periodisation.html"><span class="idx">10</span><span><span class="topic">Every Culture Keeps Its Own Calendar</span><span class="desc">no world timeline</span></span></a>
+          <a href="design/survival-bias.html"><span class="idx">11</span><span><span class="topic">What Rotted and What Was Dug</span><span class="desc">reading an absence</span></span></a>
+          <a href="design/perceived-rarity.html"><span class="idx">12</span><span><span class="topic">Perceived Versus Actual Rarity</span><span class="desc">what everyone believes is scarce</span></span></a>
+          <a href="design/phonology.html"><span class="idx">13</span><span><span class="topic">Why Names Get a Phoneme Engine</span><span class="desc">sounds, not spellings</span></span></a>
+          <a href="design/object-label.html"><span class="idx">14</span><span><span class="topic">The Grammar May Not Know What It's Building</span><span class="desc">naming it is your job</span></span></a>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details class="strandsec">
+    <summary>
+      <span class="chip mechanism">Mechanism</span>
+      <h2>How it works</h2>
+      <span class="scount">9 entries</span>
+    </summary>
+    <div class="strandbody">
+      <div class="spine"><span style="color:var(--strand-mechanism)">Mechanism</span></div>
+      <div>
+        <p class="sdesc">The generation pipeline, stage by stage, in the order it runs. Six of the nine stages exist in code today; the diagram below is that, at a glance.</p>
+        <div class="headline">
+          <figure class="diag pipediag">
+            <svg viewBox="0 0 1334 150" role="img" aria-label="The nine pipeline stages in order, coloured by whether each is shipped, partial, or designed only">
+              <g id="pipe"></g>
+            </svg>
+          </figure>
+        </div>
+        <div class="rowlist pipeline">
+          <a href="mechanism/overview.html"><span class="idx">stages 1–9</span><span><span class="topic">Pipeline Overview</span><span class="desc">nine stages, three cadences</span></span><span class="stat partial">partial</span></a>
+          <a href="mechanism/determinism.html"><span class="idx">stage 1</span><span><span class="topic">Seeding &amp; Determinism</span><span class="desc">every draw is accounted for</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/world.html"><span class="idx">stages 2–3</span><span><span class="topic">World Generation</span><span class="desc">the world is still a fixture</span></span><span class="stat designed">designed only</span></a>
+          <a href="mechanism/structure.html"><span class="idx">stage 4</span><span><span class="topic">Structural Grammar</span><span class="desc">the grammar doesn't know what a sword is</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/plausibility.html"><span class="idx">stage 5</span><span><span class="topic">Normalisation &amp; Plausibility</span><span class="desc">exhaustion throws</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/materials.html"><span class="idx">stage 6</span><span><span class="topic">Material Assignment</span><span class="desc">fake relics obey real geology</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/decoration.html"><span class="idx">stage 7</span><span><span class="topic">Decorative Grammar</span><span class="desc">every layer is an act of craft</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/classification.html"><span class="idx">stage 8</span><span><span class="topic">Features &amp; Classification</span><span class="desc">tags are evidence tallies</span></span><span class="stat shipped">shipped</span></a>
+          <a href="mechanism/description.html"><span class="idx">stage 9</span><span><span class="topic">Description Generation</span><span class="desc">the engine never says 'dagger'</span></span><span class="stat partial">partial</span></a>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details class="strandsec">
+    <summary>
+      <span class="chip practice">Practice</span>
+      <h2>How the work is done</h2>
+      <span class="scount">3 entries</span>
+    </summary>
+    <div class="strandbody">
+      <div class="spine"><span style="color:var(--strand-practice-text)">Practice</span></div>
+      <div>
+        <p class="sdesc">How the work is checked: what counts as a measurement, what the workbench shows, and how the spec is kept honest.</p>
         <a class="repolink" href="https://github.com/JasonWarrenUK/those-who-came-before" target="_blank" rel="noopener">
           <span><span class="lbl">Those Who Came Before, on GitHub</span><span class="sub">The repository these pages are written against, commit by commit.</span></span>
-          <span class="go">→ github.com/JasonWarrenUK/those-who-came-before</span>
+          <span class="go">→ repo</span>
         </a>
+        <div class="rowlist pipeline">
+          <a href="practice/method.html"><span class="idx">01</span><span><span class="topic">Measurement Culture</span><span class="desc">every constant is on probation</span></span><span class="stat partial">partial</span></a>
+          <a href="practice/explorer.html"><span class="idx">02</span><span><span class="topic">The Project Explorer</span><span class="desc">generation you can watch</span></span><span class="stat shipped">shipped</span></a>
+          <a href="practice/docs.html"><span class="idx">03</span><span><span class="topic">The Document Suite</span><span class="desc">the spec argues back</span></span><span class="stat shipped">shipped</span></a>
+        </div>
       </div>
-      <a class="card" href="practice/method.html">
-        <span class="num">Practice</span>
-        <span class="topic">Measurement Culture</span>
-        <span class="t">Every Constant Is on Probation</span>
-        <span class="d">Provisional constants, calibration tests that pin ratios and suites that assert distributions.</span>
-        <span class="badge partial">Partial</span>
-      </a>
-      <a class="card" href="practice/explorer.html">
-        <span class="num">Practice</span>
-        <span class="topic">The Project Explorer</span>
-        <span class="t">Generation You Can Watch</span>
-        <span class="d">The nine-panel workbench and the CLI samplers: every stage observable, every observation reproducible from a seed.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
-      <a class="card" href="practice/docs.html">
-        <span class="num">Practice</span>
-        <span class="topic">The Document Suite</span>
-        <span class="t">The Spec Argues Back</span>
-        <span class="d">Fourteen documents, dated corrections kept in place, a propagation register and where to start reading.</span>
-        <span class="badge shipped">Shipped</span>
-      </a>
     </div>
   </details>
 
@@ -368,10 +214,14 @@ made after the first.</code></pre>
 
 </main>
 
+<footer><div class="inner">
+  <span>Those Who Came Before</span><span>Spectral + IBM Plex Mono</span><span>paper #efe8da · ink #23201b</span><span class="push">© Goblin Uprising</span>
+</div></footer>
+
 <script>
-// pipeline strip — built/partial/designed read from each mechanism page's own badge,
-// not index arithmetic (the badge is what the hub's own cards state; a stage moving
-// from shipped to partial only needs the one card updated, not this array kept in sync).
+// pipeline diagram: built/partial/designed read from each mechanism page's own badge,
+// not index arithmetic (the badge is what the hub's own rowlist states; a stage moving
+// from shipped to partial only needs the one row updated, not this array kept in sync).
 // Colour comes from the stage-{status} CSS classes in site.css, not from hex computed
 // here, so the diagram reads correctly in both themes without this script knowing which
 // theme is active.
@@ -393,7 +243,7 @@ made after the first.</code></pre>
   let out = "";
   stages.forEach((s, i) => {
     const [label, cadence, status] = s;
-    out += `<rect class="stage-${status}" x="${x}" y="${y}" width="${w}" height="${h}" rx="9"/>`;
+    out += `<rect class="stage stage-${status}" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/>`;
     const lines = label.split("\n");
     const lineY = lines.length === 1 ? y + h / 2 + 4 : y + h / 2 - 6;
     lines.forEach((ln, j) => {
