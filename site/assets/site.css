@@ -1,53 +1,51 @@
 /*
-	Semantic palette for the publication, built on vendored reasonable-colors.css.
-	Components reference these aliases only, never --color-{name}-{shade} directly.
+	Direction A "Fieldbook" palette: a warm parchment manuscript rather than a neutral gray
+	reading surface. Reasonable Colors' gray scale is dropped entirely for --bg/--surface/--ink
+	in favour of fixed sepia/ink hex values — the RC gray ramp has no warm-neutral hue that
+	reaches this tone, so the honest move is to state the palette directly rather than force
+	an RC alias onto a colour it doesn't own. RC hues remain the source for the five strand
+	colours below, chosen for contrast against parchment rather than against white.
+	Components reference the aliases only, never --color-{name}-{shade} directly.
 
-	Mapping notes: Reasonable Colors has no warm-neutral/parchment hue, so --bg/--surface/--ink
-	trade the original site's sepia warmth for RC's cool gray scale — the nearest honest match,
-	not a forced one. --terra (accent, links) maps to amber; --verd (structural boxes, callouts)
-	maps to emerald; --bronze (kickers, headings) maps to cinnamon — this is a sitewide
-	typographic accent, unrelated to which strand cinnamon happens to represent below.
-	Shade gaps of 3 hold body-text contrast (4.5:1) and gaps of 4 hold AAA (7:1) per the
-	RC contrast table.
-
-	Strand hues: five groups, one Reasonable Colors harmony. Design (violet) is the pivot.
-	The three concept groups (Fieldnotes, Ideas, Design) form violet's own triadic set
-	(cinnamon, teal, violet); the two developer groups (Mechanism, Practice) take violet's
-	split-complementary pair (green, lime). Confirmed against reasonable.work/colors/violet.
+	Strand hues keep the earlier assignment (Design/violet as the conceptual pivot,
+	Fieldnotes/cinnamon, Ideas/teal, Mechanism/green, Practice/lime) but each now reads
+	against --surface (#fbf7ef) rather than white, so shades were re-picked for the new
+	background: shade 4 holds AA body-text contrast (4.5:1+) on parchment for every strand.
 */
 @import "./reasonable-colors.css";
 
 :root {
-	--bg: var(--color-gray-1);
-	--surface: #ffffff;
-	--ink: var(--color-gray-6);
-	--muted: var(--color-gray-4);
-	--faint: var(--color-gray-3);
-	--line: var(--color-gray-2);
+	--bg: #efe8da;
+	--surface: #fbf7ef;
+	--ink: #23201b;
+	--muted: #4a4438;
+	--faint: #8b8272;
+	--line: #ddd4c2;
+	--border: #d6cbb4;
 
-	--ink-soft: var(--color-gray-5);
+	--ink-soft: #6b6459;
 
-	--terra: var(--color-amber-4);
-	--terra-soft: var(--color-amber-3);
-	--verd: var(--color-emerald-4);
-	--bronze: var(--color-cinnamon-4);
+	--terra: #8c3b1e;
+	--terra-soft: #9a4a24;
+	--verd: var(--color-emerald-5);
+	--bronze: #9a4a24;
 
 	/* strand hues — see mapping note above; badges derive from these, not from --verd/--bronze */
-	--strand-fieldnotes: var(--color-cinnamon-4);
-	--strand-fieldnotes-text: var(--color-cinnamon-5);
-	--strand-ideas: var(--color-teal-4);
-	--strand-design: var(--color-violet-4);
-	--strand-mechanism: var(--color-green-4);
-	--strand-practice: var(--color-lime-4);
-	--strand-practice-text: var(--color-lime-5);
+	--strand-fieldnotes: #9a4a24;
+	--strand-fieldnotes-text: #9a4a24;
+	--strand-ideas: #2f6b66;
+	--strand-design: #3b4a86;
+	--strand-mechanism: #4e6b2e;
+	--strand-practice: #8a6a13;
+	--strand-practice-text: #8a6a13;
 
 	/* code blocks stay a fixed dark reading surface in both themes, so these don't move */
 	--code-bg: var(--color-gray-6);
 	--code-ink: var(--color-gray-1);
 	--code-accent: var(--color-amber-3);
 
-	--serif: "Iowan Old Style", "Palatino Linotype", palatino, "Book Antiqua", georgia, serif;
-	--mono: ui-monospace, "SF Mono", "Cascadia Code", menlo, consolas, monospace;
+	--serif: "Spectral", "Iowan Old Style", "Palatino Linotype", palatino, "Book Antiqua", georgia, serif;
+	--mono: "IBM Plex Mono", ui-monospace, "SF Mono", "Cascadia Code", menlo, consolas, monospace;
 	--shell: 52rem;
 	--prose: 46rem;
 }
@@ -59,14 +57,14 @@
 }
 
 /*
-	Dark palette. Same alias names, different values — every rule above and below this
-	file that references an alias (not a raw --color-{name}-{shade}) picks this up for
-	free. Accent hues move from shade 4 (mid-dark, built for a white surface) to shade 2
-	(near the light end of each ramp) rather than a mirrored shade 3, because several
-	hues' shade 3 (amber, emerald, teal, green, lime) read as too dark against a near-black
-	surface to hold body-text contrast. This is a first pass, the same way a constant in
-	the engine starts provisional: read against real screens, not measured against a
-	contrast checker, and worth revisiting if a specific hue reads wrong.
+	Dark palette: ink-ground parchment rather than a mirrored sepia. The mockup itself uses
+	exactly this relationship for its topbar and footer (#23201b background, #efe8da text),
+	so the dark theme extends that treatment across the whole page instead of inventing an
+	unrelated dark scheme. --surface sits one step lighter than --bg, matching the light
+	theme's paper/surface relationship (surface = slightly lifted). Strand hues move to
+	shade 2 (near the light end of each ramp) for AA contrast against the near-black ground —
+	first pass, read against real screens rather than a contrast checker, and worth revisiting
+	if a specific hue reads wrong.
 
 	Two blocks, same values: the media-query block follows system preference when no
 	explicit choice has been made; the [data-theme="dark"] block is what the toggle sets,
@@ -74,18 +72,19 @@
 */
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) {
-		--bg: var(--color-gray-6);
-		--surface: var(--color-gray-5);
-		--ink: var(--color-gray-1);
-		--ink-soft: var(--color-gray-2);
-		--muted: var(--color-gray-3);
-		--faint: var(--color-gray-4);
-		--line: var(--color-gray-4);
+		--bg: #23201b;
+		--surface: #2c2820;
+		--ink: #efe8da;
+		--ink-soft: #d6cbb4;
+		--muted: #a89e8c;
+		--faint: #746b5a;
+		--line: #423c30;
+		--border: #423c30;
 
 		--terra: var(--color-amber-2);
 		--terra-soft: var(--color-amber-3);
 		--verd: var(--color-emerald-2);
-		--bronze: var(--color-cinnamon-2);
+		--bronze: var(--color-amber-2);
 
 		--strand-fieldnotes: var(--color-cinnamon-2);
 		--strand-fieldnotes-text: var(--color-cinnamon-2);
@@ -97,18 +96,19 @@
 	}
 }
 :root[data-theme="dark"] {
-	--bg: var(--color-gray-6);
-	--surface: var(--color-gray-5);
-	--ink: var(--color-gray-1);
-	--ink-soft: var(--color-gray-2);
-	--muted: var(--color-gray-3);
-	--faint: var(--color-gray-4);
-	--line: var(--color-gray-4);
+	--bg: #23201b;
+	--surface: #2c2820;
+	--ink: #efe8da;
+	--ink-soft: #d6cbb4;
+	--muted: #a89e8c;
+	--faint: #746b5a;
+	--line: #423c30;
+	--border: #423c30;
 
 	--terra: var(--color-amber-2);
 	--terra-soft: var(--color-amber-3);
 	--verd: var(--color-emerald-2);
-	--bronze: var(--color-cinnamon-2);
+	--bronze: var(--color-amber-2);
 
 	--strand-fieldnotes: var(--color-cinnamon-2);
 	--strand-fieldnotes-text: var(--color-cinnamon-2);
@@ -123,13 +123,13 @@
 html{scroll-behavior:smooth}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:var(--serif);font-size:17px;line-height:1.65;
+  font-family:var(--serif);font-size:16px;line-height:1.58;
   -webkit-font-smoothing:antialiased;
   transition:background-color .15s,color .15s;
 }
 a{color:var(--terra);text-decoration:none}
-a:hover{text-decoration:underline}
-code{font-family:var(--mono);font-size:.82em;background:color-mix(in srgb,var(--bronze) 13%,transparent);padding:.1em .35em;border-radius:4px}
+a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+code{font-family:var(--mono);font-size:.8em;background:var(--bg);padding:.12em .35em;border-radius:0}
 pre{
   background:var(--code-bg);color:var(--code-ink);border-radius:10px;
   padding:1.1rem 1.25rem;overflow-x:auto;font-size:.8rem;line-height:1.55;
@@ -144,43 +144,50 @@ pre .t{color:var(--color-sky-2)}
 
 /* ---------- top bar ---------- */
 #topbar{
-  position:sticky;top:0;z-index:10;
-  background:color-mix(in srgb,var(--bg) 88%,transparent);
-  backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;
+  background:#23201b;color:#efe8da;
+  border-bottom:1px solid #423c30;
 }
 #topbar .inner{
-  max-width:var(--shell);margin:0 auto;padding:.6rem 1.5rem;
-  display:flex;align-items:baseline;gap:1rem;
+  max-width:var(--shell);margin:0 auto;padding:.5rem 1.75rem;
+  display:flex;align-items:center;gap:1.25rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
 }
 #topbar .site{
-  font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--muted);white-space:nowrap;
+  font-weight:600;color:#efe8da;white-space:nowrap;
 }
-#topbar .site a{color:var(--muted)}
+#topbar .site a{color:#efe8da}
 #topbar .here{
-  font-size:.85rem;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#a89e8c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-left:auto;
 }
+/* topbar sits on a fixed dark bar in both themes (matches the mockup exactly), so a strand
+   hue placed there directly fails contrast — every strand colour is tuned against --surface,
+   not against #23201b. The mockup's own topbar carries no strand chip at all; this keeps the
+   chip but neutralises it to the same muted tone as .here, and the coloured version still
+   shows correctly in the .pagenav.pn-top sub-bar just below, which sits on --surface. */
+#topbar .strand{color:#a89e8c}
 .theme-toggle{
-  margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;
-  width:1.9rem;height:1.9rem;border-radius:50%;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);cursor:pointer;font-size:.95rem;line-height:1;padding:0;
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:1.4rem;height:1.4rem;border-radius:2px;border:1px solid #55503f;
+  background:transparent;color:#efe8da;cursor:pointer;font-size:.9rem;line-height:1;padding:0;
+  letter-spacing:0;
 }
-.theme-toggle:hover{border-color:var(--bronze)}
+.theme-toggle:hover{border-color:#a89e8c}
 
 /* ---------- shared page chrome ---------- */
 .wrap{max-width:var(--shell);margin:0 auto;padding:0 1.5rem}
 article.wrap{max-width:var(--prose);padding-bottom:2rem}
 
 .kicker{
-  font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--bronze);margin:2.6rem 0 .4rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--bronze);margin:2.6rem 0 .6rem;
 }
-h1{font-size:2.35rem;line-height:1.12;margin:.2rem 0 1rem;font-weight:600;letter-spacing:-.01em}
-h2{font-size:1.35rem;margin:2.4rem 0 .6rem;font-weight:600}
-h3{font-size:1.05rem;margin:1.8rem 0 .4rem;font-weight:600}
-p{margin:.75rem 0}
-.lede{font-size:1.13rem;color:var(--ink-soft)}
+h1{font-family:var(--serif);font-weight:300;font-size:2.1rem;line-height:1.08;margin:.2rem 0 .7rem;letter-spacing:-.015em}
+h2{font-size:1.08rem;margin:1.9rem 0 .45rem;padding-top:.7rem;border-top:1px solid var(--line);font-weight:600}
+h3{font-size:1.02rem;margin:1.6rem 0 .4rem;font-weight:600}
+p{margin:.6rem 0}
+.lede{font-size:1.05rem;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:1rem;margin-bottom:1.25rem}
 ul,ol{padding-left:1.3rem}
 li{margin:.35rem 0}
 hr{border:none;border-top:1px solid var(--line);margin:2.2rem 0}
@@ -191,29 +198,29 @@ th{text-align:left;font-size:.72rem;letter-spacing:.08em;text-transform:uppercas
 td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-align:top}
 
 .callout{
-  border-left:3px solid var(--verd);background:color-mix(in srgb,var(--verd) 7%,transparent);
-  padding:.8rem 1.1rem;border-radius:0 8px 8px 0;margin:1.2rem 0;font-size:.95rem;
+  border:1px solid var(--border);background:var(--surface);
+  padding:1rem 1.2rem;margin:1.75rem 0 0;font-size:.95rem;
 }
-.callout.warn{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 7%,transparent)}
+.callout.warn{border-color:var(--terra-soft)}
 .callout .tag{
-  display:inline-block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--verd);font-weight:600;margin-bottom:.15rem;
+  display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--verd);font-weight:600;margin-bottom:.35rem;
 }
-.callout.warn .tag{color:var(--terra)}
+.callout.warn .tag{color:var(--terra-soft)}
 
 .badge{
-  display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  padding:.18em .6em;border-radius:99px;vertical-align:middle;
+  display:inline-block;font-family:var(--mono);font-size:.68rem;font-weight:400;letter-spacing:0;text-transform:lowercase;
+  padding:0;vertical-align:middle;
 }
 /* badges take their own card's group hue, varied by shade for status (darker = more built),
    rather than a sixth colour competing with the five strand hues. Mechanism = green, Practice
    = lime; badges only appear on these two groups' cards today (Design carries none by policy). */
-.group-mechanism .badge.shipped{background:color-mix(in srgb,var(--color-green-5) 16%,transparent);color:var(--color-green-5)}
-.group-mechanism .badge.partial{background:color-mix(in srgb,var(--color-green-4) 16%,transparent);color:var(--color-green-4)}
-.group-mechanism .badge.designed{background:color-mix(in srgb,var(--color-green-3) 20%,transparent);color:var(--color-green-3)}
-.group-practice .badge.shipped{background:color-mix(in srgb,var(--color-lime-5) 16%,transparent);color:var(--color-lime-5)}
-.group-practice .badge.partial{background:color-mix(in srgb,var(--color-lime-4) 16%,transparent);color:var(--color-lime-4)}
-.group-practice .badge.designed{background:color-mix(in srgb,var(--color-lime-3) 20%,transparent);color:var(--color-lime-3)}
+.group-mechanism .badge.shipped{color:var(--strand-mechanism)}
+.group-mechanism .badge.partial{color:var(--strand-practice-text)}
+.group-mechanism .badge.designed{color:var(--faint)}
+.group-practice .badge.shipped{color:var(--strand-mechanism)}
+.group-practice .badge.partial{color:var(--strand-practice-text)}
+.group-practice .badge.designed{color:var(--faint)}
 
 /* fieldnotes settledness mark — a third badge vocabulary, legitimate here because
    unsettledness is this group's actual subject rather than a caveat on it. Rendered as
@@ -224,11 +231,26 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 .settled .rung{font-family:var(--mono);font-size:.68rem;letter-spacing:.02em;color:var(--strand-fieldnotes);text-transform:lowercase}
 
 .srcbox{
-  margin:2.5rem 0 0;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:10px;
-  background:var(--surface);font-size:.85rem;
+  margin:2.5rem 0 0;padding:1rem 1.2rem;border:1px solid var(--border);
+  background:var(--surface);font-size:.72rem;font-family:var(--mono);color:var(--ink-soft);
 }
-.srcbox .tag{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;display:block;margin-bottom:.3rem}
-.srcbox code{white-space:nowrap}
+.srcbox .tag{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);font-weight:600;display:block;margin-bottom:.4rem}
+.srcbox code{white-space:nowrap;background:none;padding:0;font-size:inherit}
+
+/* article sub-bar: strand name, "entry N of M", prev/next — sticky beneath the topbar,
+   matching the mockup's fixed two-tier header */
+.pagenav.pn-top{
+  border-top:none;border-bottom:1px solid var(--line);background:var(--surface);
+  position:sticky;top:2.3rem;z-index:15;margin:0;
+}
+.pagenav.pn-top .inner{
+  max-width:var(--shell);margin:0 auto;padding:.55rem 1.75rem;
+  display:flex;align-items:center;gap:1rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+}
+.pagenav.pn-top .pos{color:var(--faint)}
+.pagenav.pn-top .links{margin-left:auto;display:flex;gap:1.25rem}
+.pagenav.pn-top .links a{color:var(--ink-soft)}
 
 .pagenav{
   max-width:var(--prose);margin:0 auto 3rem;padding:1.2rem 1.5rem 0;
@@ -236,88 +258,169 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
   font-size:.92rem;
 }
 .pagenav[hidden]{display:none}
-.pagenav.pn-top{margin:0 auto;border-top:none;border-bottom:1px solid var(--line);padding:.55rem 1.25rem;font-size:.82rem}
 .pagenav a{display:block}
 .pagenav .dir{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:block}
 .pagenav .next{text-align:right;margin-left:auto}
 .ghead{grid-column:1/-1;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin:.9rem 0 -.1rem;font-weight:600}
 .ghead:first-child{margin-top:0}
 
-/* diagrams */
-.diag{margin:1.2rem 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem .9rem .5rem;overflow-x:auto}
+/* diagrams — dotted paper background matches the mockup's figure treatment */
+.diag{
+  margin:1.25rem 0;background:var(--bg);border:1px solid var(--border);padding:.9rem .9rem .6rem;overflow-x:auto;
+  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:9px 9px;
+}
 .diag svg{display:block;min-width:560px;width:100%}
 .diag text{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
 .diag .lab{fill:var(--muted);font-size:9.5px}
-.diag .box{fill:color-mix(in srgb,var(--verd) 10%,transparent);stroke:var(--verd);stroke-width:1.1}
-.diag .warn{fill:color-mix(in srgb,var(--terra) 10%,transparent);stroke:var(--terra)}
-.diag .soft{fill:color-mix(in srgb,var(--muted) 8%,transparent);stroke:var(--faint)}
-.diag .gold{fill:color-mix(in srgb,var(--bronze) 14%,transparent);stroke:var(--bronze)}
+.diag .box{fill:var(--surface);stroke:var(--verd);stroke-width:1.1}
+.diag .warn{fill:var(--surface);stroke:var(--terra-soft)}
+.diag .soft{fill:var(--surface);stroke:var(--faint)}
+.diag .gold{fill:var(--surface);stroke:var(--bronze)}
 .diag .arrow{stroke:var(--faint);fill:none;stroke-width:1.1}
 .diag .bar{fill:color-mix(in srgb,var(--bronze) 45%,transparent)}
-.diagcap{font-size:.78rem;color:var(--muted);margin:.5rem .2rem .3rem}
+.diagcap{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin:.7rem .2rem .3rem;line-height:1.5}
 
 /* ---------- hub ---------- */
 .hero{
-  max-width:var(--shell);margin:0 auto;padding:3.2rem 1.5rem 1rem;
-  display:grid;grid-template-columns:1fr 15.5rem;gap:2.2rem;align-items:start;
+  max-width:var(--shell);margin:0 auto;padding:2rem 1.75rem 1.5rem;
+  display:grid;grid-template-columns:1fr 19rem;gap:2rem;align-items:start;
+  border-left:2px solid var(--ink);
 }
-.hero h1{font-size:2.7rem;max-width:30ch}
-.hero .lede{max-width:56ch}
+.hero .text{padding-left:1.5rem}
+.hero h1{font-family:var(--serif);letter-spacing:-.015em;max-width:30ch;margin:.2rem 0 .5rem;display:flex;flex-direction:column}
+.hero h1 .h1-main{font-weight:600;font-size:2.3rem;line-height:1.05}
+.hero h1 .h1-sub{font-weight:300;font-size:1.5rem;line-height:1.15;color:var(--bronze);margin-top:.2rem}
+.hero .h1-quote{
+  font-family:var(--serif);font-style:italic;font-size:1rem;color:var(--ink-soft);
+  max-width:58ch;margin:0 0 1.1rem;
+}
+.hero .lede{max-width:58ch;border-bottom:none;padding-bottom:0;margin-bottom:.6rem}
+.hero .note{margin:0;font-size:.95rem;color:var(--ink-soft);max-width:58ch;font-style:italic}
+.hero .over{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--bronze);margin-bottom:.6rem;
+}
 .heroaside{
-  border:1px solid var(--line);border-radius:10px;background:var(--surface);
-  padding:1.1rem 1.2rem;margin-top:.3rem;
+  border:1px solid var(--border);background:var(--surface);
+  padding:1.1rem 1.2rem;font-family:var(--mono);font-size:.72rem;line-height:1.5;
+  display:flex;flex-direction:column;gap:1.1rem;
 }
-.statusline{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:.75rem}
-.statusline .row{display:flex;flex-direction:column;gap:.15rem}
-.statusline .lbl{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.statusline b{color:var(--ink);font-weight:600;font-size:.9rem}
+.heroaside .hsection:last-child{margin-bottom:0}
+.heroaside .htitle{
+  letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);font-size:.62rem;
+  border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:.75rem;
+  list-style:none;cursor:pointer;user-select:none;display:flex;align-items:center;gap:.5rem;
+}
+.heroaside .htitle::-webkit-details-marker{display:none}
+.heroaside .htitle::before{content:"▸";color:var(--faint);font-size:.85em;transition:transform .15s}
+.heroaside .hsection[open] .htitle::before{transform:rotate(90deg)}
+.heroaside .hsection:not([open]) .htitle{margin-bottom:0;border-bottom:none;padding-bottom:0}
+.statusline{display:grid;grid-template-columns:auto 1fr;gap:.45rem .9rem}
+.statusline .lbl{color:var(--faint)}
+.heroaside .legend{font-family:var(--serif);font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:.55rem;line-height:1.45}
+.heroaside .legend b{font-weight:600;display:block;margin-bottom:.15rem}
 @media(max-width:760px){
   .hero{grid-template-columns:1fr}
-  .heroaside{margin-top:1.4rem}
 }
-.cardstack{max-width:var(--shell);margin:1.8rem auto 4rem;padding:0 1.5rem;display:flex;flex-direction:column;gap:1.1rem}
-/* three unlabelled groups by DOM order alone: {Fieldnotes, Ideas, Design}, {Mechanism}, {Practice}.
-   group-break adds extra space above a group's first member without a visible heading. */
-.cardgroup.group-break{margin-top:1.3rem}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
-.cardgroup{border:1px solid var(--line);border-radius:14px}
-.cardgroup summary{
-  list-style:none;cursor:pointer;display:flex;align-items:center;gap:.7rem;
-  padding:.85rem 1.1rem;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--bronze);font-weight:600;user-select:none;
+
+/* "pick a way in" intro block */
+.huborient{
+  max-width:var(--shell);margin:0 auto;padding:1rem 1.75rem .5rem;
+  border-top:2px solid var(--ink);
 }
-.cardgroup summary::-webkit-details-marker{display:none}
-.cardgroup summary::before{content:"▸";color:var(--faint);transition:transform .15s;font-size:.9em}
-.cardgroup[open] summary::before{transform:rotate(90deg)}
-.cardgroup summary:hover{color:var(--terra)}
-.cardgroup .gcount{margin-left:auto;font-family:var(--mono);font-size:.68rem;letter-spacing:0;text-transform:none;color:var(--faint);font-weight:400}
-.cardgroup[open] summary{border-bottom:1px dashed var(--line)}
-.cardgroup .cards{padding:1rem 1.1rem 1.1rem}
-.card{
-  display:flex;flex-direction:column;gap:.3rem;
-  background:var(--surface);border:1px solid var(--line);border-radius:12px;
-  padding:1rem 1.1rem 1.05rem;color:var(--ink);
-  transition:border-color .15s,transform .15s,box-shadow .15s;
+.huborient h3{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 .5rem;font-weight:400;
 }
-.card:hover{text-decoration:none;border-color:var(--bronze);transform:translateY(-2px);box-shadow:0 6px 18px color-mix(in srgb,var(--ink) 8%,transparent)}
-.card .num{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
-.card .topic{font-weight:650;font-size:1.02rem;line-height:1.25}
-.card .t{font-style:italic;font-size:.86rem;color:var(--bronze);line-height:1.3}
-.card .t::before{content:"“"}
-.card .t::after{content:"”"}
-.card .d{font-size:.84rem;color:var(--muted);line-height:1.45;flex:1;margin-top:.15rem}
-.card .badge{align-self:flex-start;margin-top:.35rem}
+.huborient .picks{display:flex;flex-direction:column;gap:.25rem;font-size:.95rem}
+
+/* strands: a <details> per strand, collapsed by default. The summary is a single-line
+   pill-chip header; opening it reveals the spine gutter + row-list body below. */
+.strands{max-width:var(--shell);margin:0 auto;padding:0 1.75rem 3rem;display:flex;flex-direction:column;gap:1rem}
+.strandsec{border-top:2px solid var(--ink);padding-top:.8rem}
+.strandsec summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:.8rem;
+  padding:.15rem 0;user-select:none;
+}
+.strandsec summary::-webkit-details-marker{display:none}
+.strandsec summary::before{
+  content:"▸";color:var(--faint);font-size:.75em;transition:transform .15s;flex:none;
+}
+.strandsec[open] summary::before{transform:rotate(90deg)}
+.strandsec .chip{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  padding:.2em .6em;border-radius:4px;
+}
+.chip.fieldnotes{background:color-mix(in srgb,var(--strand-fieldnotes-text) 16%,transparent);color:var(--strand-fieldnotes-text)}
+.chip.ideas{background:color-mix(in srgb,var(--strand-ideas) 16%,transparent);color:var(--strand-ideas)}
+.chip.design{background:color-mix(in srgb,var(--strand-design) 16%,transparent);color:var(--strand-design)}
+.chip.mechanism{background:color-mix(in srgb,var(--strand-mechanism) 16%,transparent);color:var(--strand-mechanism)}
+.chip.practice{background:color-mix(in srgb,var(--strand-practice-text) 20%,transparent);color:var(--strand-practice-text)}
+.strandsec summary h2{
+  font-family:var(--serif);font-size:1.02rem;font-weight:600;margin:0;letter-spacing:-.005em;
+  color:var(--bronze);border-top:none;padding-top:0;
+}
+.strandsec .scount{
+  font-family:var(--mono);font-size:.7rem;color:var(--faint);white-space:nowrap;flex:none;margin-left:auto;
+}
+.strandbody{display:grid;grid-template-columns:3.25rem 1fr;gap:1.25rem;padding-top:1rem}
+.spine{border-right:1px solid var(--border);display:flex;justify-content:flex-end;padding-right:.75rem}
+.spine span{
+  writing-mode:vertical-rl;font-family:var(--mono);font-size:.68rem;letter-spacing:.28em;
+  text-transform:uppercase;font-weight:600;
+}
+.strandsec .sdesc{margin:0 0 .5rem;font-size:.86rem;color:var(--muted);max-width:62ch}
+
+.rowlist{display:flex;flex-direction:column}
+.rowlist a{
+  display:grid;grid-template-columns:2.6rem 1fr 8.5rem;gap:1rem;align-items:start;
+  padding:.5rem 0;border-top:1px solid var(--line);color:var(--ink);
+}
+.rowlist a:last-child{border-bottom:1px solid var(--line)}
+.rowlist a:hover{text-decoration:none;background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.rowlist.wide a{grid-template-columns:2.6rem 1fr}
+.rowlist.pipeline a{grid-template-columns:5.5rem 1fr 9rem}
+.rowlist .idx{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+.rowlist .idx.start{color:inherit}
+.rowlist .topic{font-weight:500}
+.rowlist .desc{display:block;color:var(--muted);font-size:.85rem;line-height:1.35;margin-top:.05rem}
+.rowlist .stat{font-family:var(--mono);font-size:.7rem;text-align:right;line-height:1.5}
+.rowlist .stat.itch,.rowlist .stat.hunch,.rowlist .stat.sketch,.rowlist .stat.draft,.rowlist .stat.call,.rowlist .stat.stand{color:var(--strand-fieldnotes-text)}
+.rowlist .stat.shipped{color:var(--strand-mechanism)}
+.rowlist .stat.partial{color:var(--strand-practice-text)}
+.rowlist .stat.designed,.rowlist .stat.unbuilt{color:var(--faint)}
+
+.repolink{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  border:1px solid var(--border);background:var(--surface);padding:.85rem 1.1rem;margin-bottom:.75rem;
+  color:var(--ink);max-width:46rem;text-decoration:none;
+}
+.repolink:hover{text-decoration:none}
+.repolink .lbl{font-weight:500}
+.repolink .sub{display:block;font-size:.85rem;color:var(--muted);margin-top:.1rem}
+.repolink .go{font-family:var(--mono);font-size:.72rem;color:var(--strand-practice-text);white-space:nowrap}
+
+/* fieldnotes settledness key + ideas worked-example box, the two headline elements */
+.settlekey{display:flex;flex-direction:column;gap:.4rem}
+.settlekey .row{display:flex;align-items:baseline;gap:.7rem;font-size:.83rem}
+.settlekey .rung{font-family:var(--mono);width:4.4em;flex:none;color:var(--strand-fieldnotes-text);font-size:.72rem}
+.settlekey .dots{flex:none;width:5.6em;font-family:var(--mono);letter-spacing:.08em;color:var(--strand-fieldnotes-text)}
+.settlekey .means{color:var(--muted)}
+
+.workedbox{border:1px solid var(--border);background:var(--surface);padding:1rem 1.2rem;margin:0 0 1rem;max-width:46rem}
+.workedbox pre{margin:0;font-family:var(--mono);font-size:.74rem;line-height:1.6;color:var(--muted);white-space:pre-wrap;background:none;padding:0;border:none;color:var(--muted)}
+.workedbox .conclusion{font-family:var(--mono);font-size:.68rem;color:var(--bronze);margin-top:.7rem}
 
 /* section strand indicator, used on every subpage and in each hub cardgroup summary */
 .strand{
-  font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
-  display:inline-block;padding:.15em .55em;border-radius:5px;margin-right:.5rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+  display:inline-block;padding:0;margin-right:.5rem;
 }
-.strand.ideas{background:color-mix(in srgb,var(--strand-ideas) 14%,transparent);color:var(--strand-ideas)}
-.strand.fieldnotes{background:color-mix(in srgb,var(--strand-fieldnotes) 16%,transparent);color:var(--strand-fieldnotes-text)}
-.strand.design{background:color-mix(in srgb,var(--strand-design) 14%,transparent);color:var(--strand-design)}
-.strand.mechanism{background:color-mix(in srgb,var(--strand-mechanism) 14%,transparent);color:var(--strand-mechanism)}
-.strand.practice{background:color-mix(in srgb,var(--strand-practice) 22%,transparent);color:var(--strand-practice-text)}
+.strand.ideas{color:var(--strand-ideas)}
+.strand.fieldnotes{color:var(--strand-fieldnotes-text)}
+.strand.design{color:var(--strand-design)}
+.strand.mechanism{color:var(--strand-mechanism)}
+.strand.practice{color:var(--strand-practice-text)}
 
 /* headline element — first item inside each hub cardgroup's .cards grid, spanning full width */
 .headline{
@@ -328,43 +431,29 @@ td{border-bottom:1px solid var(--line);padding:.5rem .6rem .5rem 0;vertical-alig
 .headline .diagcap{margin:.5rem .1rem 0}
 .groupnote{grid-column:1/-1;font-size:.85rem;color:var(--muted);margin:-.3rem 0 .2rem;line-height:1.5}
 
-/* the fieldnotes settledness key, as the fieldnotes headline element */
-.settlekey{display:flex;flex-direction:column;gap:.4rem}
-.settlekey .row{display:flex;align-items:baseline;gap:.7rem;font-size:.83rem}
-.settlekey .rung{font-family:var(--mono);width:4.4em;flex:none;color:var(--strand-fieldnotes);font-size:.72rem}
-.settlekey .dots{flex:none;width:5.6em;font-family:var(--mono);letter-spacing:.08em;color:var(--strand-fieldnotes)}
-.settlekey .means{color:var(--muted)}
-
-/* practice's headline: a link to the repository rather than a diagram */
-.repolink{
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;
-  padding:.4rem .2rem;text-decoration:none;color:var(--ink);
-}
-.repolink .lbl{font-weight:650}
-.repolink .sub{font-size:.82rem;color:var(--muted);display:block;margin-top:.15rem}
-.repolink .go{font-family:var(--mono);color:var(--strand-practice);font-size:.85rem;white-space:nowrap}
-.repolink:hover{text-decoration:none}
-.repolink:hover .lbl{color:var(--color-lime-5)}
-
-/* pipeline strip / cross-page svg strips */
-.pipestrip{max-width:var(--shell);margin:2.2rem auto 0;padding:0 1.5rem;overflow-x:auto}
-.pipestrip svg{display:block;min-width:640px;width:100%;max-width:100%}
-.pipestrip text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
-.pipestrip .cad{fill:var(--faint);font-size:10px}
-.pipestrip .arrow{stroke:var(--faint);fill:none;stroke-width:1.1}
-/* stage status colours as aliases, not the inline hex the script used to compute, so the
-   pipeline reads correctly in both themes without the script knowing which theme is active */
-.pipestrip [class^="stage-"]{stroke-width:1.2}
-.pipestrip .stage-shipped{fill:color-mix(in srgb,var(--strand-mechanism) 13%,transparent);stroke:var(--strand-mechanism)}
-.pipestrip .stage-partial{fill:color-mix(in srgb,var(--strand-practice) 18%,transparent);stroke:var(--strand-practice-text)}
-.pipestrip .stage-designed{fill:color-mix(in srgb,var(--muted) 10%,transparent);stroke:var(--faint)}
+/* nine-segment pipeline status bar — a flat coloured strip, one segment per stage */
+/* pipeline node diagram: one box per generation stage, drawn into the hub's Mechanism
+   headline. Reuses .diag's dotted-paper figure treatment; stage boxes take the same
+   shipped/partial/designed vocabulary as the rowlist .stat classes beside them. */
+.pipediag{margin:0}
+.pipediag svg{min-width:900px}
+.pipediag .stage{stroke-width:1.3}
+.pipediag .stage-shipped{fill:color-mix(in srgb,var(--strand-mechanism) 16%,var(--surface));stroke:var(--strand-mechanism)}
+.pipediag .stage-partial{fill:color-mix(in srgb,var(--strand-practice-text) 20%,var(--surface));stroke:var(--strand-practice-text)}
+.pipediag .stage-designed{fill:var(--surface);stroke:var(--faint)}
+.pipediag .arrow{stroke:var(--faint);fill:none;stroke-width:1.1}
+.pipediag .cad{fill:var(--muted);font-size:9.5px}
 
 footer{
-  max-width:var(--shell);margin:0 auto;padding:1.2rem 1.5rem 2.4rem;
-  font-size:.78rem;color:var(--faint);border-top:1px solid var(--line);
+  background:#23201b;color:#a89e8c;border-top:1px solid var(--border);
 }
+footer .inner{
+  max-width:var(--shell);margin:0 auto;padding:1.5rem 1.75rem 2.5rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+}
+footer .inner .push{margin-left:auto}
 @media(max-width:600px){
   h1{font-size:1.85rem}
-  .hero h1{font-size:2.1rem}
-  body{font-size:16px}
+  .hero h1{font-size:2rem}
 }
