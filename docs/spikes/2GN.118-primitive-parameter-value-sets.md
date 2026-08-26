@@ -4,7 +4,7 @@
 | --------- | ---------------------------------------------------------------------------- |
 | Status    | Ruled                                                                        |
 | Ruled     | 2026-08-13                                                                   |
-| Ruling in | This document; implementation split out, no `src/` change made here          |
+| Ruling in | This document; propagated to doc 11 §2.17. No `src/` change made here        |
 | Outcome   | `base` unioned; `diameter` unified; `opening`/`perforation` split to 2GN.122 |
 
 ## The question

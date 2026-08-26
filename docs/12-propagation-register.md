@@ -3058,7 +3058,7 @@ dimension anywhere. The only thing resembling an implementation was `calibration
 (`engine/generation/materials.ts`) iterates every region in a `GeologicalContext` and returns the
 best availability level across all of them — not the regions the producing culture actually
 occupies. For doc 11's own motivating case (a culture spanning two regions), this produces one
-baseline against best-of-*every*-region availability, the exact defect the region key exists to
+baseline against best-of-_every_-region availability, the exact defect the region key exists to
 prevent. Invisible today only because every shipped preset models exactly one region.
 
 **No rule reads a region, so none needs to.** All ten `ClassificationRule.condition` call sites that
@@ -3074,8 +3074,8 @@ separate production-region pipeline is built now; every currently-authored world
 so the two are identical in practice regardless.
 
 **Region ruled world-level, referenced by a new `CulturePhase.geography.regions: string[]`.**
-Grouped under `geography` and plural from the start, per Jason's ruling in session, so the
-"culture spans two regions" case doc 11 already names doesn't force a second breaking change later.
+Grouped under `geography` and plural from the start, per Jason's ruling in session, so the "culture
+spans two regions" case doc 11 already names doesn't force a second breaking change later.
 `CulturePhaseSample` (the structural parameter bag `sampleBaselines` takes, standing in for a real
 `CulturePhase` until 3WS.3/3WS.4) gains the same `geography` field directly rather than being forced
 to hold a full `CulturePhase` early, preserving its documented "nothing here has to change when
@@ -3084,13 +3084,150 @@ to hold a full `CulturePhase` early, preserving its documented "nothing here has
 Full reasoning, all six findings and the complete consequences list:
 `docs/spikes/2GN.142-region-keyed-baselines.md`.
 
-| §  | Propagation                                                                                    | Date       |
-| -- | ------------------------------------------------------------------------------------------------ | ---------- |
-| ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                        | 2026-08-24 |
-| ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                             | 2026-08-24 |
+| §  | Propagation                                                                                        | Date       |
+| -- | -------------------------------------------------------------------------------------------------- | ---------- |
+| ⏳ | `types/world.ts`: `CulturePhase` gains `geography: { regions: string[] }`                          | 2026-08-24 |
+| ⏳ | `baselines.ts`: `CulturePhaseSample` gains matching `geography` field                              | 2026-08-24 |
 | ⏳ | `types/tags.ts`: `ClassificationContext` gains `geography.regions` alongside `cultureId`/`phaseId` | 2026-08-24 |
 | ⏳ | `materials.ts`: `bestRegionalLevel` resolves against occupied regions, not the whole world         | 2026-08-24 |
-| ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                 | 2026-08-24 |
+| ⏳ | 2GN.27, 2GN.68 unblocked: both share this gap via the identical four-term formula                  | 2026-08-24 |
+
+### 2.54 The Re-Expansion Cap Is 20; Measuring It Found Nearly Half of Worst-Cell Rolls Discarded (2026-08-25)
+
+**Origin:** roadmap 2GN.137. **Source of truth:** doc 11 §2.19 holds the ruling;
+`docs/spikes/2GN.137-re-expansion-attempt-cap.md` holds the measurements.
+
+Doc 05 §6.2 and §14 specified the exhaustion contract with "N attempts" as a placeholder. 2GN.137
+measured the per-attempt plausibility failure rate over 5000 seeds in seven cells (four Explorer
+presets, three `craftSpecialisation` corners) and ruled **N = 20** against the worst: xoconahtl at
+43.3%. Attempts were confirmed independent by simulating the loop on a continuing stream (75/5000
+artefacts needed more than 5 attempts, matching `0.433^5`), so exhaustion is `p^N`: 5.4e-8 per
+artefact at N = 20.
+
+**"Re-rolling is cheap" was true per roll and unmeasured in aggregate.** Between 13% and 43% of
+expansions are discarded depending on the cell. Two rules dominate: the wrapped-join rule (§2.52)
+and the rigid-shaft rule, both rejecting structure `expandGrammar` rolled without consulting
+`allowedMaterialTags`. Filed as 2GN.145 rather than fixed, since a grammar-side change moves every
+calibration pin.
+
+**No calibration pin moved.** `checkPlausibility` still has no production caller (2GN.16 remains
+`todo`); this entry ships two constants and a guard test, no behaviour.
+
+| § | Propagation                                                                                             | Date       |
+| - | ------------------------------------------------------------------------------------------------------- | ---------- |
+| — | `MAX_PLAUSIBILITY_ATTEMPTS = 20`, `PLAUSIBILITY_FAILURE_CEILING = 0.5` in `data/plausibility.ts`        | 2026-08-25 |
+| — | `plausibility.calibration.test.ts`: per-preset rate under the ceiling; `0.5^N < 1e-6`                   | 2026-08-25 |
+| — | Doc 11 §2.19: the ruling                                                                                | 2026-08-25 |
+| — | Doc 05 §6.2 and §14: "N attempts" replaced with 20; "re-rolling is cheap" qualified                     | 2026-08-25 |
+| — | Roadmap: 2GN.137 done; 2GN.16 unblocked; new 2GN.145 (grammar reads `allowedMaterialTags` at roll time) | 2026-08-25 |
+
+### 2.55 Provenance Was Already Inside Availability; the Selection Weight Points the Wrong Way for Standing (2026-08-25)
+
+**Origin:** roadmap 2GN.143. **Source of truth:** doc 11 §2.9 (restated formula);
+`docs/spikes/2GN.143-provenance-in-material-standing.md` holds the measurement.
+
+Doc 11 §2.9 stated material standing as "availability × cultural affinity × provenance ×
+stratification", with provenance categorical and therefore not a literal term. Measured over 448
+material/culture/world pairs: `deriveMaterialProvenance`'s `source` is a total, deterministic
+coarsening of `explainMaterialWeight`'s `level` (locally obtainable → `local` 286/286, reachable
+`trade-only` → `trade` 100/100), both derived from the same `bestRegionalLevel` call. Ruled **(a)**:
+provenance stays implicit in availability; the formula is restated as
+`f(availability⁻¹, cultural affinity, stratification)`.
+
+**The direction trap, caught by Jason at ruling.** `weight` is a selection quantity (trade-only
+0.15, abundant 1.0): low means rare in the culture's output. Standing is the reverse on that axis.
+Affinity is direct, availability inverse, so `weight` as a scalar cannot be the standing score;
+2GN.27/2GN.68 compose standing from the returned components instead. Their roadmap notes, which read
+"the 3-term weight alone", are amended.
+
+**No code changed.** `MaterialAssignment.provenance` keeps doc 05 §7.1's role as the occluded fact
+the player infers; the `types/artefact.ts` JSDoc that listed provenance as a separate input is
+corrected.
+
+| § | Propagation                                                                                        | Date       |
+| - | -------------------------------------------------------------------------------------------------- | ---------- |
+| — | Doc 11 §2.9: formula restated, direction and `weight` caveat recorded                              | 2026-08-25 |
+| — | `types/artefact.ts` `preciousMaterialsInDecoration` JSDoc: three components, availability inverted | 2026-08-25 |
+| — | Roadmap: 2GN.143 done; 2GN.27/2GN.68 notes amended                                                 | 2026-08-25 |
+
+### 2.56 The Substrate Gate Read a Preference Table as an Access Table (2026-08-25)
+
+**Origin:** roadmap 2GN.134, deferred by name from 2GN.127 (§2.49). **Source of truth:** doc 11
+§2.20 holds the ruling; `docs/spikes/2GN.134-affinity-substrate-gate.md` holds the measurements.
+
+`materialAccessGate`'s substrate check required `culturalAffinityWeight > 1` as well as
+`isAvailable`. Once §2.49's silence rule made cultures author an affinity for every reachable
+material, that predicate turned indifference and mild dislike into suppression: 28 of 252 (culture,
+world, technique) pairs gated to 0.05×, every one over a material the culture has (xoconahtl clay
+1.0, tarpan clay 0.7, khaltiris clay 0.8 and oak/ash 0.9, thalassar oak/ash 1.0). Ruled:
+**availability only**, affinity kept as a hard gate at 0 alone. `>= 1` was rejected because it
+rescues only the value 2GN.127 happened to catch; re-authoring presets past the gate was rejected as
+2GN.127 already had.
+
+**Cost measured with the gate live before ruling, then reverted:** 758/760. No `EXPECTED_*` pin
+leaves tolerance. The two failures are a `decoration.test.ts` fixture that tests the affinity gate
+under an availability-gate name (`materialAffinities: []` against a geology with engravable
+material) and `calibration.test.ts`'s R43 spread floor (4.0pp → 2.7pp, floor 3pp). Both are
+2GN.129's to resolve; the ruling ships no code.
+
+| §  | Propagation                                                                                        | Date       |
+| -- | -------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.20: the ruling                                                                           | 2026-08-25 |
+| —  | Roadmap: 2GN.134 done; 2GN.129 amended to carry the gate change, fixture rewrite and R43 floor     | 2026-08-25 |
+| ⏳ | 2GN.129: `materialAccessGate` substrate check → `isAvailable && affinity > 0`; re-record R43 floor | 2026-08-25 |
+
+### 2.57 Sublayers Are a Separate Pass; the Feared Draw-Sequence Cost Moved No Pin (2026-08-25)
+
+**Origin:** roadmap 2GN.132. **Source of truth:** doc 11 §2.21 holds the ruling;
+`docs/spikes/2GN.132-sublayer-placement.md` holds the measurements.
+
+2GN.132 asked whether 2GN.31's sublayer producer lives inside `expandDecoration`'s slot loop or as a
+separate pass. Ruled: **separate pass, own `${seed}-sublayers` stream, after `assignMaterials` and
+`assignDecorativeDetails`, wired into the harness and Explorer in the same PR.** The deciding fact
+is ordering: a sublayer's substrate is its parent layer's material, which the loop cannot know (the
+same ordering 2GN.99, §2.35, resolved for grading).
+
+**The cost the task notes predicted was measured and did not occur.** One extra `prng()` draw per
+selected layer inside the loop, the minimum a sublayer roll would cost, changed 1114 of 1200 seeds'
+layer lists (12790 → 12771 total layers) and left every pin in `calibration.test.ts`,
+`statistics.regression.test.ts`, `classification.test.ts` and `materials.calibration.test.ts` within
+tolerance. Sequence perturbation is a per-artefact concern; the pins guard distributions. Recorded
+so the next task that reasons "this changes the draw sequence, so every pin moves" checks before
+acting on it. The notes' reference to a repo-root `BLOCKED.md` is stale; no such file exists.
+
+**No code changed.** 2GN.31's deliverables now name the pass, its position, its stream, the
+substrate rule for sublayers, and the wiring.
+
+| §  | Propagation                                                                                           | Date       |
+| -- | ----------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.21: the ruling                                                                              | 2026-08-25 |
+| —  | Roadmap: 2GN.132 done; 2GN.31 amended with placement, stream, substrate rule and wiring deliverables  | 2026-08-25 |
+| ⏳ | 2GN.31: `expandSublayers` pass; harness + Explorer wiring; pins re-recorded; regression guard retired | 2026-08-25 |
+
+### 2.58 Depth Gets the Same Axis Split as Volume and Grade (2026-08-25)
+
+**Origin:** roadmap 2GN.131. **Source of truth:** doc 11 §2.22 holds the ruling;
+`docs/spikes/2GN.131-recursion-depth-cap.md` holds the simulation.
+
+2GN.32's title named `craftSpecialisation × decorativeEmphasis` as the depth cap's inputs with no
+formula behind it. Ruled: **emphasis drives the per-depth chance of a sublayer (through
+`decorationVolume`), craft drives the ceiling (`1 + round(craft × 2)`, anchor
+`MAX_SUBLAYER_DEPTH
+= 3`).** Doc 05 §8.3's middle corners force the assignment; a product of the two
+gives both corners 0.09 and collapses them, which is §2.32/§2.33's volume finding one level down.
+Simulated over real `expandDecoration` output at five (craft, emphasis) cells with a
+`${seed}-sublayers` stream, the split reproduces the four corners in kind. Constants are provisional
+and 2GN.32's to calibrate: 85% of high/high artefacts reach depth 3 at BASE 0.5.
+
+**One comment corrected.** `types/world.ts`'s `PhaseCharacteristics` JSDoc said craft alone raises
+"the decorative grammar's recursion cap", predating §2.10's split; it now names both levers.
+
+| §  | Propagation                                                                                         | Date       |
+| -- | --------------------------------------------------------------------------------------------------- | ---------- |
+| —  | Doc 11 §2.22: the ruling                                                                            | 2026-08-25 |
+| —  | `types/world.ts` `PhaseCharacteristics` JSDoc: both levers named                                    | 2026-08-25 |
+| —  | Roadmap: 2GN.131 done; 2GN.32 amended to the formula and narrowed to calibration                    | 2026-08-25 |
+| ⏳ | 2GN.31/2GN.32: implement inside `expandSublayers`; calibrate BASE/DECAY/rounding; sample `maxDepth` | 2026-08-25 |
 
 ---
 

@@ -402,7 +402,20 @@ made `extractFeatures` depend on world context and broken its purity instead.
 **Consequence: `MaterialTag`'s `precious-*` members are retired entirely.** _(Revised 2026-08-11 by
 roadmap 2GN.78 — see below for what this replaced.)_ `precious-metal` and `precious-stone` are no
 longer members of `MaterialTag`. Material-derived status comes from the material's situation in the
-world (availability × cultural affinity × provenance × stratification), never from a catalogue tag.
+world, never from a catalogue tag. _(Formula restated 2026-08-25 by roadmap 2GN.143, doc 12 §2.55;
+the original read "availability × cultural affinity × provenance × stratification".)_
+
+> **Standing = f(availability⁻¹, cultural affinity, stratification).** Provenance is not a separate
+> term: `MaterialAssignment.provenance.source` is a deterministic coarsening of the availability
+> `level` (locally obtainable levels → `local`, reachable `trade-only` → `trade`), so availability
+> already encodes it. Availability enters **inverted**: rare here means precious here, so
+> `trade-only` and `scarce` push standing up and `abundant` pushes it down. Cultural affinity enters
+> directly. `explainMaterialWeight().weight` is a _selection_ weight (how often the culture makes
+> things from the material) and must not be used as the standing score, since its availability axis
+> points the other way; compose standing from the components it returns (`level`,
+> `culturalAffinity`) plus `PhaseCharacteristics.society.stratification`. The threshold is
+> 2GN.27/2GN.68's to set. Provenance earns its own term only if trade flows ever carry distance or
+> intensity. Full detail: `docs/spikes/2GN.143-provenance-in-material-standing.md`.
 
 This ruling originally kept the two members "as material descriptors, not as classification inputs",
 barring rules from reading them while leaving them to feed generation. 2GN.78 found that boundary
@@ -437,15 +450,15 @@ culture is not — nothing binds a culture to a single region — so a culture s
 faces different material availability in each. Decoration baselines need no region key; material
 ones do.
 
-> **Shaped by §2.9's own spike, roadmap 2GN.142 (2026-08-24).** This paragraph named the
-> requirement but no type implemented it: `ClassificationContext` carried no region field,
-> `bestRegionalLevel` (`engine/generation/materials.ts`) resolved availability across every region
-> in the world rather than the ones a culture-phase actually occupies, and no `CulturePhase` had
-> anywhere to state which regions it occupied. 2GN.142 ruled region a world/geology-level fact,
-> referenced by a new `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more
-> than one region); `bestRegionalLevel` resolves against that occupied set rather than the whole
-> world; and `ClassificationContext`/`CulturePhaseSample` carry a matching `geography.regions`
-> occupied-region set. No rule reads the region directly — the only surface a rule touches is
+> **Shaped by §2.9's own spike, roadmap 2GN.142 (2026-08-24).** This paragraph named the requirement
+> but no type implemented it: `ClassificationContext` carried no region field, `bestRegionalLevel`
+> (`engine/generation/materials.ts`) resolved availability across every region in the world rather
+> than the ones a culture-phase actually occupies, and no `CulturePhase` had anywhere to state which
+> regions it occupied. 2GN.142 ruled region a world/geology-level fact, referenced by a new
+> `CulturePhase.geography.regions: string[]` (plural, for a phase spanning more than one region);
+> `bestRegionalLevel` resolves against that occupied set rather than the whole world; and
+> `ClassificationContext`/`CulturePhaseSample` carry a matching `geography.regions` occupied-region
+> set. No rule reads the region directly — the only surface a rule touches is
 > `ClassificationContext.exceeds`, so `ClassificationRule.condition`'s signature does not widen
 > again. Production region is treated as a complete copy of deposition region
 > (`Provenance.site.region`) for MVP, since every currently-authored world is single-region and the
@@ -915,6 +928,160 @@ widening the primitives to force a wider spread, which would have reopened the t
 session, no separate spike — the table's per-primitive reasoning is recorded here rather than in
 `docs/spikes/`, since the ruling happened interactively against measured calibration output rather
 than as a standalone spike investigation.
+
+### 2.17 Primitive Parameter Value-Sets (roadmap 2GN.118)
+
+**Decision (2026-08-13):** `PRIMITIVE_PARAMETERS` (`data/grammars/primitives.ts`, reproducing doc 05
+§5.3) has seven shared-name parameters with disjoint per-primitive vocabularies. Ruled one by one:
+
+| Parameter                        | Ruling                                                                                                                                                                                       |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `base`                           | Unions to `['flat', 'rounded', 'pointed', 'pedestal']` on both `cylindrical` and `hollow-enclosed`. The split made `base-pointed-amphora` unfireable on anything amphora-shaped              |
+| `diameter`                       | Unifies to `small/medium/large`; the underlying derivation (ratio to length, not an absolute table) is 2GN.135's to rule and 2GN.120's to implement                                          |
+| `opening`, `perforation`         | Deferred whole to 2GN.122. Neither is a vocabulary split: each is two axes (presence/count and aperture size; count and position) crushed into one field, and they may be one aperture model |
+| `crossSection`, `shape`, `taper` | Stay as authored: genuinely different geometry under one name                                                                                                                                |
+
+The extractor's primitive-type branch (`classification.ts`) stays as a marked seam: it can express
+only impossible-versus-equally-likely, and per-primitive frequency has to return as weights
+(2GN.121, M3). The two base rules keep their authored weights; `EXPECTED_FIRE_RATES` re-records once
+at implementation. `bar-form`'s `taper: single-end` is not reversal-invariant, so it constrains
+2GN.115's orientation ruling.
+
+**Affects:** doc 05 §5.3 (vocabularies), `data/grammars/primitives.ts`, rules
+`base-pedestal-display` and `base-pointed-amphora`. Roadmap: 2GN.118 done (no `src/` change; each
+ruling lands in its own task). Full detail, including the seven-pair cross-tabulation and rejected
+alternatives: `docs/spikes/2GN.118-primitive-parameter-value-sets.md`.
+
+### 2.18 Naming Is the Surface of a Language Layer (roadmap 2GN.66)
+
+**Decision (2026-08-15):** names for sites, cultures and scholars are synthesised from a generated
+phonology, not drawn from authored fragment lists. Five rulings:
+
+1. **Phonotactic synthesis, not word-lists.** Doc 01 already lists language documents and language
+   evolution among mapped features; a name-only generator would be thrown away when tablets land.
+2. **Phonology is generated per language** from the seeded PRNG: a universal core (`p t k m n s l`)
+   plus probability-gated extras, with frequency-ranked selection (`pickRanked`, geometric dropoff)
+   rather than uniform draws.
+3. **A name is a segment list rendered at read time.** `Provenance.site.name` is a `NameForm`
+   (phoneme ids + coining phase), not a string, so a site named early and met later under a drifted
+   form is a genuine interpretive puzzle (pillar 1).
+4. **Languages form a forest of families**, not one proto-language per world. Family count derives
+   from culture count so N=2 stays sensible. Sound change is not built: sisters are identical today,
+   stated rather than faked.
+5. **Constrain combinations, never the vocabulary.** A 65-phoneme table with one-directional
+   coherence prerequisites and phonotactic rules, so no inventory can be made unsatisfiable.
+
+**Not modelled:** sound change, phase-evolved name forms, scholar naming conventions (one name per
+scholar), orthography beyond one grapheme per phone.
+
+**Affects:** doc 08 `data/names/`, `types/language.ts`,
+`engine/world/{phonology,naming,syllable}.ts`. Roadmap: 2GN.66 done; follow-ons (sound change,
+culture `languageId` binding, toponymy, Explorer phonology inspector) are listed in the spike, not
+yet filed as tasks. Full detail, including the eight defects found by measurement and by reading
+output, and the `the-tongue` prior-art table: `docs/spikes/2GN.66-naming-grammars.md`.
+
+### 2.19 Plausibility Re-Expansion Cap: N = 20 (roadmap 2GN.137)
+
+**Decision (2026-08-25):** the Stage 5 re-expansion loop (doc 05 §6.2, built by 2GN.16) retries up
+to **20** times before throwing `PlausibilityExhaustedError`. Shipped as `MAX_PLAUSIBILITY_ATTEMPTS`
+in `data/plausibility.ts`.
+
+Measured, not guessed. Attempts are independent draws from one PRNG stream (empirically confirmed),
+so per-artefact exhaustion is `p^N` for a cell's per-attempt failure rate `p`. The worst shipped
+cell (xoconahtl) fails 43.3% of rolls; at N = 20 that is 5.4e-8 per artefact, about 3e-5 per
+500-artefact career. The per-artefact tolerance adopted is 1e-6, which N = 20 keeps while `p` stays
+under 0.5: `PLAUSIBILITY_FAILURE_CEILING = 0.5` is guarded per Explorer preset by
+`plausibility.calibration.test.ts`, so a new rule that breaches it fails a test rather than eroding
+the bound.
+
+The high rate is itself a finding: the wrapped-join and rigid-shaft rules reject joins and head
+placements `expandGrammar` rolls without reading `allowedMaterialTags`. Filed as 2GN.145 (grammar
+consults the material constraint at roll time), separate because it moves every calibration pin.
+
+**Affects:** doc 05 §6.2 and §14 ("N attempts" now has a value; "re-rolling is cheap" is true per
+roll and the aggregate rate is recorded), `data/plausibility.ts`, 2GN.16. Full detail:
+`docs/spikes/2GN.137-re-expansion-attempt-cap.md`.
+
+### 2.20 Cultural Affinity Does Not Gate Substrate Access (roadmap 2GN.134)
+
+**Decision (2026-08-25):** `materialAccessGate`'s substrate check
+(`engine/generation/decoration.ts`) becomes
+`isAvailable(material) && culturalAffinityWeight(material,
+culture) > 0` for at least one material
+passing the technique's substrate test. The `> 1` "favoured" requirement is removed; the `> 0` term
+is not a preference threshold but the guard that an authored zero (never used) stays a hard gate.
+This matches `hasIntroducedMaterialAccess`, the sibling check, which already gated on availability
+alone with the reasoning written beside it.
+
+Why: `materialAffinities` is a preference table, and §2.15 obliges cultures to state a preference
+for every material they can reach. The gate read preference as access, so an authored `1.0`
+(indifference) or `0.7` (mild dislike) suppressed a technique to 0.05× exactly as if the material
+were unobtainable. Measured over 252 (culture, world, technique) pairs: 28 gated, every one over a
+material the culture has. Affinity's proper effect is already realised upstream at
+`assignMaterials`, where it weights which material a component gets; the gate applied it a second
+time as a cliff. An authored 0 stays a hard gate, since `weightedSelect` treats 0 as never-assigned.
+
+**Cost measured before ruling:** with the gate switched, no calibration pin leaves tolerance; one
+unit test whose fixture tests the affinity gate rather than availability is rewritten, and R43's
+regional-spread guard narrows from 4.0pp to 2.7pp against a 3pp floor (forestInterior stops being
+the outlier), to be re-justified at implementation.
+
+**Affects:** `engine/generation/decoration.ts`, `decoration.test.ts`, `calibration.test.ts` (R43
+spread floor). Roadmap: 2GN.134 ruled; implementation folded into 2GN.129 alongside the
+`techniqueAffinities` silence rule, so both share one recalibration pass. Full detail:
+`docs/spikes/2GN.134-affinity-substrate-gate.md`.
+
+### 2.21 Sublayer Generation Is a Separate Pass After Material Assignment (roadmap 2GN.132)
+
+**Decision (2026-08-25):** decoration-on-decoration (`DecorativeLayer.sublayers`, doc 05 §8.3) is
+produced by a separate pure pass over `expandDecoration`'s flat output, seeded from its own PRNG
+stream (`${seed}-sublayers`), running after `assignMaterials` and `assignDecorativeDetails` and
+before `gradeDecorativeLayers` and `enforceSubstrates`. The pass resolves each sublayer's parent
+material for its own draw; those two consumers still resolve by `targetComponentId` until 2GN.133
+(blocked on 2GN.31) makes them parent-aware, so that task is the sequenced follow-on rather than
+optional polish. It is wired into the calibration harness and both Explorer sample paths in the same
+PR that builds it (2GN.31), never shipped unwired. `expandDecoration`'s slot loop and draw sequence
+are untouched.
+
+Why: a sublayer's substrate is its parent layer (paint over gilding sits on gold; engraving on an
+inlaid bone element cuts bone), so its material is known only once `assignMaterials` and
+`assignDecorativeDetails` have run, both of which follow `expandDecoration` by design. A draw inside
+the slot loop cannot gate substrate and would rely on `enforceSubstrates` to strip its mistakes. The
+determinism cost the task feared for the in-loop shape was measured and found to be per-artefact
+only: one extra draw per layer changed 1114 of 1200 seeds' output and moved no calibration pin, so
+that axis never separated the options. Pins move when sublayers land under either placement, for the
+real reason that `maxDepth` and `techniqueComplexity` change; they re-record once.
+
+**Affects:** `engine/generation/decoration.ts` (new pass), `calibration.test.ts` and the Explorer
+sample paths (wiring), `classification.test.ts`'s 2GN.31 regression guard (retired by that PR).
+Roadmap: 2GN.132 ruled; 2GN.31 carries the implementation; depth cap remains 2GN.131's. Full detail:
+`docs/spikes/2GN.132-sublayer-placement.md`.
+
+### 2.22 Decorative Recursion Depth: Emphasis Drives the Chance, Craft Drives the Ceiling (roadmap 2GN.131)
+
+**Decision (2026-08-25):** decoration-on-decoration depth (doc 05 §8.3, produced by 2GN.31's
+sublayer pass, calibrated by 2GN.32) is governed by two levers, one per phase attribute, extending
+§2.10's axis split to depth:
+
+- **Chance.** A layer at depth `d` gains a sublayer with probability
+  `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, reading
+  `aesthetics.decorativeEmphasis` through the same `decorationVolume` the slot loop uses.
+- **Ceiling.** Depth never exceeds
+  `1 + round(society.craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))` with `MAX_SUBLAYER_DEPTH = 3`
+  (§8.3's "up to 3 layers deep"), so a low-craft culture cannot nest at all.
+
+Why: §8.3's middle corners ("0–1 layers but technically refined" versus "1 layer, simple
+techniques") force the assignment: craft caps depth, emphasis caps count. Simulated over real
+`expandDecoration` output at the four corners (500 seeds each), the split reproduces all four in
+kind and separates the middle two (skilled-austere: 7% reach depth 2; lavish-unskilled: never
+nests). A product of the two attributes gives both middle corners 0.09 and collapses them, the same
+failure §2.10 measured for volume. Constants (0.5, 0.5, `round`) are provisional: 85% of high/high
+artefacts reach depth 3 at BASE 0.5, which 2GN.32 lowers against measured output.
+
+**Affects:** `engine/generation/decoration.ts` (inside 2GN.31's pass), `types/world.ts`
+`PhaseCharacteristics` JSDoc (corrected: craft no longer "raises the recursion cap" alone). Roadmap:
+2GN.131 ruled; 2GN.32 scope narrows to calibrating the constants. Full detail:
+`docs/spikes/2GN.131-recursion-depth-cap.md`.
 
 ---
 

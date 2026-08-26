@@ -158,8 +158,10 @@ holds the **reasoning**: the argument, the measurements taken to settle it, the 
 rejected and why. The ruling it reaches is propagated onward — doc 11 holds locked decisions, doc 12
 records what changed as a result — and each spike doc names where its ruling landed.
 
-Earlier spikes (2GN.77, 2GN.80, 2GN.98) predate this directory and recorded their rulings directly
-in doc 11 §2.9 and doc 12 entries.
+`docs/spikes/README.md` indexes every spike, ruled and open, with where each ruling landed. Earlier
+spikes (2GN.77, 2GN.80, 2GN.98) predate this directory and recorded their rulings directly in doc 11
+§2.9/§2.10 and doc 12 entries; 2GN.112 was ruled in a PR review. Each has a stub file in the
+directory pointing at its ruling so the index stays complete.
 
 ---
 

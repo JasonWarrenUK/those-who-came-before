@@ -40,8 +40,10 @@ export interface WorldSeed {
  * rather than a single float, so a culture can be exceptional metalworkers with crude ceramics.
  * These attributes feed grammar expansion and the decorative layer as weight modifiers: high
  * `technology.metallurgy` increases metal-compatible component probability, high
- * `society.craftSpecialisation` raises the plausibility checker's part budget and the decorative
- * grammar's recursion cap, high `aesthetics.formConservatism` narrows grammar branch variance.
+ * `society.craftSpecialisation` raises the plausibility checker's part budget and the ceiling on
+ * decorative recursion depth while `aesthetics.decorativeEmphasis` drives how much decoration
+ * appears and the per-depth chance of a sublayer (doc 11 §2.10 and §2.22, roadmap 2GN.98/2GN.131),
+ * high `aesthetics.formConservatism` narrows grammar branch variance.
  * Visibility: occluded (the player infers phase character from artefacts, never reads this).
  */
 /**

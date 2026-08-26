@@ -388,7 +388,8 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.16** — `engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand
       from grammar up to N attempts; on exhaustion, throw `PlausibilityExhaustedError` (seed,
       attempt count, last failing rules) rather than emit — never a relaxed-rules or fallback
-      artefact (doc 05 §6, §14; doc 12 §2.23) _(blocked — depends on 2GN.137; 2GN.12 done)_
+      artefact (doc 05 §6, §14; doc 12 §2.23) _(depends on 2GN.137, 2GN.12 — both done; unblocked)_
+      — N is 20 (`MAX_PLAUSIBILITY_ATTEMPTS`, 2GN.137)
 - [x] **2GN.17** — `src/lib/data/classification.ts` — classification rules: feature→tag scoring,
       structural/container/decorative/cross-layer contributions — rules were derived from first
       principles against the signals `data/grammars/primitives.ts` actually rolls, not transcribed
@@ -600,6 +601,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       threshold this task needs (ruled by Jason: percentile the weight, not a fixed constant) can't
       be computed correctly until that gap closes. Provenance dropped from this task's own formula
       per the same ruling session — see 2GN.143
+  - Note: **Amended 2026-08-25 by 2GN.143** (doc 11 §2.9 restated, doc 12 §2.55): standing =
+    f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
+    coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
+    availability inverted; never use its `weight`, a selection quantity pointing the other way.
 - [x] **2GN.28** — `src/lib/data/decorations.ts` — decorative technique definitions: surface
       treatments (polish, patina, scoring, engraving, relief, painting, glaze), applied elements
       (inlay, overlay, studs, wire-wrapping, gilding), textile elements (wrapping, tassels, beading)
@@ -718,9 +723,29 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       fraction of its current technique breadth with no code change and needs re-measuring against
       real nested output; a Deno test in `engine/generation/classification.test.ts` pins today's
       flat-layer contract so this breaks loudly rather than silently
+  - Note: **Ruled 2026-08-25 by 2GN.132** (doc 11 §2.21, doc 12 §2.57): ship
+    `expandSublayers(layers, assignments, details, culture, phase, geology, trade, prng)` (name
+    provisional) as a pure pass over `expandDecoration`'s flat output, seeded `${seed}-sublayers`,
+    positioned after `assignMaterials`/`assignDecorativeDetails` and before
+    `gradeDecorativeLayers`/`enforceSubstrates`. A sublayer's substrate is the parent's introduced
+    material where its technique introduces one, otherwise the parent's target component's assigned
+    material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s
+    sample loop and both Explorer sample paths, re-records the pins that move with drift annotated,
+    and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131.
+    Sequencing note (PR #76 review): `gradeDecorativeLayers`/`enforceSubstrates` resolve material by
+    `targetComponentId`, so until 2GN.133 lands a sublayer over an introduced material is
+    graded/checked against the component's material; `expandSublayers` resolves the parent material
+    for its own draw, and 2GN.133 remains the sequenced follow-on.
 - [ ] **2GN.32** — `engine/generation/decoration.ts` — recursion depth cap from
       `craftSpecialisation` × `aesthetics.decorativeEmphasis` _(blocked: depends on 2GN.29,
       2GN.131)_
+  - Note: **Ruled 2026-08-25 by 2GN.131** (doc 11 §2.22, doc 12 §2.58): the formula is fixed
+    (continuation chance
+    `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, ceiling
+    `1 + round(craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))`, MAX 3) and lives inside 2GN.31's
+    `expandSublayers` pass. Remaining scope is calibration: choose BASE, DECAY and the ceiling
+    rounding against measured `maxDepth` per cell so high/high is not near-certainly depth 3, record
+    the four-corner table, add `maxDepth` guards alongside the re-recorded R39/R40 pins.
 - [x] **2GN.33** — `engine/generation/decoration.ts` — motif assignment from culture's
       `motifVocabulary`, shared motifs via cultural exchange — landed as
       `assignDecorativeDetails(layers, culture, phase, geology, trade, sharedMotifSources, materials, techniques, prng): DecorativeLayer[]`,
@@ -1670,9 +1695,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins`
       from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer
-      material's **situation in the producing culture**) _(depends on 2GN.33, 2GN.20, 2GN.82, 2GN.83,
-      2GN.84, 2GN.85, 2GN.110, 2GN.97, 2GN.142 — all done)_ — ⚠️ **rescoped 2026-08-11
-      by 2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read
+      material's **situation in the producing culture**) _(depends on 2GN.33, 2GN.20, 2GN.82,
+      2GN.83, 2GN.84, 2GN.85, 2GN.110, 2GN.97, 2GN.142 — all done)_ — ⚠️ **rescoped 2026-08-11 by
+      2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read
       "`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup",
       which is exactly the static catalogue read 2GN.77 ruled against and which no longer has
       anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired.
@@ -1692,6 +1717,10 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `preciousMaterialsInDecoration` is hardcoded `false`. **Blocked on 2GN.142 (2026-08-21):**
       this task shares 2GN.27's exact four-term formula and the same region-keyed-baseline gap; see
       that task's note
+  - Note: **Amended 2026-08-25 by 2GN.143** (doc 11 §2.9 restated, doc 12 §2.55): standing =
+    f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
+    coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
+    availability inverted; never use its `weight`, a selection quantity pointing the other way.
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [x] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -1818,7 +1847,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       belongs to no ancient family and must never be assigned to a culture — ruled during the 2GN.66
       spike conversation: the modern language sits **outside** `LanguageForest`, not as a family of
       one inside it, since the forest is per-world-seed and generated where this is global and fixed
-- [ ] **2GN.131** — design spike — what does the decorative recursion depth cap actually compute
+- [x] **2GN.131** — design spike — what does the decorative recursion depth cap actually compute
       from `craftSpecialisation` and `aesthetics.decorativeEmphasis`? — 2GN.32's own title names
       both inputs, but no integer mapping, scale, or per-depth decay exists anywhere. Doc 05 §8.3's
       four-corner table ('0–1 layers' / 'up to 3 layers deep') was measured and ruled unbuildable as
@@ -1835,7 +1864,15 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       drives the recursion cap, predating §2.10's split of volume from grade. Surfaced 2026-08-19
       during an attempt to implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full
       research trail)
-- [ ] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.131-recursion-depth-cap.md`, doc 11 §2.22 and
+    doc 12 §2.58. Emphasis drives the per-depth chance of a sublayer
+    (`BASE × decorationVolume(phase) × DECAY^(d−1)`); craft drives the ceiling
+    (`1 + round(craft × (MAX − 1))`, `MAX_SUBLAYER_DEPTH = 3`).** Doc 05 §8.3's middle corners force
+    the assignment; a craft×emphasis product gives both 0.09 and collapses them. Simulated over real
+    `expandDecoration` output at five cells, 500 seeds each: reproduces all four corners in kind.
+    Constants provisional; 85% of high/high artefacts hit depth 3 at BASE 0.5, so 2GN.32 calibrates.
+    `types/world.ts` JSDoc corrected. `BLOCKED.md` does not exist.
+- [x] **2GN.132** — design spike — does sublayer generation live inside `expandDecoration`'s
       existing slot loop, or as a separate unwired post-pass? — folding sublayer draws into
       `expandDecoration`'s existing slot loop changes its deterministic draw sequence for every
       artefact, moving `EXPECTED_FIRE_RATES`/`EXPECTED_THRESHOLDS`/`EXPECTED_MEAN_GRADE_BY_REGION`
@@ -1853,6 +1890,13 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `assignDecorativeDetails` in production (2GN.84's note) — a discouraging precedent for 'ship
       it unwired and something will call it later'. Surfaced 2026-08-19 during an attempt to
       implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.132-sublayer-placement.md`, doc 11 §2.21 and doc
+    12 §2.57. Separate pass, own `${seed}-sublayers` stream, after `assignMaterials` and
+    `assignDecorativeDetails`, wired into the calibration harness and Explorer in the same PR as
+    2GN.31.** Deciding fact: a sublayer's substrate is its parent layer's material, which the slot
+    loop cannot know (2GN.99's ordering). The determinism cost predicted below was measured and did
+    not occur: one extra draw per layer changed 1114/1200 seeds' output and moved no calibration
+    pin. `BLOCKED.md` does not exist.
 - [ ] **2GN.133** — `engine/generation/decoration.ts` — make `enforceSubstrates` and
       `gradeDecorativeLayers` parent-material-aware for sublayers _(blocked: depends on 2GN.31)_ —
       `satisfiesSubstrate` (`enforceSubstrates`) and `regrade` (`gradeDecorativeLayers`) both read
@@ -1864,7 +1908,7 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       2GN.31 rather than absorbed into its scope, per the project's convention of naming a surfaced
       model gap rather than working around it silently. Surfaced 2026-08-19 during an attempt to
       implement 2GN.31/2GN.32 (see BLOCKED.md at the repo root for the full research trail)
-- [ ] **2GN.134** — design spike — should cultural affinity gate substrate access at all?
+- [x] **2GN.134** — design spike — should cultural affinity gate substrate access at all?
       `materialAccessGate` (`engine/generation/decoration.ts`) requires
       `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral, so a material
       authored at exactly `1.0` — explicit indifference under the 2GN.127 ruling — fails the gate
@@ -1876,11 +1920,20 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       `1.0` so the evidence survives for this ruling. Rules the gate question so 2GN.129 can extend
       the silence rule without inheriting the defect. ⚠️ any change moves technique-selection
       distributions, so the recalibration cost must be measured before a mechanism is chosen
-      _(depends on 2GN.128 — done; unblocked)_
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.129 was written as implementation but
     its own text names this as "this task's to rule", and its dependency 2GN.128 only implements the
     `materialAffinities` half — the spike (2GN.127) scoped itself to materials and deferred the
     substrate-gate question by name. Splitting the ruling out leaves 2GN.129 as pure implementation.
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.134-affinity-substrate-gate.md`, doc 11 §2.20
+    and doc 12 §2.56. No: the substrate gate reads availability only**
+    (`isAvailable && culturalAffinityWeight > 0`), matching `hasIntroducedMaterialAccess`. Measured
+    over 252 (culture, world, technique) pairs: 28 gated today, every one over a material the
+    culture has; `>= 1` would rescue 11, availability-only all 28 (tarpan clay 0.7 and khaltiris
+    clay 0.8 are the tell: a mild dislike suppressing glaze to 0.05×). Affinity's effect is already
+    realised upstream at `assignMaterials`. Cost measured with the gate live then reverted: 758/760,
+    no `EXPECTED_*` pin leaves tolerance; one `decoration.test.ts` fixture tests the affinity gate
+    under an availability name, and R43's spread floor narrows 4.0pp → 2.7pp (floor 3pp).
+    Implementation folded into 2GN.129 per Jason.
 - [ ] **2GN.135** — design spike — rule the inputs to the derived `wallThickness`/`diameter`
       quantity 2GN.120 implements: which modelled quantities feed the derivation
       (`craftSpecialisation`, the component's assigned material, vessel role for thickness; the
@@ -1905,16 +1958,22 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no
     doc section defines selection criteria or a target catalogue size, and the change is
     calibration-shifting. This spike rules the scope; 2GN.124 implements it.
-- [ ] **2GN.137** — design spike — rule the value of N for the plausibility re-expansion attempt
+- [x] **2GN.137** — design spike — rule the value of N for the plausibility re-expansion attempt
       cap. The exhaustion contract is already fully specified (doc 05 §5/§14 and doc 12: typed
       `PlausibilityExhaustedError`, no fallback artefact), but both docs use "N attempts" as a
       literal placeholder — no numeric value is pinned anywhere. Rule it measured rather than
       guessed: sample the plausibility-failure rate distribution over seeds with `checkPlausibility`
       (2GN.12, done) and pick the N that bounds exhaustion probability at an agreed tolerance
-      _(depends on 2GN.12 — done; unblocked)_
-  - Note: Filed 2026-08-20 from the M2 dependency audit: the narrowest of the audit's five gaps —
-    2GN.16's contract is real, only the constant is unruled. Deliberately small; may resolve in one
-    measurement session.
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.137-re-expansion-attempt-cap.md`, doc 11 §2.19
+    and doc 12 §2.54. N = 20**, shipped as `MAX_PLAUSIBILITY_ATTEMPTS` in `data/plausibility.ts`
+    with `PLAUSIBILITY_FAILURE_CEILING = 0.5` and a per-preset guard in
+    `plausibility.calibration.test.ts`. Measured over 5000 seeds × 7 cells: per-attempt failure runs
+    13.2% (craft 0.1) to 43.3% (xoconahtl); attempts confirmed independent, so exhaustion is p^N =
+    5.4e-8 per artefact at the worst cell (≈3e-5 per 500-artefact career). N=10 rejected (11% of
+    careers would hit the error), N=15 rejected (no headroom against the next rule). The rate itself
+    is a generator defect (wrapped-join and rigid-shaft rules reject structure `expandGrammar` rolls
+    without reading `allowedMaterialTags`), filed as 2GN.145. Originally filed 2026-08-20 from the
+    M2 dependency audit as the narrowest of its five gaps.
 - [ ] **2GN.138** — design spike — define "interpretive challenge" as a measurable per-artefact
       quantity and rule the excavation ambiguity distribution targets. Doc 05 §11.3 specifies the
       principle (measure the interpretive-challenge distribution of a batch, steer the next
@@ -1988,21 +2047,22 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     `ClassificationRule.condition` doesn't widen again. Full reasoning:
     `docs/spikes/2GN.142-region-keyed-baselines.md`, propagated to doc 11 §2.9 and doc 12 §2.53.
     Implementation is unimplemented and belongs to a follow-up task.
-- [ ] **2GN.143** — design spike — what role does `MaterialAssignment.provenance`
+- [x] **2GN.143** — design spike — what role does `MaterialAssignment.provenance`
       (`local`/`trade`/`unknown`) play in the material-standing formula doc 11 §2.9 states as
       "availability × cultural affinity × provenance × stratification"? Provenance is categorical,
-      not numeric, so it cannot be a literal multiplicative term. Measured 2026-08-21: local
-      materials already score higher via `explainMaterialWeight`'s existing weight alone (mean 0.371
-      vs trade's 0.119, across all 6 regional worlds × 16 materials) with no separate provenance
-      term — provenance's effect may already be embedded in the scarcity term. Rule whether
-      provenance should stay implicit, become an explicit categorical multiplier, or something else,
-      and update doc 11 §2.9's formula statement to match
-  - Note: Filed 2026-08-21 per Jason's ruling: 2GN.27 proceeds using the 3-term weight alone
-    (availability × cultural affinity, plus stratification once 2GN.96 lands), dropping provenance
-    as a separate factor for that task rather than blocking on this spike. Also relevant to 2GN.68.
-    Soft-linked to 2GN.144 (2026-08-25): that task changes `bestRegionalLevel`'s signature, which
-    this spike's own measurement reads directly, so re-measurement should follow it rather than
-    precede it.
+      not numeric, so it cannot be a literal multiplicative term. Rule whether provenance should
+      stay implicit, become an explicit categorical multiplier, or something else, and update doc 11
+      §2.9's formula statement to match
+  - Note: **Ruled 2026-08-25 — see `docs/spikes/2GN.143-provenance-in-material-standing.md`, doc 11
+    §2.9 (restated) and doc 12 §2.55. (a): provenance stays implicit in availability.** Measured
+    over 448 material/culture/world pairs: `deriveMaterialProvenance`'s `source` is a total
+    deterministic coarsening of `explainMaterialWeight`'s `level` (locally obtainable → local
+    286/286, reachable trade-only → trade 100/100), both from the same `bestRegionalLevel` call, so
+    an explicit multiplier would count `level` twice. Formula restated as standing =
+    f(availability⁻¹, cultural affinity, stratification). Direction trap caught by Jason at ruling:
+    `weight` is a _selection_ weight (trade-only 0.15) and points the wrong way for standing, so
+    2GN.27/2GN.68 compose from the components, never from `weight`. Reopen only if trade flows gain
+    distance/intensity. Originally filed 2026-08-21 while scoping 2GN.27; soft-linked to 2GN.144.
 - [ ] **2GN.144** — `types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` +
       `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains
       `geography: { regions: string[] }` (plural, for a phase spanning several regions);
@@ -2015,8 +2075,9 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       collapse fix the spike measured, threaded through its four callers (`isAvailable`,
       `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s
       call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor`
-      (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s
-      `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder
+      (stops abusing `cultureId` to hold a region name),
+      `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the
+      `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder
   - Note: Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not
     a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and
     both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that
@@ -2028,6 +2089,19 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm
     with `deno task test` before landing. Full reasoning:
     `docs/spikes/2GN.142-region-keyed-baselines.md`.
+- [ ] **2GN.145** — `engine/generation/grammar.ts` — `expandGrammar` consults `allowedMaterialTags`
+      (2GN.10) when rolling join types and head placements, so it stops producing structure the
+      wrapped-join and rigid-shaft plausibility rules reject on sight. 2GN.137 measured 13–43% of
+      expansions discarded at Stage 5 depending on the cell, dominated by those two rules; the rules
+      are correct and the grammar is uninformed. Rule where in the draw sequence the constraint is
+      read (a filter on the attachment option set before `selectGrammarOption`, so the draw count is
+      unchanged, versus a re-roll, which is not), and re-record every calibration pin, since any
+      change here moves `expandGrammar`'s draw sequence for every artefact _(depends on 2GN.137,
+      2GN.10 — both done; unblocked)_
+  - Note: Filed 2026-08-25 from the 2GN.137 spike. ⚠️ calibration-shifting: `EXPECTED_FIRE_RATES`,
+    `EXPECTED_TAG_SHARES` and the plausibility calibration guard all re-record. Not a blocker for
+    2GN.16 (the cap was ruled with headroom for today's rate), but landing it makes N=20
+    conservative rather than load-bearing.
 - [ ] **2GN.67** — `engine/generation/grammar.ts` — arrangement detection + pattern assignment:
       annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten
       time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3
@@ -2453,6 +2527,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     already means an authored-neutral material cannot serve as a substrate, which no ruling ever
     established.
 
+  - Note: **Ruled 2026-08-25 by 2GN.134** (doc 11 §2.20, doc 12 §2.56): affinity does not gate
+    substrate access. This task now carries the fix: `materialAccessGate`'s substrate check becomes
+    `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s "material gate — no
+    plausible engravable material" fixture to an absent geology (today it fixtures
+    `materialAffinities: []` against a geology that has engravable material); and re-justify
+    `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp. No
+    other pin left tolerance in the measurement.
+
 ---
 
 ## Milestone 3 — World State & Integration
@@ -2495,9 +2577,8 @@ integration with real culture data
       reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures.
       That decision is now ruled by 2GN.142 (2026-08-24), with implementation filed as 2GN.144
       (2026-08-25): region is world-level, referenced by `CulturePhase.geography.regions: string[]`
-      — this task generates
-      the real `GeologicalContext`/regions for production cultures and needs that field to exist
-      before it can populate it
+      — this task generates the real `GeologicalContext`/regions for production cultures and needs
+      that field to exist before it can populate it
 - [ ] **3WS.8** — `engine/world/culture.ts` — motif vocabulary generation per culture (distinctive
       sets for cultural fingerprinting) _(blocked — depends on 3WS.3)_ — generated vocabularies must
       be non-empty: doc 05 §8.5 treats motifs as the primary cultural fingerprint and doc 06's
