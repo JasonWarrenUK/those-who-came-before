@@ -23,17 +23,29 @@
  * `allowedMaterialTags` being real (rather than the old all-permissive `[]` stub) now makes
  * possible. `materialAssignment.test.ts` covers this field directly.
  *
+ * **Every draw goes through the engine's `assignMaterials`** (roadmap 2GN.27), never a per-component
+ * `assignMaterial` call. `assignMaterials` opens with a per-artefact stratum draw that boosts prized
+ * materials for an elite artefact and suppresses them for a commoner one, and a per-component call
+ * with no stratum reads the unmodulated culture-wide weights, which is a distribution the pipeline
+ * never produces (measured at roughly double the pipeline's prized-material rate before this was
+ * fixed). The canonical assignment uses the `${seed}-materials` stream, the same one the tag
+ * inspector and the decoration panel use, so the three panels resolve the same materials for the
+ * same seed; the per-component distribution redraws the whole artefact under fresh streams, so it
+ * mixes elite and commoner draws in the proportion `eliteShare` reports.
+ *
  * Pure, no DOM/Svelte, so it's unit-testable directly per the `structureTree.ts` precedent.
  */
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import {
-	assignMaterial,
+	assignMaterials as drawAssignments,
+	eliteShare,
 	explainMaterialWeight,
+	materialStanding,
 } from '../../../../lib/engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
-import { MATERIALS } from '../../../../lib/data/materials.ts';
+import { MATERIALS, STANDING_CUT } from '../../../../lib/data/materials.ts';
 import type { MaterialDefinition, NormalisedArtefact } from '../../../../lib/types/artefact.ts';
 import type { AvailabilityLevel } from '../../../../lib/types/world.ts';
 import type { MaterialName } from '../../../../lib/types/tags.ts';
@@ -78,6 +90,16 @@ export interface CandidateMaterial {
 	scarcity: number;
 
 	/**
+	 * The material's standing in this culture (`materialStanding`, roadmap 2GN.27): availability⁻¹
+	 * × cultural affinity, neutral at 1. Not a factor of `weight`; it decides which candidates the
+	 * stratum draw moves.
+	 */
+	standing: number;
+
+	/** Whether `standing` clears `STANDING_CUT`, so the stratum draw boosts or suppresses this candidate. */
+	prized: boolean;
+
+	/**
 	 * How many of this artefact's components could actually draw this material, i.e. carry it in
 	 * their `allowedMaterialTags` (roadmap 2GN.10). `0` means shape-incompatible with every
 	 * component present, even when culturally/geologically obtainable — a material an artefact of
@@ -117,6 +139,13 @@ export interface MaterialAssignmentModel {
 
 	/** How many draws the distribution was sampled over. */
 	draws: number;
+
+	/**
+	 * The probability that an artefact from this culture-phase was made for the elite
+	 * (`eliteShare`, roadmap 2GN.27): the share of `draws` in which prized candidates were boosted
+	 * rather than suppressed.
+	 */
+	eliteShare: number;
 }
 
 /**
@@ -139,7 +168,8 @@ function classify(
 /**
  * Generates one artefact from `seed` against `culture` and resolves a material per component.
  *
- * @param seed - The seed to generate from; also namespaces the assignment draws.
+ * @param seed - The seed to generate from; also namespaces the assignment draws (`${seed}-materials`
+ *   for the canonical assignment, `${seed}-materials-redraw-${n}` for each redraw).
  * @param culture - The culture, phase, geology and trade flows to assign against.
  * @param draws - How many times to repeat assignment for the empirical distribution. Values below
  *   `1` are treated as `1`, so the canonical assignment always exists.
@@ -176,6 +206,8 @@ export function assignMaterials(
 				material.tags.some((tag) => component.allowedMaterialTags.includes(tag)),
 		).length;
 
+		const standing = materialStanding(material, culture.profile, culture.phase, culture.geology);
+
 		return {
 			material,
 			level: explanation.level,
@@ -186,6 +218,8 @@ export function assignMaterials(
 			culturalAffinity: explanation.culturalAffinity,
 			phaseTechnology: explanation.phaseTechnology,
 			scarcity: explanation.scarcity,
+			standing,
+			prized: standing >= STANDING_CUT,
 			compatibleComponentCount,
 		};
 	});
@@ -196,30 +230,36 @@ export function assignMaterials(
 	}
 	candidates.sort((a, b) => b.weight - a.weight);
 
-	const assignments = artefact.components.map((component) => {
-		const tally = new Map<MaterialName, number>();
-		let resolved: MaterialDefinition | undefined;
+	// Whole-artefact draws through the engine, so every redraw carries its own stratum. Draw 0 is
+	// the canonical assignment on the `${seed}-materials` stream the other panels share; the rest
+	// take their own streams rather than continuing that one, so the canonical draw stays
+	// bit-identical whatever `draws` is set to.
+	const drawArtefact = (stream: string) =>
+		drawAssignments(
+			artefact,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+			createPrng(stream),
+			MATERIALS,
+		);
+	const canonical = drawArtefact(`${seed}-materials`);
+	const tallies = artefact.components.map(() => new Map<MaterialName, number>());
+	const tallyDraw = (drawn: readonly { materialId: MaterialName }[]) => {
+		drawn.forEach((assignment, index) => {
+			const tally = tallies[index];
+			tally.set(assignment.materialId, (tally.get(assignment.materialId) ?? 0) + 1);
+		});
+	};
+	tallyDraw(canonical);
+	for (let draw = 1; draw < sampleCount; draw++) {
+		tallyDraw(drawArtefact(`${seed}-materials-redraw-${draw}`));
+	}
 
-		for (let draw = 0; draw < sampleCount; draw++) {
-			// Keyed by `component.position`, not `component.id`: `normaliseArtefact` prefixes
-			// `component.id` with the caller's artefact id, which differs between this panel
-			// (`materials-${seed}`) and the decoration panel (`decoration-${seed}`). Position is the
-			// only part of a component's identity both panels agree on for the same generation seed,
-			// so it's what keeps their canonical (`draw = 0`) material draws in agreement.
-			const material = assignMaterial(
-				component,
-				culture.profile,
-				culture.phase,
-				culture.geology,
-				culture.trade,
-				createPrng(`${seed}-material-c${component.position}-${draw}`),
-				MATERIALS,
-			);
-			if (draw === 0) resolved = material;
-			tally.set(material.id, (tally.get(material.id) ?? 0) + 1);
-		}
-
-		const distribution = [...tally.entries()]
+	const assignments = artefact.components.map((component, index) => {
+		const resolved = MATERIALS.find((m) => m.id === canonical[index].materialId)!;
+		const distribution = [...tallies[index].entries()]
 			.map(([materialId, count]) => ({
 				materialId,
 				displayName: MATERIALS.find((m) => m.id === materialId)?.displayName ?? materialId,
@@ -231,10 +271,16 @@ export function assignMaterials(
 			componentId: component.id,
 			shortId: `c${component.position}`,
 			primitiveType: component.primitiveType,
-			resolved: resolved!,
+			resolved,
 			distribution,
 		};
 	});
 
-	return { artefact, assignments, candidates, draws: sampleCount };
+	return {
+		artefact,
+		assignments,
+		candidates,
+		draws: sampleCount,
+		eliteShare: eliteShare(culture.phase),
+	};
 }

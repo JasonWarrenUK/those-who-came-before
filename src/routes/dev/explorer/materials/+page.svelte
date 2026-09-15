@@ -58,7 +58,11 @@ const BADGE: Record<Obtainability, string> = {
 	counts how many of this artefact's components could physically be made from the material at all,
 	regardless of whether the culture can obtain it — "no shape" means the material fits none of this
 	artefact's component forms. The per-component distribution samples the draw repeatedly, which
-	shows the same bias empirically.
+	shows the same bias empirically. Every draw is a whole-artefact assignment, so it opens with the
+	stratum draw: an artefact made for the elite (the "elite share" badge gives the odds) has every
+	prized candidate's weight tripled, a commoner artefact has them cut to a twentieth. Standing is
+	the candidate's scarcity here inverted, times the culture's affinity; "prized" means it clears
+	the cut.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -90,6 +94,9 @@ const BADGE: Record<Obtainability, string> = {
 	<span class="badge badge-success">{obtainable.length} obtainable</span>
 	<span class="badge badge-error">{blocked.length} blocked</span>
 	<span class="badge badge-ghost">{model.draws} draws</span>
+	<span class="badge badge-ghost" title="probability an artefact is made for the elite stratum">
+		{(model.eliteShare * 100).toFixed(0)}% elite share
+	</span>
 </div>
 
 <div class="mt-6 flex flex-wrap gap-6">
@@ -138,6 +145,7 @@ const BADGE: Record<Obtainability, string> = {
 						<th class="text-right">Technology</th>
 						<th class="text-right">Scarcity</th>
 						<th>Weight</th>
+						<th class="text-right">Standing</th>
 						<th class="text-right">Shape</th>
 					</tr>
 				</thead>
@@ -167,6 +175,12 @@ const BADGE: Record<Obtainability, string> = {
 									</span>
 									<span class="font-mono text-xs">{candidate.weight.toFixed(2)}</span>
 								</span>
+							</td>
+							<td class="text-right font-mono text-xs">
+								{candidate.standing.toFixed(2)}
+								{#if candidate.prized}
+									<span class="badge badge-accent badge-sm ml-1">prized</span>
+								{/if}
 							</td>
 							<td
 								class="text-right font-mono text-xs"

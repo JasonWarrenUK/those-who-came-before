@@ -1,14 +1,69 @@
 /// <reference lib="deno.ns" />
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 import { assignMaterials } from './materialAssignment.ts';
-import { isAvailable } from '../../../../lib/engine/generation/materials.ts';
+import {
+	assignMaterials as engineAssignMaterials,
+	eliteShare,
+	isAvailable,
+	materialStanding,
+} from '../../../../lib/engine/generation/materials.ts';
+import { createPrng } from '../../../../lib/engine/prng.ts';
 import { deriveAllowedMaterialTags } from '../../../../lib/engine/generation/grammar.ts';
-import { MATERIALS } from '../../../../lib/data/materials.ts';
+import { MATERIALS, STANDING_CUT } from '../../../../lib/data/materials.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
 
 const tarpan = EXPLORER_CULTURES.find((culture) => culture.id === 'tarpan')!;
 const khaltiris = EXPLORER_CULTURES.find((culture) => culture.id === 'khaltiris')!;
 const xoconahtl = EXPLORER_CULTURES.find((culture) => culture.id === 'xoconahtl')!;
+
+Deno.test('assignMaterials — the canonical assignment is the engine draw on the shared materials stream (roadmap 2GN.27)', () => {
+	// The panel must show what the pipeline generates, stratum draw included, and agree with the
+	// tag inspector and decoration panel, which draw on the same `${seed}-materials` stream.
+	for (const culture of [tarpan, khaltiris, xoconahtl]) {
+		const model = assignMaterials('mat-engine-parity', culture, 3);
+		const engine = engineAssignMaterials(
+			model.artefact,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+			createPrng('mat-engine-parity-materials'),
+			MATERIALS,
+		);
+		assertEquals(
+			model.assignments.map((assignment) => assignment.resolved.id),
+			engine.map((assignment) => assignment.materialId),
+			culture.id,
+		);
+	}
+});
+
+Deno.test('assignMaterials — the canonical assignment does not change with the draw count', () => {
+	const one = assignMaterials('mat-canonical-stable', khaltiris, 1);
+	const many = assignMaterials('mat-canonical-stable', khaltiris, 40);
+	assertEquals(
+		one.assignments.map((a) => a.resolved.id),
+		many.assignments.map((a) => a.resolved.id),
+	);
+});
+
+Deno.test('assignMaterials — candidates carry standing, prized and the elite share the engine computes', () => {
+	const model = assignMaterials('mat-standing', khaltiris, 1);
+	assertEquals(model.eliteShare, eliteShare(khaltiris.phase));
+	for (const candidate of model.candidates) {
+		const expected = materialStanding(
+			candidate.material,
+			khaltiris.profile,
+			khaltiris.phase,
+			khaltiris.geology,
+		);
+		assertEquals(candidate.standing, expected, candidate.material.id);
+		assertEquals(candidate.prized, expected >= STANDING_CUT, candidate.material.id);
+	}
+	// Khaltiris authors jade and gold as prized and bronze as abundant, so both flags occur.
+	assertEquals(model.candidates.some((c) => c.prized), true);
+	assertEquals(model.candidates.some((c) => !c.prized), true);
+});
 
 Deno.test('assignMaterials — is deterministic for the same seed, culture and draw count', () => {
 	assertEquals(
