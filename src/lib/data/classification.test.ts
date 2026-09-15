@@ -13,7 +13,7 @@ import {
 } from '../../../tests/fixtures/artefact.ts';
 import { PERCENTILE_LADDER } from '../engine/statistics.ts';
 import { SAMPLED_FEATURES } from '../engine/generation/baselines.ts';
-import { STANDING_CUT } from '../engine/generation/materials.ts';
+import { STANDING_CUT } from './materials.ts';
 import { RELATIVE_TAGS as ALL_RELATIVE_TAGS } from '../types/tags.ts';
 import type { AbsoluteTag, ArtefactTag, RelativeTag } from '../types/tags.ts';
 import type { ExtractedFeatures } from '../types/artefact.ts';

@@ -425,7 +425,7 @@ export interface MaterialAssignment {
 	 * `engine/generation/materials.ts`. Neutral is `1` (abundant, no authored opinion); a scarce or
 	 * prized material reads higher. Derived, not occluded: it is a property of the material's
 	 * situation, stamped here so `extractFeatures` can read it without world context. The
-	 * classifier's cut over it is `STANDING_CUT` in the same module.
+	 * classifier's cut over it is `STANDING_CUT` (`data/materials.ts`).
 	 */
 	standing: number;
 }
@@ -685,8 +685,8 @@ export interface ExtractedFeatures {
 	 * The highest `MaterialAssignment.standing` across the artefact's structural components (doc 11
 	 * §2.9, roadmap 2GN.27): `availability⁻¹ × cultural affinity` for the most prized material
 	 * present, so a gold pommel on an iron blade reads gold. `0` when no assignments were supplied
-	 * (no evidence, never fabricated neutral). Compared against `STANDING_CUT`
-	 * (`engine/generation/materials.ts`) by the material-standing rule. Which component supplied
+	 * (no evidence, never fabricated neutral). Compared against `STANDING_CUT` (`data/materials.ts`)
+	 * by the material-standing rule. Which component supplied
 	 * the value is roadmap 2GN.72's; the made-of versus fitted-with share is 2GN.119's.
 	 */
 	materialStanding: number;

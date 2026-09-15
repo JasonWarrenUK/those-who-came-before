@@ -34,6 +34,20 @@
 
 import type { MaterialDefinition } from '../types/artefact.ts';
 
+/**
+ * The standing at or above which a material counts as prized in its culture (doc 11 §2.9, roadmap
+ * 2GN.27). Read by `engine/generation/materials.ts` (the stratum draw in `assignMaterials`) and by
+ * `data/classification.ts`'s material-standing rule, so the generator and the classifier agree on
+ * what "prized" means; it lives here rather than in the engine so `data/` never imports a runtime
+ * value from `engine/`. Fixed rather than percentiled: the standing quantity
+ * (`materialStanding()`, availability⁻¹ × cultural affinity) is already normalised by the culture's
+ * own geology and opinion (`docs/spikes/2GN.27-material-standing.md`, "The ruling"). Sits between
+ * an open-trade import at neutral affinity (2.67 at `tradeOpenness` 0.8) and the same import prized
+ * at 1.2 (3.2), so among a trading culture's imports the culture's own opinion decides.
+ * MVP-provisional per the 2GN.8 precedent; the realised rates are pinned in `calibration.test.ts`.
+ */
+export const STANDING_CUT = 3;
+
 export const MATERIALS: readonly MaterialDefinition[] = [
 	{
 		id: 'bronze',

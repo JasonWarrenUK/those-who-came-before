@@ -102,7 +102,7 @@
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
-import { STANDING_CUT } from '../engine/generation/materials.ts';
+import { STANDING_CUT } from './materials.ts';
 
 /**
  * Fire rate above which a rule has stopped discriminating (roadmap 2GN.79, doc 12 §2.21).

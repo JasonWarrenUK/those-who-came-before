@@ -11,9 +11,8 @@ import {
 	explainMaterialWeight,
 	isAvailable,
 	materialStanding,
-	STANDING_CUT,
 } from './materials.ts';
-import { MATERIALS } from '../../data/materials.ts';
+import { MATERIALS, STANDING_CUT } from '../../data/materials.ts';
 import { createPrng } from '../prng.ts';
 import { mockNormalisedArtefact } from '../../../../tests/fixtures/artefact.ts';
 import {

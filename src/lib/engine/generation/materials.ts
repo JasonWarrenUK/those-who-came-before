@@ -41,7 +41,7 @@ import type {
 	PhaseCharacteristics,
 } from '../../types/world.ts';
 import type { MaterialName } from '../../types/tags.ts';
-import { MATERIALS } from '../../data/materials.ts';
+import { MATERIALS, STANDING_CUT } from '../../data/materials.ts';
 import { weightedSelect } from '../prng.ts';
 
 /**
@@ -89,18 +89,6 @@ const STANDING_BY_LEVEL: Readonly<Record<AvailabilityLevel, number>> = {
 	'trade-only': 1 / SCARCITY_WEIGHT['trade-only'],
 	'absent': 1 / SCARCITY_WEIGHT['trade-only'],
 };
-
-/**
- * The standing at or above which a material counts as prized in its culture (roadmap 2GN.27). Read
- * by the stratum draw in `assignMaterials` and by `data/classification.ts`'s material-standing
- * rule, so the generator and the classifier agree on what "prized" means. Fixed rather than
- * percentiled: the standing quantity is already normalised by the culture's own geology and opinion
- * (`docs/spikes/2GN.27-material-standing.md`, "The ruling"). Sits between an open-trade import at
- * neutral affinity (about 2.7 at `tradeOpenness` 0.8) and the same import prized at 1.2 (about
- * 3.2), so among a trading culture's imports the culture's own opinion decides.
- * MVP-provisional per the 2GN.8 precedent; the realised rates are pinned in `calibration.test.ts`.
- */
-export const STANDING_CUT = 3;
 
 /**
  * Which social stratum an artefact was made for (doc 11 §2.9, roadmap 2GN.27). Drawn once per
@@ -387,7 +375,8 @@ export function computeMaterialWeight(
  * @param culture - The culture whose opinion applies.
  * @param phase - The phase whose trade openness applies.
  * @param geology - World-level material scarcity.
- * @returns Standing, neutral at `1`. Compared against `STANDING_CUT` to read "prized".
+ * @returns Standing, neutral at `1`. Compared against `STANDING_CUT` (`data/materials.ts`) to read
+ *   "prized".
  */
 export function materialStanding(
 	material: MaterialDefinition,
@@ -414,17 +403,60 @@ export function eliteShare(phase: PhaseCharacteristics): number {
 }
 
 /** The stratum's multiplier on a candidate's selection weight: prized materials move, the rest do not. */
-function stratumFactor(
-	material: MaterialDefinition,
+function stratumFactor(standing: number, stratum: ArtefactStratum): number {
+	if (standing < STANDING_CUT) return 1;
+
+	return stratum === 'elite' ? ELITE_PRIZED_BOOST : COMMONER_PRIZED_SUPPRESSION;
+}
+
+/**
+ * The draw behind `assignMaterial` and `assignMaterialWithProvenance`: the candidate filtering and
+ * weighted selection, returning the winner together with its standing so the two public callers
+ * never compute it twice. Standing is memoised per candidate for the duration of one draw: under a
+ * stratum every candidate's standing is read once inside the weight callback and the winner's comes
+ * back from the same map; with no stratum only the winner's is computed at all.
+ */
+function drawMaterial(
+	component: NormalisedComponent,
 	culture: CulturalProfile,
 	phase: PhaseCharacteristics,
 	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	prng: () => number,
+	materials: readonly MaterialDefinition[],
 	stratum: ArtefactStratum | undefined,
-): number {
-	if (stratum === undefined) return 1;
-	if (materialStanding(material, culture, phase, geology) < STANDING_CUT) return 1;
+): { material: MaterialDefinition; standing: number } {
+	const compatible = component.allowedMaterialTags.length === 0
+		? materials // No constraint recorded (unrecognised primitive type) — everything is a candidate.
+		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
 
-	return stratum === 'elite' ? ELITE_PRIZED_BOOST : COMMONER_PRIZED_SUPPRESSION;
+	const available = compatible.filter((m) => isAvailable(m, geology, trade));
+
+	const candidates = available.length > 0
+		? available
+		: compatible.length > 0
+		? compatible
+		: materials;
+
+	const standings = new Map<MaterialName, number>();
+	const standingOf = (material: MaterialDefinition): number => {
+		let standing = standings.get(material.id);
+		if (standing === undefined) {
+			standing = materialStanding(material, culture, phase, geology);
+			standings.set(material.id, standing);
+		}
+		return standing;
+	};
+
+	const material = weightedSelect(
+		candidates,
+		prng,
+		(candidate) =>
+			computeMaterialWeight(candidate, culture, phase, geology) *
+			(stratum === undefined ? 1 : stratumFactor(standingOf(candidate), stratum)),
+	);
+
+	return { material, standing: standingOf(material) };
 }
 
 /**
@@ -536,25 +568,8 @@ export function assignMaterial(
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	stratum?: ArtefactStratum,
 ): MaterialDefinition {
-	const compatible = component.allowedMaterialTags.length === 0
-		? materials // No constraint recorded (unrecognised primitive type) — everything is a candidate.
-		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
-
-	const available = compatible.filter((m) => isAvailable(m, geology, trade));
-
-	const candidates = available.length > 0
-		? available
-		: compatible.length > 0
-		? compatible
-		: materials;
-
-	return weightedSelect(
-		candidates,
-		prng,
-		(material) =>
-			computeMaterialWeight(material, culture, phase, geology) *
-			stratumFactor(material, culture, phase, geology, stratum),
-	);
+	return drawMaterial(component, culture, phase, geology, trade, prng, materials, stratum)
+		.material;
 }
 
 /**
@@ -681,7 +696,7 @@ export function assignMaterialWithProvenance(
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	stratum?: ArtefactStratum,
 ): MaterialAssignment {
-	const material = assignMaterial(
+	const { material, standing } = drawMaterial(
 		component,
 		culture,
 		phase,
@@ -696,7 +711,7 @@ export function assignMaterialWithProvenance(
 		componentId: component.id,
 		materialId: material.id,
 		provenance: deriveMaterialProvenance(material, geology, trade),
-		standing: materialStanding(material, culture, phase, geology),
+		standing,
 	};
 }
 
