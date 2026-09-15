@@ -960,6 +960,7 @@ interface MaterialAssignment {
 	componentId: string;
 	materialId: string;
 	provenance: MaterialProvenance;
+	standing: number; // availability⁻¹ × cultural affinity, neutral at 1 (§7, roadmap 2GN.27)
 }
 
 interface MaterialProvenance {
