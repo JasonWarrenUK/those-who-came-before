@@ -36,6 +36,7 @@ const tree = $derived(buildStructureTree(inspection.artefact));
 const FEATURE_SECTIONS: { group: FeatureGroup; title: string; note?: string }[] = [
 	{ group: 'structural', title: 'Structural' },
 	{ group: 'decorative', title: 'Decorative' },
+	{ group: 'material', title: 'Material' },
 	{ group: 'complexity', title: 'Complexity' },
 	{ group: 'mechanical', title: 'Mechanical', note: 'no rule may read these' },
 ];

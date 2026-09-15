@@ -123,6 +123,8 @@ by primitive type rather than by design. `opening` and `perforation` have the sa
 
 ## Finding 5: the finding that outgrew the brief
 
+<!-- rule-count: historical -->
+
 Measured across all 43 shipped rules:
 
 - **10 of the 24 condition on exactly one property** — `f.x === 'value'` and nothing else:

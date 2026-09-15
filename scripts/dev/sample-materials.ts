@@ -9,7 +9,7 @@
 
 import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
-import { assignMaterial } from '../../src/lib/engine/generation/materials.ts';
+import { assignMaterials } from '../../src/lib/engine/generation/materials.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import type { NormalisedComponent } from '../../src/lib/types/artefact.ts';
 import {
@@ -48,18 +48,19 @@ const world = sampleWorld(sampleWorldRegion(options, USAGE));
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);
 	const artefact = generateArtefact(seed, world);
-	const prng = createPrng(`${seed}-materials`);
-	const assignments = new Map(artefact.components.map((component) => [
-		component.id,
-		assignMaterial(
-			component,
-			world.culture,
-			world.phase,
-			world.geology,
-			world.trade,
-			prng,
-			MATERIALS,
-		),
+	// Whole-artefact draw through the engine, so the stratum draw (roadmap 2GN.27) is included.
+	const drawn = assignMaterials(
+		artefact,
+		world.culture,
+		world.phase,
+		world.geology,
+		world.trade,
+		createPrng(`${seed}-materials`),
+		MATERIALS,
+	);
+	const assignments = new Map(drawn.map((assignment) => [
+		assignment.componentId,
+		MATERIALS.find((m) => m.id === assignment.materialId)!,
 	]));
 	return { seed, artefact, assignments };
 });
@@ -70,20 +71,22 @@ function drawDistribution(): Map<string, Map<string, number>> {
 	const prng = createPrng(`${seed}-material-draws`);
 	const tallies = new Map<string, Map<string, number>>();
 	for (let n = 0; n < draws; n++) {
-		for (const component of artefact.components) {
-			const material = assignMaterial(
-				component,
-				world.culture,
-				world.phase,
-				world.geology,
-				world.trade,
-				prng,
-				MATERIALS,
-			);
+		// Each redraw is a whole-artefact `assignMaterials` call, so it carries its own stratum.
+		const drawn = assignMaterials(
+			artefact,
+			world.culture,
+			world.phase,
+			world.geology,
+			world.trade,
+			prng,
+			MATERIALS,
+		);
+		artefact.components.forEach((component, index) => {
 			const tally = tallies.get(shortId(component)) ?? new Map<string, number>();
-			tally.set(material.id, (tally.get(material.id) ?? 0) + 1);
+			const materialId = drawn[index].materialId;
+			tally.set(materialId, (tally.get(materialId) ?? 0) + 1);
 			tallies.set(shortId(component), tally);
-		}
+		});
 	}
 	return tallies;
 }

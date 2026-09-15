@@ -1127,12 +1127,14 @@ nearest-rank percentile flips between adjacent integers at any sample size). 2GN
 `stratification` as a live input, none of which have a real dependency to build against yet.
 
 **The zero-migration slice is the load-bearing design choice.** TypeScript accepts a narrower-arity
-function wherever a wider signature is expected, so all 43 shipped rules — still `(f) => boolean` —
-compile unchanged against the widened `(features, context) => boolean` contract and fire
-identically. `EXPECTED_FIRE_RATES` in `calibration.test.ts` stayed bit-identical through the whole
-change, which is the empirical proof the slice altered no observable behaviour: 2GN.82's actual
-recalibration is the only work licensed to move those numbers, and it now has clean ground to do so
-on.
+
+<!-- rule-count: historical --> function wherever a wider signature is expected, so all 43 shipped
+
+rules — still `(f) => boolean` — compile unchanged against the widened
+`(features, context) => boolean` contract and fire identically. `EXPECTED_FIRE_RATES` in
+`calibration.test.ts` stayed bit-identical through the whole change, which is the empirical proof
+the slice altered no observable behaviour: 2GN.82's actual recalibration is the only work licensed
+to move those numbers, and it now has clean ground to do so on.
 
 **Baselines sample against `EXPLORER_CULTURES`, not real culture generation, because no generator
 exists.** `explorerCulturePhase` (`data/explorer-cultures.ts`) adapts an `ExplorerCulture` — which
@@ -1187,6 +1189,8 @@ memoise under; a module-level cache now would be an untestable global with no ow
 **Source of truth:** doc 11 §2.9 holds the ruling and its ladder-closure amendment; this entry
 records what recalibration actually found, which is not what a mechanical `1 - percentile` reading
 would have predicted.
+
+<!-- rule-count: historical -->
 
 **"34 of the 43 rules need a baseline" is not "34 measured thresholds to recalibrate", and the scope
 drifted between those two readings.** §2.28 and §2.30 both state the ruling's selector correctly — a
@@ -3228,6 +3232,52 @@ and 2GN.32's to calibrate: 85% of high/high artefacts reach depth 3 at BASE 0.5.
 | —  | `types/world.ts` `PhaseCharacteristics` JSDoc: both levers named                                    | 2026-08-25 |
 | —  | Roadmap: 2GN.131 done; 2GN.32 amended to the formula and narrowed to calibration                    | 2026-08-25 |
 | ⏳ | 2GN.31/2GN.32: implement inside `expandSublayers`; calibrate BASE/DECAY/rounding; sample `maxDepth` | 2026-08-25 |
+
+### 2.59 Stratification Is a Distribution, Not a Term; the Percentile Was the Shoehorn for Materials (2026-09-15)
+
+**Origin:** roadmap 2GN.27. **Source of truth:** doc 11 §2.9 (two amendments) holds the ruling;
+`docs/spikes/2GN.27-material-standing.md` holds the measurements.
+
+2GN.27 arrived as an implementation task with every upstream ruling in place and two of them in
+conflict: 2GN.143's `f(availability⁻¹, affinity, stratification)` and an earlier session's ruling
+that the threshold is percentiled against a sampled distribution. A percentile is invariant under a
+per-phase constant, so stratification inside a percentiled quantity does nothing. Asking what
+stratification models resolved it: restricted distribution is how an elite is inferred, so
+stratification is a property of how prized materials are spread across a culture's output, and no
+scalar term carries a distribution shape.
+
+**Ruled:** a per-artefact **stratum draw at stage 6** (`assignMaterials`,
+`P(elite) = 0.4 ×
+stratification`, prized candidates ×3 for elite artefacts and ×0.05 for
+commoners); standing = `availability⁻¹ × affinity` with `trade-only` **tempered by `tradeOpenness`**
+(Thalassar's routine imported bronze otherwise outranked its own scarce silver;
+`economy.tradeOpenness` was modelled and unread, as `stratification` had been); a **fixed cut of 3**
+rather than a percentile, since the quantity is already culture-normalised; **max** over structural
+components; the number stamped on `MaterialAssignment.standing` and read by a third
+`extractFeatures` parameter. One rule, `material-standing-prized` (`elite` 0.4, `ceremonial` 0.3),
+appended so indices hold; the relative/absolute split returns to 35/44.
+
+**Measured before the draw existed:** 31% (tarpan) to 74% (thalassar) of artefacts carried a
+material at least `scarce` at neutral affinity, doc 11 §2.9's society-of-elites failure arriving
+from the material side. After it: 12% to 35%, tracking stratification. Two consequences worth
+naming: prizing a material now _concentrates_ it (Thalassar's gold+silver share of metal fell from
+46% to 35% overall while rising inside elite artefacts), and the fixture worlds over-fire the rule
+(45.7% pooled, 16% to 66% by region) because they place 9 to 12 of 16 materials at scarce or
+trade-only and a shape-forced component cannot avoid a prized draw.
+
+**Re-scoped:** 2GN.96's stratification gate now covers the decoration-side `elite` awards only.
+**Filed:** `scarcityWeight`'s trade-only rung reading `tradeOpenness` on the selection side, the
+generation-side counterpart of the standing lerp.
+
+| § | Propagation                                                                                               | Date       |
+| - | --------------------------------------------------------------------------------------------------------- | ---------- |
+| — | Doc 11 §2.9: stratification paragraph and 2GN.143 formula block each gain a 2GN.27 amendment              | 2026-09-15 |
+| — | Doc 05 §7: the stratum draw and `MaterialAssignment.standing`; §9.1: `materialStanding`                   | 2026-09-15 |
+| — | `materials.ts`: `materialStanding`, `STANDING_CUT`, `eliteShare`, the draw; `MaterialAssignment.standing` | 2026-09-15 |
+| — | `classification.ts`: `extractFeatures(artefact, layers, assignments)`; `data/classification.ts`: R44      | 2026-09-15 |
+| — | Calibration pins re-recorded: material tag shares, intra-tag splits, provenance mix; R44 added            | 2026-09-15 |
+| — | Explorer tag inspector: a `material` feature group                                                        | 2026-09-15 |
+| — | Roadmap: 2GN.27 done; 2GN.68 and 2GN.96 notes amended; selection-side trade-openness task filed           | 2026-09-15 |
 
 ---
 

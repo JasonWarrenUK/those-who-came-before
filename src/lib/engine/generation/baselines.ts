@@ -181,7 +181,7 @@ export function sampleBaselines(
 			materials,
 		);
 		const layers = gradeDecorativeLayers(provisionalLayers, assignments, target.phase, materials);
-		const features = extractFeatures(artefact, layers);
+		const features = extractFeatures(artefact, layers, assignments);
 
 		for (const feature of SAMPLED_FEATURES) {
 			samples.get(feature)!.push(readFeature(features, feature));

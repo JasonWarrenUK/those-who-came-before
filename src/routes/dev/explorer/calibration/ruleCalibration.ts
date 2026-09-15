@@ -228,7 +228,7 @@ export function calibrateRules(
 			MATERIALS,
 		);
 		const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
-		const features = extractFeatures(artefact, layers);
+		const features = extractFeatures(artefact, layers, assignments);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 		CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {

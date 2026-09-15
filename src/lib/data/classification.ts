@@ -69,8 +69,9 @@
  * awarding `utilitarian`), and every rule awarding `personal`, `everyday`, `artisanal`, `communal`,
  * `military`, `ritual`, `votive` or `funerary`. Read the vocabulary arrays for membership, never a
  * list of rule indices — indices shift whenever this array is edited. `classification.test.ts` pins
- * the current relative/absolute split (35/44 as of roadmap 2GN.98's execution-quality rule below;
- * 34/43 at the time of this ruling).
+ * the current relative/absolute split (35/44 as of roadmap 2GN.27's material-standing rule below,
+ * the count 2GN.98's execution-quality rule first reached before 2GN.87's deletion took it back to
+ * 34/43; 34/43 at the time of this ruling).
  *
  * **This is the count of rules needing a baseline, not the count of measured thresholds this file
  * recalibrates against one — those are two different populations.** Of the 34, only **nine** have a
@@ -101,6 +102,7 @@
  */
 
 import type { ClassificationRule } from '../types/tags.ts';
+import { STANDING_CUT } from './materials.ts';
 
 /**
  * Fire rate above which a rule has stopped discriminating (roadmap 2GN.79, doc 12 §2.21).
@@ -727,6 +729,30 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		id: 'execution-quality-above-p90',
 		condition: (f, c) => c.exceeds('meanDecorativeGrade', 0.9, f.meanDecorativeGrade),
 		tags: new Map([['artisanal', 0.4], ['elite', 0.2]]),
+	},
+
+	// --- Material (roadmap 2GN.27, doc 11 §2.9, docs/spikes/2GN.27-material-standing.md) ------------
+
+	/**
+	 * Made from, or fitted with, a material this culture prizes: `materialStanding` (the most prized
+	 * structural material's `availability⁻¹ × cultural affinity`) at or above `STANDING_CUT`. The
+	 * cut is fixed rather than percentiled, unlike every other `elite` rule above: the standing
+	 * quantity is already normalised by the culture's own geology and opinion, so a percentile over
+	 * it would find a "top quarter" inside bone and oak in a culture with nothing rare (spike, "The
+	 * ruling"). Stratification is not read here; it shaped the material record at stage 6, where
+	 * `assignMaterials`' stratum draw concentrates prized materials in a minority of a stratified
+	 * culture's output. Measured across the four Explorer presets at n=400 the rule fires on 12%
+	 * (stratification 0.4) to 35% (0.85) of artefacts, tracking the phase's stratification through
+	 * the world rather than through a gate.
+	 *
+	 * Weights follow `decorative-complexity-above-p75` (`elite` 0.4, `ceremonial` 0.3): prized
+	 * material is the material-side counterpart of lavish decoration, and the two cumulate under
+	 * `classifyArtefact`'s plain-sum fold on an artefact carrying both.
+	 */
+	{
+		id: 'material-standing-prized',
+		condition: (f) => f.materialStanding >= STANDING_CUT,
+		tags: new Map([['elite', 0.4], ['ceremonial', 0.3]]),
 	},
 ];
 

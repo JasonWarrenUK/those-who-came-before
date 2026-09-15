@@ -47,7 +47,7 @@
 import { assert } from '@std/assert';
 import { createPrng } from '../engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.ts';
-import { assignMaterials } from '../engine/generation/materials.ts';
+import { assignMaterial, assignMaterials } from '../engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
 import { MATERIALS } from './materials.ts';
 import { EXPLORER_CULTURES } from './explorer-cultures.ts';
@@ -112,63 +112,73 @@ const MULTI_LEAF_PRIMARY_TAGS: readonly string[] = ['metal', 'stone', 'wood', 'b
  * presence in a region (`forestInterior`'s absent metals, `desertMargin`'s absent wood) reads as an
  * omitted tag entry, not a zero, matching `tests/fixtures/world.ts`'s own "regions differ in which
  * materials are obtainable" design.
+ *
+ * **Re-recorded 2026-09-15 by roadmap 2GN.27** (doc 11 §2.9, `docs/spikes/2GN.27-material-standing.md`):
+ * `assignMaterials` now draws a per-artefact stratum from `society.stratification` and suppresses
+ * every prized candidate (`materialStanding >= STANDING_CUT`) in the commoner majority. With
+ * `mockPhaseCharacteristics`' 0.5 stratification, four in five artefacts are commoner, so every
+ * material the fixture geology places at scarce or trade-only lost share to the abundant and
+ * available ones: `riverValley`'s metal (all four trade-only) fell from 23.1 to 13.3 while wood rose
+ * 20.1 → 27.2; `coastalPort`'s metal 30.1 → 14.9 and clay 12.6 → 28.2. `highlandMine`, whose metal is
+ * local, moved least. The draw sequence also shifted by one position per artefact (the stratum
+ * draw comes first), so every value was refreshed to the same run.
  */
 const EXPECTED_TAG_SHARES: Readonly<Record<MockWorldRegion, Readonly<Record<string, number>>>> = {
 	riverValley: {
-		metal: 23.1,
-		stone: 17.5,
-		wood: 20.1,
-		bone: 17.4,
-		clay: 14.1,
-		fiber: 5.4,
-		glass: 0.8,
-		leather: 1.6,
+		wood: 27.2,
+		bone: 20.9,
+		clay: 19.7,
+		metal: 13.3,
+		stone: 10.7,
+		fiber: 6.6,
+		leather: 1.3,
+		glass: 0.3,
 	},
 	highlandMine: {
-		metal: 57.8,
-		stone: 23.0,
-		wood: 12.6,
-		bone: 3.4,
-		clay: 1.9,
-		fiber: 0.9,
-		glass: 0.3,
-		leather: 0.1,
+		metal: 60.2,
+		stone: 22.9,
+		wood: 12.8,
+		bone: 2.5,
+		clay: 1.0,
+		fiber: 0.3,
+		glass: 0.2,
+		leather: 0.0,
 	},
 	coastalPort: {
-		metal: 30.1,
-		stone: 19.4,
-		wood: 18.7,
-		clay: 12.6,
-		bone: 9.7,
-		fiber: 6.6,
-		leather: 1.8,
-		glass: 1.1,
+		wood: 29.1,
+		clay: 28.2,
+		metal: 14.9,
+		stone: 10.8,
+		fiber: 10.7,
+		bone: 3.8,
+		leather: 2.3,
+		glass: 0.2,
 	},
 	forestInterior: {
-		wood: 36.7,
-		bone: 31.6,
-		stone: 18.6,
-		clay: 8.1,
-		fiber: 2.9,
-		leather: 2.2,
+		wood: 36.5,
+		bone: 32.0,
+		stone: 16.5,
+		clay: 9.9,
+		fiber: 3.2,
+		leather: 1.9,
 		// metal: absent — forestInterior has no metal at any level and no trade flows.
 	},
 	desertMargin: {
-		stone: 44.7,
-		metal: 30.8,
-		bone: 19.1,
-		clay: 3.4,
-		leather: 2.0,
+		stone: 53.6,
+		bone: 27.5,
+		metal: 11.4,
+		leather: 6.1,
+		clay: 1.4,
 		// wood: absent — desertMargin has no wood at any level.
 	},
 	steppeMargin: {
-		bone: 30.4,
-		metal: 27.7,
-		stone: 16.6,
-		wood: 15.8,
-		clay: 4.5,
-		fiber: 3.3,
-		leather: 1.8,
+		bone: 42.9,
+		wood: 24.9,
+		metal: 14.4,
+		stone: 8.7,
+		fiber: 4.6,
+		leather: 2.7,
+		clay: 1.9,
 	},
 };
 
@@ -181,45 +191,51 @@ const EXPECTED_TAG_SHARES: Readonly<Record<MockWorldRegion, Readonly<Record<stri
  * comment for why). Only `forestInterior/stone` moved past tolerance (flint/granite split shifted
  * with the narrower candidate pool); every other region's intra-tag split held within noise, values
  * refreshed to the same-run measurement regardless.
+ *
+ * Re-recorded 2026-09-15 alongside `EXPECTED_TAG_SHARES` (roadmap 2GN.27). The stratum draw's
+ * commoner suppression separates a tag's leaves by standing: where one leaf is prized and its
+ * sibling is not, the sibling takes the tag. `coastalPort` and `steppeMargin` model ash as scarce
+ * beside abundant oak, so oak went 68.5 → 93.6 and 73.7 → 90.1; `desertMargin`'s gold/silver
+ * (trade-only) lost to its scarce bronze/iron. Splits whose leaves share a level held within noise.
  */
 const EXPECTED_INTRA_TAG_SHARES: Readonly<
 	Record<MockWorldRegion, Readonly<Record<string, Readonly<Record<string, number>>>>>
 > = {
 	riverValley: {
-		metal: { bronze: 25.7, iron: 25.7, gold: 26.0, silver: 22.7 },
-		stone: { obsidian: 29.7, flint: 28.1, granite: 25.3, jade: 16.8 },
-		wood: { oak: 50.8, ash: 49.2 },
-		bone: { bone: 52.4, antler: 47.6 },
+		metal: { bronze: 24.8, iron: 25.7, gold: 26.9, silver: 22.7 },
+		stone: { obsidian: 23.3, flint: 27.4, granite: 32.7, jade: 16.5 },
+		wood: { oak: 47.9, ash: 52.1 },
+		bone: { bone: 53.1, antler: 46.9 },
 	},
 	highlandMine: {
-		metal: { bronze: 36.2, iron: 37.7, gold: 5.1, silver: 20.9 },
-		stone: { obsidian: 21.5, flint: 36.4, granite: 34.8, jade: 7.2 },
-		wood: { oak: 50.8, ash: 49.2 },
-		bone: { bone: 54.2, antler: 45.8 },
+		metal: { bronze: 37.0, iron: 38.5, gold: 3.2, silver: 21.3 },
+		stone: { obsidian: 22.0, flint: 39.3, granite: 35.1, jade: 3.6 },
+		wood: { oak: 49.8, ash: 50.2 },
+		bone: { bone: 50.0, antler: 50.0 },
 	},
 	coastalPort: {
-		metal: { bronze: 24.7, iron: 23.0, gold: 26.3, silver: 25.9 },
-		stone: { obsidian: 19.6, flint: 32.4, granite: 31.1, jade: 16.8 },
-		wood: { oak: 68.5, ash: 31.5 },
-		bone: { bone: 50.0, antler: 50.0 },
+		metal: { bronze: 27.7, iron: 25.5, gold: 24.7, silver: 22.2 },
+		stone: { obsidian: 16.4, flint: 31.7, granite: 32.1, jade: 19.8 },
+		wood: { oak: 93.6, ash: 6.4 },
+		bone: { bone: 44.0, antler: 56.0 },
 	},
 	forestInterior: {
 		// metal: no entry — zero total in this region.
-		stone: { obsidian: 0.0, flint: 54.5, granite: 45.5, jade: 0.0 },
-		wood: { oak: 45.4, ash: 54.6 },
-		bone: { bone: 47.7, antler: 52.3 },
+		stone: { obsidian: 0.0, flint: 49.4, granite: 50.6, jade: 0.0 },
+		wood: { oak: 46.3, ash: 53.7 },
+		bone: { bone: 47.3, antler: 52.7 },
 	},
 	desertMargin: {
-		metal: { bronze: 31.7, iron: 33.1, gold: 18.1, silver: 17.1 },
-		stone: { obsidian: 35.1, flint: 29.9, granite: 30.2, jade: 4.8 },
+		metal: { bronze: 31.3, iron: 31.6, gold: 18.9, silver: 18.2 },
+		stone: { obsidian: 33.7, flint: 33.0, granite: 32.1, jade: 1.2 },
 		// wood: no entry — zero total in this region.
-		bone: { bone: 50.7, antler: 49.3 },
+		bone: { bone: 51.7, antler: 48.3 },
 	},
 	steppeMargin: {
-		metal: { bronze: 23.8, iron: 28.2, gold: 23.7, silver: 24.4 },
-		stone: { obsidian: 32.3, flint: 31.1, granite: 36.7, jade: 0.0 },
-		wood: { oak: 73.7, ash: 26.3 },
-		bone: { bone: 49.1, antler: 50.9 },
+		metal: { bronze: 24.9, iron: 26.5, gold: 23.2, silver: 25.4 },
+		stone: { obsidian: 34.9, flint: 29.3, granite: 35.8, jade: 0.0 },
+		wood: { oak: 90.1, ash: 9.9 },
+		bone: { bone: 55.3, antler: 44.7 },
 	},
 };
 
@@ -237,14 +253,18 @@ const EXPECTED_INTRA_TAG_SHARES: Readonly<
 // comment). More components now filter down to a narrower compatible set before availability is
 // checked, shifting how often a local-scarce/trade-reachable material is the only compatible
 // option left — the direct mechanism this pin measures.
+//
+// Re-recorded 2026-09-15 alongside EXPECTED_TAG_SHARES (roadmap 2GN.27). Every trade-only material
+// is prized at `mockPhaseCharacteristics`' 0.5 trade openness, so the stratum draw's commoner
+// suppression roughly halved the traded share everywhere a local alternative existed.
 const EXPECTED_PROVENANCE_MIX: Readonly<Record<MockWorldRegion, { local: number; trade: number }>> =
 	{
-		riverValley: { local: 73.1, trade: 26.9 },
-		highlandMine: { local: 95.1, trade: 4.9 },
-		coastalPort: { local: 61.7, trade: 38.3 },
+		riverValley: { local: 84.6, trade: 15.4 },
+		highlandMine: { local: 97.0, trade: 3.0 },
+		coastalPort: { local: 80.9, trade: 19.1 },
 		forestInterior: { local: 100.0, trade: 0.0 },
-		desertMargin: { local: 87.0, trade: 13.0 },
-		steppeMargin: { local: 72.3, trade: 27.7 },
+		desertMargin: { local: 95.1, trade: 4.9 },
+		steppeMargin: { local: 85.6, trade: 14.4 },
 	};
 
 /**
@@ -560,7 +580,18 @@ Deno.test('materials calibration: a per-material affinity moves selection on a s
 	const thalassar = EXPLORER_CULTURES.find((preset) => preset.id === 'thalassar');
 	if (thalassar === undefined) throw new Error("explorer preset 'thalassar' not found");
 
-	/** Gold and silver as a percentage of all metal assigned, over a fixed seed sequence. */
+	/**
+	 * Gold and silver as a percentage of all metal assigned, over a fixed seed sequence.
+	 *
+	 * Drawn per component through `assignMaterial` with no stratum, not through `assignMaterials`:
+	 * this guard tests the affinity *resolver*, and the stratum draw (roadmap 2GN.27) would confound
+	 * it. Prizing a material concentrates it in the elite minority and suppresses it everywhere
+	 * else, so under `assignMaterials` the shipped `{ id: 'gold' }` entry *lowers* gold's whole-record
+	 * share (measured 35.2% against 46.4% with class entries alone) while raising it within elite
+	 * artefacts. That is the intended world (`docs/spikes/2GN.27-material-standing.md`, "The
+	 * ruling"), and not what this guard asks. The unmodulated draw reproduces the pre-2GN.27
+	 * sequence exactly, so the margins below are the ones originally measured.
+	 */
 	const prizedShareOfMetal = (affinities: readonly MaterialAffinity[]): number => {
 		const profile = { ...thalassar.profile, materialAffinities: affinities };
 		let prized = 0;
@@ -572,20 +603,21 @@ Deno.test('materials calibration: a per-material affinity moves selection on a s
 				expandGrammar(CORE_GRAMMAR_RULES, profile, thalassar.phase, createPrng(seed)),
 				seed,
 			);
-			const assignments = assignMaterials(
-				artefact,
-				profile,
-				thalassar.phase,
-				thalassar.geology,
-				thalassar.trade,
-				createPrng(`${seed}-material`),
-				MATERIALS,
-			);
+			const prng = createPrng(`${seed}-material`);
 
-			for (const assignment of assignments) {
-				if (PRIMARY_TAG[assignment.materialId] !== 'metal') continue;
+			for (const component of artefact.components) {
+				const material = assignMaterial(
+					component,
+					profile,
+					thalassar.phase,
+					thalassar.geology,
+					thalassar.trade,
+					prng,
+					MATERIALS,
+				);
+				if (PRIMARY_TAG[material.id] !== 'metal') continue;
 				metal++;
-				if (assignment.materialId === 'gold' || assignment.materialId === 'silver') prized++;
+				if (material.id === 'gold' || material.id === 'silver') prized++;
 			}
 		}
 

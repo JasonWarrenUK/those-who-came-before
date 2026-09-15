@@ -78,6 +78,7 @@ function mockExtractedFeatures(): ExtractedFeatures {
 		motifCulturalOrigins: [],
 		techniqueComplexity: 0,
 		preciousMaterialsInDecoration: false,
+		materialStanding: 0,
 		functionalComplexity: 0.5,
 		decorativeComplexity: 0,
 		overallComplexity: 0.5,
@@ -137,6 +138,7 @@ export function neutralExtractedFeatures(
 		motifCulturalOrigins: [],
 		techniqueComplexity: 0,
 		preciousMaterialsInDecoration: false,
+		materialStanding: 0,
 		functionalComplexity: 0,
 		decorativeComplexity: 0,
 		overallComplexity: 0,
@@ -279,6 +281,7 @@ export function mockArtefact(overrides: Partial<ClassifiedArtefact> = {}): Class
 			componentId: base.components[0].id,
 			materialId: 'bronze',
 			provenance: { source: 'local' },
+			standing: 1,
 		},
 	];
 

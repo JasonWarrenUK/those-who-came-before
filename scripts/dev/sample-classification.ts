@@ -114,21 +114,19 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 	);
 	// Materials assigned and layers re-graded before `extractFeatures` — see the module JSDoc for
 	// why this matters for `meanDecorativeGrade` specifically.
-	const layers = bare ? [] : gradeDecorativeLayers(
-		provisionalLayers,
-		assignMaterials(
-			artefact,
-			world.culture,
-			world.phase,
-			world.geology,
-			world.trade,
-			createPrng(`${seed}-materials`),
-			MATERIALS,
-		),
+	const assignments = assignMaterials(
+		artefact,
+		world.culture,
 		world.phase,
+		world.geology,
+		world.trade,
+		createPrng(`${seed}-materials`),
 		MATERIALS,
 	);
-	const features = extractFeatures(artefact, layers);
+	const layers = bare
+		? []
+		: gradeDecorativeLayers(provisionalLayers, assignments, world.phase, MATERIALS);
+	const features = extractFeatures(artefact, layers, assignments);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 	// Re-run each condition to decompose the sums — exact under plain-sum accumulation.

@@ -1341,7 +1341,7 @@ Deno.test('gradeDecorativeLayers: re-grades against the assigned material and le
 
 	const [regraded] = gradeDecorativeLayers(
 		layers,
-		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' }, standing: 1 }],
 		phase,
 	);
 
@@ -1359,7 +1359,7 @@ Deno.test('gradeDecorativeLayers: an unmatched component keeps its provisional g
 
 	const [regraded] = gradeDecorativeLayers(
 		layers,
-		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' }, standing: 1 }],
 		mockPhaseCharacteristics(),
 	);
 
@@ -1382,6 +1382,7 @@ Deno.test('gradeDecorativeLayers: an assignment naming an unknown material keeps
 			componentId: 'c0',
 			materialId: 'unobtainium' as MaterialName,
 			provenance: { source: 'unknown' },
+			standing: 1,
 		}],
 		mockPhaseCharacteristics(),
 	);
@@ -1404,7 +1405,7 @@ Deno.test('gradeDecorativeLayers: recurses into sublayers (2GN.31/32 readiness)'
 
 	const [regraded] = gradeDecorativeLayers(
 		layers,
-		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' }, standing: 1 }],
 		phase,
 	);
 
@@ -1422,7 +1423,7 @@ Deno.test('gradeDecorativeLayers: purity — inputs unmutated, outputs are new o
 
 	const regraded = gradeDecorativeLayers(
 		layers,
-		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' } }],
+		[{ componentId: 'c0', materialId: 'granite', provenance: { source: 'local' }, standing: 1 }],
 		mockPhaseCharacteristics(),
 	);
 
@@ -1526,7 +1527,7 @@ function layer(
 
 /** A material assignment, for enforceSubstrates fixtures. */
 function assignment(componentId: string, materialId: MaterialName) {
-	return { componentId, materialId, provenance: { source: 'local' as const } };
+	return { componentId, materialId, provenance: { source: 'local' as const }, standing: 1 };
 }
 
 Deno.test('enforceSubstrates: strips a gate-failing pairing (glaze on linen, the inverting case)', () => {

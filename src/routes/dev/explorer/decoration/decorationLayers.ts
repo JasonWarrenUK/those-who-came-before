@@ -24,7 +24,7 @@
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterial } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
@@ -144,8 +144,9 @@ function walk(layers: InspectedLayer[], visit: (layer: InspectedLayer) => void):
  * Generates one artefact from `seed` against `culture` and inspects its decoration.
  *
  * @param seed - The seed to generate from; also namespaces the material and decoration draws (the
- *   material draw matches `materialAssignment.ts`'s canonical, `draw = 0` seed exactly, so the two
- *   panels agree on the resolved material for the same seed and component).
+ *   material draw is the engine's `assignMaterials` on the `${seed}-materials` stream, matching
+ *   `materialAssignment.ts`'s canonical assignment exactly, so the two panels agree on the resolved
+ *   material for the same seed and component).
  * @param culture - The culture, phase, geology and trade flows to generate against.
  */
 export function inspectDecoration(seed: string, culture: ExplorerCulture): DecorationModel {
@@ -164,21 +165,23 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 		DECORATIVE_TECHNIQUES,
 	);
 
-	const components = artefact.components.map((component) => {
-		// Keyed by `component.position` (via `shortId`-equivalent `c${position}`) and `-0`, matching
-		// `materialAssignment.ts`'s canonical (`draw = 0`) seed exactly, so the two panels resolve the
-		// same material for the same generation seed and component. `component.id` is not usable
-		// here: `normaliseArtefact` prefixes it with this call's own artefact id
-		// (`decoration-${seed}`), which the material panel's `materials-${seed}` never matches.
-		const material = assignMaterial(
-			component,
-			culture.profile,
-			culture.phase,
-			culture.geology,
-			culture.trade,
-			createPrng(`${seed}-material-c${component.position}-0`),
-			MATERIALS,
-		);
+	// One whole-artefact draw on the `${seed}-materials` stream, the same call and stream the
+	// material panel's canonical assignment and the tag inspector use (roadmap 2GN.27), so the three
+	// panels resolve the same material for the same seed and component and this panel's materials
+	// carry the pipeline's stratum draw. Matched by index: every panel normalises the same expansion,
+	// so component order is shared even though `component.id` carries each panel's own prefix.
+	const assignments = assignMaterials(
+		artefact,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+		createPrng(`${seed}-materials`),
+		MATERIALS,
+	);
+
+	const components = artefact.components.map((component, index) => {
+		const material = MATERIALS.find((m) => m.id === assignments[index].materialId)!;
 
 		return {
 			componentId: component.id,

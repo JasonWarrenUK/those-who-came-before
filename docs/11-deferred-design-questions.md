@@ -321,6 +321,8 @@ Three placements are worth stating rather than leaving to inference:
   weapon; whether it signals a warrior class depends on whether the culture has one. Rigid sheet
   reads armour in a stratified culture and roofing in a flat one.
 
+<!-- rule-count: historical -->
+
 **The relative basis selects 34 of the 43 shipped rules; only 9 award purely absolute tags.** This
 is far wider than the decoration family, and the count is what recalibration (2GN.82) is sized
 against. Read the vocabulary arrays in `types/tags.ts` for membership rather than any list of rule
@@ -380,6 +382,18 @@ culture-relative normalisation would flatten every culture to an identical elite
 is its own falsehood — every society having exactly the same proportion of elites is no more true
 than every society being entirely elite.
 
+> **Shaped by roadmap 2GN.27 (2026-09-15).** Stratification is read at **stage 6**, in the
+> generator, as a per-artefact stratum draw: `assignMaterials` draws whether the artefact was made
+> for the elite (`P = 0.4 × stratification`), boosts every prized material's selection weight for an
+> elite artefact and suppresses it for a commoner one. Prized materials then concentrate in a
+> minority of a stratified culture's output and spread thinly through a flat one, which is what the
+> material record of a Varna shows against an egalitarian obsidian network. The paragraph above read
+> as a classifier-side gate; measured, that gate is unnecessary for materials, since a classifier
+> reading the resulting materials fires on 12% of a 0.4-stratification preset and 35% of a 0.85 one
+> with no gate at all. Roadmap 2GN.96's gate is re-scoped to the decoration-side `elite` awards,
+> which still read a percentile of the culture's own output and do need one. Reasoning and
+> measurements: `docs/spikes/2GN.27-material-standing.md`.
+
 **Drift is measured against the preceding phase only.** Each phase carries its own baselines plus a
 per-metric delta (magnitude and direction) against the phase immediately before it. There is no
 culture-wide baseline spanning the whole timeline: time moves forward, so scoring an early-phase
@@ -416,6 +430,21 @@ the original read "availability × cultural affinity × provenance × stratifica
 > `culturalAffinity`) plus `PhaseCharacteristics.society.stratification`. The threshold is
 > 2GN.27/2GN.68's to set. Provenance earns its own term only if trade flows ever carry distance or
 > intensity. Full detail: `docs/spikes/2GN.143-provenance-in-material-standing.md`.
+
+> **Set by roadmap 2GN.27 (2026-09-15).** `materialStanding()` (`engine/generation/materials.ts`) is
+> `availability⁻¹ × cultural affinity`, with availability⁻¹ the reciprocal of `SCARCITY_WEIGHT`
+> (abundant 1, available 1.67, scarce 4, trade-only 6.67, `absent` capped at trade-only) and a
+> `trade-only` level tempered by `economy.tradeOpenness` towards the `available` rung: an open
+> trading culture's routine import is its ordinary metal, a closed culture's rare import is exotic.
+> Stratification is not a term of the number; it enters at stage 6 (see the amendment above). **The
+> threshold is a fixed cut, `STANDING_CUT = 3`, re-ruling the percentile for materials only**: the
+> quantity is already normalised by the culture's own geology and opinion, so a second normalisation
+> would find a "top quarter" inside bone and oak in a culture with nothing rare. The decoration
+> rules keep their percentiles. A multi-component artefact reads the **max** across its structural
+> components (a gold pommel on an iron blade reads gold); the made-of versus fitted-with share is
+> 2GN.72/2GN.119's. The number is stamped on `MaterialAssignment.standing` and read into
+> `ExtractedFeatures.materialStanding` by `extractFeatures(artefact, layers, assignments)`, which
+> stays free of world context. Full detail: `docs/spikes/2GN.27-material-standing.md`.
 
 This ruling originally kept the two members "as material descriptors, not as classification inputs",
 barring rules from reading them while leaving them to feed generation. 2GN.78 found that boundary

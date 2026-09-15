@@ -41,7 +41,7 @@ import type {
 	PhaseCharacteristics,
 } from '../../types/world.ts';
 import type { MaterialName } from '../../types/tags.ts';
-import { MATERIALS } from '../../data/materials.ts';
+import { MATERIALS, STANDING_CUT } from '../../data/materials.ts';
 import { weightedSelect } from '../prng.ts';
 
 /**
@@ -73,6 +73,49 @@ const SCARCITY_WEIGHT: Record<string, number> = {
 	'trade-only': 0.15,
 	'absent': 0, // Never reached via computeMaterialWeight — isAvailable excludes it first.
 };
+
+/**
+ * A material's standing by availability level: the reciprocal of `SCARCITY_WEIGHT` (doc 11 §2.9,
+ * roadmap 2GN.27, `docs/spikes/2GN.27-material-standing.md`). Rare here means precious here, so the
+ * selection weight inverts. One table rather than two keeps the rung ratios 2GN.84 pinned as
+ * load-bearing. `absent` has no reciprocal (its weight is `0`) and is capped at `trade-only`'s: a
+ * material present despite being absent from the region and unreached by trade is at least as
+ * exotic as a traded one, and `assignMaterial`'s empty-candidate fallback can assign it.
+ */
+const STANDING_BY_LEVEL: Readonly<Record<AvailabilityLevel, number>> = {
+	'abundant': 1 / SCARCITY_WEIGHT['abundant'],
+	'available': 1 / SCARCITY_WEIGHT['available'],
+	'scarce': 1 / SCARCITY_WEIGHT['scarce'],
+	'trade-only': 1 / SCARCITY_WEIGHT['trade-only'],
+	'absent': 1 / SCARCITY_WEIGHT['trade-only'],
+};
+
+/**
+ * Which social stratum an artefact was made for (doc 11 §2.9, roadmap 2GN.27). Drawn once per
+ * artefact in `assignMaterials` from `society.stratification`; an elite artefact favours prized
+ * materials, a commoner artefact avoids them. Not recorded on the artefact: it manifests through
+ * the materials, which is what a scholar reads.
+ */
+export type ArtefactStratum = 'elite' | 'commoner';
+
+/**
+ * Share of a fully stratified culture's output made for its elite. `P(elite) = stratification ×`
+ * this, so the four Explorer presets (0.4 to 0.85) land between 16% and 34%. Higher than any real
+ * elite's share of a population because the material record over-represents elite goods (deliberate
+ * deposition, better preservation). MVP-provisional; pinned by `materials.calibration.test.ts`.
+ */
+const ELITE_SHARE_CEILING = 0.4;
+
+/** Selection-weight multiplier on prized materials for an elite-stratum artefact. MVP-provisional. */
+const ELITE_PRIZED_BOOST = 3;
+
+/**
+ * Selection-weight multiplier on prized materials for a commoner-stratum artefact. MVP-provisional.
+ * Measured 2026-09-15 across the four Explorer presets at n=400 (spike, "Constants"): with the boost
+ * above, 3 to 9% of commoner artefacts still carry a prized fitting (a bronze rivet in a
+ * commoner's tool is real), against 64 to 98% of elite ones.
+ */
+const COMMONER_PRIZED_SUPPRESSION = 0.05;
 
 /** A region key paired with its `AvailabilityLevel`, as found in `RegionalAvailability.regions`. */
 interface RegionalLevel {
@@ -313,6 +356,110 @@ export function computeMaterialWeight(
 }
 
 /**
+ * A material's standing in `culture` during `phase` (doc 11 §2.9, roadmap 2GN.27):
+ * `availability⁻¹ × cultural affinity`, where availability is `STANDING_BY_LEVEL` over the same
+ * `bestRegionalLevel` read `scarcityWeight` makes, and an unmodelled level reads `available` for the
+ * reason `scarcityWeight`'s JSDoc gives.
+ *
+ * A `trade-only` level is tempered by `economy.tradeOpenness`: it lerps from the trade-only rung at
+ * openness 0 to the `available` rung at openness 1. A closed culture's rare import is exotic; an
+ * open trading culture's routine import is its ordinary metal (spike Finding 2: Thalassar's
+ * imported bronze otherwise ranked above its own scarce silver). Whether a trade flow actually
+ * reaches the material does not change its standing, which is why this takes no `trade` argument.
+ *
+ * ⚠️ Not `explainMaterialWeight().weight` inverted: that is a selection quantity whose affinity axis
+ * points the same way as standing while its availability axis points the other way (2GN.143), so
+ * the two must be composed from the parts, never derived from each other's product.
+ *
+ * @param material - The material whose standing is read.
+ * @param culture - The culture whose opinion applies.
+ * @param phase - The phase whose trade openness applies.
+ * @param geology - World-level material scarcity.
+ * @returns Standing, neutral at `1`. Compared against `STANDING_CUT` (`data/materials.ts`) to read
+ *   "prized".
+ */
+export function materialStanding(
+	material: MaterialDefinition,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+): number {
+	const level = bestRegionalLevel(material.id, geology)?.level ?? 'available';
+	const availabilityInverse = level === 'trade-only'
+		? STANDING_BY_LEVEL['trade-only'] +
+			(STANDING_BY_LEVEL['available'] - STANDING_BY_LEVEL['trade-only']) *
+				phase.economy.tradeOpenness
+		: STANDING_BY_LEVEL[level];
+
+	return availabilityInverse * culturalAffinityWeight(material, culture);
+}
+
+/**
+ * The probability that an artefact from `phase` was made for the elite stratum (roadmap 2GN.27).
+ * Exported so `materials.calibration.test.ts` can pin the realised elite share against it.
+ */
+export function eliteShare(phase: PhaseCharacteristics): number {
+	return ELITE_SHARE_CEILING * phase.society.stratification;
+}
+
+/** The stratum's multiplier on a candidate's selection weight: prized materials move, the rest do not. */
+function stratumFactor(standing: number, stratum: ArtefactStratum): number {
+	if (standing < STANDING_CUT) return 1;
+
+	return stratum === 'elite' ? ELITE_PRIZED_BOOST : COMMONER_PRIZED_SUPPRESSION;
+}
+
+/**
+ * The draw behind `assignMaterial` and `assignMaterialWithProvenance`: the candidate filtering and
+ * weighted selection, returning the winner together with its standing so the two public callers
+ * never compute it twice. Standing is memoised per candidate for the duration of one draw: under a
+ * stratum every candidate's standing is read once inside the weight callback and the winner's comes
+ * back from the same map; with no stratum only the winner's is computed at all.
+ */
+function drawMaterial(
+	component: NormalisedComponent,
+	culture: CulturalProfile,
+	phase: PhaseCharacteristics,
+	geology: GeologicalContext,
+	trade: readonly MaterialFlow[],
+	prng: () => number,
+	materials: readonly MaterialDefinition[],
+	stratum: ArtefactStratum | undefined,
+): { material: MaterialDefinition; standing: number } {
+	const compatible = component.allowedMaterialTags.length === 0
+		? materials // No constraint recorded (unrecognised primitive type) — everything is a candidate.
+		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
+
+	const available = compatible.filter((m) => isAvailable(m, geology, trade));
+
+	const candidates = available.length > 0
+		? available
+		: compatible.length > 0
+		? compatible
+		: materials;
+
+	const standings = new Map<MaterialName, number>();
+	const standingOf = (material: MaterialDefinition): number => {
+		let standing = standings.get(material.id);
+		if (standing === undefined) {
+			standing = materialStanding(material, culture, phase, geology);
+			standings.set(material.id, standing);
+		}
+		return standing;
+	};
+
+	const material = weightedSelect(
+		candidates,
+		prng,
+		(candidate) =>
+			computeMaterialWeight(candidate, culture, phase, geology) *
+			(stratum === undefined ? 1 : stratumFactor(standingOf(candidate), stratum)),
+	);
+
+	return { material, standing: standingOf(material) };
+}
+
+/**
  * `computeMaterialWeight`'s three factors, decomposed, plus the availability read they were derived
  * alongside (doc 05 §7, roadmap 2GN.74). Exists so a caller — the material viewer panel (2GN.60) —
  * can show a scarcity-vs-affinity-vs-technology breakdown without duplicating `SCARCITY_WEIGHT` or
@@ -406,6 +553,9 @@ export function explainMaterialWeight(
  * @param trade - Material flows reachable through cultural relationships.
  * @param prng - A generator from `createPrng`, consumed once via `weightedSelect`.
  * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
+ * @param stratum - The stratum the artefact is made for (roadmap 2GN.27), which boosts or suppresses
+ *   prized candidates. `undefined` (the default) applies no modulation, so a bare single-component
+ *   call reads the culture-wide weights.
  * @returns The selected `MaterialDefinition`.
  */
 export function assignMaterial(
@@ -416,24 +566,10 @@ export function assignMaterial(
 	trade: readonly MaterialFlow[],
 	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
+	stratum?: ArtefactStratum,
 ): MaterialDefinition {
-	const compatible = component.allowedMaterialTags.length === 0
-		? materials // No constraint recorded (unrecognised primitive type) — everything is a candidate.
-		: materials.filter((m) => m.tags.some((tag) => component.allowedMaterialTags.includes(tag)));
-
-	const available = compatible.filter((m) => isAvailable(m, geology, trade));
-
-	const candidates = available.length > 0
-		? available
-		: compatible.length > 0
-		? compatible
-		: materials;
-
-	return weightedSelect(
-		candidates,
-		prng,
-		(material) => computeMaterialWeight(material, culture, phase, geology),
-	);
+	return drawMaterial(component, culture, phase, geology, trade, prng, materials, stratum)
+		.material;
 }
 
 /**
@@ -547,7 +683,8 @@ export function deriveMaterialProvenance(
  * @param trade - Material flows reachable through cultural relationships.
  * @param prng - A generator from `createPrng`, consumed once via `weightedSelect`.
  * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
- * @returns The `MaterialAssignment` for `component`.
+ * @param stratum - The stratum the artefact is made for; see `assignMaterial`.
+ * @returns The `MaterialAssignment` for `component`, with its `standing` stamped.
  */
 export function assignMaterialWithProvenance(
 	component: NormalisedComponent,
@@ -557,13 +694,24 @@ export function assignMaterialWithProvenance(
 	trade: readonly MaterialFlow[],
 	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
+	stratum?: ArtefactStratum,
 ): MaterialAssignment {
-	const material = assignMaterial(component, culture, phase, geology, trade, prng, materials);
+	const { material, standing } = drawMaterial(
+		component,
+		culture,
+		phase,
+		geology,
+		trade,
+		prng,
+		materials,
+		stratum,
+	);
 
 	return {
 		componentId: component.id,
 		materialId: material.id,
 		provenance: deriveMaterialProvenance(material, geology, trade),
+		standing,
 	};
 }
 
@@ -584,12 +732,22 @@ export function assignMaterialWithProvenance(
  * material assignment composable with whatever already-advanced `prng` the rest of Stage 6 is
  * using, and needs no synthetic per-component seed string.
  *
+ * **The stratum draw** (doc 11 §2.9, roadmap 2GN.27) consumes one draw from `prng` before any
+ * component is assigned: whether this artefact was made for the elite, with probability
+ * `eliteShare(phase)`. Every component then draws under the same stratum, so prized materials
+ * concentrate in a minority of a stratified culture's output and spread thinly through a flat
+ * one. This is where `society.stratification` enters the pipeline; the classifier reads the
+ * resulting materials and needs no gate of its own. Taking the draw first shifts every
+ * component's draw by one position relative to the pre-2GN.27 sequence, which the calibration
+ * pins absorbed at that re-record.
+ *
  * @param artefact - The normalised artefact whose components need materials.
  * @param culture - The culture whose material affinities apply.
- * @param phase - The phase whose technology levels apply.
+ * @param phase - The phase whose technology, trade openness and stratification apply.
  * @param geology - World-level material scarcity.
  * @param trade - Material flows reachable through cultural relationships.
- * @param prng - A generator from `createPrng`, consumed once per component via `weightedSelect`.
+ * @param prng - A generator from `createPrng`, consumed once for the stratum draw and once per
+ *   component via `weightedSelect`.
  * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
  * @returns One `MaterialAssignment` per component, in `artefact.components` order.
  */
@@ -602,7 +760,18 @@ export function assignMaterials(
 	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
 ): MaterialAssignment[] {
+	const stratum: ArtefactStratum = prng() < eliteShare(phase) ? 'elite' : 'commoner';
+
 	return artefact.components.map((component) =>
-		assignMaterialWithProvenance(component, culture, phase, geology, trade, prng, materials)
+		assignMaterialWithProvenance(
+			component,
+			culture,
+			phase,
+			geology,
+			trade,
+			prng,
+			materials,
+			stratum,
+		)
 	);
 }
