@@ -40,6 +40,24 @@ All notable changes to this project are documented here. Format follows
   without the stratum draw and showed roughly double the pipeline's prized-material rate; all three
   now draw through the same engine path as the pipeline and agree with each other for a seed.
 
+## [0.54.0] - 2026-08-26
+
+### Added
+
+- The app gains a hub page linking the dev tools and the design-notes site, and a dev portal page
+  linking the Project Explorer, with a shared header and a footer crediting the concept.
+- A spike index at `docs/spikes/README.md` lists every design spike, ruled and open, with where each
+  ruling landed.
+
+### Changed
+
+- Six design questions are ruled, each with a spike file, a locked decision in doc 11 and a
+  propagation entry in doc 12: region keying for classification baselines (world-level regions on a
+  culture phase, filed to implement as 2GN.144); the re-expansion cap (20); provenance's place in
+  the material-standing formula (implicit in availability); the substrate gate (availability alone,
+  never affinity); sublayer placement (a separate pass after material assignment); and the
+  decoration recursion depth (emphasis drives the per-depth chance, craft the ceiling).
+
 ## [0.53.0] - 2026-08-24
 
 ### Added
@@ -62,5 +80,6 @@ All notable changes to this project are documented here. Format follows
 
 [Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.55.0...HEAD
 [0.55.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.54.0...v0.55.0
+[0.54.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.53.0...v0.54.0
 [0.53.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.52.0...v0.53.0
 [0.52.0]: https://github.com/JasonWarrenUK/those-who-came-before/releases/tag/v0.52.0
