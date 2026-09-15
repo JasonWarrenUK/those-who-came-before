@@ -571,11 +571,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
 - [x] **2GN.27** — `engine/generation/materials.ts` + `engine/generation/classification.ts` —
       material influence on tag accumulation: materials **the producing culture treats as precious**
       boost elite/ceremonial, derived from the material's situation rather than a catalogue fact —
-      ⚠️ **breaking**: `ExtractedFeatures` carries zero component-material fields today (its one
-      material-adjacent field, `preciousMaterialsInDecoration`, is about decorative-layer materials
-      and belongs to 2GN.68); this task adds new `ExtractedFeatures` fields
-      (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a new
-      `materials`/`assignments` parameter on `extractFeatures`, and fixture updates
+      _(the planning text from here to the delivery note is superseded where it names fields: the
+      shipped contract is `MaterialAssignment.standing`, read into
+      `ExtractedFeatures.materialStanding` by `extractFeatures(artefact, layers, assignments)`; see
+      the Done note below)_ — ⚠️ **breaking**: `ExtractedFeatures` carries zero component-material
+      fields today (its one material-adjacent field, `preciousMaterialsInDecoration`, is about
+      decorative-layer materials and belongs to 2GN.68); this task adds new `ExtractedFeatures`
+      fields (materialId/precious-material signal, in the style of 2GN.17's 13-field addition), a
+      new `materials`/`assignments` parameter on `extractFeatures`, and fixture updates
       (`neutralExtractedFeatures`/`mockExtractedFeatures`), on top of the rules themselves —
       dependency sweep 2026-07-25 corrected the 2GN.23 edge to 2GN.75 (assignments, not just the
       single-component `assignMaterial`) and flagged the breaking scope the original line hid;
@@ -1735,6 +1738,14 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
     coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
     availability inverted; never use its `weight`, a selection quantity pointing the other way.
+  - Note: **Amended 2026-09-15 by 2GN.27** (doc 11 §2.9, doc 12 §2.59):
+    `preciousMaterialsInDecoration` will be populated (this task's job; `extractFeatures` still
+    hardcodes it `false`) by calling `materialStanding(material, culture, phase, geology)` on each
+    layer's material and comparing against `STANDING_CUT`, the same read
+    `ExtractedFeatures.materialStanding` uses for structural components; stratification is not an
+    input to the number (it entered at stage 6 as the stratum draw) and the threshold is fixed, not
+    percentiled. The four-term formula and the sampled-distribution threshold in the notes above are
+    superseded.
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [x] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -2664,6 +2675,12 @@ integration with real culture data
       tells. Moved from M2 to M3 2026-08-05: its dependencies are all M3 tasks, and M3's own entry
       point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work
       without a cycle
+  - Note: **Re-scoped 2026-09-15 by 2GN.27** (doc 11 §2.9, doc 12 §2.59): the stratification gate
+    covers the decoration-side `elite` awards only. Material-side `elite` needs none: stratification
+    enters at stage 6 as `assignMaterials`' stratum draw, and the material-standing rule's realised
+    rate already tracks it (12% at 0.4, 35% at 0.85). Extending that stratum to the decoration
+    budget, so a stratified culture's elite artefacts are also the lavish ones, is the natural shape
+    for this task's gate.
 - [ ] **2GN.121** — `engine/generation/grammar.ts` + `data/grammars/primitives.ts` — weight the
       `base` parameter roll per culture rather than rolling uniformly over a shared vocabulary
       _(blocked — depends on 2GN.118, 3WS.4, 3WS.9)_ — 2GN.118 ruled (2026-08-13) that `cylindrical`
