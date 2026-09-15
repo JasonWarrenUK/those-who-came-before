@@ -13,6 +13,7 @@ import {
 } from '../../../tests/fixtures/artefact.ts';
 import { PERCENTILE_LADDER } from '../engine/statistics.ts';
 import { SAMPLED_FEATURES } from '../engine/generation/baselines.ts';
+import { STANDING_CUT } from '../engine/generation/materials.ts';
 import { RELATIVE_TAGS as ALL_RELATIVE_TAGS } from '../types/tags.ts';
 import type { AbsoluteTag, ArtefactTag, RelativeTag } from '../types/tags.ts';
 import type { ExtractedFeatures } from '../types/artefact.ts';
@@ -138,7 +139,7 @@ Deno.test('rules: every emitted tag is a real ArtefactTag', () => {
  * Failing here is not automatically a defect — adding a rule that awards a `RelativeTag` legitimately
  * moves it. Update the count and doc 11 §2.9 together, deliberately.
  */
-Deno.test('ruling: 34 of the 43 rules award at least one RelativeTag', () => {
+Deno.test('ruling: 35 of the 44 rules award at least one RelativeTag', () => {
 	const relative = new Set<string>(ALL_RELATIVE_TAGS);
 	const needsBaseline = CLASSIFICATION_RULES.filter((rule) =>
 		[...rule.tags.keys()].some((tag) => relative.has(tag))
@@ -148,8 +149,10 @@ Deno.test('ruling: 34 of the 43 rules award at least one RelativeTag', () => {
 	// `meanDecorativeGrade` and awards `artisanal`/`elite`, both `RelativeTag` members.
 	// 44 → 43, 35 → 34 (roadmap 2GN.87): the unsatisfiable short-edge rule was deleted; it awarded
 	// `tool`/`everyday`, so the relative-awarding count drops with it.
-	assertEquals(CLASSIFICATION_RULES.length, 43);
-	assertEquals(needsBaseline.length, 34);
+	// 43 → 44, 34 → 35 (roadmap 2GN.27): the material-standing rule reads `materialStanding` and
+	// awards `elite`/`ceremonial`, both `RelativeTag` members.
+	assertEquals(CLASSIFICATION_RULES.length, 44);
+	assertEquals(needsBaseline.length, 35);
 });
 
 /**
@@ -1032,4 +1035,30 @@ Deno.test('integration: an engraved long bronze blade fires weapon, ritual, cere
 	);
 	assertEquals(R34.tags.get('ritual'), 0.5);
 	assertEquals(R34.tags.get('elite'), 0.3);
+});
+
+// --- Material (roadmap 2GN.27) ----------------------------------------------------------------------
+
+const MATERIAL_STANDING = requireRuleById('material-standing-prized');
+
+Deno.test('material-standing-prized: fires at or above STANDING_CUT, not below', () => {
+	assert(MATERIAL_STANDING.condition(features({ materialStanding: STANDING_CUT }), ctx));
+	assert(MATERIAL_STANDING.condition(features({ materialStanding: STANDING_CUT + 1 }), ctx));
+	assertFalse(
+		MATERIAL_STANDING.condition(features({ materialStanding: STANDING_CUT - 0.01 }), ctx),
+	);
+	// No assignments supplied reads 0: no evidence, so no award.
+	assertFalse(MATERIAL_STANDING.condition(features({ materialStanding: 0 }), ctx));
+});
+
+Deno.test('material-standing-prized: a fixed cut, so the empty context changes nothing', () => {
+	// The one relative-award rule that deliberately reads no baseline (spike, "The ruling"): the
+	// standing quantity is already culture-normalised at stage 6.
+	const prized = features({ materialStanding: STANDING_CUT });
+	assertEquals(
+		MATERIAL_STANDING.condition(prized, ctx),
+		MATERIAL_STANDING.condition(prized, relativeContext({})),
+	);
+	assertEquals(MATERIAL_STANDING.tags.get('elite'), 0.4);
+	assertEquals(MATERIAL_STANDING.tags.get('ceremonial'), 0.3);
 });

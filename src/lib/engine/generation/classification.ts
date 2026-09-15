@@ -43,6 +43,11 @@
  *   volume axis — driven by `society.craftSpecialisation` and each layer's technique difficulty
  *   (`TECHNIQUE_DIFFICULTY`, `data/decorations.ts`), independently of how much decoration is
  *   present.
+ * - **Material** (roadmap 2GN.27): `materialStanding` is the max `MaterialAssignment.standing`
+ *   across the supplied assignments, `0` when none are supplied. The standing itself is computed at
+ *   stage 6 (`materialStanding()`, `materials.ts`) and stamped on each assignment, so this stage
+ *   reads a number and stays free of world context, which is the reason doc 11 §2.9 widened
+ *   `ClassificationRule.condition` rather than this function.
  * - **Dormant** (no producer yet): `motifPresent` honestly reads `motifRef` presence — always
  *   `false` until motif assignment lands (roadmap 2GN.33); `motifCulturalOrigins` stays `[]` and
  *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
@@ -55,13 +60,14 @@
  * stay `false` on a missing or unrecognised signal, so degradation can never fabricate an impact
  * surface or a pin.
  *
- * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer; material-derived and
- * decorative-motif fields complete the doc 05 stage-8 contract later (roadmap 2GN.27, 2GN.68).
+ * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer; the decorative-motif
+ * fields complete the doc 05 stage-8 contract later (roadmap 2GN.68).
  */
 
 import type {
 	Attachment,
 	ExtractedFeatures,
+	MaterialAssignment,
 	NormalisedArtefact,
 	NormalisedComponent,
 } from '../../types/artefact.ts';
@@ -312,18 +318,26 @@ function tallyLayers(
  * Pure and PRNG-free; never mutates `artefact` or `decorativeLayers`. See the module comment for
  * the per-family collapse policies and the interviewed presence-flag derivations.
  *
- * @param artefact - The normalised artefact (post 2GN.8 flatten; materials need not be assigned —
- *   material-derived features are roadmap 2GN.27's).
+ * @param artefact - The normalised artefact (post 2GN.8 flatten).
  * @param decorativeLayers - The artefact's decorative layers (`expandDecoration`, roadmap 2GN.29).
  *   Defaults to none, for callers extracting from a bare structure.
+ * @param assignments - The artefact's material assignments (`assignMaterials`, roadmap 2GN.75),
+ *   read for `materialStanding`. Defaults to none, in which case `materialStanding` is `0`.
  * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against, with
- *   the dormant motif/material fields at their honest no-producer defaults (roadmap 2GN.33/2GN.68).
+ *   the dormant motif fields at their honest no-producer defaults (roadmap 2GN.33/2GN.68).
  */
 export function extractFeatures(
 	artefact: NormalisedArtefact,
 	decorativeLayers: readonly DecorativeLayer[] = [],
+	assignments: readonly MaterialAssignment[] = [],
 ): ExtractedFeatures {
 	const { components, attachments, dimensions } = artefact;
+
+	// Material family — the most prized material present sets the artefact's standing.
+	const materialStanding = assignments.reduce(
+		(best, assignment) => Math.max(best, assignment.standing),
+		0,
+	);
 
 	// Edge / blade family — `bladeLengthBand`/`bladeProfile` read the same dominant blade.
 	const edged = components.filter((component) => edgeCountOf(component) > 0);
@@ -471,6 +485,7 @@ export function extractFeatures(
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,
 		// DORMANT — layer materials are produced by roadmap 2GN.33; the lookup consuming them is 2GN.68's.
 		preciousMaterialsInDecoration: false,
+		materialStanding,
 		decorativeComplexity,
 		overallComplexity: functionalComplexity + decorativeComplexity,
 		functionalComplexity,

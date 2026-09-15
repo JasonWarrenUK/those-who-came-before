@@ -9,6 +9,7 @@ import {
 } from '../../../../tests/fixtures/artefact.ts';
 import type {
 	ExtractedFeatures,
+	MaterialAssignment,
 	NormalisedArtefact,
 	NormalisedComponent,
 } from '../../types/artefact.ts';
@@ -771,4 +772,32 @@ Deno.test('integration: the real rules score the engraved long blade on weapon, 
 	const everyTag = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
 	const positions = [...scored.keys()].map((tag) => everyTag.indexOf(tag));
 	assertEquals([...positions].sort((a, b) => a - b), positions);
+});
+
+// --- Material family (roadmap 2GN.27) -----------------------------------------------------------------
+
+/** A material assignment carrying only what `extractFeatures` reads off it. */
+function assignment(componentId: string, standing: number): MaterialAssignment {
+	return { componentId, materialId: 'bronze', provenance: { source: 'local' }, standing };
+}
+
+Deno.test('extractFeatures: materialStanding is the max standing across assignments', () => {
+	const artefact = artefactOf([
+		component('c0', 'elongated', { length: 'long' }),
+		component('c1', 'disc-form'),
+		component('c2', 'bar-form'),
+	]);
+	const features = extractFeatures(artefact, [], [
+		assignment('c0', 1),
+		assignment('c1', 6.8),
+		assignment('c2', 1.67),
+	]);
+
+	// A gold fitting on an iron body reads gold (spike ruling: max, not dominant or mean).
+	assertEquals(features.materialStanding, 6.8);
+});
+
+Deno.test('extractFeatures: materialStanding is 0 with no assignments, never a fabricated neutral', () => {
+	const features = extractFeatures(artefactOf([component('c0', 'bar-form')]));
+	assertEquals(features.materialStanding, 0);
 });

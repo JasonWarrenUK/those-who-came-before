@@ -418,6 +418,16 @@ export interface MaterialAssignment {
 
 	/** Where the raw material likely came from (doc 05 §7.1). Occluded from the player. */
 	provenance: MaterialProvenance;
+
+	/**
+	 * The material's standing in the producing culture (doc 11 §2.9, roadmap 2GN.27):
+	 * `availability⁻¹ × cultural affinity`, from `materialStanding()` in
+	 * `engine/generation/materials.ts`. Neutral is `1` (abundant, no authored opinion); a scarce or
+	 * prized material reads higher. Derived, not occluded: it is a property of the material's
+	 * situation, stamped here so `extractFeatures` can read it without world context. The
+	 * classifier's cut over it is `STANDING_CUT` in the same module.
+	 */
+	standing: number;
 }
 
 /**
@@ -659,28 +669,27 @@ export interface ExtractedFeatures {
 	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
 	 * forbids, and there is no longer a tag to look up.
 	 *
-	 * Populate it from the material's *situation* instead. Doc 11 §2.9's formula (restated by
-	 * roadmap 2GN.143, doc 12 §2.55) is standing = f(availability⁻¹, cultural affinity,
-	 * stratification), from two places, neither a catalogue lookup:
-	 *
-	 * - **availability** and **cultural affinity**: `explainMaterialWeight`
-	 *   (`engine/generation/materials.ts`, roadmap 2GN.74) returns `level` (how scarce the material is
-	 *   here) and `culturalAffinity` (whether this culture prizes it) for a material/culture pair.
-	 *   Availability enters **inverted**: `trade-only`/`scarce` raise standing, `abundant` lowers it.
-	 *   Provenance is not a separate input — `MaterialAssignment.provenance.source` is a coarsening of
-	 *   `level` (2GN.143 measured the mapping as total), so `level` already carries it.
-	 * - **stratification**: `PhaseCharacteristics.society.stratification`, which doc 11 §2.9 makes a
-	 *   live input and which nothing reads yet.
-	 *
-	 * ⚠️ Do not use `explainMaterialWeight().weight` as the score: it is a *selection* weight whose
-	 * availability axis points the other way (trade-only 0.15, abundant 1.0).
-	 *
-	 * The threshold over those inputs is 2GN.68's to rule and has not been set.
+	 * Populate it from the material's *situation* instead: `materialStanding()`
+	 * (`engine/generation/materials.ts`, roadmap 2GN.27) against `STANDING_CUT`, the same read
+	 * `materialStanding` below uses for structural components. Stratification is not an input to
+	 * the number: it enters at stage 6 as the stratum draw in `assignMaterials` (doc 11 §2.9,
+	 * `docs/spikes/2GN.27-material-standing.md`).
 	 *
 	 * The classification rule reading this field is authored and dormant, allowlisted in
 	 * `calibration.test.ts`'s `DORMANT_RULE_INDICES` until that producer exists.
 	 */
 	preciousMaterialsInDecoration: boolean;
+
+	// Material
+	/**
+	 * The highest `MaterialAssignment.standing` across the artefact's structural components (doc 11
+	 * §2.9, roadmap 2GN.27): `availability⁻¹ × cultural affinity` for the most prized material
+	 * present, so a gold pommel on an iron blade reads gold. `0` when no assignments were supplied
+	 * (no evidence, never fabricated neutral). Compared against `STANDING_CUT`
+	 * (`engine/generation/materials.ts`) by the material-standing rule. Which component supplied
+	 * the value is roadmap 2GN.72's; the made-of versus fitted-with share is 2GN.119's.
+	 */
+	materialStanding: number;
 
 	// Combined
 	/** Edge + point + impact + container (doc 05 §9.1). */

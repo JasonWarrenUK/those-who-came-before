@@ -14,7 +14,11 @@
 
 import { glyphs, paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
-import { expandDecoration } from '../../src/lib/engine/generation/decoration.ts';
+import {
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../../src/lib/engine/generation/decoration.ts';
+import { assignMaterials } from '../../src/lib/engine/generation/materials.ts';
 import { extractFeatures } from '../../src/lib/engine/generation/classification.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../src/lib/data/decorations.ts';
@@ -53,17 +57,31 @@ const world = sampleWorld(sampleWorldRegion(options, USAGE));
 const samples = Array.from({ length: options.count }, (_, index) => {
 	const seed = sampleSeed(options, index);
 	const artefact = generateArtefact(seed, world);
-	const layers = bare ? [] : expandDecoration(
+	const assignments = assignMaterials(
 		artefact,
 		world.culture,
 		world.phase,
 		world.geology,
 		world.trade,
-		createPrng(`${seed}-decoration`),
+		createPrng(`${seed}-materials`),
 		MATERIALS,
-		DECORATIVE_TECHNIQUES,
 	);
-	return { seed, artefact, layers, features: extractFeatures(artefact, layers) };
+	const layers = bare ? [] : gradeDecorativeLayers(
+		expandDecoration(
+			artefact,
+			world.culture,
+			world.phase,
+			world.geology,
+			world.trade,
+			createPrng(`${seed}-decoration`),
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+		),
+		assignments,
+		world.phase,
+		MATERIALS,
+	);
+	return { seed, artefact, layers, features: extractFeatures(artefact, layers, assignments) };
 });
 
 // --- Source re-derivation (mirrors the collapse policies recorded in doc 12 §2.20) ---------------

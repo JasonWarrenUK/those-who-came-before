@@ -1,5 +1,5 @@
 /// <reference lib="deno.ns" />
-import { assert, assertEquals, assertNotEquals } from '@std/assert';
+import { assert, assertAlmostEquals, assertEquals, assertNotEquals } from '@std/assert';
 import {
 	assignMaterial,
 	assignMaterials,
@@ -7,8 +7,11 @@ import {
 	computeMaterialWeight,
 	culturalAffinityWeight,
 	deriveMaterialProvenance,
+	eliteShare,
 	explainMaterialWeight,
 	isAvailable,
+	materialStanding,
+	STANDING_CUT,
 } from './materials.ts';
 import { MATERIALS } from '../../data/materials.ts';
 import { createPrng } from '../prng.ts';
@@ -24,7 +27,7 @@ import {
 	mockRegionalWorld,
 } from '../../../../tests/fixtures/world.ts';
 import type { NormalisedComponent } from '../../types/artefact.ts';
-import type { MaterialAffinity } from '../../types/world.ts';
+import type { AvailabilityLevel, MaterialAffinity } from '../../types/world.ts';
 import type { MaterialName, MaterialTag } from '../../types/tags.ts';
 
 /** Looks up a shipped material by id; throws if the fixture data ever drops it. */
@@ -1104,9 +1107,21 @@ Deno.test('assignMaterials: threads a single prng instance across components rat
 		MATERIALS,
 	);
 
+	// The stratum draw (roadmap 2GN.27) is the first draw off the shared instance; the reference
+	// sequence reproduces it so the per-component draws line up.
 	const referencePrng = createPrng('threaded-seed');
+	const stratum = referencePrng() < eliteShare(phase) ? 'elite' as const : 'commoner' as const;
 	const viaSequentialCalls = artefact.components.map((component) =>
-		assignMaterialWithProvenance(component, culture, phase, geology, [], referencePrng, MATERIALS)
+		assignMaterialWithProvenance(
+			component,
+			culture,
+			phase,
+			geology,
+			[],
+			referencePrng,
+			MATERIALS,
+			stratum,
+		)
 	);
 
 	assertEquals(viaAssignMaterials, viaSequentialCalls);
@@ -1184,6 +1199,155 @@ Deno.test('assignMaterials: an artefact with no components returns an empty arra
 	);
 
 	assertEquals(assignments, []);
+});
+
+// --- materialStanding (roadmap 2GN.27, doc 11 §2.9) ----------------------------------------------
+
+/** A one-region geology placing `id` at `level`, with no opinion authored anywhere. */
+function geologyAt(id: MaterialName, level: AvailabilityLevel) {
+	return mockGeologicalContext({
+		materialAvailability: new Map([[id, { materialId: id, regions: new Map([['r', level]]) }]]),
+	});
+}
+
+/** A culture with no material opinions, so standing reads availability alone. */
+const INDIFFERENT = mockCulturalProfile({ materialAffinities: [] });
+
+Deno.test('materialStanding: inverts the scarcity rungs, neutral at abundant', () => {
+	const phase = mockPhaseCharacteristics();
+	const gold = material('gold');
+
+	const abundant = materialStanding(gold, INDIFFERENT, phase, geologyAt('gold', 'abundant'));
+	const available = materialStanding(gold, INDIFFERENT, phase, geologyAt('gold', 'available'));
+	const scarce = materialStanding(gold, INDIFFERENT, phase, geologyAt('gold', 'scarce'));
+
+	assertEquals(abundant, 1);
+	// Reciprocal of SCARCITY_WEIGHT (1.0 / 0.6 / 0.25): the rung ratios 2GN.84 pinned carry over.
+	assertEquals(available, 1 / 0.6);
+	assertEquals(scarce, 4);
+});
+
+Deno.test('materialStanding: an unmodelled material reads the available rung, matching scarcityWeight', () => {
+	const phase = mockPhaseCharacteristics();
+	const jade = material('jade');
+	const unmodelled = materialStanding(jade, INDIFFERENT, phase, geologyAt('gold', 'abundant'));
+	const available = materialStanding(jade, INDIFFERENT, phase, geologyAt('jade', 'available'));
+
+	assertEquals(unmodelled, available);
+});
+
+Deno.test('materialStanding: absent is capped at the closed-trade trade-only rung, never infinite', () => {
+	const closed = mockPhaseCharacteristics({ economy: { tradeOpenness: 0 } });
+	const gold = material('gold');
+	const absent = materialStanding(gold, INDIFFERENT, closed, geologyAt('gold', 'absent'));
+	const tradeOnly = materialStanding(gold, INDIFFERENT, closed, geologyAt('gold', 'trade-only'));
+
+	assert(Number.isFinite(absent));
+	assertEquals(absent, tradeOnly);
+});
+
+Deno.test('materialStanding: trade openness tempers a trade-only material from exotic to routine', () => {
+	const gold = material('gold');
+	const geology = geologyAt('gold', 'trade-only');
+	const at = (tradeOpenness: number) =>
+		materialStanding(
+			gold,
+			INDIFFERENT,
+			mockPhaseCharacteristics({ economy: { tradeOpenness } }),
+			geology,
+		);
+
+	// Closed: the full trade-only reciprocal (1 / 0.15). Open: an import is as ordinary as a local
+	// `available` material (spike Finding 2). Half-open sits between.
+	assertAlmostEquals(at(0), 1 / 0.15);
+	assertAlmostEquals(at(1), 1 / 0.6);
+	assert(at(0.5) > at(1) && at(0.5) < at(0));
+});
+
+Deno.test('materialStanding: cultural affinity multiplies, so a prized abundant material can clear the cut', () => {
+	const phase = mockPhaseCharacteristics();
+	const geology = geologyAt('gold', 'abundant');
+	const prizing = mockCulturalProfile({
+		materialAffinities: [{ selector: { id: 'gold' }, weight: STANDING_CUT }],
+	});
+
+	assertEquals(materialStanding(material('gold'), INDIFFERENT, phase, geology), 1);
+	assertEquals(materialStanding(material('gold'), prizing, phase, geology), STANDING_CUT);
+});
+
+Deno.test('materialStanding: trade reachability does not change standing, only the level does', () => {
+	const phase = mockPhaseCharacteristics();
+	const geology = geologyAt('gold', 'trade-only');
+	const gold = material('gold');
+	const flow = mockMaterialFlow({ includes: [{ id: 'gold' }] });
+
+	// `materialStanding` takes no `trade` argument by design: the same level reads the same
+	// standing whether or not `isAvailable` would rescue it.
+	assertEquals(isAvailable(gold, geology, []), false);
+	assertEquals(isAvailable(gold, geology, [flow]), true);
+	assertEquals(
+		materialStanding(gold, INDIFFERENT, phase, geology),
+		materialStanding(gold, INDIFFERENT, phase, geology),
+	);
+});
+
+// --- The stratum draw (roadmap 2GN.27) ------------------------------------------------------------
+
+Deno.test('eliteShare: scales linearly with stratification and is zero for a flat society', () => {
+	assertEquals(eliteShare(mockPhaseCharacteristics({ society: { stratification: 0 } })), 0);
+	const half = eliteShare(mockPhaseCharacteristics({ society: { stratification: 0.5 } }));
+	const full = eliteShare(mockPhaseCharacteristics({ society: { stratification: 1 } }));
+	assert(half > 0 && full > half);
+	assertEquals(full, half * 2);
+	assert(full < 1, 'even a fully stratified society is not all elite');
+});
+
+Deno.test('assignMaterials: every assignment carries the standing materialStanding computes for its material', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const world = mockRegionalWorld('coastalPort');
+	const artefact = mockNormalisedArtefact({
+		components: [componentAt('a', 0), componentAt('b', 1), componentAt('c', 2)],
+	});
+
+	const assignments = assignMaterials(
+		artefact,
+		culture,
+		phase,
+		world.geology,
+		world.trade,
+		createPrng('standing-stamp'),
+		MATERIALS,
+	);
+
+	for (const assignment of assignments) {
+		assertEquals(
+			assignment.standing,
+			materialStanding(material(assignment.materialId), culture, phase, world.geology),
+		);
+	}
+});
+
+Deno.test('assignMaterial: omitting the stratum applies no modulation', () => {
+	// The Explorer material panel and single-component callers pass no stratum and must read the
+	// culture-wide weights, which is the `undefined` branch of `stratumFactor`.
+	const culture = mockCulturalProfile({ materialAffinities: [] });
+	const phase = mockPhaseCharacteristics();
+	const world = mockRegionalWorld('coastalPort');
+	const bare = component([]);
+	const draw = (stratum?: 'elite' | 'commoner') =>
+		assignMaterial(
+			bare,
+			culture,
+			phase,
+			world.geology,
+			world.trade,
+			createPrng('bare'),
+			MATERIALS,
+			stratum,
+		);
+
+	assertEquals(draw(), draw(undefined));
 });
 
 Deno.test('assignMaterials: defaults to the shipped MATERIALS catalogue', () => {

@@ -76,7 +76,7 @@ export interface ScoredTag {
 }
 
 /** Which part of the feature contract a field belongs to, for grouping in the panel. */
-export type FeatureGroup = 'structural' | 'decorative' | 'complexity' | 'mechanical';
+export type FeatureGroup = 'structural' | 'decorative' | 'material' | 'complexity' | 'mechanical';
 
 /** One `ExtractedFeatures` field, ready to display. */
 export interface FeatureReading {
@@ -175,6 +175,7 @@ const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup]
 	['motifCulturalOrigins', 'decorative'],
 	['techniqueComplexity', 'decorative'],
 	['preciousMaterialsInDecoration', 'decorative'],
+	['materialStanding', 'material'],
 	['functionalComplexity', 'complexity'],
 	['decorativeComplexity', 'complexity'],
 	['overallComplexity', 'complexity'],
@@ -301,7 +302,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	);
 	const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
 
-	const features = extractFeatures(artefact, layers);
+	const features = extractFeatures(artefact, layers, assignments);
 	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per
 	// culture (`shared/baselineCache.ts`) rather than sampled fresh per artefact — the baseline is a
 	// property of the culture being inspected, not of any one artefact's own seed.

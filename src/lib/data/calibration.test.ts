@@ -153,6 +153,12 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	// calibrateRules weren't grading the measured artefacts through the material-aware pass either,
 	// so the 4.0 pin compared a graded baseline against ungraded artefacts: both now graded, landing
 	// at the p90 rung as expected (roadmap 2GN.103, doc 12 §2.36))
+	45.7, // R44 materialStanding >= STANDING_CUT → elite/ceremonial (roadmap 2GN.27, 2026-09-15). High
+	// against the Explorer presets' 12–35% because `mockCulturalProfile` faces fixture geologies that
+	// place 9–12 of 16 materials at scarce/trade-only, and a component whose `allowedMaterialTags`
+	// admit only prized candidates draws one whatever the stratum. Geology-sensitive: 16.0%
+	// (highlandMine, local metal) to 66.0% (coastalPort, every metal imported). R1–R38 came back
+	// bit-identical; R39–R43 moved ≤ 0.3pp with the material draw sequence, left as recorded.
 ];
 
 /**
@@ -401,7 +407,7 @@ function measureFireRates(): {
 					MATERIALS,
 				);
 				const layers = gradeDecorativeLayers(provisionalLayers, assignments, phase, MATERIALS);
-				const extracted = extractFeatures(artefact, layers);
+				const extracted = extractFeatures(artefact, layers, assignments);
 
 				if (extracted.hasEdge) {
 					edgedCount++;
