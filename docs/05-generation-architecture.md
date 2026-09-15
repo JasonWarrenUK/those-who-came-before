@@ -916,6 +916,21 @@ from, and callers are expected to pass a non-empty one (the default always is).
 Trade materials appear at low weight — present but uncommon. An artefact with a foreign material
 tells a story about contact, but the player has to figure out what kind.
 
+**The stratum draw** (doc 11 §2.9, roadmap 2GN.27). `assignMaterials`, the artefact-level pass,
+draws once per artefact whether it was made for the elite (`P = 0.4 × society.stratification`)
+before assigning any component. Every material whose standing clears `STANDING_CUT` has its
+selection weight multiplied by 3 for an elite artefact and by 0.05 for a commoner one; every other
+material is untouched. Prized materials therefore concentrate in a minority of a stratified
+culture's output and spread thinly through a flat one, which is where `stratification` enters the
+pipeline and why the classifier needs no gate of its own to read `elite` from a material.
+
+**Standing** is `materialStanding(material, culture, phase, geology)`: the reciprocal of the
+scarcity rung (abundant 1, available 1.67, scarce 4, trade-only 6.67) times the cultural affinity,
+with a `trade-only` level lerped towards the `available` rung by `economy.tradeOpenness`, so an open
+trading culture's routine import reads as ordinary and a closed culture's rare one as exotic. It is
+stamped on each `MaterialAssignment.standing` and read by stage 8 as
+`ExtractedFeatures.materialStanding`, the max across structural components.
+
 > **Implementation note (2026-08-06, roadmap 2GN.84, doc 12 §2.34):** this section states the
 > weighting priority directionally only, and doc §10.2 below explicitly disclaims a quota reading —
 > no numeric target for material distribution exists anywhere in this doc. Before this task, nothing
@@ -1140,6 +1155,9 @@ interface ExtractedFeatures {
 	motifCulturalOrigins: string[]; // Which cultures' vocabularies are represented
 	techniqueComplexity: number; // Layering depth * technique variety
 	preciousMaterialsInDecoration: boolean;
+
+	// Material (roadmap 2GN.27)
+	materialStanding: number; // Max MaterialAssignment.standing across structural components
 
 	// Combined
 	functionalComplexity: number; // Edge + point + impact + container
