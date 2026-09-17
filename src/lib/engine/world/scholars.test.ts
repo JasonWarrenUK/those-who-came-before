@@ -3,7 +3,7 @@ import { assert, assertEquals, assertNotEquals } from '@std/assert';
 import { createPrng } from '../prng.ts';
 import { generateNPCScholars } from './scholars.ts';
 import { mockCulture } from '../../../../tests/fixtures/culture.ts';
-import { mockWorldChronology } from '../../../../tests/fixtures/world.ts';
+import { mockCultureTimeline, mockWorldChronology } from '../../../../tests/fixtures/world.ts';
 import { renderName } from './naming.ts';
 
 const cultures = [mockCulture({ id: 'culture-a' }), mockCulture({ id: 'culture-b' })];
@@ -109,6 +109,40 @@ Deno.test('coverage: cultureFocus only ever names cultures present in chronology
 		for (const cultureId of scholar.cultureFocus) {
 			assert(validIds.has(cultureId), `${scholar.id} focuses on unknown culture ${cultureId}`);
 		}
+	}
+});
+
+Deno.test('coverage: cultureFocus skips chronology cultures absent from the cultures array', () => {
+	const ghostChronology = mockWorldChronology({
+		cultureTimelines: [
+			{ cultureId: 'ghost-culture', phases: mockWorldChronology().cultureTimelines[0].phases },
+			{ cultureId: 'culture-a', phases: mockWorldChronology().cultureTimelines[0].phases },
+		],
+	});
+	const scholars = generateNPCScholars(
+		[mockCulture({ id: 'culture-a' })],
+		ghostChronology,
+		createPrng('ghost-culture-filter'),
+	);
+
+	for (const scholar of scholars) {
+		assert(
+			!scholar.cultureFocus.includes('ghost-culture'),
+			`${scholar.id} focuses on a culture the chronology names but cultures omits`,
+		);
+		assertEquals(scholar.cultureFocus, ['culture-a']);
+	}
+});
+
+Deno.test('coverage: cultureFocus is empty when no chronology culture exists in cultures', () => {
+	const scholars = generateNPCScholars(
+		[mockCulture({ id: 'culture-a' })],
+		mockWorldChronology({ cultureTimelines: [mockCultureTimeline('absent-culture')] }),
+		createPrng('all-absent'),
+	);
+
+	for (const scholar of scholars) {
+		assertEquals(scholar.cultureFocus, []);
 	}
 });
 
