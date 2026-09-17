@@ -34,7 +34,7 @@ import type { SiteType } from '../types/world.ts';
  * at any threshold tested (0.1, 0.25, 0.5) — a classifier vocabulary gap, not a scholars.ts defect.
  * A scholar can never seed or neighbour on either until that gap closes.
  */
-export const TAG_FREQUENCY: Readonly<Record<string, number>> = {
+export const TAG_FREQUENCY: Readonly<Partial<Record<ArtefactTag, number>>> = {
 	agricultural: 0.1081,
 	artisanal: 0.4519,
 	ceremonial: 0.6525,

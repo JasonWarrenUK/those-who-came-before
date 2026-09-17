@@ -1,7 +1,7 @@
 /**
  * NPC scholar cohort generation (roadmap 2GN.48, doc 05 §4.1, stage 3 of the 9-stage pipeline).
  *
- * `generateNPCScholars` produces the 3-4 named researchers whose accumulated, calibrated-wrong
+ * `generateNPCScholars` produces the four named researchers whose accumulated, calibrated-wrong
  * output seeds the professional corpus (2GN.50/51/52/54/53 build on this). Signature takes the
  * loose `Culture[]`/`WorldChronology` bag M2 can actually supply — `WorldState` doesn't exist
  * until 3WS.9 — per the same reasoning as 2GN.56's note. No excavation input: the 2GN.44 edge was
@@ -21,7 +21,10 @@ import { generateScholarName } from './naming.ts';
 import { MODERN_LANGUAGE_ID, MODERN_PHONOLOGY } from '../../data/names/modern.ts';
 import { SITE_TYPE_TAG_AFFINITY, TAG_FREQUENCY, tagLift } from '../../data/scholars.ts';
 
-/** How many NPC scholars a generated cohort has (doc 05 §4.1/§4.6, doc 09: "3-4 NPC researchers"). */
+/** How many NPC scholars a generated cohort has. Doc 05 §4.1/§4.6 and doc 09 both specify "3-4 NPC
+ * researchers"; fixed at 4 here because the dealt spread (2GN.48 spike, Ruling 1) needs two anchored
+ * slots plus two free draws. At 3 only one slot draws freely, which narrows the specialisation
+ * spread the professional corpus is built from. */
 const COHORT_SIZE = 4;
 
 /** Doc 07 §5.1's three named methodological schools. `'generalist'` is excluded here: it is the
@@ -34,7 +37,9 @@ const NPC_METHODOLOGICAL_BIASES: readonly MethodologicalBias[] = [
 ];
 
 /** All tags `TAG_FREQUENCY` has a measured rate for — `trade-good`/`currency` are absent by
- * construction (see `data/scholars.ts`). */
+ * construction (see `data/scholars.ts`). The cast is safe because `TAG_FREQUENCY` is keyed
+ * `Partial<Record<ArtefactTag, number>>`, so every key is already a checked `ArtefactTag`; only the
+ * `Object.keys` return type needs narrowing from `string[]`. */
 const SPECIALISABLE_TAGS = Object.keys(TAG_FREQUENCY) as ArtefactTag[];
 
 const ALL_SITE_TYPES = Object.keys(SITE_TYPE_TAG_AFFINITY) as SiteType[];
@@ -89,7 +94,7 @@ function deriveStatusAndPublications(
  * (maritime+utilitarian, not maritime+ceremonial).
  */
 function drawSpecialisation(prng: () => number): ArtefactTag[] {
-	const seed = weightedSelect(SPECIALISABLE_TAGS, prng, (tag) => TAG_FREQUENCY[tag]);
+	const seed = weightedSelect(SPECIALISABLE_TAGS, prng, (tag) => TAG_FREQUENCY[tag] ?? 0);
 	const neighbourCount = 1 + Math.floor(prng() * 2); // 1 or 2
 	const specialisation: ArtefactTag[] = [seed];
 	const pool = SPECIALISABLE_TAGS.filter((tag) => tag !== seed);
@@ -98,7 +103,7 @@ function drawSpecialisation(prng: () => number): ArtefactTag[] {
 		const pick = weightedSelect(
 			pool,
 			prng,
-			(tag) => tagLift(seed, tag) * TAG_FREQUENCY[tag],
+			(tag) => tagLift(seed, tag) * (TAG_FREQUENCY[tag] ?? 0),
 		);
 		specialisation.push(pick);
 		pool.splice(pool.indexOf(pick), 1);
@@ -157,7 +162,7 @@ function buildIdentityModel(agentId: string, prng: () => number): InterpretiveMo
 }
 
 /**
- * Generates the world's 3-4 NPC scholars: name, specialisation, career stage and every other
+ * Generates the world's four NPC scholars: name, specialisation, career stage and every other
  * `NPCScholarSeed` field (doc 05 §4.1). Deterministic for a given `prng` sequence.
  *
  * @param cultures - Every culture in this world; scholars draw `cultureFocus` from their ids.
