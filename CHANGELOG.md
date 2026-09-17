@@ -7,6 +7,23 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.56.0] - 2026-09-17
+
+### Breaking
+
+- NPC scholar names are now a structured `NameForm` rather than a plain string. Anything
+  constructing a scholar by hand needs updating; nothing in the shipped game does this yet.
+
+### Added
+
+- The dig site now generates its first cohort of NPC scholars: 3 to 4 named academics per world,
+  each with a career stage, specialisation and preferred dig sites, dealt so the department always
+  has a senior figure and an active researcher rather than four interchangeable clones.
+- Scholar specialisations are drawn to feel coherent: a scholar's focus areas are related to each
+  other, based on what tends to co-occur on real digs, rather than picked independently.
+- Scholars now carry an identity ready for their own beliefs and biases to be layered on in a
+  future update.
+
 ## [0.55.0] - 2026-09-15
 
 ### Breaking
