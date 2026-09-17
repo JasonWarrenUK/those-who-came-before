@@ -11,12 +11,16 @@ import { createPrng } from '../../src/lib/engine/prng.ts';
 import { MATERIALS } from '../../src/lib/data/materials.ts';
 import type {
 	AvailabilityLevel,
+	CulturePhase,
+	CultureTimeline,
 	GeologicalContext,
 	MaterialFlow,
 	RegionalAvailability,
+	WorldChronology,
 	WorldSeed,
 } from '../../src/lib/types/world.ts';
 import type { MaterialName } from '../../src/lib/types/tags.ts';
+import { mockPhaseCharacteristics } from './culture.ts';
 
 /**
  * Builds a mock `WorldSeed`: a raw seed string plus its deterministic PRNG (doc 05 §2).
@@ -25,6 +29,50 @@ import type { MaterialName } from '../../src/lib/types/tags.ts';
  */
 export function mockWorldSeed(raw = 'test-seed'): WorldSeed {
 	return { raw, prng: createPrng(raw) };
+}
+
+/**
+ * Builds a mock `CultureTimeline`: one culture's own single-phase periodisation, matching
+ * `mockCulture`'s single-phase default in `tests/fixtures/culture.ts` (roadmap 2GN.48 — no
+ * chronology fixture existed before this task's `WorldChronology`-consuming `generateNPCScholars`
+ * needed one).
+ *
+ * @param cultureId - Which culture this timeline belongs to.
+ * @param overrides - Partial `CultureTimeline` merged shallowly over the defaults.
+ */
+export function mockCultureTimeline(
+	cultureId = 'test-culture',
+	overrides: Partial<CultureTimeline> = {},
+): CultureTimeline {
+	const phase: CulturePhase = {
+		id: 'test-phase',
+		label: 'Test Phase',
+		startYear: -500,
+		endYear: 0,
+		characteristics: mockPhaseCharacteristics(),
+	};
+
+	const defaults: CultureTimeline = { cultureId, phases: [phase] };
+
+	return { ...defaults, ...overrides };
+}
+
+/**
+ * Builds a mock `WorldChronology`: one culture's timeline by default, no inter-culture
+ * relationships. Pass explicit `cultureTimelines` for a multi-culture world.
+ *
+ * @param overrides - Partial `WorldChronology` merged shallowly over the defaults.
+ */
+export function mockWorldChronology(overrides: Partial<WorldChronology> = {}): WorldChronology {
+	const defaults: WorldChronology = {
+		startYear: -500,
+		endYear: 0,
+		presentYear: 0,
+		cultureTimelines: [mockCultureTimeline()],
+		relationships: [],
+	};
+
+	return { ...defaults, ...overrides };
 }
 
 /**

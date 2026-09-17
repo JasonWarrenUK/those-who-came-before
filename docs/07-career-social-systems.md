@@ -620,9 +620,11 @@ This means engine functions (lens calculation, contradiction detection, peer rev
 accept any `InterpretiveModel` without knowing whether it belongs to the player or an NPC.
 
 ```typescript
+// name: NameForm, not string, since roadmap 2GN.48 (⚠️ breaking, doc 11 §2.18/§2.23) — pre-emptive
+// here, since nothing constructs a MinimalScholar yet, matching NPCScholarSeed's same migration.
 interface MinimalScholar {
 	id: string;
-	name: string;
+	name: NameForm;
 	specialism: {
 		cultureAffinity: string[]; // Which cultures they care about
 		methodologicalBias: string; // "materialist" | "structuralist" | "culturalist"
@@ -680,7 +682,7 @@ function generatePeerChallenge(
 ): DiegeticSurface {
 	return {
 		channel: 'peer-letter',
-		scholarName: scholar.name,
+		scholarName: renderName(scholar.name),
 		argument: composeChallengeText(contradiction, scholar.specialism),
 		// Challenge text references scholar's own published commitments as basis for disagreement
 	};
