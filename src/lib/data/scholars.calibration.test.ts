@@ -162,6 +162,17 @@ Deno.test('scholars calibration: every shipped TAG_COOCCURRENCE_LIFT entry stays
 	}
 });
 
+Deno.test('scholars calibration: TAG_COOCCURRENCE_LIFT ships every pair that clears support', () => {
+	const shipped = new Set(Object.keys(TAG_COOCCURRENCE_LIFT));
+	for (const pair of Object.keys(measured.tagCooccurrenceLift)) {
+		assert(
+			shipped.has(pair),
+			`'${pair}' clears the n=${MIN_PAIR_SUPPORT} support threshold but TAG_COOCCURRENCE_LIFT ` +
+				`does not ship it, so tagLift() treats it as independent`,
+		);
+	}
+});
+
 Deno.test("scholars calibration: the top-15-by-lift ranking is stable (matches the spike's stability check)", () => {
 	const shippedRanked = Object.entries(TAG_COOCCURRENCE_LIFT)
 		.sort((a, b) => b[1] - a[1])
@@ -186,5 +197,16 @@ Deno.test('scholars calibration: TAG_FREQUENCY has no stale entries the sweep no
 	const measuredTags = new Set(Object.keys(measured.tagFrequency));
 	for (const tag of Object.keys(TAG_FREQUENCY) as ArtefactTag[]) {
 		assert(measuredTags.has(tag), `TAG_FREQUENCY ships '${tag}' but it no longer fires at all`);
+	}
+});
+
+Deno.test('scholars calibration: TAG_FREQUENCY ships every tag the sweep measures', () => {
+	const shipped = new Set(Object.keys(TAG_FREQUENCY));
+	for (const tag of Object.keys(measured.tagFrequency)) {
+		assert(
+			shipped.has(tag),
+			`'${tag}' now fires at the award threshold but TAG_FREQUENCY does not ship it, so ` +
+				`generateNPCScholars can never seed or neighbour on it`,
+		);
 	}
 });
