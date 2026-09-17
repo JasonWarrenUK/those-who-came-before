@@ -1112,6 +1112,44 @@ artefacts reach depth 3 at BASE 0.5, which 2GN.32 lowers against measured output
 2GN.131 ruled; 2GN.32 scope narrows to calibrating the constants. Full detail:
 `docs/spikes/2GN.131-recursion-depth-cap.md`.
 
+### 2.23 Scholar Cohort Shape, Specialisation Coherence and Site Preference (roadmap 2GN.48)
+
+**Decision (2026-09-17):** three design questions inside `generateNPCScholars` (doc 05 §4.1), each
+run as an interview with measurements before a ruling:
+
+- **Cohort shape.** `careerStage` is dealt, not drawn independently per scholar: one
+  senior-or-emeritus anchor grounding the corpus, one early-or-mid scholar guaranteed active for the
+  player to meet, the remainder free. Independent draws left 6.2–6.3% of 5000 simulated cohorts with
+  no anchor or no active scholar; the dealt spread is 0% by construction.
+  `status`/`publicationCount` derive from `careerStage` rather than rolling independently.
+- **Specialisation coherence.** `specialisation: ArtefactTag[]` is drawn as a seed tag (weighted by
+  measured frequency) plus 1–2 neighbours weighted by `lift × frequency` against the seed — lift
+  alone was tried first and rejected: it is mathematically largest on rare tags, so it steered every
+  simulated cohort toward the record's rare corners (`container`, present in 79% of real artefacts,
+  appeared in only 11 of 80 simulated scholars' specialisations). Both `TAG_FREQUENCY` and the
+  pairwise `TAG_COOCCURRENCE_LIFT` table are measured empirically — pipeline stages 4–8 over the
+  four Explorer presets, n=400 each — not authored, since the question is what the generator itself
+  actually produces. `trade-good` and `currency` never fire under any shipped classification rule at
+  any threshold tested; a scholar can never specialise in either until that classifier gap closes.
+- **`sitePreference` source.** Not `culture.baseProfile.craftInvestment.siteTypeWeights` — that
+  field records where the _ancient culture_ invested effort, and doc 05 §4.1 calls site preference
+  an NPC bias from "interests and institutional access", a property of the scholar, not the culture.
+  Correlates with `specialisation` instead, via a small hand-authored `SiteType`↔tag affinity table
+  (a design claim about what an archaeologist digs, not something the generator encodes — the
+  opposite sourcing from specialisation coherence, deliberately).
+
+Full reasoning, rejected mechanisms (raw co-occurrence, lift-alone neighbour weighting, a
+hand-authored 190-pair matrix) and the measured constants: `docs/spikes/2GN.48-scholar-cohort.md`.
+
+**Affects:** `types/scholars.ts` (`NPCScholarSeed.name`/`MinimalScholar.name` widen to `NameForm`,
+⚠️ breaking, matching the `Provenance.site.name` precedent — §2.18; `careerStage`/`status` hoisted
+to named exported types), `engine/world/scholars.ts` (new), `data/scholars.ts` (new — the two
+measured tables plus the site-affinity mapping), `data/scholars.calibration.test.ts` (new — pins
+both measured tables against drift with tolerance, the same convention as
+`data/materials.calibration.test.ts`). Roadmap: 2GN.48 done; forward note added to 3WS.15 to replace
+the frozen `TAG_COOCCURRENCE_LIFT` table with a live per-world computation once real culture/grammar
+data is reachable from generation.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

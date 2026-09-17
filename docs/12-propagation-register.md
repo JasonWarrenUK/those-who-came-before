@@ -3279,6 +3279,61 @@ generation-side counterpart of the standing lerp.
 | — | Explorer tag inspector: a `material` feature group                                                        | 2026-09-15 |
 | — | Roadmap: 2GN.27 done; 2GN.68 and 2GN.96 notes amended; selection-side trade-openness task filed           | 2026-09-15 |
 
+### 2.60 Scholar Specialisation Coherence Is Measured From the Generator, Site Preference Is Not (2026-09-17)
+
+2GN.48 (`generateNPCScholars`) was filed as an implementation task — "3-4 NPCs with name,
+specialisation, career stage" — but `NPCScholarSeed` has eight fields, three of which had no
+distribution pinned anywhere: `careerStage`, which tags a scholar's `specialisation` set can
+coherently combine, and where `sitePreference` comes from at all. Run as an interview, one ruling at
+a time, per the spike process: model the phenomenon, measure, then ask with numbers.
+
+**Cohort shape got measured before it was asked.** Independent draws across the four `careerStage`
+values left 6.2–6.3% of 5000 simulated cohorts with no senior-or-emeritus scholar to have written
+the corpus, or no early/mid scholar for the player to meet — a real failure mode at cohort size 4,
+not an edge case. A dealt spread (guarantee one of each, roll the rest freely) brought both to 0%.
+
+**Specialisation coherence took two attempts, and the first one inverted the intent.** Raw
+co-occurrence percentage was tried first and rejected as not scale-free — it is dominated by which
+tags are individually common (`ornament` fires on 98% of artefacts), so freezing it would pin
+"coherence" that is really just base-rate saturation. Lift (`P(A∧B)/(P(A)·P(B))`) is the right,
+scale-free statistic, and it produced a real, threshold-stable signal — the top-15-by-lift ranking
+agreed 10/15 between thresholds 0.1 and 0.25. But weighting a scholar's specialisation neighbours by
+lift _alone_ was then simulated over 80 scholars before being frozen, and it inverted the intent:
+lift is mathematically largest on rare tags, so the mechanism steered every cohort toward the
+record's rare corners — `container`, present in 79% of real artefacts, appeared in only 11 of 80
+simulated specialisations. Weighting neighbours by `lift × frequency` instead, re-verified at 1200
+scholars against the complete measured table (not a hand-typed subset, which had understated the
+effect of pairs it omitted): seed-tag share now rank-correlates with raw frequency on 17 of 19 tags,
+and no tag has near-zero appearance.
+
+**`sitePreference` correlates with `specialisation`, hand-authored rather than measured — the
+opposite sourcing from specialisation coherence, deliberately.** It cannot come from
+`culture.baseProfile.craftInvestment.siteTypeWeights`: that field records where the _ancient
+culture_ invested effort, not where a _modern scholar_ chooses to dig (doc 05 §4.1 calls it an NPC
+bias from "interests and institutional access"). Unlike tag-to-tag coherence, which the generator's
+own output encodes and nothing else can honestly source, `SiteType`↔tag affinity is a design claim
+about what an archaeologist digs — authoring it is the right call, the same reasoning 2GN.66 used
+for phonotactic coherence rules.
+
+**Confirmed, not previously recorded:** `trade-good` never fires under any shipped classification
+rule at any threshold tested (0.1, 0.25, 0.5), joining `currency`'s already-documented gap
+(`types/tags.ts`). Neither is 2GN.48's to fix.
+
+Full measurements, rejected mechanisms and the two self-corrections: doc 11 §2.23,
+`docs/spikes/2GN.48-scholar-cohort.md`.
+
+| § | Propagation                                                                                                                                                  | Date       |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| — | Doc 11 §2.23: the three rulings, measurements and rejected mechanisms                                                                                        | 2026-09-17 |
+| — | `types/scholars.ts`: `NPCScholarSeed.name`/`MinimalScholar.name` widen to `NameForm` (⚠️ breaking)                                                           | 2026-09-17 |
+| — | `types/scholars.ts`: `CareerStage`/`ScholarStatus` hoisted from inline unions                                                                                | 2026-09-17 |
+| — | `engine/world/scholars.ts` (new): `generateNPCScholars` and its cohort/specialisation/site-preference draws                                                  | 2026-09-17 |
+| — | `data/scholars.ts` (new): measured `TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT`, authored `SITE_TYPE_TAG_AFFINITY`                                                | 2026-09-17 |
+| — | `data/scholars.calibration.test.ts` (new): pins both measured tables against drift, with tolerance                                                           | 2026-09-17 |
+| — | `tests/fixtures/interpretation.ts` (new), `tests/fixtures/scholars.ts` (new), `mockWorldChronology`/`mockCultureTimeline` added to `tests/fixtures/world.ts` | 2026-09-17 |
+| — | Doc 05 §4.1: `NPCScholarSeed`'s transcribed type block corrected (`name: NameForm`)                                                                          | 2026-09-17 |
+| — | Roadmap: 2GN.48 done; 3WS.15 gains a note to replace the frozen lift table with a live per-world computation                                                 | 2026-09-17 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

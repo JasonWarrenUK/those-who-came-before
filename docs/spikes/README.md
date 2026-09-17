@@ -41,6 +41,7 @@ they are and use the closed set for new files.
 | 2GN.134 | Should cultural affinity gate substrate access? (unimplemented; 2GN.129) | 2026-08-25 | doc 11 §2.20, doc 12 §2.56 | [2GN.134](2GN.134-affinity-substrate-gate.md)         |
 | 2GN.132 | Sublayer generation: slot loop or separate pass? (unimplemented; 2GN.31) | 2026-08-25 | doc 11 §2.21, doc 12 §2.57 | [2GN.132](2GN.132-sublayer-placement.md)              |
 | 2GN.131 | What the decorative recursion depth cap computes (unimplemented; 2GN.32) | 2026-08-25 | doc 11 §2.22, doc 12 §2.58 | [2GN.131](2GN.131-recursion-depth-cap.md)             |
+| 2GN.48  | Scholar cohort shape, specialisation coherence, site preference source   | 2026-09-17 | doc 11 §2.23, doc 12 §2.60 | [2GN.48](2GN.48-scholar-cohort.md)                    |
 
 Not in this directory by design: 2GN.10 (primitive→material table) was ruled interactively and lives
 only in doc 11 §2.16.

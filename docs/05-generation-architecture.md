@@ -397,9 +397,11 @@ At world generation time, after cultures and chronology exist:
    diverge from occluded ground truth — not ad-hoc metadata flags.
 
 ```typescript
+// name: NameForm, not string, since roadmap 2GN.48 (⚠️ breaking, doc 11 §2.18/§2.23) — a scholar's
+// name is synthesised from the curated modern phonology and rendered at the display seam.
 interface NPCScholarSeed {
 	id: string;
-	name: string;
+	name: NameForm;
 	specialisation: ArtefactTag[];
 	cultureFocus: string[];
 	interpretiveModel: InterpretiveModel; // Agent-generic: same interface as player
