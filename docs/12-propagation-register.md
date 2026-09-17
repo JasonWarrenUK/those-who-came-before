@@ -3290,7 +3290,8 @@ a time, per the spike process: model the phenomenon, measure, then ask with numb
 **Cohort shape got measured before it was asked.** Independent draws across the four `careerStage`
 values left 6.2–6.3% of 5000 simulated cohorts with no senior-or-emeritus scholar to have written
 the corpus, or no early/mid scholar for the player to meet — a real failure mode at cohort size 4,
-not an edge case. A dealt spread (guarantee one of each, roll the rest freely) brought both to 0%.
+not an edge case. A dealt spread (guarantee one senior-or-emeritus, one early-or-mid, roll the rest
+freely) brought both to 0%.
 
 **Specialisation coherence took two attempts, and the first one inverted the intent.** Raw
 co-occurrence percentage was tried first and rejected as not scale-free — it is dominated by which
@@ -3332,6 +3333,7 @@ Full measurements, rejected mechanisms and the two self-corrections: doc 11 §2.
 | — | `data/scholars.calibration.test.ts` (new): pins both measured tables against drift, with tolerance                                                           | 2026-09-17 |
 | — | `tests/fixtures/interpretation.ts` (new), `tests/fixtures/scholars.ts` (new), `mockWorldChronology`/`mockCultureTimeline` added to `tests/fixtures/world.ts` | 2026-09-17 |
 | — | Doc 05 §4.1: `NPCScholarSeed`'s transcribed type block corrected (`name: NameForm`)                                                                          | 2026-09-17 |
+| — | Doc 07 §5.1/§5.2: transcribed `MinimalScholar` block corrected, `scholarName` now renders via `renderName`                                                   | 2026-09-17 |
 | — | Roadmap: 2GN.48 done; 3WS.15 gains a note to replace the frozen lift table with a live per-world computation                                                 | 2026-09-17 |
 
 ---

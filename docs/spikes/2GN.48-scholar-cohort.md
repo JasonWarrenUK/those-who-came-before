@@ -214,10 +214,11 @@ using it would misattribute an NPC's institutional bias to the culture under stu
 
 ## Consequences
 
-- `src/lib/engine/world/scholars.ts`: `generateNPCScholars()`, the frozen `TAG_FREQUENCY` and
-  `TAG_COOCCURRENCE_LIFT` tables, the `SITE_TYPE_TAG_AFFINITY` mapping, the dealt-spread
-  `careerStage` draw and its `status`/`publicationCount` derivation, all MVP-provisional per the
-  2GN.8 precedent and pinned by a calibration-style test.
+- `src/lib/data/scholars.ts`: the frozen `TAG_FREQUENCY` and `TAG_COOCCURRENCE_LIFT` tables, the
+  hand-authored `SITE_TYPE_TAG_AFFINITY` mapping and the `tagLift()` lookup, all MVP-provisional per
+  the 2GN.8 precedent and pinned by `scholars.calibration.test.ts`.
+- `src/lib/engine/world/scholars.ts`: `generateNPCScholars()`, the dealt-spread `careerStage` draw
+  and its `status`/`publicationCount` derivation.
 - **New finding, not previously recorded**: `trade-good` never fires at any tested threshold,
   joining `currency` (already documented in `types/tags.ts`) as a classifier gap. Neither tag's
   absence is scholars.ts's to fix; noted here for whoever picks up the classifier vocabulary next.

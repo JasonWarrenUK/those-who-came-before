@@ -682,7 +682,7 @@ function generatePeerChallenge(
 ): DiegeticSurface {
 	return {
 		channel: 'peer-letter',
-		scholarName: scholar.name,
+		scholarName: renderName(scholar.name),
 		argument: composeChallengeText(contradiction, scholar.specialism),
 		// Challenge text references scholar's own published commitments as basis for disagreement
 	};
