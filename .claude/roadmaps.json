@@ -861,18 +861,18 @@
 					{
 						"id": "2GN.48",
 						"description": "`engine/world/scholars.ts` — `generateNPCScholars(cultures, chronology, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.66",
 							"2GN.130"
 						],
-						"notes": "Signature takes the loose `Culture[]`/`WorldChronology` bag M2 can actually supply rather than `WorldState` (see 2GN.56's note); also needs an `InterpretiveModel` fixture factory added to `tests/fixtures/` since none exists (dependency sweep 2026-07-25).",
+						"notes": "Signature takes the loose `Culture[]`/`WorldChronology` bag M2 can actually supply rather than `WorldState` (see 2GN.56's note). Three design questions (cohort shape, specialisation coherence, sitePreference source) had no doc-pinned distribution and were run as a spike interview: `docs/spikes/2GN.48-scholar-cohort.md`, doc 11 §2.23, doc 12 §2.60. Delivered: `engine/world/scholars.ts`, `data/scholars.ts` (measured `TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT`, authored `SITE_TYPE_TAG_AFFINITY`), `data/scholars.calibration.test.ts`, `scholars.test.ts`, `tests/fixtures/interpretation.ts` (the `InterpretiveModel` factory this task's dependency sweep flagged as needed), `tests/fixtures/scholars.ts`, `mockWorldChronology`/`mockCultureTimeline` added to `tests/fixtures/world.ts`. ⚠️ breaking: `NPCScholarSeed.name`/`MinimalScholar.name` widen from `string` to `NameForm`, matching the `Provenance.site.name` precedent (2GN.66); `CareerStage`/`ScholarStatus` hoisted from inline unions.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.49",
 						"description": "`engine/world/scholars.ts` — NPC `InterpretiveModel` generation: cultural/artefact/chrono claims with calibrated wrongness (~70% correct, ~30% wrong)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.48"
 						],
@@ -1953,6 +1953,7 @@
 						"dependsOn": [
 							"3WS.14"
 						],
+						"notes": "Also the owning task for replacing `data/scholars.ts`'s frozen `TAG_COOCCURRENCE_LIFT` table with a per-world `sampleBaselines`-adjacent computation, once real culture/grammar data is reachable from generation (2GN.48 spike, doc 11 §2.23, agreed with the user rather than filing a separate roadmap task).",
 						"assignee": "Jason Warren"
 					},
 					{
