@@ -1152,8 +1152,10 @@ run as an interview with measurements before a ruling:
   appeared in only 11 of 80 simulated scholars' specialisations). Both `TAG_FREQUENCY` and the
   pairwise `TAG_COOCCURRENCE_LIFT` table are measured empirically — pipeline stages 4–8 over the
   four Explorer presets, n=400 each — not authored, since the question is what the generator itself
-  actually produces. `trade-good` and `currency` never fire under any shipped classification rule at
-  any threshold tested; a scholar can never specialise in either until that classifier gap closes.
+  actually produces. `currency` never fires under any shipped classification rule at any threshold
+  tested; a scholar can never specialise in it until that classifier gap closes. `trade-good` fires
+  rarely (1.4%, roadmap 2GN.68) once decoration is wired into the sampling chain — reachable, but a
+  cohort rarely draws it.
 - **`sitePreference` source.** Not `culture.baseProfile.craftInvestment.siteTypeWeights` — that
   field records where the _ancient culture_ invested effort, and doc 05 §4.1 calls site preference
   an NPC bias from "interests and institutional access", a property of the scholar, not the culture.

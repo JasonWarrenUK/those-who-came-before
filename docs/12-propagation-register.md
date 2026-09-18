@@ -3414,6 +3414,71 @@ culture's own, pinning the rule at a structural 0% however correct its producer 
 | — | `tagInspector.ts`: `DORMANT_FIELDS` emptied (`motifPresent` was stale-listed since 2GN.33)                                                                                     | 2026-09-17 |
 | — | Roadmap: 2GN.68 done; a follow-up filed for `gilding`/`wire-wrapping`'s all-prized candidate pools                                                                             | 2026-09-17 |
 
+### 2.62 PR 79 Review: A Seventh Sampling Chain, a Dropped Motif Origin and a Grouped Context (2026-09-18)
+
+Three findings from PR 79's review, verified independently before fixing (`gh pr view 79`).
+
+**A seventh call site ran the pre-2GN.68 chain.** §2.61's "six production call sites wired" table
+(3406-3413) counted production call sites correctly but missed
+`src/lib/data/scholars.calibration.test.ts`'s sampling sweep, which measures
+`TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT` (roadmap 2GN.48) and still called `extractFeatures` with no
+world context and no `assignDecorativeDetails`. Wired to match the other six; both frozen tables
+re-recorded against the wired sweep (n=1600): `votive` 47.8%→71.4%, `ceremonial` 65.3%→77.9%,
+`elite` 81.8%→88.9%, `trade-good` newly clears the award threshold at 1.4% (four new
+`TAG_COOCCURRENCE_LIFT` pairs, one existing pair — `agricultural+ceremonial` — dropped out of
+tolerance and re-recorded with the rest). This retired the "trade-good never fires" reading recorded
+at §2.60 (3320-3322) and doc 11 §2.23 — both entries stay as written (accurate when recorded),
+superseded here rather than rewritten. The same fact was stale in three further places
+(`data/scholars.ts`'s own doc comments, `SITE_TYPE_TAG_AFFINITY`'s `shipwreck` note,
+`engine/world/scholars.ts`'s `SPECIALISABLE_TAGS` comment) and in a live test
+(`engine/world/scholars.test.ts`'s "trade-good and currency never appear", now asserting `currency`
+alone — `trade-good` is reachable, just rare, so the old assertion would have started flaking rather
+than failing outright). An eighth site, `scripts/dev/sample-features.ts`, carries the same gap but
+has no assertions and no frozen table; left unwired, noted in the 2GN.68 spike.
+
+**A shared-source motif's origin was dropped before `tallyLayers` could read it.**
+`assignDecorativeDetails` resolved a borrowed `SharedMotifSource` motif to its id alone; when that
+motif was absent from the producing culture's own `motifVocabulary` (the whole point of borrowing
+one), `tallyLayers` had nothing to resolve `motifRef` against and silently omitted the origin —
+`motif-multiple-origins` (R33) could never fire from a shared source. Latent only: every shipping
+call site passes `sharedMotifSources: []` today (Milestone 3's world-state integration is what will
+start populating it). Fixed anyway, at the source rather than by threading a second map through
+`extractFeatures`: `DecorativeLayer` gained an optional `motifCulturalOrigin`, stamped alongside
+`motifRef` at selection time and cleared on every re-resolve (the same `delete` pattern the
+`motifRef`/`material` fields already use); `tallyLayers` reads it when present and falls back to the
+vocabulary lookup otherwise, so no existing pin moved.
+
+**`extractFeatures`'s `culture`/`phase`/`geology` trio was JSDoc-enforced only.** Passing `culture`
+without `phase`/`geology` (or vice versa) type-checked and silently degraded
+`preciousMaterialsInDecoration` to `false` on genuinely precious decoration, indistinguishable from
+the honest no-evidence default. Grouped into an exported `ProductionContext` interface (`culture`,
+`phase`, `geology` together, `interface` per CLAUDE.md's TypeScript standards), making the partial
+state unrepresentable. All ten call sites updated (six production, four test); the motif-origin fix
+above meant `motifOrigins` no longer needs `culture` at all once a layer carries its own
+`motifCulturalOrigin`, so the two fixes composed rather than competed for the same signature.
+
+**Also landed from the same review:** `drawStratum(prng, phase)` extracted to `materials.ts` beside
+`eliteShare`, replacing the `prng() < eliteShare(phase) ? 'elite' : 'commoner'` ternary duplicated
+across eight sites (seven of which this PR itself introduced) — provably stream-neutral, since
+`eliteShare` is pure arithmetic and the helper makes exactly one `prng()` call. The lazy `??` in
+`assignMaterials`'s internal fallback (`stratum ?? drawStratum(prng, phase)`) was kept lazy
+deliberately: an eager rewrite would consume a draw on every call site that already supplies its own
+stratum. Two dates corrected from "2026-08" to the verified 2026-07-25
+(`docs/12-propagation-register.md` line 3350's own text, and the 2GN.68 spike) —
+`assignDecorativeDetails`'s actual ship date per §2.22 and `git log`.
+
+| § | Propagation                                                                                                                                           | Date       |
+| - | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| — | `data/scholars.calibration.test.ts`: wired to `assignDecorativeDetails`; header docstring corrected                                                   | 2026-09-18 |
+| — | `data/scholars.ts`: `TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT` re-recorded against the wired sweep (n=1600); doc comments updated                        | 2026-09-18 |
+| — | `engine/world/scholars.ts` + `.test.ts`: `SPECIALISABLE_TAGS` comment and specialisation test updated for `trade-good`'s new nonzero frequency        | 2026-09-18 |
+| — | `types/decoration.ts`: `DecorativeLayer` gains optional `motifCulturalOrigin`                                                                         | 2026-09-18 |
+| — | `engine/generation/decoration.ts`: `resolveLayer` stamps and clears `motifCulturalOrigin`                                                             | 2026-09-18 |
+| — | `engine/generation/classification.ts`: `tallyLayers` prefers `motifCulturalOrigin`, falls back to the vocabulary lookup                               | 2026-09-18 |
+| — | `engine/generation/classification.ts`: `extractFeatures` groups `culture`/`phase`/`geology` into exported `ProductionContext`; ten call sites updated | 2026-09-18 |
+| — | `engine/generation/materials.ts`: `drawStratum(prng, phase)` exported; eight call sites and one internal fallback updated                             | 2026-09-18 |
+| — | `docs/12-propagation-register.md` and the 2GN.68 spike: `assignDecorativeDetails`'s ship date corrected to 2026-07-25                                 | 2026-09-18 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during
