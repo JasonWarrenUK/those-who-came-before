@@ -30,10 +30,11 @@
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import {
+	assignDecorativeDetails,
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials, eliteShare } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -218,17 +219,44 @@ export function calibrateRules(
 			MATERIALS,
 			DECORATIVE_TECHNIQUES,
 		);
+		// Stratum drawn as the first value of `${artefactSeed}-materials` — the identical position
+		// `assignMaterials` drew it from internally, so every component's material stays
+		// bit-identical to before this parameter existed (roadmap 2GN.68). Shared with
+		// `assignDecorativeDetails` below so one artefact carries one stratum.
+		const materialPrng = createPrng(`${artefactSeed}-materials`);
+		const stratum = materialPrng() < eliteShare(culture.phase) ? 'elite' : 'commoner';
 		const assignments = assignMaterials(
 			artefact,
 			culture.profile,
 			culture.phase,
 			culture.geology,
 			culture.trade,
-			createPrng(`${artefactSeed}-materials`),
+			materialPrng,
+			MATERIALS,
+			stratum,
+		);
+		const detailedLayers = assignDecorativeDetails(
+			provisionalLayers,
+			culture.profile,
+			culture.phase,
+			culture.geology,
+			culture.trade,
+			[],
+			createPrng(`${artefactSeed}-details`),
+			MATERIALS,
+			DECORATIVE_TECHNIQUES,
+			stratum,
+		);
+		const layers = gradeDecorativeLayers(detailedLayers, assignments, culture.phase, MATERIALS);
+		const features = extractFeatures(
+			artefact,
+			layers,
+			assignments,
+			culture.profile,
+			culture.phase,
+			culture.geology,
 			MATERIALS,
 		);
-		const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
-		const features = extractFeatures(artefact, layers, assignments);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 		CLASSIFICATION_RULES.forEach((rule, ruleIndex) => {

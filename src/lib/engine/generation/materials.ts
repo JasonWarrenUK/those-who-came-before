@@ -402,8 +402,13 @@ export function eliteShare(phase: PhaseCharacteristics): number {
 	return ELITE_SHARE_CEILING * phase.society.stratification;
 }
 
-/** The stratum's multiplier on a candidate's selection weight: prized materials move, the rest do not. */
-function stratumFactor(standing: number, stratum: ArtefactStratum): number {
+/**
+ * The stratum's multiplier on a candidate's selection weight: prized materials move, the rest do
+ * not. Exported (roadmap 2GN.68) so `assignDecorativeDetails` (`decoration.ts`) reuses the identical
+ * boost/suppress arithmetic for layer materials rather than a second copy that could drift from
+ * this one.
+ */
+export function stratumFactor(standing: number, stratum: ArtefactStratum): number {
 	if (standing < STANDING_CUT) return 1;
 
 	return stratum === 'elite' ? ELITE_PRIZED_BOOST : COMMONER_PRIZED_SUPPRESSION;
@@ -741,14 +746,22 @@ export function assignMaterialWithProvenance(
  * component's draw by one position relative to the pre-2GN.27 sequence, which the calibration
  * pins absorbed at that re-record.
  *
+ * **`stratum` is optional** (roadmap 2GN.68): omitted, this function draws it internally exactly as
+ * before; supplied, the internal draw is skipped and the given value is used instead. This lets a
+ * caller draw the stratum once and share it between this function and `assignDecorativeDetails`
+ * (`decoration.ts`), so one artefact carries one stratum across both its structural materials and
+ * its decoration rather than two independent coin flips that could disagree (doc 02 pillar 3,
+ * Simulation Honesty). Every existing call site that doesn't pass `stratum` is unaffected.
+ *
  * @param artefact - The normalised artefact whose components need materials.
  * @param culture - The culture whose material affinities apply.
  * @param phase - The phase whose technology, trade openness and stratification apply.
  * @param geology - World-level material scarcity.
  * @param trade - Material flows reachable through cultural relationships.
- * @param prng - A generator from `createPrng`, consumed once for the stratum draw and once per
- *   component via `weightedSelect`.
+ * @param prng - A generator from `createPrng`, consumed once for the stratum draw (unless `stratum`
+ *   is supplied) and once per component via `weightedSelect`.
  * @param materials - The candidate catalogue. Defaults to the shipped `MATERIALS`.
+ * @param stratum - The artefact's stratum, when already drawn by the caller. Omit to draw it here.
  * @returns One `MaterialAssignment` per component, in `artefact.components` order.
  */
 export function assignMaterials(
@@ -759,8 +772,10 @@ export function assignMaterials(
 	trade: readonly MaterialFlow[],
 	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
+	stratum?: ArtefactStratum,
 ): MaterialAssignment[] {
-	const stratum: ArtefactStratum = prng() < eliteShare(phase) ? 'elite' : 'commoner';
+	const resolvedStratum: ArtefactStratum = stratum ??
+		(prng() < eliteShare(phase) ? 'elite' : 'commoner');
 
 	return artefact.components.map((component) =>
 		assignMaterialWithProvenance(
@@ -771,7 +786,7 @@ export function assignMaterials(
 			trade,
 			prng,
 			materials,
-			stratum,
+			resolvedStratum,
 		)
 	);
 }

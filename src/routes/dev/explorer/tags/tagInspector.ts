@@ -19,10 +19,11 @@
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import {
+	assignDecorativeDetails,
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials, eliteShare } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -93,8 +94,10 @@ export interface FeatureReading {
 
 	/**
 	 * True when no producer can populate this field yet, so it is inert by construction rather than
-	 * by this artefact's shape — `motifPresent`, `motifCulturalOrigins` and
-	 * `preciousMaterialsInDecoration` all await roadmap 2GN.33.
+	 * by this artefact's shape. No `ExtractedFeatures` field is dormant as of roadmap 2GN.68 —
+	 * `motifPresent` has been live since 2GN.33, and `motifCulturalOrigins`/
+	 * `preciousMaterialsInDecoration` since this task. `DORMANT_FIELDS` below is kept empty rather
+	 * than removed, so a future no-producer field has a place to be listed.
 	 */
 	dormant: boolean;
 }
@@ -183,12 +186,11 @@ const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup]
 	['inspectionDepth', 'mechanical'],
 ];
 
-/** Fields no producer populates yet — all three await roadmap 2GN.33's motif/material assignment. */
-const DORMANT_FIELDS = new Set<keyof ExtractedFeatures>([
-	'motifPresent',
-	'motifCulturalOrigins',
-	'preciousMaterialsInDecoration',
-]);
+/**
+ * Fields no producer populates yet. Empty as of roadmap 2GN.68 — kept as a named set (not deleted)
+ * so a future no-producer field has an obvious place to be listed.
+ */
+const DORMANT_FIELDS = new Set<keyof ExtractedFeatures>([]);
 
 /**
  * Fields whose neutral value is a band name rather than `'none'`. Every other banded field reads
@@ -291,18 +293,45 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	// baseline sampled from material-aware grades, the same scale mismatch fixed in those two
 	// callers (roadmap 2GN.103, doc 12 §2.36). Also makes the grades shown in this panel's own
 	// `TagInspection.layers` honest, since they render directly.
+	// Stratum drawn as the first value of `${seed}-materials` — the identical position
+	// `assignMaterials` drew it from internally, so this stays bit-identical to the other panels'
+	// `${seed}-materials` draw for the same seed (roadmap 2GN.68). Shared with
+	// `assignDecorativeDetails` below so one artefact carries one stratum.
+	const materialPrng = createPrng(`${seed}-materials`);
+	const stratum = materialPrng() < eliteShare(culture.phase) ? 'elite' : 'commoner';
 	const assignments = assignMaterials(
 		artefact,
 		culture.profile,
 		culture.phase,
 		culture.geology,
 		culture.trade,
-		createPrng(`${seed}-materials`),
+		materialPrng,
+		MATERIALS,
+		stratum,
+	);
+	const detailedLayers = assignDecorativeDetails(
+		provisionalLayers,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+		[],
+		createPrng(`${seed}-details`),
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		stratum,
+	);
+	const layers = gradeDecorativeLayers(detailedLayers, assignments, culture.phase, MATERIALS);
+
+	const features = extractFeatures(
+		artefact,
+		layers,
+		assignments,
+		culture.profile,
+		culture.phase,
+		culture.geology,
 		MATERIALS,
 	);
-	const layers = gradeDecorativeLayers(provisionalLayers, assignments, culture.phase, MATERIALS);
-
-	const features = extractFeatures(artefact, layers, assignments);
 	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per
 	// culture (`shared/baselineCache.ts`) rather than sampled fresh per artefact — the baseline is a
 	// property of the culture being inspected, not of any one artefact's own seed.
