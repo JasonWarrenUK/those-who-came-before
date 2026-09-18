@@ -39,7 +39,7 @@ import {
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../src/lib/engine/generation/decoration.ts';
-import { assignMaterials, eliteShare } from '../../src/lib/engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../../src/lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -120,7 +120,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 	// production caller's pattern; `--bare` skips both since there are no decorative layers to place
 	// a stratum-modulated material into.
 	const materialPrng = createPrng(`${seed}-materials`);
-	const stratum = materialPrng() < eliteShare(world.phase) ? 'elite' : 'commoner';
+	const stratum = drawStratum(materialPrng, world.phase);
 	const assignments = assignMaterials(
 		artefact,
 		world.culture,
@@ -150,9 +150,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		artefact,
 		layers,
 		assignments,
-		world.culture,
-		world.phase,
-		world.geology,
+		{ culture: world.culture, phase: world.phase, geology: world.geology },
 		MATERIALS,
 	);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);

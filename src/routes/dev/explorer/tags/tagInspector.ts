@@ -23,7 +23,7 @@ import {
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials, eliteShare } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -298,7 +298,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 	// `${seed}-materials` draw for the same seed (roadmap 2GN.68). Shared with
 	// `assignDecorativeDetails` below so one artefact carries one stratum.
 	const materialPrng = createPrng(`${seed}-materials`);
-	const stratum = materialPrng() < eliteShare(culture.phase) ? 'elite' : 'commoner';
+	const stratum = drawStratum(materialPrng, culture.phase);
 	const assignments = assignMaterials(
 		artefact,
 		culture.profile,
@@ -327,9 +327,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		artefact,
 		layers,
 		assignments,
-		culture.profile,
-		culture.phase,
-		culture.geology,
+		{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
 		MATERIALS,
 	);
 	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per

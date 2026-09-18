@@ -29,7 +29,7 @@ import {
 	assignDecorativeDetails,
 	expandDecoration,
 } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials, eliteShare } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../../../../lib/engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
@@ -182,7 +182,7 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 	// `assignDecorativeDetails` below, so this panel's layers show the material the pipeline would
 	// actually resolve for this artefact's stratum, not an independently-rolled one.
 	const materialPrng = createPrng(`${seed}-materials`);
-	const stratum = materialPrng() < eliteShare(culture.phase) ? 'elite' : 'commoner';
+	const stratum = drawStratum(materialPrng, culture.phase);
 	const assignments = assignMaterials(
 		artefact,
 		culture.profile,

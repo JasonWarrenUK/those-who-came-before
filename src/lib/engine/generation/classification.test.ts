@@ -594,23 +594,25 @@ Deno.test('extractFeatures: motifCulturalOrigins and preciousMaterialsInDecorati
 
 Deno.test('extractFeatures: motifCulturalOrigins resolves motifRef against the producing culture (roadmap 2GN.68)', () => {
 	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
 	const nativeOnly = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [], 'test-motif')],
 		[],
-		culture,
+		{ culture, phase, geology },
 	);
 	const nativePlusBorrowed = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [layer('inlay', [], 'diffusion-motif')], 'test-motif')],
 		[],
-		culture,
+		{ culture, phase, geology },
 	);
 	const unresolvable = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [], 'no-such-motif')],
 		[],
-		culture,
+		{ culture, phase, geology },
 	);
 
 	// A single native motif reads one origin, the culture's own id — never double-counted (every
@@ -636,25 +638,19 @@ Deno.test('extractFeatures: preciousMaterialsInDecoration reads materialStanding
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('inlay', [], undefined, 0.5, 'iron')],
 		[],
-		culture,
-		phase,
-		geology,
+		{ culture, phase, geology },
 	);
 	const withUnprized = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('inlay', [], undefined, 0.5, 'bronze')],
 		[],
-		culture,
-		phase,
-		geology,
+		{ culture, phase, geology },
 	);
 	const noLayerMaterial = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving')],
 		[],
-		culture,
-		phase,
-		geology,
+		{ culture, phase, geology },
 	);
 
 	assertEquals(withPrized.preciousMaterialsInDecoration, true);

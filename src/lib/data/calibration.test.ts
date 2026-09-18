@@ -39,7 +39,7 @@ import {
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../engine/generation/decoration.ts';
-import { assignMaterials, eliteShare } from '../engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../engine/generation/materials.ts';
 import { extractFeatures } from '../engine/generation/classification.ts';
 import { sampleBaselines } from '../engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
@@ -416,7 +416,7 @@ function measureFireRates(): {
 				// `assignMaterials` drew it from internally, so R1–R31/R34–R43 stay bit-identical to
 				// before this parameter existed (roadmap 2GN.68). Shared with `assignDecorativeDetails`.
 				const materialPrng = createPrng(`${seed}-materials`);
-				const stratum = materialPrng() < eliteShare(phase) ? 'elite' : 'commoner';
+				const stratum = drawStratum(materialPrng, phase);
 				const assignments = assignMaterials(
 					artefact,
 					culture,
@@ -444,9 +444,7 @@ function measureFireRates(): {
 					artefact,
 					layers,
 					assignments,
-					culture,
-					phase,
-					world.geology,
+					{ culture, phase, geology: world.geology },
 					MATERIALS,
 				);
 

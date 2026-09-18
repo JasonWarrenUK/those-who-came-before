@@ -403,6 +403,17 @@ export function eliteShare(phase: PhaseCharacteristics): number {
 }
 
 /**
+ * Draws whether an artefact was made for the elite stratum, consuming exactly one value from `prng`
+ * with probability `eliteShare(phase)` (doc 11 §2.9, roadmap 2GN.27). Callers draw this once per
+ * artefact, as the first value of the `${seed}-materials` stream, and pass the result to both
+ * `assignMaterials` and `assignDecorativeDetails` (`decoration.ts`), so one artefact carries one
+ * stratum across its structural materials and its decoration (doc 02 pillar 3, Simulation Honesty).
+ */
+export function drawStratum(prng: () => number, phase: PhaseCharacteristics): ArtefactStratum {
+	return prng() < eliteShare(phase) ? 'elite' : 'commoner';
+}
+
+/**
  * The stratum's multiplier on a candidate's selection weight: prized materials move, the rest do
  * not. Exported (roadmap 2GN.68) so `assignDecorativeDetails` (`decoration.ts`) reuses the identical
  * boost/suppress arithmetic for layer materials rather than a second copy that could drift from
@@ -774,8 +785,7 @@ export function assignMaterials(
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	stratum?: ArtefactStratum,
 ): MaterialAssignment[] {
-	const resolvedStratum: ArtefactStratum = stratum ??
-		(prng() < eliteShare(phase) ? 'elite' : 'commoner');
+	const resolvedStratum: ArtefactStratum = stratum ?? drawStratum(prng, phase);
 
 	return artefact.components.map((component) =>
 		assignMaterialWithProvenance(

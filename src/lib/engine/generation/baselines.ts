@@ -39,7 +39,7 @@ import { createPrng } from '../prng.ts';
 import { PERCENTILE_LADDER, percentileLadder } from '../statistics.ts';
 import { expandGrammar, normaliseArtefact } from './grammar.ts';
 import { assignDecorativeDetails, expandDecoration, gradeDecorativeLayers } from './decoration.ts';
-import { assignMaterials, eliteShare } from './materials.ts';
+import { assignMaterials, drawStratum } from './materials.ts';
 import { extractFeatures } from './classification.ts';
 
 /** n=400 per culture-phase — the measured knee (doc 11 §2.9, doc 12 §2.28). */
@@ -180,7 +180,7 @@ export function sampleBaselines(
 		// is then shared with `assignDecorativeDetails`, so one artefact carries one stratum across
 		// both its structural materials and its decoration (doc 02 pillar 3, Simulation Honesty).
 		const materialPrng = createPrng(`${artefactSeed}-materials`);
-		const stratum = materialPrng() < eliteShare(target.phase) ? 'elite' : 'commoner';
+		const stratum = drawStratum(materialPrng, target.phase);
 		const assignments = assignMaterials(
 			artefact,
 			target.profile,
@@ -208,9 +208,7 @@ export function sampleBaselines(
 			artefact,
 			layers,
 			assignments,
-			target.profile,
-			target.phase,
-			target.geology,
+			{ culture: target.profile, phase: target.phase, geology: target.geology },
 			materials,
 		);
 

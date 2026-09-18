@@ -381,6 +381,25 @@ function tallyLayers(
 // --- Extraction -------------------------------------------------------------------------------------
 
 /**
+ * The producing world context `extractFeatures` needs for its decorative-material reading (roadmap
+ * 2GN.68). `culture`, `phase` and `geology` travel together or not at all: `tallyLayers`' precious-
+ * material check needs all three to call `computeMaterialStanding`, so a caller that supplied only
+ * `culture` would silently get `preciousMaterialsInDecoration: false` on genuinely precious
+ * decoration, indistinguishable from the honest "no world context" case. Grouping the trio makes
+ * that partial state unrepresentable rather than merely discouraged by JSDoc (2GN.68 review).
+ */
+export interface ProductionContext {
+	/** The producing culture: `motifVocabulary` is the fallback when a layer carries no
+	 * `motifCulturalOrigin` of its own (pre-2GN.68 layers, hand-built fixtures), and feeds
+	 * `preciousMaterialsInDecoration`'s `materialStanding` calls. */
+	culture: CulturalProfile;
+	/** The phase whose trade openness feeds `materialStanding` for layer materials. */
+	phase: PhaseCharacteristics;
+	/** World-level material scarcity, feeding `materialStanding` for layer materials. */
+	geology: GeologicalContext;
+}
+
+/**
  * Extracts the unified feature set from a complete artefact (doc 05 §9.1, roadmap 2GN.19) — the
  * single input the classification rules (`data/classification.ts`) score against.
  *
@@ -392,16 +411,11 @@ function tallyLayers(
  *   Defaults to none, for callers extracting from a bare structure.
  * @param assignments - The artefact's material assignments (`assignMaterials`, roadmap 2GN.75),
  *   read for `materialStanding`. Defaults to none, in which case `materialStanding` is `0`.
- * @param culture - The producing culture (roadmap 2GN.68): resolves `motifCulturalOrigins` against
- *   `motifVocabulary`, and feeds `preciousMaterialsInDecoration`'s `materialStanding` calls. Omit
- *   for a bare-structure extraction with no world context — `motifCulturalOrigins` stays `[]` and
- *   `preciousMaterialsInDecoration` stays `false`, the same honest-no-evidence default
- *   `materialStanding` (structural) already uses when `assignments` is empty, never a fabricated
- *   neutral culture.
- * @param phase - The phase whose trade openness feeds `materialStanding` for layer materials
- *   (roadmap 2GN.68). Omit alongside `culture`.
- * @param geology - World-level material scarcity, feeding `materialStanding` for layer materials
- *   (roadmap 2GN.68). Omit alongside `culture`.
+ * @param context - The producing world context (roadmap 2GN.68). Omit for a bare-structure
+ *   extraction with no world context — `motifCulturalOrigins` stays `[]` (unless every layer
+ *   already carries its own `motifCulturalOrigin`) and `preciousMaterialsInDecoration` stays
+ *   `false`, the same honest-no-evidence default `materialStanding` (structural) already uses when
+ *   `assignments` is empty, never a fabricated neutral culture.
  * @param materialCatalogue - The candidate catalogue a layer's `material` id resolves against.
  *   Defaults to the shipped `MATERIALS`.
  * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against.
@@ -410,9 +424,7 @@ export function extractFeatures(
 	artefact: NormalisedArtefact,
 	decorativeLayers: readonly DecorativeLayer[] = [],
 	assignments: readonly MaterialAssignment[] = [],
-	culture?: CulturalProfile,
-	phase?: PhaseCharacteristics,
-	geology?: GeologicalContext,
+	context?: ProductionContext,
 	materialCatalogue: readonly MaterialDefinition[] = MATERIALS,
 ): ExtractedFeatures {
 	const { components, attachments, dimensions } = artefact;
@@ -527,7 +539,15 @@ export function extractFeatures(
 		motifOrigins: new Set(),
 		hasPreciousMaterial: false,
 	};
-	tallyLayers(decorativeLayers, 1, tally, culture, phase, geology, materialCatalogue);
+	tallyLayers(
+		decorativeLayers,
+		1,
+		tally,
+		context?.culture,
+		context?.phase,
+		context?.geology,
+		materialCatalogue,
+	);
 	const motifDensity = tally.layerCount > 0 ? tally.motifCount / tally.layerCount : 0;
 	const meanDecorativeGrade = tally.layerCount > 0 ? tally.gradeSum / tally.layerCount : 0;
 

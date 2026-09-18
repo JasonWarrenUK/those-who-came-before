@@ -34,7 +34,7 @@ import {
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials, eliteShare } from '../../../../lib/engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../../../../lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -224,7 +224,7 @@ export function calibrateRules(
 		// bit-identical to before this parameter existed (roadmap 2GN.68). Shared with
 		// `assignDecorativeDetails` below so one artefact carries one stratum.
 		const materialPrng = createPrng(`${artefactSeed}-materials`);
-		const stratum = materialPrng() < eliteShare(culture.phase) ? 'elite' : 'commoner';
+		const stratum = drawStratum(materialPrng, culture.phase);
 		const assignments = assignMaterials(
 			artefact,
 			culture.profile,
@@ -252,9 +252,7 @@ export function calibrateRules(
 			artefact,
 			layers,
 			assignments,
-			culture.profile,
-			culture.phase,
-			culture.geology,
+			{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
 			MATERIALS,
 		);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
