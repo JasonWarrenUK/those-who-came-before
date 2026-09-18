@@ -832,11 +832,13 @@ export function assignDecorativeDetails(
 		// still satisfies `'motifRef' in resolved`, so the field must be deleted, not nulled.
 		const resolved: DecorativeLayer = { ...layer };
 		delete resolved.motifRef;
+		delete resolved.motifCulturalOrigin;
 		delete resolved.material;
 
 		if (definition?.carriesMotif && motifPool.length > 0) {
-			resolved.motifRef = weightedSelect(motifPool, prng, (candidate) => candidate.weight)
-				.motif.id;
+			const selected = weightedSelect(motifPool, prng, (candidate) => candidate.weight).motif;
+			resolved.motifRef = selected.id;
+			resolved.motifCulturalOrigin = selected.culturalOrigin;
 		}
 
 		if (definition?.introducesMaterial) {

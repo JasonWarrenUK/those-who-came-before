@@ -352,8 +352,13 @@ function tallyLayers(
 		tally.maxDepth = Math.max(tally.maxDepth, depth);
 		if (layer.motifRef !== undefined) {
 			tally.motifCount++;
-			const motif = culture?.motifVocabulary.motifs.find((m) => m.id === layer.motifRef);
-			if (motif !== undefined) tally.motifOrigins.add(motif.culturalOrigin);
+			// `motifCulturalOrigin` is authoritative when present: a motif borrowed through
+			// `assignDecorativeDetails`' `sharedMotifSources` is absent from the producing culture's own
+			// `motifVocabulary`, so the vocabulary lookup below cannot resolve it after the fact. Only
+			// layers from before that field existed (or hand-built fixtures) fall back to the lookup.
+			const origin = layer.motifCulturalOrigin ??
+				culture?.motifVocabulary.motifs.find((m) => m.id === layer.motifRef)?.culturalOrigin;
+			if (origin !== undefined) tally.motifOrigins.add(origin);
 		}
 		if (
 			layer.material !== undefined && culture !== undefined && phase !== undefined &&

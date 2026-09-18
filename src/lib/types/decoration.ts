@@ -79,6 +79,15 @@ export interface DecorativeLayer {
 	 */
 	motifRef?: string;
 
+	/**
+	 * The `culturalOrigin` of the motif `motifRef` names, stamped at selection time
+	 * (`assignDecorativeDetails`, roadmap 2GN.33/2GN.68). Preserved here because a motif borrowed
+	 * through a `SharedMotifSource` is absent from the producing culture's own `motifVocabulary`, so
+	 * `extractFeatures` cannot resolve its origin by looking the id up afterwards — this field is the
+	 * only record of it. Absent whenever `motifRef` is.
+	 */
+	motifCulturalOrigin?: string;
+
 	/** The material this layer introduces, when the technique adds one (e.g. `inlay`, `gilding`). */
 	material?: string;
 
