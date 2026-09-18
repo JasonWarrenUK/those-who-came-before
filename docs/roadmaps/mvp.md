@@ -1709,31 +1709,29 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       guard, monotonicity, cumulativity, zero-decoration silence) plus 1 in
       `engine/generation/classification.test.ts` (the 2GN.31 regression guard) _(depended on 2GN.19,
       2GN.20 — both done)_
-- [ ] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
+- [x] **2GN.68** — `engine/generation/classification.ts` — update: decorative motif and
       introduced-material features contribute to unified tag accumulation (`motifCulturalOrigins`
       from `DecorativeLayer.motifRef`→culture lookup; `preciousMaterialsInDecoration` from the layer
-      material's **situation in the producing culture**) _(depends on 2GN.33, 2GN.20, 2GN.82,
-      2GN.83, 2GN.84, 2GN.85, 2GN.110, 2GN.97, 2GN.142 — all done)_ — ⚠️ **rescoped 2026-08-11 by
-      2GN.78** (doc 11 §2.9, doc 12 §2.40): this line previously read
-      "`preciousMaterialsInDecoration` from `DecorativeLayer.material`→precious-material lookup",
-      which is exactly the static catalogue read 2GN.77 ruled against and which no longer has
-      anything to look up — `MaterialTag`'s `precious-metal`/`precious-stone` members are retired.
-      Populate the field from the material's situation instead. Doc 11 §2.9's formula has four terms
-      sourced from three places: `explainMaterialWeight` (2GN.74) returns `level`,
-      `culturalAffinity` and `tradeRescued` for a material/culture pair, covering availability and
-      cultural affinity; provenance comes separately from `MaterialAssignment.provenance` via
-      `deriveMaterialProvenance`, since `tradeRescued` is a reachability boolean and not a
-      provenance substitute; and stratification from `PhaseCharacteristics.society.stratification`,
-      which §2.9 makes a live input and nothing reads yet. The threshold over them is this task's to
-      rule and has not been set. Blocked on **2GN.110** because the affinity term's keyspace
-      (per-tag only, or per-material too) changes what "this culture prizes it" can even mean.
-      **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):** confirmed `assignDecorativeDetails`
-      (`engine/generation/decoration.ts`) has no production caller anywhere in `src/` — only its own
-      tests reach it. This task needs that wired into the pipeline before `DecorativeLayer.material`
-      is ever populated outside tests, which is the direct upstream reason
-      `preciousMaterialsInDecoration` is hardcoded `false`. **Blocked on 2GN.142 (2026-08-21):**
-      this task shares 2GN.27's exact four-term formula and the same region-keyed-baseline gap; see
-      that task's note
+      material's **situation in the producing culture**) — ⚠️ **rescoped 2026-08-11 by 2GN.78** (doc
+      11 §2.9, doc 12 §2.40): this line previously read "`preciousMaterialsInDecoration` from
+      `DecorativeLayer.material`→precious-material lookup", which is exactly the static catalogue
+      read 2GN.77 ruled against and which no longer has anything to look up — `MaterialTag`'s
+      `precious-metal`/`precious-stone` members are retired. Populate the field from the material's
+      situation instead. Doc 11 §2.9's formula has four terms sourced from three places:
+      `explainMaterialWeight` (2GN.74) returns `level`, `culturalAffinity` and `tradeRescued` for a
+      material/culture pair, covering availability and cultural affinity; provenance comes
+      separately from `MaterialAssignment.provenance` via `deriveMaterialProvenance`, since
+      `tradeRescued` is a reachability boolean and not a provenance substitute; and stratification
+      from `PhaseCharacteristics.society.stratification`, which §2.9 makes a live input and nothing
+      reads yet. The threshold over them is this task's to rule and has not been set. Blocked on
+      **2GN.110** because the affinity term's keyspace (per-tag only, or per-material too) changes
+      what "this culture prizes it" can even mean. **Note from 2GN.84 (doc 12 §2.34, 2026-08-06):**
+      confirmed `assignDecorativeDetails` (`engine/generation/decoration.ts`) has no production
+      caller anywhere in `src/` — only its own tests reach it. This task needs that wired into the
+      pipeline before `DecorativeLayer.material` is ever populated outside tests, which is the
+      direct upstream reason `preciousMaterialsInDecoration` is hardcoded `false`. **Blocked on
+      2GN.142 (2026-08-21):** this task shares 2GN.27's exact four-term formula and the same
+      region-keyed-baseline gap; see that task's note
   - Note: **Amended 2026-08-25 by 2GN.143** (doc 11 §2.9 restated, doc 12 §2.55): standing =
     f(availability⁻¹, cultural affinity, stratification). Provenance is implicit in `level` (a total
     coarsening, measured). Compose from `explainMaterialWeight`'s returned components with
@@ -1746,6 +1744,24 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     input to the number (it entered at stage 6 as the stratum draw) and the threshold is fixed, not
     percentiled. The four-term formula and the sampled-distribution threshold in the notes above are
     superseded.
+  - Note: **Done 2026-09-17** (doc 11 §2.9 amended a third time, doc 12 §2.61,
+    `docs/spikes/2GN.68-decoration-material-standing.md`). Ran as a spike: the material half
+    reproduced 2GN.27's own Finding 1 from the decoration side (unmodulated rate 72–95% across the
+    four Explorer presets), and four per-layer mechanisms (fixed threshold, percentile, stratum
+    weight nudge alone, four pool-relative readings) were measured and rejected before landing on
+    2GN.27's actual mechanism — an artefact-level stratum, shared between `assignMaterials` and
+    `assignDecorativeDetails` via a new optional `stratum` parameter on both, drawn once per
+    artefact as the first value of the `${seed}-materials` stream (preserving every existing draw
+    sequence bit-for-bit). Also wired `assignDecorativeDetails` into all six production pipeline
+    chains, which had no caller anywhere in `src/` until this task. Shipped: `stratumFactor()`
+    exported from `materials.ts` for reuse; `extractFeatures` widened with optional
+    `culture`/`phase`/`geology`/`materialCatalogue` (honest no-evidence defaults, never a fabricated
+    neutral); `motifCulturalOrigins` resolves via a `Set` against the producing culture's own
+    vocabulary. Realised rate: R32 56.5%, R33 25.8% (fixture worlds, n=1800) — R32 above the
+    Explorer preset range (23.0–87.3%) for the same reason R44 sits above its own range. A residual
+    over-fire (79–97% of remaining commoner-artefact hits) traces to `gilding`/`wire-wrapping`'s
+    100%-prized candidate pools and is filed as 2GN.147 rather than fixed here. R1–R31/R34–R43
+    measured bit-identical.
 - [x] **2GN.35** — `src/lib/data/descriptions/observational/` — observational register templates per
       component type and decorative technique
 - [x] **2GN.36** — `src/lib/data/descriptions/interpretive/` — interpretive register templates with
@@ -1762,11 +1778,11 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
       Confirmed by roadmap-review (deps, M2) 2026-08-15
 - [ ] **2GN.38** — `engine/generation/description.ts` —
       `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered
-      observation list per component _(blocked — depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37,
-      2GN.27)_ — 2GN.27 edge added by dependency review 2026-07-30: it is the third tag-accumulation
-      completer alongside the already-listed 2GN.34/2GN.68 — without it, register selection reads a
-      tag distribution that shifts when material boosts land; this task must also replace
-      `prose.ts`'s provisional `variants[0]` indexing (see 2GN.39's note) —
+      observation list per component _(depends on 2GN.34, 2GN.68, 2GN.35, 2GN.36, 2GN.37, 2GN.27 —
+      all done)_ — 2GN.27 edge added by dependency review 2026-07-30: it is the third
+      tag-accumulation completer alongside the already-listed 2GN.34/2GN.68 — without it, register
+      selection reads a tag distribution that shifts when material boosts land; this task must also
+      replace `prose.ts`'s provisional `variants[0]` indexing (see 2GN.39's note) —
       `ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance`
       generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency
       sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s
@@ -2142,6 +2158,26 @@ against mock world fixtures until 3WS.15 wires real `WorldState`)
     imports as ordinary yet still makes few things from them. ⚠️ calibration-shifting:
     `EXPECTED_PROVENANCE_MIX` is the pin most directly sensitive to the trade-only rung and
     re-records, with `EXPECTED_TAG_SHARES` likely to follow in trade-heavy fixture worlds.
+- [ ] **2GN.147** — `data/decorations.ts` + `engine/generation/decoration.ts` — widen
+      `wire-wrapping`'s introduced-material tag set (currently `['metal']` alone) and audit
+      `isGildingMaterial`'s realised gold/silver-only pool, so at least one technique-appropriate
+      non-prized candidate exists per culture for both techniques _(depends on 2GN.68 — done)_
+  - Note: Filed 2026-09-17 from the 2GN.68 spike (doc 12 §2.61). `gilding` and `wire-wrapping` are
+    both 100%-prized under every measured Explorer preset — every candidate in each pool clears
+    `STANDING_CUT` — so 2GN.68's stratum draw (`assignDecorativeDetails`, shared with
+    `assignMaterials`) has nothing non-prized to redirect selection weight toward on these two
+    techniques specifically. Measured: forcing every artefact commoner and tallying which technique
+    supplied a prized layer, `gilding`/`wire-wrapping` alone account for 79–97% of remaining
+    commoner-artefact hits in thalassar/xoconahtl, while every other technique's suppression already
+    works (0.3–0.8% commoner hit rate). `gilding`'s pool is gated by `isGildingMaterial`
+    (`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3`, roadmap 2GN.78) rather
+    than a tag, so widening it means either loosening that physical gate or accepting the pool
+    genuinely has no non-metal analogue; `wire-wrapping`'s `['metal']` tag set may admit a second
+    material class (fibre-wrapped wire is real) without weakening the technique's own logic.
+    Data-authoring work, not a design question — no spike needed. ⚠️ calibration-shifting once
+    landed: re-measure R32 (`precious-materials-in-decoration`) against the four Explorer presets
+    and record the new rate in `docs/spikes/2GN.68-decoration-material-standing.md`'s reopen
+    conditions.
 - [ ] **2GN.67** — `engine/generation/grammar.ts` — arrangement detection + pattern assignment:
       annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten
       time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3
@@ -3344,6 +3380,7 @@ graph LR
 	2GN.73["2GN.73: Explorer: extend the tag inspector (2GN…"]
 	2GN.97["2GN.97: design spike — what does the 2GN.80 rul…"]
 	2GN.146["2GN.146: `engine/generation/materials.ts` — `sc…"]
+	2GN.147["2GN.147: `data/decorations.ts` + `engine/genera…"]
 	3WS.1["3WS.1: `engine/world/seed.ts` — `createWorldSee…"]
 	3WS.2["3WS.2: `engine/world/chronology.ts` — `generate…"]
 	3WS.3["3WS.3: `engine/world/culture.ts` — `generateCul…"]
@@ -3822,6 +3859,7 @@ graph LR
 	2GN.27 --> 2GN.38
 	2GN.27 --> 2GN.146
 	2GN.68 --> 2GN.38
+	2GN.68 --> 2GN.147
 	2GN.38 --> 2GN.39
 	2GN.38 --> 2GN.44
 	2GN.39 --> 2GN.40
@@ -3860,6 +3898,7 @@ graph LR
 	2GN.97 --> 2GN.68
 	2GN.97 --> 2GN.72
 	2GN.146 --> M2
+	2GN.147 --> M2
 	3WS.1 --> 3WS.2
 	3WS.1 --> 3WS.7
 	3WS.2 --> 3WS.3
@@ -4154,9 +4193,9 @@ graph LR
 	10NP.21 --> M10
 	10NP.22 --> M10
 	10NP.23 --> M10
-	class 2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.122,2GN.129,2GN.135,2GN.136,2GN.138,2GN.139,2GN.140,2GN.144,2GN.145,2GN.146,2GN.16,2GN.21,2GN.31,2GN.32,2GN.49,2GN.68,2GN.72,2GN.76,2GN.92,2GN.93 todo
-	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.120,2GN.121,2GN.124,2GN.125,2GN.126,2GN.13,2GN.133,2GN.14,2GN.141,2GN.38,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.67,2GN.69,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
-	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.10,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.127,2GN.128,2GN.130,2GN.131,2GN.132,2GN.134,2GN.137,2GN.142,2GN.143,2GN.15,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.27,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.4,2GN.48,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.66,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
+	class 2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.119,2GN.122,2GN.129,2GN.135,2GN.136,2GN.138,2GN.139,2GN.140,2GN.144,2GN.145,2GN.146,2GN.147,2GN.16,2GN.21,2GN.31,2GN.32,2GN.38,2GN.49,2GN.72,2GN.76,2GN.92,2GN.93 todo
+	class 10NP.1,10NP.10,10NP.11,10NP.12,10NP.13,10NP.14,10NP.15,10NP.16,10NP.17,10NP.18,10NP.19,10NP.2,10NP.20,10NP.21,10NP.22,10NP.23,10NP.3,10NP.4,10NP.5,10NP.6,10NP.7,10NP.8,10NP.9,2GN.104,2GN.117,2GN.120,2GN.121,2GN.124,2GN.125,2GN.126,2GN.13,2GN.133,2GN.14,2GN.141,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.67,2GN.69,2GN.70,2GN.71,2GN.73,2GN.96,3WS.1,3WS.10,3WS.11,3WS.12,3WS.13,3WS.14,3WS.15,3WS.16,3WS.17,3WS.18,3WS.19,3WS.2,3WS.20,3WS.21,3WS.3,3WS.4,3WS.5,3WS.6,3WS.7,3WS.8,3WS.9,4UI.1,4UI.2,4UI.3,4UI.4,4UI.5,4UI.6,4UI.7,4UI.8,4UI.9,5KN.1,5KN.10,5KN.11,5KN.12,5KN.13,5KN.14,5KN.15,5KN.16,5KN.17,5KN.18,5KN.19,5KN.2,5KN.20,5KN.21,5KN.22,5KN.23,5KN.24,5KN.25,5KN.26,5KN.3,5KN.4,5KN.5,5KN.6,5KN.7,5KN.8,5KN.9,6LS.1,6LS.10,6LS.11,6LS.12,6LS.13,6LS.14,6LS.15,6LS.16,6LS.17,6LS.2,6LS.3,6LS.4,6LS.5,6LS.6,6LS.7,6LS.8,6LS.9,7CD.1,7CD.10,7CD.11,7CD.12,7CD.13,7CD.14,7CD.15,7CD.16,7CD.17,7CD.18,7CD.19,7CD.2,7CD.20,7CD.21,7CD.22,7CD.23,7CD.24,7CD.25,7CD.26,7CD.27,7CD.28,7CD.29,7CD.3,7CD.30,7CD.31,7CD.32,7CD.4,7CD.5,7CD.6,7CD.7,7CD.8,7CD.9,8PS.1,8PS.10,8PS.2,8PS.3,8PS.4,8PS.5,8PS.6,8PS.7,8PS.8,8PS.9,9CR.1,9CR.10,9CR.11,9CR.12,9CR.13,9CR.14,9CR.15,9CR.16,9CR.17,9CR.18,9CR.19,9CR.2,9CR.20,9CR.21,9CR.22,9CR.23,9CR.24,9CR.25,9CR.26,9CR.27,9CR.28,9CR.29,9CR.3,9CR.30,9CR.31,9CR.32,9CR.33,9CR.34,9CR.35,9CR.36,9CR.37,9CR.38,9CR.39,9CR.4,9CR.5,9CR.6,9CR.7,9CR.8,9CR.9 blocked
+	class 1FD.1,1FD.10,1FD.11,1FD.12,1FD.13,1FD.14,1FD.15,1FD.16,1FD.17,1FD.18,1FD.19,1FD.2,1FD.20,1FD.21,1FD.22,1FD.23,1FD.24,1FD.25,1FD.26,1FD.27,1FD.28,1FD.29,1FD.3,1FD.30,1FD.31,1FD.32,1FD.33,1FD.34,1FD.35,1FD.36,1FD.37,1FD.38,1FD.39,1FD.4,1FD.40,1FD.5,1FD.6,1FD.7,1FD.8,1FD.9,2GN.1,2GN.10,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.127,2GN.128,2GN.130,2GN.131,2GN.132,2GN.134,2GN.137,2GN.142,2GN.143,2GN.15,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.27,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.4,2GN.48,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.66,2GN.68,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
 
 ## Links
