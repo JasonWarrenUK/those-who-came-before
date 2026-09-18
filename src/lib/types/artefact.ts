@@ -652,7 +652,15 @@ export interface ExtractedFeatures {
 	/** Whether any decorative layer carries a motif. */
 	motifPresent: boolean;
 
-	/** Which cultures' motif vocabularies are represented (doc 05 §8.5). */
+	/**
+	 * Which cultures' motif vocabularies are represented (doc 05 §8.5). Populated by
+	 * `extractFeatures` (roadmap 2GN.68) by resolving each layer's `motifRef` against the producing
+	 * culture's own `motifVocabulary.motifs` and collecting distinct `culturalOrigin` values —
+	 * never a plain array push, since every native motif shares the producing culture's own id and
+	 * an ungated count would double-count a purely native artefact as multi-origin.
+	 * `motif-multiple-origins` (`data/classification.ts`) reads `.length > 1` as a trade/exchange
+	 * signal.
+	 */
 	motifCulturalOrigins: string[];
 
 	/** Layering depth × technique variety (doc 05 §9.1). */
@@ -660,23 +668,21 @@ export interface ExtractedFeatures {
 
 	/**
 	 * Whether the decoration incorporates a material **this culture** would read as precious.
-	 * Currently always `false` — 2GN.68 is the task that populates it, and has not landed.
+	 * Populated by `extractFeatures` (roadmap 2GN.68): for each layer with a `material`,
+	 * `materialStanding()` (`engine/generation/materials.ts`, roadmap 2GN.27) against
+	 * `STANDING_CUT` — the same read `materialStanding` below uses for structural components,
+	 * `true` if any layer clears it.
 	 *
-	 * ⚠️ **Do not populate this from a catalogue tag.** Roadmap 2GN.78 retired
-	 * `MaterialTag`'s `precious-metal`/`precious-stone` members precisely because a static "this
-	 * material is precious" fact stamps one culture's judgement onto every culture (doc 11 §2.9, doc
-	 * 12 §2.40); a culture with abundant gold does not read gold as precious. The earlier spec for
-	 * 2GN.68 said "layer-material → precious-material lookup", which is exactly the read that ruling
-	 * forbids, and there is no longer a tag to look up.
+	 * ⚠️ **Never populated from a catalogue tag.** Roadmap 2GN.78 retired `MaterialTag`'s
+	 * `precious-metal`/`precious-stone` members precisely because a static "this material is
+	 * precious" fact stamps one culture's judgement onto every culture (doc 11 §2.9, doc 12 §2.40);
+	 * a culture with abundant gold does not read gold as precious.
 	 *
-	 * Populate it from the material's *situation* instead: `materialStanding()`
-	 * (`engine/generation/materials.ts`, roadmap 2GN.27) against `STANDING_CUT`, the same read
-	 * `materialStanding` below uses for structural components. Stratification is not an input to
-	 * the number: it enters at stage 6 as the stratum draw in `assignMaterials` (doc 11 §2.9,
-	 * `docs/spikes/2GN.27-material-standing.md`).
-	 *
-	 * The classification rule reading this field is authored and dormant, allowlisted in
-	 * `calibration.test.ts`'s `DORMANT_RULE_INDICES` until that producer exists.
+	 * Standing is availability⁻¹ × cultural affinity; stratification is not an input to the number,
+	 * it enters at stage 6 as the stratum draw `assignMaterials` and `assignDecorativeDetails` now
+	 * share (doc 11 §2.9, `docs/spikes/2GN.27-material-standing.md`,
+	 * `docs/spikes/2GN.68-decoration-material-standing.md`) — one artefact carries one
+	 * commoner/elite stratum across both its structural materials and its decoration.
 	 */
 	preciousMaterialsInDecoration: boolean;
 

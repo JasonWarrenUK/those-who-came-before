@@ -446,6 +446,29 @@ the original read "availability × cultural affinity × provenance × stratifica
 > `ExtractedFeatures.materialStanding` by `extractFeatures(artefact, layers, assignments)`, which
 > stays free of world context. Full detail: `docs/spikes/2GN.27-material-standing.md`.
 
+> **Set by roadmap 2GN.68 (2026-09-17): the same standard for decorative-layer materials, plus the
+> aggregation fix the decoration side needed on top of it.** `preciousMaterialsInDecoration` is
+> `true` when any `DecorativeLayer.material` clears `STANDING_CUT` via the identical
+> `materialStanding()` call. `motifCulturalOrigins` resolves each layer's `motifRef` against the
+> producing culture's own `motifVocabulary.motifs`, collecting distinct `culturalOrigin` values into
+> a `Set` — never a plain array, since every native motif shares the producing culture's own id.
+> Wiring `assignDecorativeDetails` (2GN.33) into every production pipeline chain (previously
+> unwired, `DecorativeLayer.material`/`motifRef` never populated outside tests) reproduced Finding 1
+> of the 2GN.27 spike from the decoration side: 6–9 of 16 materials clear the cut in every preset,
+> and a decorative layer count (6–8/artefact) exceeds a structural component count (2–6/artefact),
+> so an unmodulated `max`-over-layers boolean saturated at 72–95%. The fix is 2GN.27's own
+> mechanism, not a new one: `assignDecorativeDetails` now takes the same `ArtefactStratum`
+> `assignMaterials` draws, shared between the two calls (drawn once, as the first value of the
+> `${seed}-materials` stream, preserving every existing draw sequence) so one artefact carries one
+> commoner/elite status across both its structural materials and its decoration, rather than two
+> independent coin flips (doc 02 pillar 3). `stratumFactor()` (`engine/generation/materials.ts`,
+> exported for reuse) boosts or suppresses an introduced-material candidate's weight identically to
+> how `assignMaterials` already treats structural candidates. A residual over-fire, traced to
+> `gilding`/`wire-wrapping` having 100%-prized candidate pools (every candidate clears the cut, so
+> no stratum modulation or threshold can help), is a data-authoring gap in
+> `INTRODUCED_MATERIAL_TAGS`/`isGildingMaterial` filed as a follow-up, not solved here. Full detail:
+> `docs/spikes/2GN.68-decoration-material-standing.md`.
+
 This ruling originally kept the two members "as material descriptors, not as classification inputs",
 barring rules from reading them while leaving them to feed generation. 2GN.78 found that boundary
 untenable: `precious-metal` does not describe physical character, it asserts social valuation, in a

@@ -6,13 +6,11 @@
  * illustrative examples — the engine's primitive/parameter vocabulary has grown well past what
  * that section shows. Every `condition` below reads a field of `ExtractedFeatures` traceable to a
  * real primitive parameter (an `elongated.edge`, a `ring-form.gap`, a `hollow-enclosed.opening`
- * band, and so on) or a real decorative-layer fact (technique identity, layer count). Two families
- * are the exception, and are marked dormant: `preciousMaterialsInDecoration` and
- * `motifCulturalOrigins` have no producer yet — decorative material/motif assignment (roadmap
- * 2GN.33) has landed and populates `DecorativeLayer.motifRef`/`.material`, but the
- * `preciousMaterialsInDecoration`/`motifCulturalOrigins` lookups consuming that data into
- * `ExtractedFeatures` are roadmap 2GN.68's — so those two rules are authored now but fire on no
- * artefact the current pipeline can generate until 2GN.68 lands.
+ * band, and so on) or a real decorative-layer fact (technique identity, layer count, motif/material
+ * situation). No rule is dormant as of roadmap 2GN.68: `preciousMaterialsInDecoration` and
+ * `motifCulturalOrigins`, the last two fields with no producer, are populated by `extractFeatures`
+ * (`engine/generation/classification.ts`) from `DecorativeLayer.motifRef`/`.material` — data
+ * roadmap 2GN.33 has produced since it landed.
  *
  * **Mechanical-vs-classificatory boundary** (doc 12 propagation register): no rule below reads
  * `portability` or `inspectionDepth` — both are mechanical derivations governing player
@@ -481,19 +479,24 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 		tags: new Map([['ornament', 0.2]]),
 	},
 
-	// --- Decorative (dormant — fire once 2GN.68 wires the lookups that populate these
-	// `ExtractedFeatures` fields from the `DecorativeLayer` data 2GN.33 already produces) -----------
+	// --- Decorative (both rules below live since roadmap 2GN.68 wired the lookups that populate
+	// these `ExtractedFeatures` fields from the `DecorativeLayer` data 2GN.33 already produces) -----
 
 	/**
-	 * DORMANT: `preciousMaterialsInDecoration` has no producer yet (roadmap 2GN.68). Authored now so
-	 * the design is captured in one place; fires on no artefact until that task lands.
-	 *
-	 * The inference — decoration incorporating materials the culture prizes reads elite/ceremonial —
-	 * is sound and survives roadmap 2GN.78's retirement of the `precious-*` `MaterialTag`s. What that
-	 * ruling changed is where "precious" comes from: the material's situation in *this* culture
-	 * (availability × cultural affinity × provenance, doc 11 §2.9), never a catalogue tag. See the
-	 * field's JSDoc in `types/artefact.ts` for the producer contract 2GN.68 must satisfy — populating
-	 * it from a static lookup would reintroduce exactly the Earth-judgement reading 2GN.77 removed.
+	 * `preciousMaterialsInDecoration`: decoration incorporating a material the culture prizes reads
+	 * elite/ceremonial/votive. Populated by `extractFeatures` (roadmap 2GN.68) via
+	 * `materialStanding(material, culture, phase, geology)` (`engine/generation/materials.ts`,
+	 * roadmap 2GN.27) against `STANDING_CUT` — the material's situation in *this* culture
+	 * (availability⁻¹ × cultural affinity, doc 11 §2.9), never a catalogue tag; see the field's
+	 * JSDoc in `types/artefact.ts` for the full producer contract. `assignDecorativeDetails`
+	 * (`engine/generation/decoration.ts`) shares a stratum draw with `assignMaterials` so decoration
+	 * and structural materials read as one artefact's commoner/elite status, not two independent
+	 * coin flips. Realised rate 56.5% against the fixture worlds (2026-09-17,
+	 * `docs/spikes/2GN.68-decoration-material-standing.md`) — high against the Explorer presets'
+	 * 23.0–87.3% for the same reason R44 (`material-standing-prized` below) sits above its own preset
+	 * range: the fixture geologies place more materials at scarce/trade-only than the authored
+	 * presets do. A residual over-fire traces to `gilding`/`wire-wrapping`'s 100%-prized candidate
+	 * pools, filed as a follow-up rather than this task's to fix (data-authoring, not design).
 	 */
 	{
 		id: 'precious-materials-in-decoration',
@@ -502,10 +505,14 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	},
 
 	/**
-	 * DORMANT (partially): `motifPresent` is live — 2GN.33 has landed and `extractFeatures` reads it
-	 * off `DecorativeLayer.motifRef` directly. `motifCulturalOrigins` is still dormant, needing
-	 * 2GN.68's motif→culture lookup, so this rule as a whole fires on no artefact until that task
-	 * lands. Cross-cultural motifs on one object signal exchange/trade.
+	 * Cross-cultural motifs on one object signal exchange/trade. `motifCulturalOrigins` is populated
+	 * by `extractFeatures` (roadmap 2GN.68) by resolving each layer's `motifRef` against the
+	 * producing culture's own `motifVocabulary.motifs`, collected as a `Set` of `culturalOrigin`
+	 * values — never a plain array, since every native motif shares the producing culture's own id
+	 * and an ungated push would double-count a purely native artefact as multi-origin. Realised rate
+	 * 25.8% against the fixture worlds (2026-09-17) once `mockMotifVocabulary`
+	 * (`tests/fixtures/culture.ts`) carries a second, foreign-origin motif — a single-motif
+	 * vocabulary makes this structurally unreachable regardless of producer correctness.
 	 */
 	{
 		id: 'motif-multiple-origins',
