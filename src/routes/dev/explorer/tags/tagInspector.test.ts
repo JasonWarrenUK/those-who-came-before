@@ -133,16 +133,11 @@ Deno.test('inspectTags — a feature reading is inert exactly when its value car
 	}
 });
 
-Deno.test('inspectTags — the three fields awaiting 2GN.33 are flagged dormant and read inert', () => {
+Deno.test('inspectTags — no field is flagged dormant as of roadmap 2GN.68', () => {
 	const inspection = inspectTags('tag-dormant', khaltiris);
 	const dormant = inspection.featureReadings.filter((reading) => reading.dormant);
 
-	assertEquals(
-		new Set(dormant.map((reading) => reading.field)),
-		new Set(['motifPresent', 'motifCulturalOrigins', 'preciousMaterialsInDecoration']),
-	);
-	// No producer populates them, so they can never carry signal today.
-	for (const reading of dormant) assertEquals(reading.inert, true, reading.field);
+	assertEquals(dormant, []);
 });
 
 Deno.test('inspectTags — the two mechanical fields no rule may read are grouped apart', () => {

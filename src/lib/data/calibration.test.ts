@@ -9,8 +9,9 @@
  * rules were under test and only in isolation.
  *
  * This drives the full Milestone 2 chain — `expandGrammar` → `normaliseArtefact` →
- * `expandDecoration` → `assignMaterials` → `gradeDecorativeLayers` → `extractFeatures` — across all
- * six named regional worlds (`tests/fixtures/world.ts`) at three `decorativeEmphasis` settings, and
+ * `expandDecoration` → `assignMaterials` → `assignDecorativeDetails` → `gradeDecorativeLayers` →
+ * `extractFeatures` — across all six named regional worlds (`tests/fixtures/world.ts`) at three
+ * `decorativeEmphasis` settings, and
  * asserts each rule's fire rate stays within `TOLERANCE_POINTS` of the rate recorded when it was
  * last calibrated. Materials are assigned and layers re-graded before `extractFeatures` runs, not
  * skipped, matching `sampleBaselines` (`engine/generation/baselines.ts`) — measuring `meanDecorativeGrade`
@@ -33,8 +34,12 @@
 import { assert } from '@std/assert';
 import { createPrng } from '../engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.ts';
-import { expandDecoration, gradeDecorativeLayers } from '../engine/generation/decoration.ts';
-import { assignMaterials } from '../engine/generation/materials.ts';
+import {
+	assignDecorativeDetails,
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../engine/generation/decoration.ts';
+import { assignMaterials, eliteShare } from '../engine/generation/materials.ts';
 import { extractFeatures } from '../engine/generation/classification.ts';
 import { sampleBaselines } from '../engine/generation/baselines.ts';
 import { CORE_GRAMMAR_RULES } from './grammars/core.ts';
@@ -138,8 +143,18 @@ const EXPECTED_FIRE_RATES: readonly number[] = [
 	31.3, // R29 decorativeLayerCount >= p75 (2GN.98 volume/refinement split: was 30.9)
 	34.3, // R30 appliedElementCount >= p75 (2GN.98 volume/refinement split: was 37.3)
 	89.2, // R31 any decoration → ornament nudge (2GN.98 volume/refinement split: was 98.0, still deliberately universal, doc 12 §2.24)
-	0.0, // R32 DORMANT: preciousMaterialsInDecoration awaits roadmap 2GN.68
-	0.0, // R33 DORMANT: motifCulturalOrigins awaits roadmap 2GN.68
+	56.5, // R32 preciousMaterialsInDecoration → elite/ceremonial/votive (roadmap 2GN.68, 2026-09-17).
+	// High against the Explorer presets' 23.0–87.3% (post-stratum-draw) for the same reason R44 sits
+	// above its own preset range: `mockCulturalProfile` faces fixture geologies that place more
+	// materials at scarce/trade-only than the authored presets do (2GN.27's own pattern, doc 12
+	// §2.59). The stratum draw applied to `assignDecorativeDetails`'s introduced-material weighting
+	// (shared with `assignMaterials`' own draw) suppresses this materially below the pre-stratum
+	// figure; a residual over-fire traces to `gilding`/`wire-wrapping`'s 100%-prized candidate pools
+	// (docs/spikes/2GN.68-decoration-material-standing.md, Finding D), filed as a follow-up.
+	25.8, // R33 motifCulturalOrigins.length > 1 → trade-good/elite (roadmap 2GN.68, 2026-09-17).
+	// Reachable only once `mockMotifVocabulary` (tests/fixtures/culture.ts) carries a second,
+	// foreign-origin motif — a single-motif vocabulary makes every layer read the producing
+	// culture's own origin, which would pin this at a structural 0% regardless of correctness.
 	16.8, // R34 edged && layers >= p75 (2GN.98 volume/refinement split: was 16.6)
 	24.4, // R35 container && layers >= p75 (2GN.98 volume/refinement split: was 25.0)
 	2.2, // R36 fastening mechanism → fastener (2GN.86: more artefacts light enough)
@@ -397,17 +412,43 @@ function measureFireRates(): {
 					MATERIALS,
 					DECORATIVE_TECHNIQUES,
 				);
+				// Stratum drawn as `${seed}-materials`'s first value, the identical position
+				// `assignMaterials` drew it from internally, so R1–R31/R34–R43 stay bit-identical to
+				// before this parameter existed (roadmap 2GN.68). Shared with `assignDecorativeDetails`.
+				const materialPrng = createPrng(`${seed}-materials`);
+				const stratum = materialPrng() < eliteShare(phase) ? 'elite' : 'commoner';
 				const assignments = assignMaterials(
 					artefact,
 					culture,
 					phase,
 					world.geology,
 					world.trade,
-					createPrng(`${seed}-materials`),
+					materialPrng,
+					MATERIALS,
+					stratum,
+				);
+				const detailedLayers = assignDecorativeDetails(
+					provisionalLayers,
+					culture,
+					phase,
+					world.geology,
+					world.trade,
+					[],
+					createPrng(`${seed}-details`),
+					MATERIALS,
+					DECORATIVE_TECHNIQUES,
+					stratum,
+				);
+				const layers = gradeDecorativeLayers(detailedLayers, assignments, phase, MATERIALS);
+				const extracted = extractFeatures(
+					artefact,
+					layers,
+					assignments,
+					culture,
+					phase,
+					world.geology,
 					MATERIALS,
 				);
-				const layers = gradeDecorativeLayers(provisionalLayers, assignments, phase, MATERIALS);
-				const extracted = extractFeatures(artefact, layers, assignments);
 
 				if (extracted.hasEdge) {
 					edgedCount++;
@@ -484,10 +525,12 @@ Deno.test('calibration: EXPECTED_FIRE_RATES covers every shipped rule', () => {
  * Rules allowed to measure 0.0%, each with the roadmap task that will make it fire (roadmap 2GN.87).
  *
  * A dormant rule is authored ahead of the feature that feeds it, so the design lands in one place
- * rather than being reconstructed later; both entries here read decoration fields whose producer
- * arrives with 2GN.68. That is legitimate. What is *not* legitimate is a rule reading a feature that
+ * rather than being reconstructed later. What is *not* legitimate is a rule reading a feature that
  * already has a producer and still never firing — that rule is either unsatisfiable or mis-authored,
  * and the guard below is what tells the two apart.
+ *
+ * Empty as of roadmap 2GN.68: R32 (`preciousMaterialsInDecoration`) and R33
+ * (`motifCulturalOrigins`) both gained producers and are measured in `EXPECTED_FIRE_RATES` above.
  *
  * The deleted short-edge rule (roadmap 2GN.87) is why this exists. It sat at a recorded `0.0` from
  * 2026-07-22 with a comment explaining the zero, and the suite compared `0.0` against `0.0` and
@@ -496,10 +539,7 @@ Deno.test('calibration: EXPECTED_FIRE_RATES covers every shipped rule', () => {
  * from the same table `bladeLengthBand` reads, so it required a blade longer than the object
  * containing it. An unexplained zero must fail rather than be recorded.
  */
-const DORMANT_RULE_INDICES: ReadonlyMap<number, string> = new Map([
-	[31, 'preciousMaterialsInDecoration has no producer until roadmap 2GN.68'],
-	[32, 'motifCulturalOrigins has no producer until roadmap 2GN.68'],
-]);
+const DORMANT_RULE_INDICES: ReadonlyMap<number, string> = new Map([]);
 
 Deno.test('calibration: no rule is silently dead (roadmap 2GN.87)', () => {
 	const { rates, sampleSize } = fireRates();

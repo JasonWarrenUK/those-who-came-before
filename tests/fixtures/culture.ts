@@ -79,10 +79,26 @@ export function mockPhaseCharacteristics(
 	};
 }
 
+/**
+ * A two-motif vocabulary: one native, one carrying a foreign `culturalOrigin` — the diffusion case
+ * `data/explorer-cultures.ts`'s Tarpan preset authors for the same reason (its `winged-disc`,
+ * origin `khaltiris`). Needed so `motifCulturalOrigins.length > 1` (roadmap 2GN.68's
+ * `motif-multiple-origins` rule) is reachable through this fixture at all — a single-motif
+ * vocabulary makes every layer's origin the producing culture's own, so the rule would measure a
+ * structural 0% regardless of how correct its producer is. `weightedSelect` draws exactly once per
+ * motif-carrying layer whatever the pool size (`prng.ts`), so this second entry changes which motif
+ * a layer draws, never how many draws happen — no pinned baseline or calibration figure moves.
+ *
+ * Named `diffusion-motif`, not `borrowed-motif`: `decoration.test.ts`'s own `borrowedSource` helper
+ * already uses `'borrowed-motif'` as its default externally-shared motif id, and this vocabulary
+ * entry is a second *native* pool member (present via the culture's own `motifVocabulary`, not via
+ * `SharedMotifSource`), a different concept a colliding id would blur.
+ */
 function mockMotifVocabulary(cultureId: string): MotifSet {
 	return {
 		motifs: [
 			{ id: 'test-motif', label: 'Test Motif', culturalOrigin: cultureId },
+			{ id: 'diffusion-motif', label: 'Diffusion Motif', culturalOrigin: 'foreign-culture' },
 		],
 	};
 }
