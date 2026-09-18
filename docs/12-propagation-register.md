@@ -3347,7 +3347,7 @@ half was straightforward: resolve `DecorativeLayer.motifRef` against the produci
 `motifVocabulary.motifs`, collected as a `Set` (a plain array push would double-count a purely
 native artefact, since every native motif shares the producing culture's own `culturalOrigin`). The
 material half reproduced 2GN.27's own Finding 1 from the decoration side: wiring
-`assignDecorativeDetails` (2GN.33, shipped since 2026-08 but never called from production code) into
+`assignDecorativeDetails` (2GN.33, shipped 2026-07-25 but never called from production code) into
 every pipeline chain and reading `materialStanding(...) >= STANDING_CUT` per layer gave 72–95% of
 artefacts a `true` reading — the same "half a small catalogue reads as prized everywhere" arithmetic
 2GN.27 fixed, arriving harder here because a decorative layer count (6–8/artefact) exceeds a

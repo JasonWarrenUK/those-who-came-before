@@ -18,10 +18,13 @@ motif half turned out to be a straightforward lookup. The material half reproduc
 2GN.27 diagnosed for structural materials, arriving from the decoration side and hitting harder.
 
 A second, prerequisite problem existed alongside the design question: `assignDecorativeDetails`
-(roadmap 2GN.33) had shipped since 2026-08 but had **no production caller anywhere in `src/`** — six
-call sites ran `expandDecoration → assignMaterials → gradeDecorativeLayers` without it, so
-`DecorativeLayer.motifRef`/`.material` were never populated outside its own tests. Wiring it in was
-this task's to do regardless of how the material-standing question resolved.
+(roadmap 2GN.33) had shipped 2026-07-25 but had **no production caller anywhere in `src/`** — six
+production call sites ran `expandDecoration → assignMaterials → gradeDecorativeLayers` without it,
+so `DecorativeLayer.motifRef`/`.material` were never populated outside its own tests. Wiring it in
+was this task's to do regardless of how the material-standing question resolved. Two more sites ran
+the same unwired chain outside production: `src/lib/data/scholars.calibration.test.ts`'s calibration
+sweep (wired in this task; see 2.62 below) and the dev script `scripts/dev/sample-features.ts`
+(unassertive, lower stakes, left as-is).
 
 ## Measured before the fix
 
