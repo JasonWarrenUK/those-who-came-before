@@ -3,12 +3,19 @@
  * Regression guard for `TAG_FREQUENCY` and `TAG_COOCCURRENCE_LIFT` (roadmap 2GN.48 spike,
  * `docs/spikes/2GN.48-scholar-cohort.md`).
  *
- * Both tables are measured, not authored — pipeline stages 4-8 over the four Explorer presets at
- * n=400 each — and frozen because `generateNPCScholars(cultures, chronology, prng)` has no
- * grammar rules, material/classification catalogues or baseline context to sample from live. A
- * frozen table drifts silently from the generator it was measured against whenever
- * `data/decorations.ts`, `data/materials.ts` or `data/classification.ts` change; this file is
- * what turns that drift into a failing test instead of a stale constant nobody notices.
+ * Both tables are measured, not authored — pipeline stages 4-9
+ * (`expandGrammar` → `normaliseArtefact` → `expandDecoration` → `assignMaterials` →
+ * `assignDecorativeDetails` → `gradeDecorativeLayers` → `extractFeatures` → `classifyArtefact`)
+ * over the four Explorer presets at n=400 each — and frozen because
+ * `generateNPCScholars(cultures, chronology, prng)` has no grammar rules, material/classification
+ * catalogues or baseline context to sample from live. A frozen table drifts silently from the
+ * generator it was measured against whenever `data/decorations.ts`, `data/materials.ts` or
+ * `data/classification.ts` change; this file is what turns that drift into a failing test instead
+ * of a stale constant nobody notices.
+ *
+ * **Wired to `assignDecorativeDetails` since roadmap 2GN.68** (doc 12 §2.61): this sweep ran
+ * without it for a time, same gap the other six production call sites carried, and the tables
+ * below are recorded against the wired chain — the one real artefacts actually go through.
  *
  * Re-runs the same sweep and asserts the shipped tables still hold within tolerance — a real
  * re-measurement re-derives every value from a different seed-label sequence than the one
@@ -19,8 +26,12 @@
  */
 import { assert, assertEquals } from '@std/assert';
 import { createPrng } from '../engine/prng.ts';
-import { expandDecoration, gradeDecorativeLayers } from '../engine/generation/decoration.ts';
-import { assignMaterials } from '../engine/generation/materials.ts';
+import {
+	assignDecorativeDetails,
+	expandDecoration,
+	gradeDecorativeLayers,
+} from '../engine/generation/decoration.ts';
+import { assignMaterials, drawStratum } from '../engine/generation/materials.ts';
 import { classifyArtefact, extractFeatures } from '../engine/generation/classification.ts';
 import { expandGrammar, normaliseArtefact } from '../engine/generation/grammar.ts';
 import { sampleBaselines } from '../engine/generation/baselines.ts';
@@ -69,7 +80,7 @@ function sweep(): SweepResult {
 			const prng = createPrng(seed);
 			const expanded = expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, prng);
 			const artefact = normaliseArtefact(expanded, `calibration-${seed}`);
-			const layers = expandDecoration(
+			const provisionalLayers = expandDecoration(
 				artefact,
 				culture.profile,
 				culture.phase,
@@ -79,17 +90,46 @@ function sweep(): SweepResult {
 				MATERIALS,
 				DECORATIVE_TECHNIQUES,
 			);
+			// Stratum drawn as `${seed}-materials`'s first value, the identical position
+			// `assignMaterials` drew it from internally, matching every other production caller's
+			// pattern (roadmap 2GN.68). Shared with `assignDecorativeDetails`.
+			const materialPrng = createPrng(`${seed}-materials`);
+			const stratum = drawStratum(materialPrng, culture.phase);
 			const assignments = assignMaterials(
 				artefact,
 				culture.profile,
 				culture.phase,
 				culture.geology,
 				culture.trade,
-				createPrng(`${seed}-materials`),
+				materialPrng,
+				MATERIALS,
+				stratum,
+			);
+			const detailedLayers = assignDecorativeDetails(
+				provisionalLayers,
+				culture.profile,
+				culture.phase,
+				culture.geology,
+				culture.trade,
+				[],
+				createPrng(`${seed}-details`),
+				MATERIALS,
+				DECORATIVE_TECHNIQUES,
+				stratum,
+			);
+			const gradedLayers = gradeDecorativeLayers(
+				detailedLayers,
+				assignments,
+				culture.phase,
 				MATERIALS,
 			);
-			const gradedLayers = gradeDecorativeLayers(layers, assignments, culture.phase, MATERIALS);
-			const features = extractFeatures(artefact, gradedLayers, assignments);
+			const features = extractFeatures(
+				artefact,
+				gradedLayers,
+				assignments,
+				{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
+				MATERIALS,
+			);
 			const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 			totalArtefacts++;
@@ -138,8 +178,7 @@ Deno.test('scholars calibration: every shipped TAG_FREQUENCY entry stays within 
 	}
 });
 
-Deno.test('scholars calibration: trade-good and currency still never fire', () => {
-	assertEquals(measured.tagFrequency['trade-good'], undefined);
+Deno.test('scholars calibration: currency still never fires', () => {
 	assertEquals(measured.tagFrequency['currency'], undefined);
 });
 

@@ -46,12 +46,23 @@
  * - **Material** (roadmap 2GN.27): `materialStanding` is the max `MaterialAssignment.standing`
  *   across the supplied assignments, `0` when none are supplied. The standing itself is computed at
  *   stage 6 (`materialStanding()`, `materials.ts`) and stamped on each assignment, so this stage
- *   reads a number and stays free of world context, which is the reason doc 11 §2.9 widened
- *   `ClassificationRule.condition` rather than this function.
- * - **Dormant** (no producer yet): `motifPresent` honestly reads `motifRef` presence — always
- *   `false` until motif assignment lands (roadmap 2GN.33); `motifCulturalOrigins` stays `[]` and
- *   `preciousMaterialsInDecoration` stays `false` until the motif→culture and layer-material
- *   lookups exist (roadmap 2GN.68).
+ *   reads a number and stays free of world context for structural components, which is the reason
+ *   doc 11 §2.9 widened `ClassificationRule.condition` rather than this function.
+ * - **Decorative motif/material** (roadmap 2GN.68): `motifCulturalOrigins` resolves each layer's
+ *   `motifRef` against `culture.motifVocabulary.motifs`, collecting distinct `culturalOrigin`
+ *   values into a `Set` (never a plain push — every native motif shares the producing culture's own
+ *   id, so an ungated count would double-count a purely native artefact as multi-origin).
+ *   `preciousMaterialsInDecoration` is `true` when any layer's `material` clears `STANDING_CUT` via
+ *   `materialStanding()`, the identical read the structural rule above uses. **Unlike the structural
+ *   case, this is a deliberate, documented departure from "stays free of world context"**: no
+ *   upstream stage stamps a standing onto `DecorativeLayer` the way `MaterialAssignment.standing`
+ *   is stamped for components, so `extractFeatures` takes `culture`/`phase`/`geology` directly to
+ *   resolve it here, the smaller and more contained change against adding a field
+ *   `assignDecorativeDetails` (already shipped, pinned by its own tests) doesn't own. Both fields
+ *   read `culture`'s own vocabulary only — never scan other cultures' — since every layer's motif
+ *   was drawn from the producing culture's own pool (native or borrowed via
+ *   `assignDecorativeDetails`'s `sharedMotifSources`), and some motif ids repeat across cultures'
+ *   authored vocabularies, making a global scan both unnecessary and ambiguous.
  *
  * Unrecognised or absent parameter values in band-valued fields degrade gracefully to each
  * primitive's first-listed BNF value rather than throwing, mirroring `bandExtentCm` in
@@ -60,21 +71,31 @@
  * stay `false` on a missing or unrecognised signal, so degradation can never fabricate an impact
  * surface or a pin.
  *
- * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer; the decorative-motif
- * fields complete the doc 05 stage-8 contract later (roadmap 2GN.68).
+ * `classifyArtefact` (below, roadmap 2GN.20) is the downstream consumer.
  */
 
 import type {
 	Attachment,
 	ExtractedFeatures,
 	MaterialAssignment,
+	MaterialDefinition,
 	NormalisedArtefact,
 	NormalisedComponent,
 } from '../../types/artefact.ts';
 import type { DecorativeLayer } from '../../types/decoration.ts';
 import type { ArtefactTag, ClassificationContext, ClassificationRule } from '../../types/tags.ts';
+import type {
+	CulturalProfile,
+	GeologicalContext,
+	PhaseCharacteristics,
+} from '../../types/world.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { DECORATIVE_TECHNIQUES } from '../../data/decorations.ts';
+import { MATERIALS, STANDING_CUT } from '../../data/materials.ts';
+// Aliased: `extractFeatures` already has a local `materialStanding` (the max structural standing,
+// roadmap 2GN.27) with the same name as this function (the per-material computation, roadmap
+// 2GN.27/2GN.68). Both stay named for what they are; the import is what moves.
+import { materialStanding as computeMaterialStanding } from './materials.ts';
 
 // --- Provisional thresholds (MVP-provisional per the 2GN.8 band-table precedent) -------------------
 
@@ -290,26 +311,93 @@ interface DecorativeTally {
 	appliedElementCount: number;
 	/** Running sum of `layer.grade` across every layer, divided by `layerCount` for the mean (roadmap 2GN.98). */
 	gradeSum: number;
+	/**
+	 * Cultures whose motif vocabulary a layer's `motifRef` resolved to (roadmap 2GN.68), collected as
+	 * a `Set` rather than pushed to an array: every native motif shares `culturalOrigin ===
+	 * culture.id`, so an ungated push would read `['tarpan','tarpan']` on a purely native artefact —
+	 * length 2, wrongly meeting `motifCulturalOrigins.length > 1`. Resolved against the *producing*
+	 * culture's own `motifVocabulary` only; a layer's motif was always drawn from that culture's own
+	 * pool (native or borrowed via `assignDecorativeDetails`' `sharedMotifSources`), so scanning other
+	 * cultures is both unnecessary and ambiguous where an id repeats (e.g. `winged-disc`, authored in
+	 * both Tarpan's and Khaltiris' vocabularies).
+	 */
+	motifOrigins: Set<string>;
+	/** Whether any layer's material clears `STANDING_CUT` in the producing culture (roadmap 2GN.68). */
+	hasPreciousMaterial: boolean;
 }
 
-/** Walks `sublayers` recursively, accumulating the tally. `depth` is 1-based. */
+/**
+ * Walks `sublayers` recursively, accumulating the tally. `depth` is 1-based.
+ *
+ * @param culture - The producing culture: `motifVocabulary` resolves `motifRef`s (roadmap 2GN.68).
+ *   Undefined leaves `motifOrigins` empty and `hasPreciousMaterial` unreadable (honest no-evidence
+ *   default, mirroring `materialStanding`'s `0` with no assignments) — a bare-structure caller with
+ *   no world context asserts nothing about either.
+ * @param phase - The phase whose trade openness feeds `materialStanding` (roadmap 2GN.68).
+ * @param geology - World-level material scarcity, feeding `materialStanding` (roadmap 2GN.68).
+ * @param materials - The candidate catalogue a layer's `material` id resolves against.
+ */
 function tallyLayers(
 	layers: readonly DecorativeLayer[],
 	depth: number,
 	tally: DecorativeTally,
+	culture: CulturalProfile | undefined,
+	phase: PhaseCharacteristics | undefined,
+	geology: GeologicalContext | undefined,
+	materials: readonly MaterialDefinition[],
 ): void {
 	for (const layer of layers) {
 		tally.layerCount++;
 		tally.techniques.add(layer.technique);
 		tally.maxDepth = Math.max(tally.maxDepth, depth);
-		if (layer.motifRef !== undefined) tally.motifCount++;
+		if (layer.motifRef !== undefined) {
+			tally.motifCount++;
+			// `motifCulturalOrigin` is authoritative when present: a motif borrowed through
+			// `assignDecorativeDetails`' `sharedMotifSources` is absent from the producing culture's own
+			// `motifVocabulary`, so the vocabulary lookup below cannot resolve it after the fact. Only
+			// layers from before that field existed (or hand-built fixtures) fall back to the lookup.
+			const origin = layer.motifCulturalOrigin ??
+				culture?.motifVocabulary.motifs.find((m) => m.id === layer.motifRef)?.culturalOrigin;
+			if (origin !== undefined) tally.motifOrigins.add(origin);
+		}
+		if (
+			layer.material !== undefined && culture !== undefined && phase !== undefined &&
+			geology !== undefined
+		) {
+			const material = materials.find((m) => m.id === layer.material);
+			if (
+				material !== undefined &&
+				computeMaterialStanding(material, culture, phase, geology) >= STANDING_CUT
+			) {
+				tally.hasPreciousMaterial = true;
+			}
+		}
 		if (APPLIED_ELEMENT_TECHNIQUES.has(layer.technique)) tally.appliedElementCount++;
 		tally.gradeSum += layer.grade;
-		tallyLayers(layer.sublayers, depth + 1, tally);
+		tallyLayers(layer.sublayers, depth + 1, tally, culture, phase, geology, materials);
 	}
 }
 
 // --- Extraction -------------------------------------------------------------------------------------
+
+/**
+ * The producing world context `extractFeatures` needs for its decorative-material reading (roadmap
+ * 2GN.68). `culture`, `phase` and `geology` travel together or not at all: `tallyLayers`' precious-
+ * material check needs all three to call `computeMaterialStanding`, so a caller that supplied only
+ * `culture` would silently get `preciousMaterialsInDecoration: false` on genuinely precious
+ * decoration, indistinguishable from the honest "no world context" case. Grouping the trio makes
+ * that partial state unrepresentable rather than merely discouraged by JSDoc (2GN.68 review).
+ */
+export interface ProductionContext {
+	/** The producing culture: `motifVocabulary` is the fallback when a layer carries no
+	 * `motifCulturalOrigin` of its own (pre-2GN.68 layers, hand-built fixtures), and feeds
+	 * `preciousMaterialsInDecoration`'s `materialStanding` calls. */
+	culture: CulturalProfile;
+	/** The phase whose trade openness feeds `materialStanding` for layer materials. */
+	phase: PhaseCharacteristics;
+	/** World-level material scarcity, feeding `materialStanding` for layer materials. */
+	geology: GeologicalContext;
+}
 
 /**
  * Extracts the unified feature set from a complete artefact (doc 05 §9.1, roadmap 2GN.19) — the
@@ -323,13 +411,21 @@ function tallyLayers(
  *   Defaults to none, for callers extracting from a bare structure.
  * @param assignments - The artefact's material assignments (`assignMaterials`, roadmap 2GN.75),
  *   read for `materialStanding`. Defaults to none, in which case `materialStanding` is `0`.
- * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against, with
- *   the dormant motif fields at their honest no-producer defaults (roadmap 2GN.33/2GN.68).
+ * @param context - The producing world context (roadmap 2GN.68). Omit for a bare-structure
+ *   extraction with no world context — `motifCulturalOrigins` stays `[]` (unless every layer
+ *   already carries its own `motifCulturalOrigin`) and `preciousMaterialsInDecoration` stays
+ *   `false`, the same honest-no-evidence default `materialStanding` (structural) already uses when
+ *   `assignments` is empty, never a fabricated neutral culture.
+ * @param materialCatalogue - The candidate catalogue a layer's `material` id resolves against.
+ *   Defaults to the shipped `MATERIALS`.
+ * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against.
  */
 export function extractFeatures(
 	artefact: NormalisedArtefact,
 	decorativeLayers: readonly DecorativeLayer[] = [],
 	assignments: readonly MaterialAssignment[] = [],
+	context?: ProductionContext,
+	materialCatalogue: readonly MaterialDefinition[] = MATERIALS,
 ): ExtractedFeatures {
 	const { components, attachments, dimensions } = artefact;
 
@@ -440,8 +536,18 @@ export function extractFeatures(
 		motifCount: 0,
 		appliedElementCount: 0,
 		gradeSum: 0,
+		motifOrigins: new Set(),
+		hasPreciousMaterial: false,
 	};
-	tallyLayers(decorativeLayers, 1, tally);
+	tallyLayers(
+		decorativeLayers,
+		1,
+		tally,
+		context?.culture,
+		context?.phase,
+		context?.geology,
+		materialCatalogue,
+	);
 	const motifDensity = tally.layerCount > 0 ? tally.motifCount / tally.layerCount : 0;
 	const meanDecorativeGrade = tally.layerCount > 0 ? tally.gradeSum / tally.layerCount : 0;
 
@@ -481,10 +587,9 @@ export function extractFeatures(
 		appliedElementCount: tally.appliedElementCount,
 		meanDecorativeGrade,
 		motifPresent: tally.motifCount > 0,
-		motifCulturalOrigins: [], // DORMANT — motif→culture lookup is roadmap 2GN.68's.
+		motifCulturalOrigins: [...tally.motifOrigins],
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,
-		// DORMANT — layer materials are produced by roadmap 2GN.33; the lookup consuming them is 2GN.68's.
-		preciousMaterialsInDecoration: false,
+		preciousMaterialsInDecoration: tally.hasPreciousMaterial,
 		materialStanding,
 		decorativeComplexity,
 		overallComplexity: functionalComplexity + decorativeComplexity,

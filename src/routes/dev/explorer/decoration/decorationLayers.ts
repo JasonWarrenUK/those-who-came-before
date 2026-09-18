@@ -13,18 +13,23 @@
  * likewise 2GN.30's job. Do not confuse either with `materialAccessGate`, the culture-level check
  * inside `computeTechniqueWeight`.
  *
- * **Layers are flat today.** `expandDecoration` always emits `sublayers: []` and never sets
- * `motifRef`/`material` (roadmap 2GN.31/2GN.32 add nesting and a depth cap, 2GN.33 adds motifs).
- * The tree walk below is written recursion-ready so it needs no change when they land, but nothing
- * currently produces a depth above 0 and the dormant fields are not surfaced.
+ * **Layers are flat today.** `expandDecoration` always emits `sublayers: []` (roadmap 2GN.31/2GN.32
+ * add nesting and a depth cap). The tree walk below is written recursion-ready so it needs no change
+ * when they land, but nothing currently produces a depth above 0. `motifRef`/`material` are resolved
+ * by `assignDecorativeDetails` (roadmap 2GN.33, wired in here since roadmap 2GN.68), but
+ * `InspectedLayer` doesn't surface either yet — a follow-on for this panel's own display, not a
+ * pipeline gap.
  *
  * Pure, no DOM/Svelte, so it's unit-testable directly per the `structureTree.ts` precedent.
  */
 
 import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
-import { expandDecoration } from '../../../../lib/engine/generation/decoration.ts';
-import { assignMaterials } from '../../../../lib/engine/generation/materials.ts';
+import {
+	assignDecorativeDetails,
+	expandDecoration,
+} from '../../../../lib/engine/generation/decoration.ts';
+import { assignMaterials, drawStratum } from '../../../../lib/engine/generation/materials.ts';
 import { CORE_GRAMMAR_RULES } from '../../../../lib/data/grammars/core.ts';
 import { MATERIALS } from '../../../../lib/data/materials.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
@@ -154,7 +159,7 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 	const expanded = expandGrammar(CORE_GRAMMAR_RULES, culture.profile, culture.phase, prng);
 	const artefact = normaliseArtefact(expanded, `decoration-${seed}`);
 
-	const layers = expandDecoration(
+	const provisionalLayers = expandDecoration(
 		artefact,
 		culture.profile,
 		culture.phase,
@@ -170,14 +175,35 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 	// panels resolve the same material for the same seed and component and this panel's materials
 	// carry the pipeline's stratum draw. Matched by index: every panel normalises the same expansion,
 	// so component order is shared even though `component.id` carries each panel's own prefix.
+	//
+	// The stratum is drawn here, as the stream's first value, rather than left to `assignMaterials`'
+	// internal draw (roadmap 2GN.68) — the identical position, so this stays bit-identical to
+	// `materialAssignment.ts`'s canonical assignment for the same seed — and shared with
+	// `assignDecorativeDetails` below, so this panel's layers show the material the pipeline would
+	// actually resolve for this artefact's stratum, not an independently-rolled one.
+	const materialPrng = createPrng(`${seed}-materials`);
+	const stratum = drawStratum(materialPrng, culture.phase);
 	const assignments = assignMaterials(
 		artefact,
 		culture.profile,
 		culture.phase,
 		culture.geology,
 		culture.trade,
-		createPrng(`${seed}-materials`),
+		materialPrng,
 		MATERIALS,
+		stratum,
+	);
+	const layers = assignDecorativeDetails(
+		provisionalLayers,
+		culture.profile,
+		culture.phase,
+		culture.geology,
+		culture.trade,
+		[],
+		createPrng(`${seed}-details`),
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		stratum,
 	);
 
 	const components = artefact.components.map((component, index) => {

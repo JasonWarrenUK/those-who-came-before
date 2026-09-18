@@ -925,6 +925,12 @@ Deno.test('assignDecorativeDetails: full-intensity exchange makes borrowed motif
 });
 
 Deno.test('assignDecorativeDetails: a zero-intensity source never contributes while native motifs exist', () => {
+	// `mockCulturalProfile()`'s default vocabulary carries two native motifs (`test-motif` and
+	// `diffusion-motif`, `tests/fixtures/culture.ts`) — both are legitimate draws here; what this
+	// test pins is that the zero-intensity external `borrowedSource` never wins, not which native
+	// entry does.
+	const nativeIds = new Set(mockCulturalProfile().motifVocabulary.motifs.map((m) => m.id));
+
 	for (let i = 0; i < 100; i++) {
 		const [resolved] = assignDecorativeDetails(
 			[detailLayer('engraving')],
@@ -938,7 +944,10 @@ Deno.test('assignDecorativeDetails: a zero-intensity source never contributes wh
 			DECORATIVE_TECHNIQUES,
 		);
 
-		assertEquals(resolved!.motifRef, 'test-motif');
+		assert(
+			nativeIds.has(resolved!.motifRef!),
+			`expected a native motif, got '${resolved!.motifRef}'`,
+		);
 	}
 });
 

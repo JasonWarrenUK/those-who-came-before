@@ -18,6 +18,11 @@ import type { DecorativeLayer } from '../../types/decoration.ts';
 import type { ArtefactTag, ClassificationRule } from '../../types/tags.ts';
 import { ABSOLUTE_TAGS, RELATIVE_TAGS } from '../../types/tags.ts';
 import { CLASSIFICATION_RULES } from '../../data/classification.ts';
+import {
+	mockCulturalProfile,
+	mockPhaseCharacteristics,
+} from '../../../../tests/fixtures/culture.ts';
+import { mockGeologicalContext } from '../../../../tests/fixtures/world.ts';
 
 /** Builds a component of a given primitive with string properties, distinguishable by id. */
 function component(
@@ -60,8 +65,9 @@ function layer(
 	sublayers: DecorativeLayer[] = [],
 	motifRef?: string,
 	grade = 0.5,
+	material?: string,
 ): DecorativeLayer {
-	return { targetComponentId: 'c0', technique, motifRef, grade, sublayers };
+	return { targetComponentId: 'c0', technique, motifRef, grade, sublayers, material };
 }
 
 // --- Purity -----------------------------------------------------------------------------------------
@@ -570,8 +576,86 @@ Deno.test('extractFeatures: motifPresent reads motifRef honestly (live since 2GN
 
 	assertEquals(without.motifPresent, false);
 	assertEquals(withMotif.motifPresent, true);
-	assertEquals(withMotif.motifCulturalOrigins, []); // Motif→culture lookup is 2GN.68's.
-	assertEquals(withMotif.preciousMaterialsInDecoration, false); // Layer-material lookup is 2GN.68's.
+});
+
+Deno.test('extractFeatures: motifCulturalOrigins and preciousMaterialsInDecoration read false/[] with no world context (roadmap 2GN.68)', () => {
+	// Omitting `culture`/`phase`/`geology` is the honest no-evidence default (mirroring
+	// `materialStanding`'s `0` when `assignments` is empty), never a fabricated neutral culture —
+	// see `extractFeatures`'s own JSDoc. A bare-structure caller genuinely has no evidence about
+	// either field, whatever the layers say.
+	const withMotif = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving', [], 'test-motif', 0.5, 'iron')],
+	);
+
+	assertEquals(withMotif.motifCulturalOrigins, []);
+	assertEquals(withMotif.preciousMaterialsInDecoration, false);
+});
+
+Deno.test('extractFeatures: motifCulturalOrigins resolves motifRef against the producing culture (roadmap 2GN.68)', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+	const nativeOnly = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving', [], 'test-motif')],
+		[],
+		{ culture, phase, geology },
+	);
+	const nativePlusBorrowed = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving', [layer('inlay', [], 'diffusion-motif')], 'test-motif')],
+		[],
+		{ culture, phase, geology },
+	);
+	const unresolvable = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving', [], 'no-such-motif')],
+		[],
+		{ culture, phase, geology },
+	);
+
+	// A single native motif reads one origin, the culture's own id — never double-counted (every
+	// native motif shares that same `culturalOrigin`, so a plain push would wrongly read length 2).
+	assertEquals(nativeOnly.motifCulturalOrigins, ['test-culture']);
+	// A native plus a diffusion-vocabulary motif reads both distinct origins.
+	assertEquals(
+		new Set(nativePlusBorrowed.motifCulturalOrigins),
+		new Set(['test-culture', 'foreign-culture']),
+	);
+	// An id absent from the culture's own vocabulary resolves to nothing, never fabricated.
+	assertEquals(unresolvable.motifCulturalOrigins, []);
+});
+
+Deno.test('extractFeatures: preciousMaterialsInDecoration reads materialStanding against STANDING_CUT (roadmap 2GN.68)', () => {
+	const culture = mockCulturalProfile();
+	const phase = mockPhaseCharacteristics();
+	const geology = mockGeologicalContext();
+
+	// Under these fixtures (see the module's own probe): iron standing 6.00 (prized), bronze 1.50
+	// (not) — both metal, so the difference is the material's situation, never a catalogue tag.
+	const withPrized = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('inlay', [], undefined, 0.5, 'iron')],
+		[],
+		{ culture, phase, geology },
+	);
+	const withUnprized = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('inlay', [], undefined, 0.5, 'bronze')],
+		[],
+		{ culture, phase, geology },
+	);
+	const noLayerMaterial = extractFeatures(
+		artefactOf([component('c0', 'bar-form')]),
+		[layer('engraving')],
+		[],
+		{ culture, phase, geology },
+	);
+
+	assertEquals(withPrized.preciousMaterialsInDecoration, true);
+	assertEquals(withUnprized.preciousMaterialsInDecoration, false);
+	assertEquals(noLayerMaterial.preciousMaterialsInDecoration, false);
 });
 
 // --- Combined complexity -----------------------------------------------------------------------------------------

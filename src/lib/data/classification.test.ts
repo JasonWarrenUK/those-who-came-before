@@ -778,17 +778,17 @@ Deno.test('R31: any decorative layer fires; zero layers does not', () => {
 	assert(!R31.condition(features({ decorativeLayerCount: 0 }), ctx));
 });
 
-// --- R32-R33: decoration (dormant — motif/precious-material fields have no producer yet) ---------------
+// --- R32-R33: decoration (motif/precious-material fields, live since roadmap 2GN.68) --------------
 
 const R32 = requireRuleById('precious-materials-in-decoration');
 const R33 = requireRuleById('motif-multiple-origins');
 
-Deno.test('R32 (dormant): fires on a hand-built feature set with precious materials in decoration', () => {
+Deno.test('R32: fires on a hand-built feature set with precious materials in decoration', () => {
 	assert(R32.condition(features({ preciousMaterialsInDecoration: true }), ctx));
 	assert(!R32.condition(features({ preciousMaterialsInDecoration: false }), ctx));
 });
 
-Deno.test('R33 (dormant): fires on a hand-built feature set with cross-cultural motifs', () => {
+Deno.test('R33: fires on a hand-built feature set with cross-cultural motifs', () => {
 	assert(
 		R33.condition(
 			features({ motifPresent: true, motifCulturalOrigins: ['culture-a', 'culture-b'] }),

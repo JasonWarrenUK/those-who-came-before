@@ -97,7 +97,14 @@ import {
 	TECHNIQUE_MATERIAL_SENSITIVITY,
 } from '../../data/decorations.ts';
 import { MATERIALS } from '../../data/materials.ts';
-import { computeMaterialWeight, culturalAffinityWeight, isAvailable } from './materials.ts';
+import type { ArtefactStratum } from './materials.ts';
+import {
+	computeMaterialWeight,
+	culturalAffinityWeight,
+	isAvailable,
+	materialStanding,
+	stratumFactor,
+} from './materials.ts';
 import { resolvePhaseAttribute } from './phase.ts';
 import { weightedSelect } from '../prng.ts';
 
@@ -760,6 +767,16 @@ function introducedMaterialPool(
  * (material-introducing technique, non-empty candidates), then the layer's sublayers in order.
  * Same seed against the same inputs always produces the identical draw sequence.
  *
+ * **The stratum** (doc 11 §2.9, roadmap 2GN.68) boosts or suppresses an introduced-material
+ * candidate's weight via `stratumFactor` (`materials.ts`, roadmap 2GN.27) whenever its
+ * `materialStanding(...) >= STANDING_CUT` — the same fact `assignMaterials` applies to structural
+ * components, reused here rather than re-derived, so decoration and structure move together on the
+ * same artefact instead of each rolling its own commoner/elite coin flip (doc 02 pillar 3,
+ * Simulation Honesty). `stratum` is optional: omitted, every candidate weighs by
+ * `computeMaterialWeight` alone, exactly as before this parameter existed. The caller is expected to
+ * draw the stratum once (`prng() < eliteShare(phase) ? 'elite' : 'commoner'`) and pass the same
+ * value here and to `assignMaterials`, rather than each function drawing its own.
+ *
  * **Honest degradation** (the no-producer-defaults precedent, 2GN.19): an empty motif pool — a
  * culture with no motifs and no shared sources — leaves `motifRef` absent rather than throwing or
  * fabricating. The docs imply a real generated world never contains a motif-less culture (doc 05
@@ -785,6 +802,8 @@ function introducedMaterialPool(
  * @param materials - The candidate material catalogue. Defaults to the shipped `MATERIALS`.
  * @param techniques - The technique catalogue supplying `carriesMotif`/`introducesMaterial` flags.
  *   Defaults to the shipped `DECORATIVE_TECHNIQUES`.
+ * @param stratum - The artefact's stratum, when already drawn by the caller (typically shared with
+ *   `assignMaterials`). Omit to weigh every candidate by `computeMaterialWeight` alone.
  * @returns New layers mirroring `layers` in structure and order, grammar arguments filled.
  */
 export function assignDecorativeDetails(
@@ -797,6 +816,7 @@ export function assignDecorativeDetails(
 	prng: () => number,
 	materials: readonly MaterialDefinition[] = MATERIALS,
 	techniques: readonly DecorativeTechniqueDefinition[] = DECORATIVE_TECHNIQUES,
+	stratum?: ArtefactStratum,
 ): DecorativeLayer[] {
 	const definitions = new Map<DecorativeTechnique, DecorativeTechniqueDefinition>(
 		techniques.map((definition) => [definition.technique, definition]),
@@ -812,11 +832,13 @@ export function assignDecorativeDetails(
 		// still satisfies `'motifRef' in resolved`, so the field must be deleted, not nulled.
 		const resolved: DecorativeLayer = { ...layer };
 		delete resolved.motifRef;
+		delete resolved.motifCulturalOrigin;
 		delete resolved.material;
 
 		if (definition?.carriesMotif && motifPool.length > 0) {
-			resolved.motifRef = weightedSelect(motifPool, prng, (candidate) => candidate.weight)
-				.motif.id;
+			const selected = weightedSelect(motifPool, prng, (candidate) => candidate.weight).motif;
+			resolved.motifRef = selected.id;
+			resolved.motifCulturalOrigin = selected.culturalOrigin;
 		}
 
 		if (definition?.introducesMaterial) {
@@ -830,7 +852,12 @@ export function assignDecorativeDetails(
 				resolved.material = weightedSelect(
 					candidates,
 					prng,
-					(material) => computeMaterialWeight(material, culture, phase, geology),
+					(material) => {
+						const weight = computeMaterialWeight(material, culture, phase, geology);
+						if (stratum === undefined) return weight;
+						const standing = materialStanding(material, culture, phase, geology);
+						return weight * stratumFactor(standing, stratum);
+					},
 				).id;
 			}
 		}

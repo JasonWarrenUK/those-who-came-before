@@ -180,11 +180,10 @@ Deno.test('model: methodological bias is never the neutral player default', () =
 	}
 });
 
-Deno.test('specialisation: trade-good and currency never appear (classifier gap, doc scholars.ts)', () => {
+Deno.test('specialisation: currency never appears (classifier gap, doc scholars.ts)', () => {
 	for (let i = 0; i < 50; i++) {
 		const scholars = generate(`vocab-check-${i}`);
 		for (const scholar of scholars) {
-			assert(!scholar.specialisation.includes('trade-good'));
 			assert(!scholar.specialisation.includes('currency'));
 		}
 	}

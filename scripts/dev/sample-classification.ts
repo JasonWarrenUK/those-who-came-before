@@ -1,7 +1,8 @@
 /**
  * Samples rule-based tag classification (roadmap 2GN.20): runs the full Milestone 2 chain —
- * expand → normalise → decorate → assign materials → grade → `extractFeatures` → `classifyArtefact`
- * — and renders the scored tag map as a grouped bar chart with per-rule contributions. The terminal
+ * expand → normalise → decorate → assign materials → assign decorative details → grade →
+ * `extractFeatures` → `classifyArtefact` — and renders the scored tag map as a grouped bar chart
+ * with per-rule contributions. The terminal
  * preview of the
  * Explorer's tag inspector (roadmap 2GN.59), and the fastest way to eyeball the plain-sum
  * accumulation contract (doc 12 §2.21) against real grammar rolls.
@@ -34,10 +35,11 @@
 import { paint } from './gum.ts';
 import { createPrng } from '../../src/lib/engine/prng.ts';
 import {
+	assignDecorativeDetails,
 	expandDecoration,
 	gradeDecorativeLayers,
 } from '../../src/lib/engine/generation/decoration.ts';
-import { assignMaterials } from '../../src/lib/engine/generation/materials.ts';
+import { assignMaterials, drawStratum } from '../../src/lib/engine/generation/materials.ts';
 import {
 	classifyArtefact,
 	extractFeatures,
@@ -113,20 +115,44 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		DECORATIVE_TECHNIQUES,
 	);
 	// Materials assigned and layers re-graded before `extractFeatures` — see the module JSDoc for
-	// why this matters for `meanDecorativeGrade` specifically.
+	// why this matters for `meanDecorativeGrade` specifically. Stratum drawn as the stream's first
+	// value (roadmap 2GN.68) and shared with `assignDecorativeDetails`, matching every other
+	// production caller's pattern; `--bare` skips both since there are no decorative layers to place
+	// a stratum-modulated material into.
+	const materialPrng = createPrng(`${seed}-materials`);
+	const stratum = drawStratum(materialPrng, world.phase);
 	const assignments = assignMaterials(
 		artefact,
 		world.culture,
 		world.phase,
 		world.geology,
 		world.trade,
-		createPrng(`${seed}-materials`),
+		materialPrng,
 		MATERIALS,
+		stratum,
+	);
+	const detailedLayers = bare ? [] : assignDecorativeDetails(
+		provisionalLayers,
+		world.culture,
+		world.phase,
+		world.geology,
+		world.trade,
+		[],
+		createPrng(`${seed}-details`),
+		MATERIALS,
+		DECORATIVE_TECHNIQUES,
+		stratum,
 	);
 	const layers = bare
 		? []
-		: gradeDecorativeLayers(provisionalLayers, assignments, world.phase, MATERIALS);
-	const features = extractFeatures(artefact, layers, assignments);
+		: gradeDecorativeLayers(detailedLayers, assignments, world.phase, MATERIALS);
+	const features = extractFeatures(
+		artefact,
+		layers,
+		assignments,
+		{ culture: world.culture, phase: world.phase, geology: world.geology },
+		MATERIALS,
+	);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);
 
 	// Re-run each condition to decompose the sums — exact under plain-sum accumulation.

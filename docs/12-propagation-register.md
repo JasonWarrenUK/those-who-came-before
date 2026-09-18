@@ -400,10 +400,11 @@ provisional band-to-centimetre tables (2GN.8), and the `containerOpenness` float
 chosen `openingType` (wide 1.0 down to closed/none 0). All MVP-provisional, tuned once observable in
 the Explorer (2GN.57/2GN.59). `overallComplexity` composes functional + decorative — the
 implementation's reading of doc 05 §9.1's "structural + decorative", which names no separate
-structural score. Dormant fields keep honest no-producer defaults: `motifPresent` genuinely reads
-`motifRef` presence and starts firing the moment motif assignment lands (2GN.33);
-`motifCulturalOrigins` and `preciousMaterialsInDecoration` stay empty/false until the
-motif-to-culture and layer-material lookups exist (2GN.34).
+structural score. Dormant fields kept honest no-producer defaults: `motifPresent` genuinely read
+`motifRef` presence and started firing the moment motif assignment landed (2GN.33);
+`motifCulturalOrigins` and `preciousMaterialsInDecoration` stayed empty/false until the
+motif-to-culture and layer-material lookups landed (2GN.68, not 2GN.34 as originally written here —
+correction is this task's own footnote, not a re-litigation of the entry's date).
 
 | Doc | What changed                                                                                                                                                      | Completed  |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -3335,6 +3336,148 @@ Full measurements, rejected mechanisms and the two self-corrections: doc 11 §2.
 | — | Doc 05 §4.1: `NPCScholarSeed`'s transcribed type block corrected (`name: NameForm`)                                                                          | 2026-09-17 |
 | — | Doc 07 §5.1/§5.2: transcribed `MinimalScholar` block corrected, `scholarName` now renders via `renderName`                                                   | 2026-09-17 |
 | — | Roadmap: 2GN.48 done; 3WS.15 gains a note to replace the frozen lift table with a live per-world computation                                                 | 2026-09-17 |
+
+### 2.61 Decoration Needed the Same Stratum Draw Materials Got, Not a New Threshold (2026-09-17)
+
+**Origin:** roadmap 2GN.68. **Source of truth:** doc 11 §2.9 (third amendment) holds the ruling;
+`docs/spikes/2GN.68-decoration-material-standing.md` holds the measurements.
+
+2GN.68 arrived to give `preciousMaterialsInDecoration`/`motifCulturalOrigins` producers. The motif
+half was straightforward: resolve `DecorativeLayer.motifRef` against the producing culture's own
+`motifVocabulary.motifs`, collected as a `Set` (a plain array push would double-count a purely
+native artefact, since every native motif shares the producing culture's own `culturalOrigin`). The
+material half reproduced 2GN.27's own Finding 1 from the decoration side: wiring
+`assignDecorativeDetails` (2GN.33, shipped 2026-07-25 but never called from production code) into
+every pipeline chain and reading `materialStanding(...) >= STANDING_CUT` per layer gave 72–95% of
+artefacts a `true` reading — the same "half a small catalogue reads as prized everywhere" arithmetic
+2GN.27 fixed, arriving harder here because a decorative layer count (6–8/artefact) exceeds a
+structural component count (2–6/artefact), so an unmodulated `max`-over-layers boolean saturates
+faster.
+
+**Four mechanisms were measured and rejected before the fifth worked.** A fixed threshold over the
+prized-layer count (Finding A) and a percentile over it (Finding B) both failed for reasons 2GN.27
+already named — no cut value fits four presets, and percentiling a small-integer count both hits
+tie-block collapse and inverts against stratification. A per-layer stratum weight nudge alone
+(Finding C, reusing 2GN.27's `ELITE_PRIZED_BOOST`/`COMMONER_PRIZED_SUPPRESSION` verbatim) moved the
+rate but left thalassar/xoconahtl commoners at 64–84%. Four "prized relative to the layer's own
+pool" readings (comparing the drawn material's standing against its technique's candidate pool)
+stayed in the 65–96% band regardless of phrasing, because `inlay`/`beading`'s pools are already
+40–80% prized before any relative comparison and 6–8 draws per artefact saturate any per-layer
+predicate under `max`.
+
+**Ruled:** the aggregation problem needed an aggregation fix, not a per-layer one — 2GN.27's actual
+mechanism (an artefact-level stratum gating the whole draw set), applied to
+`assignDecorativeDetails`, not a fifth per-layer reading. `assignMaterials` gains an optional
+`stratum?: ArtefactStratum` parameter (supplied, used directly; omitted, drawn internally exactly as
+before — additive, no existing call site changes behaviour); `assignDecorativeDetails` gains the
+identical parameter and applies the newly-exported `stratumFactor()` to its introduced-material
+weight callback. Every production call site draws the stratum once, as the first value of the
+`${seed}-materials` stream — the exact position `assignMaterials` drew it from internally, so every
+component's material stays bit-identical to before this parameter existed (verified: R1–R31 and
+R34–R43 measured bit-identical against `EXPECTED_FIRE_RATES`) — and passes the same value to both
+calls, so one artefact carries one commoner/elite stratum across its structural materials and its
+decoration, never two independent coin flips (doc 02 pillar 3, Simulation Honesty).
+
+**Measured:** the stratum draw alone moves the four presets from 29.3/92.0/95.0/72.0% to
+23.0/73.0/87.3/37.3%, still short of the material side's 12–35% band. Tracing the residual (forcing
+every artefact commoner and tallying which technique supplied the prized layer) found
+`gilding`/`wire-wrapping` alone responsible for 79–97% of remaining commoner-artefact hits: both
+techniques' candidate pools are 100% prized under every preset (`gilding`'s physical gate admits
+only gold/silver; `wire-wrapping`'s tag set is `['metal']` alone), so no stratum modulation has an
+unsuppressed candidate to redirect selection toward. Every other technique's suppression already
+works (0.3–0.8% commoner hit rate). Against the fixture worlds (`mockCulturalProfile` ×
+`mockRegionalWorld`), R32 realises 56.5% and R33 realises 25.8% (n=1800) — R32 sitting above the
+Explorer preset range for the identical reason R44 (`material-standing-prized`) did: the fixture
+geologies place more materials at scarce/trade-only than the authored presets.
+
+**Not this task's to fix:** widening `gilding`/`wire-wrapping`'s candidate pools so a
+stratum-modulated draw has somewhere to redirect. Data-authoring work in
+`INTRODUCED_MATERIAL_TAGS`/`isGildingMaterial` (2GN.28/2GN.78 territory), filed as a follow-up
+rather than solved inside this ruling.
+
+**Also fixed in passing:** `tagInspector.ts`'s `DORMANT_FIELDS` still listed `motifPresent`, live
+since 2GN.33 — a pre-existing staleness this task's own dormancy sweep caught. `mockMotifVocabulary`
+(`tests/fixtures/culture.ts`) gained a second, foreign-origin motif so R33 is reachable through the
+calibration fixture at all; a single-motif vocabulary makes every layer's origin the producing
+culture's own, pinning the rule at a structural 0% however correct its producer is.
+
+| § | Propagation                                                                                                                                                                    | Date       |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| — | Doc 11 §2.9: third 2GN.27-formula amendment, recording the decoration-side stratum draw and the all-prized-pool finding                                                        | 2026-09-17 |
+| — | `engine/generation/materials.ts`: `assignMaterials` gains optional `stratum`; `stratumFactor` exported                                                                         | 2026-09-17 |
+| — | `engine/generation/decoration.ts`: `assignDecorativeDetails` gains optional `stratum`, applies `stratumFactor`                                                                 | 2026-09-17 |
+| — | `engine/generation/classification.ts`: `extractFeatures` gains `culture`/`phase`/`geology`/`materialCatalogue` (all optional, honest no-evidence defaults)                     | 2026-09-17 |
+| — | Six production call sites wired: `baselines.ts`, `ruleCalibration.ts`, `tagInspector.ts`, `calibration.test.ts`, `decorationLayers.ts`, `scripts/dev/sample-classification.ts` | 2026-09-17 |
+| — | `data/classification.ts`: R32/R33 JSDoc updated from dormant-authored to live-producer                                                                                         | 2026-09-17 |
+| — | Calibration pins re-recorded: R32 56.5%, R33 25.8%; `DORMANT_RULE_INDICES` emptied                                                                                             | 2026-09-17 |
+| — | `tests/fixtures/culture.ts`: `mockMotifVocabulary` gains a second, foreign-origin motif                                                                                        | 2026-09-17 |
+| — | `tagInspector.ts`: `DORMANT_FIELDS` emptied (`motifPresent` was stale-listed since 2GN.33)                                                                                     | 2026-09-17 |
+| — | Roadmap: 2GN.68 done; a follow-up filed for `gilding`/`wire-wrapping`'s all-prized candidate pools                                                                             | 2026-09-17 |
+
+### 2.62 PR 79 Review: A Seventh Sampling Chain, a Dropped Motif Origin and a Grouped Context (2026-09-18)
+
+Three findings from PR 79's review, verified independently before fixing (`gh pr view 79`).
+
+**A seventh call site ran the pre-2GN.68 chain.** §2.61's "six production call sites wired" table
+(3406-3413) counted production call sites correctly but missed
+`src/lib/data/scholars.calibration.test.ts`'s sampling sweep, which measures
+`TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT` (roadmap 2GN.48) and still called `extractFeatures` with no
+world context and no `assignDecorativeDetails`. Wired to match the other six; both frozen tables
+re-recorded against the wired sweep (n=1600): `votive` 47.8%→71.4%, `ceremonial` 65.3%→77.9%,
+`elite` 81.8%→88.9%, `trade-good` newly clears the award threshold at 1.4% (four new
+`TAG_COOCCURRENCE_LIFT` pairs, one existing pair — `agricultural+ceremonial` — dropped out of
+tolerance and re-recorded with the rest). This retired the "trade-good never fires" reading recorded
+at §2.60 (3320-3322) and doc 11 §2.23 — both entries stay as written (accurate when recorded),
+superseded here rather than rewritten. The same fact was stale in three further places
+(`data/scholars.ts`'s own doc comments, `SITE_TYPE_TAG_AFFINITY`'s `shipwreck` note,
+`engine/world/scholars.ts`'s `SPECIALISABLE_TAGS` comment) and in a live test
+(`engine/world/scholars.test.ts`'s "trade-good and currency never appear", now asserting `currency`
+alone — `trade-good` is reachable, just rare, so the old assertion would have started flaking rather
+than failing outright). An eighth site, `scripts/dev/sample-features.ts`, carries the same gap but
+has no assertions and no frozen table; left unwired, noted in the 2GN.68 spike.
+
+**A shared-source motif's origin was dropped before `tallyLayers` could read it.**
+`assignDecorativeDetails` resolved a borrowed `SharedMotifSource` motif to its id alone; when that
+motif was absent from the producing culture's own `motifVocabulary` (the whole point of borrowing
+one), `tallyLayers` had nothing to resolve `motifRef` against and silently omitted the origin —
+`motif-multiple-origins` (R33) could never fire from a shared source. Latent only: every shipping
+call site passes `sharedMotifSources: []` today (Milestone 3's world-state integration is what will
+start populating it). Fixed anyway, at the source rather than by threading a second map through
+`extractFeatures`: `DecorativeLayer` gained an optional `motifCulturalOrigin`, stamped alongside
+`motifRef` at selection time and cleared on every re-resolve (the same `delete` pattern the
+`motifRef`/`material` fields already use); `tallyLayers` reads it when present and falls back to the
+vocabulary lookup otherwise, so no existing pin moved.
+
+**`extractFeatures`'s `culture`/`phase`/`geology` trio was JSDoc-enforced only.** Passing `culture`
+without `phase`/`geology` (or vice versa) type-checked and silently degraded
+`preciousMaterialsInDecoration` to `false` on genuinely precious decoration, indistinguishable from
+the honest no-evidence default. Grouped into an exported `ProductionContext` interface (`culture`,
+`phase`, `geology` together, `interface` per CLAUDE.md's TypeScript standards), making the partial
+state unrepresentable. All ten call sites updated (six production, four test); the motif-origin fix
+above meant `motifOrigins` no longer needs `culture` at all once a layer carries its own
+`motifCulturalOrigin`, so the two fixes composed rather than competed for the same signature.
+
+**Also landed from the same review:** `drawStratum(prng, phase)` extracted to `materials.ts` beside
+`eliteShare`, replacing the `prng() < eliteShare(phase) ? 'elite' : 'commoner'` ternary duplicated
+across eight sites (seven of which this PR itself introduced) — provably stream-neutral, since
+`eliteShare` is pure arithmetic and the helper makes exactly one `prng()` call. The lazy `??` in
+`assignMaterials`'s internal fallback (`stratum ?? drawStratum(prng, phase)`) was kept lazy
+deliberately: an eager rewrite would consume a draw on every call site that already supplies its own
+stratum. Two dates corrected from "2026-08" to the verified 2026-07-25
+(`docs/12-propagation-register.md` line 3350's own text, and the 2GN.68 spike) —
+`assignDecorativeDetails`'s actual ship date per §2.22 and `git log`.
+
+| § | Propagation                                                                                                                                           | Date       |
+| - | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| — | `data/scholars.calibration.test.ts`: wired to `assignDecorativeDetails`; header docstring corrected                                                   | 2026-09-18 |
+| — | `data/scholars.ts`: `TAG_FREQUENCY`/`TAG_COOCCURRENCE_LIFT` re-recorded against the wired sweep (n=1600); doc comments updated                        | 2026-09-18 |
+| — | `engine/world/scholars.ts` + `.test.ts`: `SPECIALISABLE_TAGS` comment and specialisation test updated for `trade-good`'s new nonzero frequency        | 2026-09-18 |
+| — | `types/decoration.ts`: `DecorativeLayer` gains optional `motifCulturalOrigin`                                                                         | 2026-09-18 |
+| — | `engine/generation/decoration.ts`: `resolveLayer` stamps and clears `motifCulturalOrigin`                                                             | 2026-09-18 |
+| — | `engine/generation/classification.ts`: `tallyLayers` prefers `motifCulturalOrigin`, falls back to the vocabulary lookup                               | 2026-09-18 |
+| — | `engine/generation/classification.ts`: `extractFeatures` groups `culture`/`phase`/`geology` into exported `ProductionContext`; ten call sites updated | 2026-09-18 |
+| — | `engine/generation/materials.ts`: `drawStratum(prng, phase)` exported; eight call sites and one internal fallback updated                             | 2026-09-18 |
+| — | `docs/12-propagation-register.md` and the 2GN.68 spike: `assignDecorativeDetails`'s ship date corrected to 2026-07-25                                 | 2026-09-18 |
 
 ---
 

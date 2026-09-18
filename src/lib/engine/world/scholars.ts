@@ -36,8 +36,9 @@ const NPC_METHODOLOGICAL_BIASES: readonly MethodologicalBias[] = [
 	'culturalist',
 ];
 
-/** All tags `TAG_FREQUENCY` has a measured rate for — `trade-good`/`currency` are absent by
- * construction (see `data/scholars.ts`). The cast is safe because `TAG_FREQUENCY` is keyed
+/** All tags `TAG_FREQUENCY` has a measured rate for — `currency` is absent by construction (see
+ * `data/scholars.ts`); `trade-good` is present but rare (roadmap 2GN.68), so a scholar can now
+ * specialise in it, just seldom. The cast is safe because `TAG_FREQUENCY` is keyed
  * `Partial<Record<ArtefactTag, number>>`, so every key is already a checked `ArtefactTag`; only the
  * `Object.keys` return type needs narrowing from `string[]`. */
 const SPECIALISABLE_TAGS = Object.keys(TAG_FREQUENCY) as ArtefactTag[];

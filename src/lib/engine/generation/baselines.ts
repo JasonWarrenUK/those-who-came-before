@@ -5,12 +5,14 @@
  * the producing culture-phase's own output, rather than a fixed constant. This module produces
  * those baselines by running the generation pipeline's stages 1–7
  * (`expandGrammar` → `normaliseArtefact` → `expandDecoration` → `assignMaterials` →
- * `gradeDecorativeLayers` → `extractFeatures`) and stopping before classification (stage 8) —
- * nothing upstream reads a tag, so there is no bootstrap circularity. Materials are assigned and
- * layers re-graded before `extractFeatures` runs, not skipped: `expandDecoration`'s `grade` is only
- * the provisional technique-only value (its own JSDoc), and `meanDecorativeGrade` (R43,
- * `data/classification.ts`) must be sampled from the same material-aware grade real artefacts are
- * classified against, or its baseline is measuring a different quantity than the value it gates.
+ * `assignDecorativeDetails` → `gradeDecorativeLayers` → `extractFeatures`) and stopping before
+ * classification (stage 8) — nothing upstream reads a tag, so there is no bootstrap circularity.
+ * Materials are assigned and layers re-graded before `extractFeatures` runs, not skipped:
+ * `expandDecoration`'s `grade` is only the provisional technique-only value (its own JSDoc), and
+ * `meanDecorativeGrade` (R43, `data/classification.ts`) must be sampled from the same
+ * material-aware grade real artefacts are classified against, or its baseline is measuring a
+ * different quantity than the value it gates. `assignDecorativeDetails` runs after `assignMaterials`
+ * (doc 11 §2.21) so decoration and materials share one stratum draw (roadmap 2GN.68).
  *
  * **Deliberately not cached.** Doc 11 §2.9 says baselines are "cached in world state", but
  * `WorldState` does not exist yet (lands at roadmap 3WS.9). `sampleBaselines` is a pure function of
@@ -36,8 +38,8 @@ import type { BaselineFeature, ClassificationContext, FeatureBaseline } from '..
 import { createPrng } from '../prng.ts';
 import { PERCENTILE_LADDER, percentileLadder } from '../statistics.ts';
 import { expandGrammar, normaliseArtefact } from './grammar.ts';
-import { expandDecoration, gradeDecorativeLayers } from './decoration.ts';
-import { assignMaterials } from './materials.ts';
+import { assignDecorativeDetails, expandDecoration, gradeDecorativeLayers } from './decoration.ts';
+import { assignMaterials, drawStratum } from './materials.ts';
 import { extractFeatures } from './classification.ts';
 
 /** n=400 per culture-phase — the measured knee (doc 11 §2.9, doc 12 §2.28). */
@@ -171,17 +173,44 @@ export function sampleBaselines(
 			materials,
 			techniques,
 		);
+		// The stratum draw moves out of `assignMaterials` and in front of it, on the same
+		// `${artefactSeed}-materials` stream it always opened that draw on (roadmap 2GN.68) — this
+		// consumes the stream in the identical order `assignMaterials` used internally, so every
+		// component's material stays bit-identical to before this parameter existed. The drawn value
+		// is then shared with `assignDecorativeDetails`, so one artefact carries one stratum across
+		// both its structural materials and its decoration (doc 02 pillar 3, Simulation Honesty).
+		const materialPrng = createPrng(`${artefactSeed}-materials`);
+		const stratum = drawStratum(materialPrng, target.phase);
 		const assignments = assignMaterials(
 			artefact,
 			target.profile,
 			target.phase,
 			target.geology,
 			target.trade,
-			createPrng(`${artefactSeed}-materials`),
+			materialPrng,
+			materials,
+			stratum,
+		);
+		const detailedLayers = assignDecorativeDetails(
+			provisionalLayers,
+			target.profile,
+			target.phase,
+			target.geology,
+			target.trade,
+			[],
+			createPrng(`${artefactSeed}-details`),
+			materials,
+			techniques,
+			stratum,
+		);
+		const layers = gradeDecorativeLayers(detailedLayers, assignments, target.phase, materials);
+		const features = extractFeatures(
+			artefact,
+			layers,
+			assignments,
+			{ culture: target.profile, phase: target.phase, geology: target.geology },
 			materials,
 		);
-		const layers = gradeDecorativeLayers(provisionalLayers, assignments, target.phase, materials);
-		const features = extractFeatures(artefact, layers, assignments);
 
 		for (const feature of SAMPLED_FEATURES) {
 			samples.get(feature)!.push(readFeature(features, feature));
