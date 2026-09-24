@@ -859,6 +859,17 @@
 						"assignee": "Jason Warren"
 					},
 					{
+						"id": "2GN.148",
+						"description": "`engine/generation/description.ts` — wire real generated `Provenance` (2GN.47) into `generateDescription()`'s `ArtefactPresentation.provenance` output, replacing the caller-supplied stub fixture from 2GN.38",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.38",
+							"2GN.47"
+						],
+						"notes": "2GN.38 took a caller-supplied `Provenance` (per the 2GN.23 M2-provisional convention) because real generation (2GN.47) sits downstream in the dependency chain 2GN.38 → 2GN.44 → 2GN.47. This task closes that loop once 2GN.47 exists: swap the stub `mockProvenance` fixture at the `generateDescription` call site for real generated provenance, and update any tests still asserting against the stub.",
+						"assignee": "Jason Warren"
+					},
+					{
 						"id": "2GN.48",
 						"description": "`engine/world/scholars.ts` — `generateNPCScholars(cultures, chronology, prng): NPCScholarSeed[]` — 3-4 NPCs with name, specialisation, career stage",
 						"status": "done",
