@@ -19,14 +19,17 @@
  * from none at all. Material/craft-domain conditions (`materialId`, `materialTag`, `craftDomain`)
  * are not used here: 2GN.91's notes name that gate as necessary where a geometric reading is false
  * for some materials (e.g. taper reading as "forceful strike" is false for a brittle material), and
- * no template below makes a claim strong enough to need it — reserved for 2GN.38's fuller selection
- * pass rather than authored speculatively against untested claims.
+ * no template below makes a claim strong enough to need it. The matcher (`engine/generation/
+ * description.ts`'s `selectVariant`, roadmap 2GN.38, absorbing 2GN.93) honours the material gate
+ * fully — reserved here for authoring against a tested claim, not against a speculative one.
  *
  * Out of scope, and owned downstream, exactly as `observational/index.ts` states:
- * - expanding a template against a component's actual property values (`engine/generation/
- *   description.ts`, roadmap 2GN.39)
- * - selecting among a property's variants by lens/hypothesis alignment (roadmap 2GN.38)
- * - honouring `condition`'s material/craft-domain fields during selection (roadmap 2GN.93)
+ * - expanding a template against a component's actual property values beyond the provisional
+ *   `#slot#` expander (`engine/generation/description.ts`, roadmap 2GN.39)
+ *
+ * Selection among a property's variants (register foregrounding, `VariantCondition` matching
+ * including the material join) lives in `engine/generation/description.ts`'s
+ * `selectVariant`/`generateDescription` (roadmap 2GN.38, absorbing 2GN.93).
  */
 
 import type { DescriptionTemplate } from '../../../types/description.ts';

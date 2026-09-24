@@ -17,11 +17,14 @@
  * `#crossSection.a#` renders "an oval" vs "a rectangular") per doc 05 §13.1's "Tracery-style
  * template with slots" wording. This module is static data only, no behaviour. Out of scope, and
  * owned downstream:
- * - expanding a template against a component's actual property values (`engine/generation/
- *   description.ts`, roadmap 2GN.39)
- * - selecting among a property's variants by lens/hypothesis alignment (roadmap 2GN.38)
+ * - expanding a template against a component's actual property values beyond the provisional
+ *   `#slot#` expander (`engine/generation/description.ts`, roadmap 2GN.39)
  * - the interpretive and technical registers (`descriptions/interpretive/`, `descriptions/
  *   technical/`, roadmap 2GN.36–2GN.37)
+ *
+ * Selection among a property's variants (register foregrounding, `VariantCondition` matching
+ * including the material join) now lives in `engine/generation/description.ts`'s
+ * `selectVariant`/`generateDescription` (roadmap 2GN.38, absorbing 2GN.93).
  */
 
 import type { DescriptionTemplate } from '../../../types/description.ts';

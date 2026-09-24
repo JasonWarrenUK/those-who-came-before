@@ -32,8 +32,8 @@ export const BAR_FORM_TEMPLATES: readonly DescriptionTemplate[] = [
 			{
 				// `taper: 'none'` (doc 05 §5.3) means the stock runs its full length untapered — a
 				// fixed-text variant so that stays observable rather than dropping the clause like an
-				// unmeasured property (see the unconditioned variant below, selected by `describeProse`
-				// when `taper !== 'none'`).
+				// unmeasured property (see the unconditioned variant below, selected by
+				// `description.ts`'s `selectVariant` when `taper !== 'none'`).
 				template: 'The form is untapered.',
 				emphasis: [],
 				register: 'observational',
