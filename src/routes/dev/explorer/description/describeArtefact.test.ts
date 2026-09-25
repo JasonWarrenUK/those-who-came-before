@@ -1,6 +1,11 @@
 /// <reference lib="deno.ns" />
-import { assert, assertEquals } from '@std/assert';
-import { ALL_REGISTERS, describeArtefact, stubProvenance } from './describeArtefact.ts';
+import { assert, assertEquals, assertFalse } from '@std/assert';
+import {
+	ALL_REGISTERS,
+	describeArtefact,
+	propertyLabel,
+	stubProvenance,
+} from './describeArtefact.ts';
 import { inspectTags } from '../tags/tagInspector.ts';
 import { renderName } from '../../../../lib/engine/world/naming.ts';
 import { EXPLORER_CULTURES } from '../../../../lib/data/explorer-cultures.ts';
@@ -74,6 +79,24 @@ Deno.test('describeArtefact — stubbed inputs are the documented placeholders, 
 	assertEquals(model.presentation.secondaryObservations, []);
 	assertEquals(model.presentation.suggestedTags, []);
 	assertEquals(model.presentation.crossReferences, []);
+});
+
+Deno.test('propertyLabel — strips the component prefix even when the seed contains a colon', () => {
+	// The component id embeds the seed, so splitting on `:` would surface a seed fragment
+	// (`1-c0`) in place of the property whenever `?seed=` carries one.
+	for (const seed of ['desc-label', 'dig:1', 'a:b:c']) {
+		const model = describeArtefact(seed, khaltiris, ALL_REGISTERS);
+		let seen = 0;
+		for (const component of model.components) {
+			for (const observation of component.observations) {
+				const label = propertyLabel(observation, component.componentId);
+				assertEquals(`${component.componentId}:${label}`, observation.propertyId);
+				assertFalse(label.includes(':'), `${seed}: ${label}`);
+				seen++;
+			}
+		}
+		assert(seen > 0, `${seed}: expected at least one observation`);
+	}
 });
 
 Deno.test('describeArtefact — both cultures produce a well-formed model for the same seed', () => {

@@ -9,7 +9,7 @@ import { goto } from '$app/navigation';
 import { page } from '$app/state';
 import { getSeed } from '../seed';
 import { EXPLORER_CULTURES } from '$lib/data/explorer-cultures';
-import { ALL_REGISTERS, describeArtefact } from './describeArtefact';
+import { ALL_REGISTERS, describeArtefact, propertyLabel } from './describeArtefact';
 import type { DescriptionRegister } from '$lib/types/lens';
 
 const baseSeed = $derived(getSeed(page.url));
@@ -128,7 +128,7 @@ const provenance = $derived(model.presentation.provenance);
 						<li>
 							{observation.description}
 							<span class="text-base-content/50 font-mono text-xs">
-								{observation.propertyId.split(':')[1]}
+								{propertyLabel(observation, component.componentId)}
 							</span>
 						</li>
 					{/each}

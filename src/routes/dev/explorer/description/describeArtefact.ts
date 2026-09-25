@@ -56,6 +56,15 @@ import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts'
 /** Every register an agent could hold, in the engine's own neutral preference order. */
 export const ALL_REGISTERS: readonly DescriptionRegister[] = REGISTER_PREFERENCE;
 
+/**
+ * The property half of a component-scoped `propertyId` (`shape` from `desc-x-c0:shape`), for the
+ * panel's per-observation label. Slices past the known component id rather than splitting on `:`:
+ * the id embeds the seed, and a seed is free to contain a colon (`?seed=dig:1`).
+ */
+export function propertyLabel(observation: PresentedObservation, componentId: string): string {
+	return observation.propertyId.slice(componentId.length + 1);
+}
+
 /** One component's observations, in the order `generateDescription` emitted them. */
 export interface DescribedComponent {
 	componentId: string;
