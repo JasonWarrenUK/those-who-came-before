@@ -654,7 +654,7 @@
 					{
 						"id": "2GN.76",
 						"description": "`engine/generation/decoration.ts` — motif salience fluctuates across a culture's lifespan: native and borrowed motifs are not equally prominent at every point in the culture's timeline; motif selection weights vary by phase",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.150"
 						],
@@ -773,7 +773,7 @@
 					{
 						"id": "2GN.39",
 						"description": "`engine/generation/description.ts` — template expansion: parameterised template system with property slots",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.160"
 						],
@@ -820,7 +820,7 @@
 					{
 						"id": "2GN.44",
 						"description": "`engine/generation/excavation.ts` — excavation composition: generate artefact batches with contextual juxtapositions (settlement + ritual intrusion, burial + trade goods, workshop + prestige item)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.160"
 						],
@@ -883,7 +883,7 @@
 					{
 						"id": "2GN.49",
 						"description": "`engine/world/scholars.ts` — NPC `InterpretiveModel` generation: cultural/artefact/chrono claims with calibrated wrongness (~70% correct, ~30% wrong)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.149"
 						],
@@ -1821,7 +1821,7 @@
 					{
 						"id": "2GN.147",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — widen `wire-wrapping`'s introduced-material tag set (currently `['metal']` alone) and audit `isGildingMaterial`'s realised gold/silver-only pool, so at least one technique-appropriate non-prized candidate exists per culture for both techniques",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.150"
 						],
@@ -1831,7 +1831,7 @@
 					{
 						"id": "2GN.149",
 						"description": "Explorer: scholars panel — seed → `NPCScholarSeed` cards (name, specialisation, career stage)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.48"
 						],
@@ -1841,7 +1841,7 @@
 					{
 						"id": "2GN.150",
 						"description": "Explorer: extend the decoration inspector (2GN.61) with motif, motif origin and introduced material; refresh the prerequisite display and header now 2GN.30 enforces",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.61",
 							"2GN.68",
@@ -1944,7 +1944,7 @@
 					{
 						"id": "2GN.160",
 						"description": "Explorer: description viewer — `generateDescription`'s `ArtefactPresentation` per component (ordered observation list, register-filtered; caller-supplied provenance stub per 2GN.38)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.38"
 						],
@@ -1954,7 +1954,7 @@
 					{
 						"id": "2GN.161",
 						"description": "Explorer: names panel — sampled site/culture/scholar names per phonology (2GN.66), modern-language institution names (2GN.130)",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.66",
 							"2GN.130"
