@@ -1,8 +1,9 @@
 <script lang="ts">
 /**
- * Decoration inspector panel (roadmap 2GN.61): expands the decorative grammar over one artefact and
- * shows each component's layers with their technique, BNF category and material prerequisite — the
- * DOM counterpart of `scripts/dev/sample-decoration.ts`.
+ * Decoration inspector panel (roadmap 2GN.61, extended by 2GN.150): expands the decorative grammar
+ * over one artefact and shows each component's layers with their technique, BNF category, material
+ * prerequisite, motif and introduced material — the DOM counterpart of
+ * `scripts/dev/sample-decoration.ts`.
  */
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
@@ -39,7 +40,7 @@ const VERDICT: Record<PrerequisiteVerdict, string> = {
 
 {#snippet layerRow(layer: InspectedLayer)}
 	<div class="pl-4" style="padding-left: {layer.depth * 1.5 + 1}rem">
-		<div class="flex flex-wrap items-baseline gap-2">
+	<div class="flex flex-wrap items-baseline gap-2">
 			<span class="text-base-content/50">✦</span>
 			<span class="text-secondary font-semibold">{layer.technique}</span>
 			<span class="badge badge-ghost badge-sm">{layer.category}</span>
@@ -47,8 +48,19 @@ const VERDICT: Record<PrerequisiteVerdict, string> = {
 				<span class="text-base-content/70 text-xs">requires: {layer.requirement}</span>
 				<span class="badge badge-sm {VERDICT[layer.verdict]}">{layer.verdict}</span>
 			{/if}
+			{#if layer.motif}
+				<span class="text-base-content/70 text-xs">motif:</span>
+				<span class="text-accent">{layer.motif.label}</span>
+				<span class="badge badge-sm {layer.motif.borrowed ? 'badge-warning' : 'badge-ghost'}">
+					{layer.motif.borrowed ? `borrowed from ${layer.motif.origin}` : 'native'}
+				</span>
+			{/if}
+			{#if layer.introducedMaterial}
+				<span class="text-base-content/70 text-xs">introduces:</span>
+				<span>{layer.introducedMaterial.displayName}</span>
+			{/if}
 		</div>
-	</div>
+</div>
 	<!-- Keyed by index: a component can legitimately carry the same technique twice at the same
 	     depth, so technique+depth is not unique. -->
 	{#each layer.sublayers as sublayer, index (index)}
@@ -61,15 +73,17 @@ const VERDICT: Record<PrerequisiteVerdict, string> = {
 <p class="mt-4 max-w-prose">
 	Expands the decorative grammar over one generated artefact and lists each component's layers with
 	their technique, BNF category and material prerequisite — checked against the material that
-	component was assigned.
+	component was assigned — plus the motif each layer carries and any material it introduces.
 </p>
 
 <p class="text-base-content/70 mt-2 max-w-prose text-sm">
-	Prerequisites are <em>evaluated but not enforced</em>: the grammar deliberately emits layers whose
-	requirement may not hold, and rejecting them is roadmap 2GN.30. An <code>unmet</code> badge marks
-	a layer that task will remove. Form requirements read <code>unevaluated</code> because resolving
-	them against component geometry is likewise 2GN.30's job. Layers are flat until 2GN.31/2GN.32 add
-	nesting and a depth cap, so depth is always 0 today.
+	The grammar still emits layers whose requirement may not hold; <code>enforceSubstrates</code>
+	(2GN.30) strips them before anything downstream reads the decoration. The list shows what was
+	rolled: an <code>unmet</code> badge marks a layer enforcement removes, and the stripped count in
+	the header is measured by running it. Form requirements read <code>unevaluated</code> and pass
+	through until 2GN.104 resolves them against component geometry. Motifs come from the producing
+	culture's own vocabulary; a borrowed one would show its origin, but no exchange partner is wired
+	in until Milestone 3. Layers are flat until 2GN.31/2GN.32 add nesting and a depth cap.
 </p>
 
 <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -94,9 +108,14 @@ const VERDICT: Record<PrerequisiteVerdict, string> = {
 <div class="mt-6 flex flex-wrap items-center gap-3 text-sm">
 	<span class="badge badge-neutral">{model.artefact.components.length} parts</span>
 	<span class="badge badge-ghost">{model.layerCount} layers</span>
-	<span class={model.unmetCount > 0 ? 'badge badge-error' : 'badge badge-success'}>
-		{model.unmetCount} unmet prerequisites
+	<span class={model.strippedCount > 0 ? 'badge badge-error' : 'badge badge-success'}>
+		{model.strippedCount} stripped by enforcement
 	</span>
+	<span class="badge badge-ghost">{model.motifCount} motifs</span>
+	{#if model.borrowedMotifCount > 0}
+		<span class="badge badge-warning">{model.borrowedMotifCount} borrowed</span>
+	{/if}
+	<span class="badge badge-ghost">{model.introducedMaterialCount} introduced materials</span>
 	<span class="badge badge-ghost">max depth: {model.maxDepth}</span>
 </div>
 
