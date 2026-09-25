@@ -1032,7 +1032,9 @@
 						"description": "Explorer: description viewer — three-register prose side by side, register divergence highlighting",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.40"
+							"2GN.40",
+							"2GN.41",
+							"2GN.42"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1041,7 +1043,8 @@
 						"description": "Explorer: excavation viewer — artefacts grouped by site, ambiguity distribution chart",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.45"
+							"2GN.45",
+							"2GN.47"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1051,7 +1054,9 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.54",
-							"2GN.53"
+							"2GN.53",
+							"2GN.55",
+							"2GN.52"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1819,6 +1824,119 @@
 							"2GN.68"
 						],
 						"notes": "Filed 2026-09-17 from the 2GN.68 spike (doc 12 §2.61). `gilding` and `wire-wrapping` are both 100%-prized under every measured Explorer preset — every candidate in each pool clears `STANDING_CUT` — so 2GN.68's stratum draw (`assignDecorativeDetails`, shared with `assignMaterials`) has nothing non-prized to redirect selection weight toward on these two techniques specifically. Measured: forcing every artefact commoner and tallying which technique supplied a prized layer, `gilding`/`wire-wrapping` alone account for 79–97% of remaining commoner-artefact hits in thalassar/xoconahtl, while every other technique's suppression already works (0.3–0.8% commoner hit rate). `gilding`'s pool is gated by `isGildingMaterial` (`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3`, roadmap 2GN.78) rather than a tag, so widening it means either loosening that physical gate or accepting metals it correctly excludes stay excluded and the pool genuinely has no non-metal analogue; `wire-wrapping`'s `['metal']` tag set may admit a second material class (fibre-wrapped wire is real) without weakening the technique's own logic. Data-authoring work, not a design question — no spike needed. ⚠️ calibration-shifting once landed: re-measure R32 (`precious-materials-in-decoration`) against the four Explorer presets and record the new rate in `docs/spikes/2GN.68-decoration-material-standing.md`'s reopen conditions.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.149",
+						"description": "Explorer: scholars & names panel — seed → `NPCScholarSeed` cards (name, specialisation, career stage), sampled site/culture/scholar names per phonology, modern-language institution names",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.48",
+							"2GN.66",
+							"2GN.130"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.150",
+						"description": "Explorer: extend the decoration inspector (2GN.61) with motif, motif origin and introduced material; refresh the prerequisite display and header now 2GN.30 enforces",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.61",
+							"2GN.68"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.151",
+						"description": "Explorer: material property axes in the material viewer (2GN.60), showing per-state values per 2GN.105",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.60",
+							"2GN.105"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.152",
+						"description": "Explorer: plausibility panel (2GN.58) shows re-expansion attempts and exhaustion rate",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.58",
+							"2GN.16"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.153",
+						"description": "Explorer: structure viewer (2GN.57) shows arrangement groups",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.57",
+							"2GN.67"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.154",
+						"description": "Explorer: structure viewer (2GN.57) shows orientation and working end",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.57",
+							"2GN.117"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.155",
+						"description": "Explorer: structure viewer (2GN.57) shows assemblage membership",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.57",
+							"2GN.69"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.156",
+						"description": "Explorer: material (2GN.60) and decoration (2GN.61) panels show whole-object coherence verdicts",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.60",
+							"2GN.61",
+							"2GN.70"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.157",
+						"description": "Explorer: decoration inspector (2GN.61) evaluates form prerequisites",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.61",
+							"2GN.104"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.158",
+						"description": "Explorer: decoration inspector (2GN.61) shows motif salience across the culture's lifespan",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.61",
+							"2GN.76"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.159",
+						"description": "Explorer: region selector on the calibration panel (2GN.81) and tag inspector (2GN.59)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.81",
+							"2GN.59",
+							"2GN.144"
+						],
 						"assignee": "Jason Warren"
 					}
 				]
