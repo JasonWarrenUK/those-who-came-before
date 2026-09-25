@@ -1,17 +1,14 @@
 # Those Who Came Before
 
-**An archaeological artefact discovery game where player mistakes compound into an unreliable
-narrative**
+**An archaeological artefact discovery game where player mistakes compound into an unreliable narrative**
 
 > [!NOTE]
-> **Up next.** The generated scholars get beliefs of their own: each one will hold a set of claims
-> about cultures, artefacts and dates, deliberately right about most and wrong about some, so the
-> corpus the player inherits carries real errors to find. Alongside that, excavation batches
-> (artefacts dug together, with a burial's trade goods or a workshop's one prestige piece sitting
-> among the everyday finds) and a fuller description template system with property slots. A run of
-> design rulings on decoration layering, the material catalogue and component roles still stands
-> between here and the end of the generation milestone; after it, world state: chronology, cultures
-> and the seed that ties one dig to one history. There is no playable game yet.
+> ## Up Next
+> 1. The generated scholars get beliefs of their own: each one will hold a set of claims about cultures, artefacts and dates, deliberately right about most and wrong about some, so the corpus the player inherits carries real errors to find.
+> 2. Excavation batches: artefacts dug together, with a burial's trade goods or a workshop's one prestige piece sitting among the everyday finds
+> 3. A fuller description template system with property slots
+> 
+A run of design rulings on decoration layering, the material catalogue and component roles still stands between here and the end of the generation milestone; after it, world state: chronology, cultures and the seed that ties one dig to one history. There is no playable game yet.
 
 ---
 
