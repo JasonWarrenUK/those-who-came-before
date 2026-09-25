@@ -3479,6 +3479,30 @@ stratum. Two dates corrected from "2026-08" to the verified 2026-07-25
 | — | `engine/generation/materials.ts`: `drawStratum(prng, phase)` exported; eight call sites and one internal fallback updated                             | 2026-09-18 |
 | — | `docs/12-propagation-register.md` and the 2GN.68 spike: `assignDecorativeDetails`'s ship date corrected to 2026-07-25                                 | 2026-09-18 |
 
+### 2.63 Classification Rules Carry Their Own Reading (2026-09-25)
+
+The Explorer's rule calibration panel (roadmap 2GN.81) listed each rule by `R{n}` label, fire rate
+and tag weights, so reading what a rule _does_ meant opening `data/classification.ts` and finding
+its JSDoc. That JSDoc is the right home for a rule's history and measurements (some run to forty
+lines) but the wrong shape for a table cell, and a comment is invisible to any panel.
+
+`ClassificationRule` gains two required phrases (`types/tags.ts`): `reads`, the condition in plain
+words (`a short blade with a sharp point`), and `concludes`, the reading its tags stand for
+(`the dagger family`). Two fields rather than one sentence so a table can give each its own column
+and a reader can scan conditions and conclusions independently. Both are phrased against the
+_current_ condition rather than how it came to be. All 44 shipped rules carry them, pinned by
+`classification.test.ts` (non-empty, no terminal punctuation, at most 140 characters each). The
+calibration panel shows them in two new columns beside the id; the tag inspector's per-rule
+breakdown can read the same fields when it wants to. ⚠️ Breaking for anything constructing a
+`ClassificationRule` literal: the two test-side constructors were updated in the same change.
+
+| § | Propagation                                                                                   | Date       |
+| - | --------------------------------------------------------------------------------------------- | ---------- |
+| — | `types/tags.ts`: `ClassificationRule.reads` and `.concludes` added                            | 2026-09-25 |
+| — | `data/classification.ts`: 44 phrase pairs authored; `classification.test.ts` pins their shape | 2026-09-25 |
+| — | `routes/dev/explorer/calibration/`: `RuleCalibration.reads`/`.concludes` and two new columns  | 2026-09-25 |
+| — | Doc 05 §13 and `site/mechanism/classification.html`: quoted interface updated                 | 2026-09-25 |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during

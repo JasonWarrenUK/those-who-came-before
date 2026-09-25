@@ -1,5 +1,5 @@
 /// <reference lib="deno.ns" />
-import { assertEquals } from '@std/assert';
+import { assert, assertEquals } from '@std/assert';
 import { inspectDecoration } from './decorationLayers.ts';
 import { assignMaterials } from '../materials/materialAssignment.ts';
 import { DECORATIVE_TECHNIQUES } from '../../../../lib/data/decorations.ts';
@@ -89,6 +89,70 @@ Deno.test('inspectDecoration — unmetCount counts exactly the layers whose verd
 		0,
 	);
 	assertEquals(counted, model.unmetCount);
+});
+
+Deno.test('inspectDecoration — strippedCount is what enforceSubstrates removes, and equals unmetCount while flat', () => {
+	// Guards the verdict/enforcement agreement: an `unmet` badge must mean "2GN.30 strips this"
+	// and nothing else, for as long as layers are flat and no sublayer rides on a stripped parent.
+	for (const seed of ['dec-strip-0', 'dec-strip-1', 'dec-strip-2', 'dec-strip-3']) {
+		for (const culture of [tarpan, khaltiris]) {
+			const model = inspectDecoration(seed, culture);
+			assertEquals(model.strippedCount, model.unmetCount, `${seed}/${culture.id}`);
+			assert(model.strippedCount <= model.layerCount);
+		}
+	}
+});
+
+Deno.test('inspectDecoration — motif is present exactly on motif-carrying techniques with a resolvable ref', () => {
+	let seen = 0;
+	for (const seed of ['dec-motif-0', 'dec-motif-1', 'dec-motif-2', 'dec-motif-3']) {
+		const model = inspectDecoration(seed, khaltiris);
+		const vocabulary = new Map(khaltiris.profile.motifVocabulary.motifs.map((m) => [m.id, m]));
+		for (const component of model.components) {
+			for (const layer of component.layers) {
+				const carries = TECHNIQUES.get(layer.technique)!.carriesMotif;
+				assertEquals(layer.motif !== undefined, carries, layer.technique);
+				if (layer.motif === undefined) continue;
+				seen++;
+				const definition = vocabulary.get(layer.motif.id)!;
+				assertEquals(layer.motif.label, definition.label);
+				assertEquals(layer.motif.origin, definition.culturalOrigin);
+				// No SharedMotifSource is passed, so nothing can be borrowed today.
+				assertEquals(layer.motif.borrowed, false);
+			}
+		}
+		assertEquals(model.borrowedMotifCount, 0);
+	}
+	assert(seen > 0, 'expected at least one motif-carrying layer across the sampled seeds');
+});
+
+Deno.test('inspectDecoration — introducedMaterial is present exactly on material-introducing techniques', () => {
+	let seen = 0;
+	for (const seed of ['dec-intro-0', 'dec-intro-1', 'dec-intro-2', 'dec-intro-3', 'dec-intro-4']) {
+		const model = inspectDecoration(seed, khaltiris);
+		for (const component of model.components) {
+			for (const layer of component.layers) {
+				const introduces = TECHNIQUES.get(layer.technique)!.introducesMaterial;
+				assertEquals(layer.introducedMaterial !== undefined, introduces, layer.technique);
+				if (layer.introducedMaterial !== undefined) seen++;
+			}
+		}
+	}
+	assert(seen > 0, 'expected at least one material-introducing layer across the sampled seeds');
+});
+
+Deno.test('inspectDecoration — the header counts match the per-layer flags', () => {
+	const model = inspectDecoration('dec-header', khaltiris);
+	let motifs = 0;
+	let introduced = 0;
+	for (const component of model.components) {
+		for (const layer of component.layers) {
+			if (layer.motif !== undefined) motifs++;
+			if (layer.introducedMaterial !== undefined) introduced++;
+		}
+	}
+	assertEquals(model.motifCount, motifs);
+	assertEquals(model.introducedMaterialCount, introduced);
 });
 
 Deno.test('inspectDecoration — every layer belongs to the component it is reported under', () => {

@@ -124,6 +124,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A cutting edge on a medium-or-long body reads primarily weapon, secondarily tool. */
 	{
 		id: 'edge-long-body-weapon',
+		reads: 'a cutting edge on a medium or long body',
+		concludes: 'primarily a weapon, secondarily a tool',
 		condition: (f) => f.hasEdge && f.primaryAxisLength !== 'short',
 		tags: new Map([['weapon', 0.6], ['tool', 0.3]]),
 	},
@@ -135,6 +137,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'edge-short-sharp-dagger',
+		reads: 'a short blade with a sharp point, judged on the edged component alone',
+		concludes: 'the dagger family',
 		condition: (f) => f.hasEdge && f.bladeLengthBand === 'short' && f.pointSharpness === 'sharp',
 		tags: new Map([['weapon', 0.4], ['tool', 0.3], ['personal', 0.3]]),
 	},
@@ -142,6 +146,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** Short edged blade without a sharp point: utility/kitchen-knife family. */
 	{
 		id: 'edge-short-blunt-utility-knife',
+		reads: 'a short blade without a sharp point',
+		concludes: 'a utility or kitchen knife',
 		condition: (f) => f.hasEdge && f.bladeLengthBand === 'short' && f.pointSharpness !== 'sharp',
 		tags: new Map([['tool', 0.5], ['domestic', 0.4], ['everyday', 0.3]]),
 	},
@@ -160,6 +166,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** Multiple distinct edges suggest a composite or multi-blade implement rather than one weapon. */
 	{
 		id: 'edge-multiple-composite',
+		reads: 'two or more distinct edges',
+		concludes: 'a composite or multi-blade implement rather than one weapon',
 		condition: (f) => f.edgeCount >= 2,
 		tags: new Map([['tool', 0.3], ['weapon', 0.2]]),
 	},
@@ -169,6 +177,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A sharp point without an edge: awl, bodkin, spearhead, pin — piercing, not cutting. */
 	{
 		id: 'point-sharp-piercing',
+		reads: 'a sharp point with no edge',
+		concludes: 'awl, bodkin, spearhead or pin, made for piercing rather than cutting',
 		condition: (f) => f.hasPoint && !f.hasEdge && f.pointSharpness === 'sharp',
 		tags: new Map([['weapon', 0.3], ['tool', 0.4], ['fastener', 0.2]]),
 	},
@@ -176,6 +186,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A blunt point without an edge: punch, stylus, blunt awl — a craft tool, not a piercing weapon. */
 	{
 		id: 'point-blunt-craft-tool',
+		reads: 'a blunt point with no edge',
+		concludes: 'punch, stylus or blunt awl, a craft tool rather than a weapon',
 		condition: (f) => f.hasPoint && !f.hasEdge && f.pointSharpness === 'blunt',
 		tags: new Map([['tool', 0.5], ['artisanal', 0.3]]),
 	},
@@ -185,6 +197,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A wide, freely open container: bowl, cup — everyday domestic use. */
 	{
 		id: 'container-open-domestic',
+		reads: 'a container with a wide or open mouth',
+		concludes: 'bowl or cup for everyday domestic use',
 		condition: (f) => f.hasContainer && (f.openingType === 'wide' || f.openingType === 'open'),
 		tags: new Map([['container', 0.8], ['domestic', 0.5], ['everyday', 0.3]]),
 	},
@@ -192,6 +206,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A narrow or restricted opening: flask, jar — still domestic, but not a serving vessel. */
 	{
 		id: 'container-restricted-domestic',
+		reads: 'a container with a narrow or restricted mouth',
+		concludes: 'flask or jar, domestic but not a serving vessel',
 		condition: (f) =>
 			f.hasContainer && (f.openingType === 'narrow' || f.openingType === 'restricted'),
 		tags: new Map([['container', 0.7], ['domestic', 0.4]]),
@@ -200,6 +216,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A slit opening: money-box, rattle — contents go in, not meant to come freely out. */
 	{
 		id: 'container-slit-votive',
+		reads: 'a container with a slit opening',
+		concludes: 'money-box or rattle, contents go in but not freely out',
 		condition: (f) => f.hasContainer && f.openingType === 'slit',
 		tags: new Map([['container', 0.5], ['votive', 0.4]]),
 	},
@@ -207,6 +225,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A sealed container (no opening, or a closed one): votive or funerary deposition vessel. */
 	{
 		id: 'container-sealed-deposition',
+		reads: 'a container with no opening or a closed one',
+		concludes: 'a votive or funerary deposition vessel',
 		condition: (f) => f.hasContainer && (f.openingType === 'none' || f.openingType === 'closed'),
 		tags: new Map([['container', 0.5], ['votive', 0.4], ['funerary', 0.3]]),
 	},
@@ -216,6 +236,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A thin-walled container reads as fine tableware rather than everyday cookware. */
 	{
 		id: 'vessel-thin-walled-fine-ware',
+		reads: 'a thin-walled container',
+		concludes: 'fine tableware rather than everyday cookware',
 		condition: (f) => f.hasContainer && f.wallThickness === 'thin',
 		tags: new Map([['elite', 0.3], ['ceremonial', 0.2]]),
 	},
@@ -223,6 +245,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A thick-walled container reads as utilitarian cooking or storage vessel. */
 	{
 		id: 'vessel-thick-walled-utilitarian',
+		reads: 'a thick-walled container',
+		concludes: 'a utilitarian cooking or storage vessel',
 		condition: (f) => f.hasContainer && f.wallThickness === 'thick',
 		tags: new Map([['utilitarian', 0.4], ['domestic', 0.3]]),
 	},
@@ -230,6 +254,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A deeply curved broad form holds contents even outside the hollow primitives: scoop, palette-well. */
 	{
 		id: 'curvature-deep-holds-contents',
+		reads: 'a deeply curved broad form',
+		concludes: 'holds contents without being a hollow primitive, like a scoop or palette well',
 		condition: (f) => f.curvature === 'deep',
 		tags: new Map([['container', 0.5], ['domestic', 0.3]]),
 	},
@@ -237,6 +263,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A pedestal base reads display/ritual vessel rather than a plain standing pot. */
 	{
 		id: 'base-pedestal-display',
+		reads: 'a pedestal base',
+		concludes: 'a display or ritual vessel rather than a plain standing pot',
 		condition: (f) => f.baseType === 'pedestal',
 		tags: new Map([['ceremonial', 0.4], ['elite', 0.3]]),
 	},
@@ -244,6 +272,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A pointed base reads amphora-style storage — set into a stand or the ground, not free-standing. */
 	{
 		id: 'base-pointed-amphora',
+		reads: 'a pointed base',
+		concludes: 'amphora-style storage set into a stand or the ground',
 		condition: (f) => f.baseType === 'pointed',
 		tags: new Map([['utilitarian', 0.3], ['maritime', 0.2]]),
 	},
@@ -261,6 +291,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A central perforation on a disc-form component: spindle-whorl, weight, mace-head. */
 	{
 		id: 'perforation-central-rotation',
+		reads: 'a central perforation on a disc',
+		concludes: 'spindle whorl, weight or mace head, something that turns on a shaft',
 		condition: (f) => f.perforation === 'central',
 		tags: new Map([['tool', 0.4], ['artisanal', 0.3]]),
 	},
@@ -268,6 +300,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** An off-centre perforation on a disc-form component: hung disc, token, pendant-weight — suspension, not rotation. */
 	{
 		id: 'perforation-off-centre-suspension',
+		reads: 'an off-centre perforation on a disc',
+		concludes: 'a hung disc, token or pendant weight, suspended rather than turned',
 		condition: (f) => f.perforation === 'off-centre',
 		tags: new Map([['ornament', 0.4], ['personal', 0.3]]),
 	},
@@ -275,6 +309,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A single perforation on a flat-broad component: pendant, plaque — meant to hang. */
 	{
 		id: 'perforation-single-pendant',
+		reads: 'a single perforation on a flat form',
+		concludes: 'pendant or plaque, meant to hang',
 		condition: (f) => f.perforation === 'single',
 		tags: new Map([['ornament', 0.4], ['personal', 0.3]]),
 	},
@@ -282,6 +318,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** Multiple perforations: a fitting meant to be sewn or riveted onto something else. */
 	{
 		id: 'perforation-multiple-fitting',
+		reads: 'several perforations',
+		concludes: 'a fitting meant to be sewn or riveted onto something else',
 		condition: (f) => f.perforation === 'multiple',
 		tags: new Map([['fastener', 0.3], ['ornament', 0.2]]),
 	},
@@ -291,6 +329,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A closed ring: finger-ring, torc — worn, not fastened to anything. */
 	{
 		id: 'ring-closed-worn',
+		reads: 'a closed ring',
+		concludes: 'finger ring or torc, worn rather than fastened to anything',
 		condition: (f) => f.ringGap === 'closed',
 		tags: new Map([['ornament', 0.5], ['personal', 0.4]]),
 	},
@@ -298,6 +338,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** An open or overlapping ring gap: penannular brooch, split-ring — fastens as much as adorns. */
 	{
 		id: 'ring-open-fastener',
+		reads: 'a ring with an open or overlapping gap',
+		concludes: 'penannular brooch or split ring, fastening as much as adorning',
 		condition: (f) => f.ringGap === 'open' || f.ringGap === 'overlapping',
 		tags: new Map([['fastener', 0.4], ['ornament', 0.3], ['personal', 0.2]]),
 	},
@@ -307,6 +349,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A rigid sheet component: fitting, facing, mount — structural, not worn. */
 	{
 		id: 'sheet-rigid-structural',
+		reads: 'a rigid sheet',
+		concludes: 'fitting, facing or mount, structural rather than worn',
 		condition: (f) => f.sheetFlexibility === 'rigid',
 		tags: new Map([['utilitarian', 0.3], ['military', 0.2]]),
 	},
@@ -314,6 +358,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A flexible sheet component: foil, wrapping, binding — covering, textile-adjacent. */
 	{
 		id: 'sheet-flexible-covering',
+		reads: 'a flexible sheet',
+		concludes: 'foil, wrapping or binding, a covering close to textile',
 		condition: (f) => f.sheetFlexibility === 'flexible',
 		tags: new Map([['personal', 0.2], ['ornament', 0.2]]),
 	},
@@ -329,6 +375,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'mass-heavy-edge-labour-tool',
+		reads: 'a heavy edged object',
+		concludes: 'axe, adze or billhook, a labour tool rather than a blade weapon',
 		condition: (f) => f.hasEdge && (f.massBand === 'heavy' || f.massBand === 'very-heavy'),
 		tags: new Map([['tool', 0.5], ['agricultural', 0.3]]),
 	},
@@ -340,6 +388,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'mass-heavy-container-storage',
+		reads: 'a heavy container',
+		concludes: 'storage jar or cauldron rather than tableware',
 		condition: (f) => f.hasContainer && (f.massBand === 'heavy' || f.massBand === 'very-heavy'),
 		tags: new Map([['utilitarian', 0.4], ['domestic', 0.3]]),
 	},
@@ -355,6 +405,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'mass-very-heavy-communal',
+		reads: 'too heavy for one person to carry',
+		concludes: 'a shared or monumental object',
 		condition: (f) => f.massBand === 'very-heavy',
 		tags: new Map([['communal', 0.4], ['ceremonial', 0.2]]),
 	},
@@ -364,6 +416,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A small object reads as an individual's carried or worn item. Physical size, not `portability`. */
 	{
 		id: 'size-small-personal',
+		reads: 'a small object',
+		concludes: 'something an individual carries or wears',
 		condition: (f) => f.sizeBand === 'small',
 		tags: new Map([['personal', 0.3], ['everyday', 0.2]]),
 	},
@@ -400,6 +454,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'attachment-diversity-composite',
+		reads: 'more distinct joint types than nine tenths of this culture-phase output',
+		concludes: 'an engineered assembly such as a hafted tool or mounted fitting',
 		condition: (f, c) => c.exceeds('attachmentDiversity', 0.9, f.attachmentDiversity),
 		tags: new Map([['tool', 0.3], ['artisanal', 0.3]]),
 	},
@@ -419,6 +475,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'decorative-layers-above-p75',
+		reads: 'more decorative layers than three quarters of this culture-phase output',
+		concludes: 'heavily worked decoration signalling status',
 		condition: (f, c) => c.exceeds('decorativeLayerCount', 0.75, f.decorativeLayerCount),
 		tags: new Map([['ornament', 0.3], ['elite', 0.4], ['ceremonial', 0.3]]),
 	},
@@ -468,6 +526,9 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'applied-elements-above-p75',
+		reads:
+			'more applied elements (inlay, gilding, studs, overlay, wire-wrapping) than three quarters of this culture-phase output',
+		concludes: 'deliberate embellishment',
 		condition: (f, c) => c.exceeds('appliedElementCount', 0.75, f.appliedElementCount),
 		tags: new Map([['elite', 0.4], ['ornament', 0.3]]),
 	},
@@ -475,6 +536,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** Any decoration at all nudges an object toward ornamental reading. */
 	{
 		id: 'decoration-present-ornament',
+		reads: 'any decoration at all',
+		concludes: 'a small nudge towards an ornamental reading, deliberately near-universal',
 		condition: (f) => f.decorativeLayerCount >= 1,
 		tags: new Map([['ornament', 0.2]]),
 	},
@@ -500,6 +563,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'precious-materials-in-decoration',
+		reads: 'decoration incorporating a material this culture prizes',
+		concludes: 'an elite, ceremonial or votive object',
 		condition: (f) => f.preciousMaterialsInDecoration,
 		tags: new Map([['elite', 0.5], ['ceremonial', 0.3], ['votive', 0.2]]),
 	},
@@ -516,6 +581,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'motif-multiple-origins',
+		reads: 'motifs from more than one culture on a single object',
+		concludes: 'evidence of exchange or trade',
 		condition: (f) => f.motifPresent && f.motifCulturalOrigins.length > 1,
 		tags: new Map([['trade-good', 0.4], ['elite', 0.2]]),
 	},
@@ -544,6 +611,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'edged-and-decorated-above-p75',
+		reads: 'an edged object decorated more than three quarters of this culture-phase output',
+		concludes: 'the engraved-sword archetype, transcending pure function',
 		condition: (f, c) =>
 			f.hasEdge && c.exceeds('decorativeLayerCount', 0.75, f.decorativeLayerCount),
 		tags: new Map([['ritual', 0.5], ['ceremonial', 0.4], ['elite', 0.3]]),
@@ -561,6 +630,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'container-and-decorated-above-p75',
+		reads: 'a container decorated more than three quarters of this culture-phase output',
+		concludes: 'a ritual or display vessel rather than cookware',
 		condition: (f, c) =>
 			f.hasContainer && c.exceeds('decorativeLayerCount', 0.75, f.decorativeLayerCount),
 		tags: new Map([['ceremonial', 0.4], ['votive', 0.3], ['elite', 0.3]]),
@@ -575,6 +646,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A fastening mechanism (clasp, pin, hinge) is definitionally a fastener: brooch, buckle, latch. */
 	{
 		id: 'fastening-mechanism-fastener',
+		reads: 'a clasp, pin or hinge',
+		concludes: 'definitionally a fastener, such as a brooch, buckle or latch',
 		condition: (f) => f.hasFasteningMechanism,
 		tags: new Map([['fastener', 0.5], ['personal', 0.2]]),
 	},
@@ -582,6 +655,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** A striking/impact surface reads hammer, mace, adze-head — percussion, tool first, weapon second. */
 	{
 		id: 'impact-surface-percussion',
+		reads: 'a striking surface',
+		concludes: 'hammer, mace or adze head, a percussion tool first and a weapon second',
 		condition: (f) => f.hasImpactSurface,
 		tags: new Map([['tool', 0.4], ['weapon', 0.3]]),
 	},
@@ -589,6 +664,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	/** Something worn on the body: pendant, brooch, bracelet — personal adornment. */
 	{
 		id: 'wearable-adornment',
+		reads: 'worn on the body',
+		concludes: 'pendant, brooch or bracelet, personal adornment',
 		condition: (f) => f.isWearable,
 		tags: new Map([['ornament', 0.3], ['personal', 0.3]]),
 	},
@@ -615,6 +692,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'decorative-complexity-above-p75',
+		reads: 'decorative complexity above three quarters of this culture-phase output',
+		concludes: 'objectively lavish investment whatever the size of the object',
 		condition: (f, c) => c.exceeds('decorativeComplexity', 0.75, f.decorativeComplexity),
 		tags: new Map([['elite', 0.4], ['ceremonial', 0.3]]),
 	},
@@ -640,6 +719,9 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'decorative-complexity-above-p95',
+		reads: 'decorative complexity in the top five percent of this culture-phase output',
+		concludes:
+			'exceptionally lavish, stacking on the p75 rule to mark an unmistakable prestige object',
 		condition: (f, c) => c.exceeds('decorativeComplexity', 0.95, f.decorativeComplexity),
 		tags: new Map([['elite', 0.5], ['ritual', 0.3]]),
 	},
@@ -666,6 +748,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'decorative-per-part-above-p75',
+		reads: 'decoration per part above three quarters of this culture-phase output',
+		concludes: 'lavish for its size, a small object carrying disproportionate decoration',
 		condition: (f, c) =>
 			f.partCount > 0 && c.exceeds('decorativePerPart', 0.75, f.decorativeComplexity / f.partCount),
 		tags: new Map([['elite', 0.3], ['ornament', 0.3]]),
@@ -696,6 +780,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'technique-complexity-above-p90',
+		reads: 'more distinct decorative techniques than nine tenths of this culture-phase output',
+		concludes: 'many specialists and tool sets touched this object',
 		condition: (f, c) => c.exceeds('techniqueComplexity', 0.9, f.techniqueComplexity),
 		tags: new Map([['artisanal', 0.4], ['elite', 0.2]]),
 	},
@@ -734,6 +820,8 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'execution-quality-above-p90',
+		reads: 'mean execution grade in the top tenth of this culture-phase output',
+		concludes: 'exceptionally well made, independent of how much decoration there is',
 		condition: (f, c) => c.exceeds('meanDecorativeGrade', 0.9, f.meanDecorativeGrade),
 		tags: new Map([['artisanal', 0.4], ['elite', 0.2]]),
 	},
@@ -758,6 +846,9 @@ export const CLASSIFICATION_RULES: readonly ClassificationRule[] = [
 	 */
 	{
 		id: 'material-standing-prized',
+		reads:
+			'a material this culture prizes, judged by its standing here rather than a catalogue tag',
+		concludes: 'made from or fitted with prized material, an elite or ceremonial object',
 		condition: (f) => f.materialStanding >= STANDING_CUT,
 		tags: new Map([['elite', 0.4], ['ceremonial', 0.3]]),
 	},

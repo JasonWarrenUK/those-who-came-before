@@ -12,7 +12,9 @@ import { page } from '$app/state';
 import { getSeed } from '../seed';
 import { EXPLORER_CULTURES } from '$lib/data/explorer-cultures';
 import { calibrateRules, SATURATION_CEILING } from './ruleCalibration';
-import type { CalibrationVerdict, RuleCalibration } from './ruleCalibration';
+import type { CalibrationVerdict, RuleCalibration, TagCalibration } from './ruleCalibration';
+import { applySort, nextSort } from '../shared/tableSort';
+import type { SortColumn, SortState } from '../shared/tableSort';
 
 const baseSeed = $derived(getSeed(page.url));
 
@@ -61,7 +63,88 @@ const VERDICT_CLASS: Record<CalibrationVerdict, string> = {
 function contributionText(rule: RuleCalibration): string {
 	return rule.contributions.map((c) => `${c.tag} ${c.weight.toFixed(2)}`).join(', ');
 }
+
+// Sorting reorders the report the panel already holds; it never re-runs the sample. A fresh run
+// keeps whichever column was chosen, so a developer comparing cultures sees the same ordering.
+type TagSortKey = 'tag' | 'present' | 'leads' | 'meanScore' | 'topContributor';
+type RuleSortKey = 'rule' | 'reads' | 'concludes' | 'fires' | 'verdict' | 'contributes';
+
+// Verdicts rank by how much attention they want: saturated first under the default descending
+// click, dormant last.
+const VERDICT_RANK: Record<CalibrationVerdict, number> = {
+	saturated: 2,
+	discriminating: 1,
+	dormant: 0,
+};
+
+const TAG_COLUMNS: Record<TagSortKey, SortColumn<TagCalibration>> = {
+	tag: { value: (t) => t.tag, defaultDirection: 'asc' },
+	present: { value: (t) => t.presentPercent, defaultDirection: 'desc' },
+	leads: { value: (t) => t.leadPercent, defaultDirection: 'desc' },
+	meanScore: { value: (t) => t.meanScoreWhenPresent, defaultDirection: 'desc' },
+	// By the contributing rule's position, so it groups the way the Rules table lists them.
+	topContributor: { value: (t) => t.topContributor?.ruleIndex, defaultDirection: 'asc' },
+};
+
+const RULE_COLUMNS: Record<RuleSortKey, SortColumn<RuleCalibration>> = {
+	rule: { value: (r) => r.ruleIndex, defaultDirection: 'asc' },
+	reads: { value: (r) => r.reads, defaultDirection: 'asc' },
+	concludes: { value: (r) => r.concludes, defaultDirection: 'asc' },
+	fires: { value: (r) => r.firePercent, defaultDirection: 'desc' },
+	verdict: { value: (r) => VERDICT_RANK[r.verdict], defaultDirection: 'desc' },
+	// Total weight the rule pushed into the sample, since rate alone hides a rare heavy rule.
+	contributes: { value: (r) => r.totalWeightContributed, defaultDirection: 'desc' },
+};
+
+let tagSort = $state<SortState<TagSortKey>>({ key: null, direction: 'asc' });
+let ruleSort = $state<SortState<RuleSortKey>>({ key: null, direction: 'asc' });
+
+const sortedTags = $derived(
+	report === undefined ? [] : applySort(report.tags, TAG_COLUMNS, tagSort),
+);
+const sortedRules = $derived(
+	report === undefined ? [] : applySort(report.rules, RULE_COLUMNS, ruleSort),
+);
+
+function sortTags(key: TagSortKey): void {
+	tagSort = nextSort(tagSort, key, TAG_COLUMNS[key].defaultDirection);
+}
+
+function sortRules(key: RuleSortKey): void {
+	ruleSort = nextSort(ruleSort, key, RULE_COLUMNS[key].defaultDirection);
+}
+
+function ariaSort<K extends string>(
+	state: SortState<K>,
+	key: K,
+): 'ascending' | 'descending' | 'none' {
+	if (state.key !== key) return 'none';
+	return state.direction === 'asc' ? 'ascending' : 'descending';
+}
 </script>
+
+{#snippet sortHeader(
+	label: string,
+	active: boolean,
+	direction: 'asc' | 'desc',
+	onclick: () => void,
+	align: 'left' | 'right' = 'left',
+)}
+	<button
+	type="button"
+	class="inline-flex w-full cursor-pointer items-center gap-1 {align === 'right'
+			? 'justify-end'
+			: ''} {active ? 'text-base-content' : 'hover:text-base-content'}"
+	{onclick}
+>
+		{label}
+		{#if active}
+			<span class="text-base-content/50 text-[10px] uppercase" aria-hidden="true">
+				{direction}
+			</span>
+		{/if}
+	</button>
+{/snippet}
 
 <div class="space-y-6">
 	<header class="space-y-2">
@@ -136,20 +219,31 @@ function contributionText(rule: RuleCalibration): string {
 			<p class="text-base-content/60 mb-2 text-xs">
 				Present = carries the tag at all. Leads = is that artefact's highest-scoring tag. A tag
 				leading on most output is not discriminating, whatever its individual scores look like.
+				Click a heading to sort; click again to flip.
 			</p>
 			<div class="overflow-x-auto">
 				<table class="table table-sm">
 					<thead>
 						<tr>
-							<th>Tag</th>
-							<th class="text-right">Present</th>
-							<th class="text-right">Leads</th>
-							<th class="text-right">Mean score</th>
-							<th>Top contributor</th>
+							<th aria-sort={ariaSort(tagSort, 'tag')}>
+								{@render sortHeader('Tag', tagSort.key === 'tag', tagSort.direction, () => sortTags('tag'))}
+							</th>
+							<th aria-sort={ariaSort(tagSort, 'present')}>
+								{@render sortHeader('Present', tagSort.key === 'present', tagSort.direction, () => sortTags('present'), 'right')}
+							</th>
+							<th aria-sort={ariaSort(tagSort, 'leads')}>
+								{@render sortHeader('Leads', tagSort.key === 'leads', tagSort.direction, () => sortTags('leads'), 'right')}
+							</th>
+							<th aria-sort={ariaSort(tagSort, 'meanScore')}>
+								{@render sortHeader('Mean score', tagSort.key === 'meanScore', tagSort.direction, () => sortTags('meanScore'), 'right')}
+							</th>
+							<th aria-sort={ariaSort(tagSort, 'topContributor')}>
+								{@render sortHeader('Top contributor', tagSort.key === 'topContributor', tagSort.direction, () => sortTags('topContributor'))}
+							</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each report.tags as tag (tag.tag)}
+						{#each sortedTags as tag (tag.tag)}
 							<tr>
 								<td class="font-mono">{tag.tag}</td>
 								<td class="text-right font-mono">{tag.presentPercent.toFixed(1)}%</td>
@@ -175,23 +269,45 @@ function contributionText(rule: RuleCalibration): string {
 		<section>
 			<h3 class="font-semibold">Rules</h3>
 			<p class="text-base-content/60 mb-2 text-xs">
-				In `CLASSIFICATION_RULES` order, so labels match the Tag Inspector and the pinned test
-				blocks. Dormant rules have no producer in the current pipeline yet.
+				In `CLASSIFICATION_RULES` order until a heading is clicked, so labels match the Tag
+				Inspector and the pinned test blocks. "Reads" is the condition in plain words and
+				"Concludes" the reading its tags stand for, both authored on the rule. Sorting by
+				"Contributes" ranks by total weight pushed into the sample. Dormant rules have no producer
+				in the current pipeline yet.
 			</p>
 			<div class="overflow-x-auto">
 				<table class="table table-sm">
 					<thead>
 						<tr>
-							<th>Rule</th>
-							<th class="text-right">Fires</th>
-							<th>Verdict</th>
-							<th>Contributes</th>
+							<th aria-sort={ariaSort(ruleSort, 'rule')}>
+								{@render sortHeader('Rule', ruleSort.key === 'rule', ruleSort.direction, () => sortRules('rule'))}
+							</th>
+							<th aria-sort={ariaSort(ruleSort, 'reads')}>
+								{@render sortHeader('Reads', ruleSort.key === 'reads', ruleSort.direction, () => sortRules('reads'))}
+							</th>
+							<th aria-sort={ariaSort(ruleSort, 'concludes')}>
+								{@render sortHeader('Concludes', ruleSort.key === 'concludes', ruleSort.direction, () => sortRules('concludes'))}
+							</th>
+							<th aria-sort={ariaSort(ruleSort, 'fires')}>
+								{@render sortHeader('Fires', ruleSort.key === 'fires', ruleSort.direction, () => sortRules('fires'), 'right')}
+							</th>
+							<th aria-sort={ariaSort(ruleSort, 'verdict')}>
+								{@render sortHeader('Verdict', ruleSort.key === 'verdict', ruleSort.direction, () => sortRules('verdict'))}
+							</th>
+							<th aria-sort={ariaSort(ruleSort, 'contributes')}>
+								{@render sortHeader('Contributes', ruleSort.key === 'contributes', ruleSort.direction, () => sortRules('contributes'))}
+							</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each report.rules as rule (rule.ruleIndex)}
+						{#each sortedRules as rule (rule.ruleIndex)}
 							<tr>
-								<td class="font-mono">{rule.label}</td>
+								<td class="align-top font-mono">
+									{rule.label}
+									<div class="text-base-content/50 text-xs">{rule.ruleId}</div>
+								</td>
+								<td class="max-w-xs text-sm">{rule.reads}</td>
+								<td class="max-w-xs text-sm">{rule.concludes}</td>
 								<td class="text-right font-mono">
 									{rule.firePercent.toFixed(1)}%
 									<span class="text-base-content/50 text-xs">({rule.fireCount})</span>

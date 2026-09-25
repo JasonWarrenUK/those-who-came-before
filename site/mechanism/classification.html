@@ -60,6 +60,9 @@
   <p><code>classifyArtefact</code> runs all 44 rules and folds every matching rule's tag weights into one map by plain unbounded sum, iterated in canonical vocabulary order. No normalisation, no softmax, no cap. The JSDoc pins what the numbers mean: "evidence tallies, not confidences". Consumers compare by rank and margin and read absent tags as zero. An engraved bronze blade scores on <code>weapon</code>, <code>ritual</code>, <code>ceremonial</code> and <code>elite</code> simultaneously, and the system leaves the tension unresolved because resolving it is the player's entire job.</p>
   <pre><code class="lang-ts">// the rule shape (shipped rules live in data/classification.ts; weights here illustrative)
 interface ClassificationRule {
+  id: string;           // stable slug, e.g. 'edge-short-sharp-dagger'
+  reads: string;        // the condition in plain words, shown in the Explorer
+  concludes: string;    // the reading its tags stand for
   condition: (features: ExtractedFeatures, context: ClassificationContext) =&gt; boolean;
   tags: Map&lt;ArtefactTag, number&gt;;
 }

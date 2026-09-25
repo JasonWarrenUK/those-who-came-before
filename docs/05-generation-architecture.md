@@ -1267,8 +1267,13 @@ type MaterialTag =
 // silently invalidated every `R{n}` reference in prose, comments and docs — which is what 2GN.87's
 // deletion of the old R4 did, taking four follow-up commits to chase down. `R{n}` survives as a
 // display label only (`ruleDisplayLabel`); cite `id` in anything that must outlive a renumber.
+// `reads`/`concludes` were added 2026-09-25 for the Explorer's calibration panel: two plain
+// phrases, the condition in words and the reading its tags stand for, so a rule's meaning is data
+// the panels can show in their own columns rather than a JSDoc comment only the source exposes.
 interface ClassificationRule {
 	id: string;
+	reads: string;
+	concludes: string;
 	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 	tags: Map<ArtefactTag, number>;
 }

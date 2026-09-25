@@ -5,20 +5,25 @@
  * they sit on, and joins each layer to its static technique definition so the panel can show the
  * technique's BNF category and its `[requires: …]` prerequisite.
  *
- * **Prerequisites are evaluated but not enforced.** `expandDecoration` deliberately emits layers
- * whose material prerequisite may not hold — enforcement is roadmap 2GN.30. This module resolves
- * the component's assigned material and runs `substrate.test` against it, so the panel can show
- * which layers *would* be rejected once that task lands. Form prerequisites (`grippable`,
- * `attachment-point`) are reported unevaluated, since resolving them against component geometry is
- * likewise 2GN.30's job. Do not confuse either with `materialAccessGate`, the culture-level check
- * inside `computeTechniqueWeight`.
+ * **Prerequisites are evaluated and, since roadmap 2GN.30, enforced.** `expandDecoration` still
+ * emits layers whose material prerequisite may not hold; `enforceSubstrates` strips them. This
+ * module keeps showing the provisional layer list with each verdict, so a developer can see what
+ * the grammar rolled *and* what enforcement removed: an `unmet` layer is one `enforceSubstrates`
+ * strips, and `strippedCount` is measured by running it rather than assumed from the verdicts. Form
+ * prerequisites (`grippable`, `attachment-point`) pass through enforcement unevaluated, matching
+ * `enforceSubstrates` itself, until roadmap 2GN.104 resolves them against component geometry. Do
+ * not confuse either with `materialAccessGate`, the culture-level check inside
+ * `computeTechniqueWeight`.
+ *
+ * **Grammar arguments are surfaced** (roadmap 2GN.150): `motifRef`/`motifCulturalOrigin` and the
+ * introduced `material` that `assignDecorativeDetails` (roadmap 2GN.33/2GN.68) fills are resolved
+ * to their definitions here. A motif whose origin is not the producing culture is flagged
+ * `borrowed`; none can be today, since the Explorer passes no `SharedMotifSource`, but the flag is
+ * what Milestone 3's exchange wiring lights up.
  *
  * **Layers are flat today.** `expandDecoration` always emits `sublayers: []` (roadmap 2GN.31/2GN.32
  * add nesting and a depth cap). The tree walk below is written recursion-ready so it needs no change
- * when they land, but nothing currently produces a depth above 0. `motifRef`/`material` are resolved
- * by `assignDecorativeDetails` (roadmap 2GN.33, wired in here since roadmap 2GN.68), but
- * `InspectedLayer` doesn't surface either yet — a follow-on for this panel's own display, not a
- * pipeline gap.
+ * when they land, but nothing currently produces a depth above 0.
  *
  * Pure, no DOM/Svelte, so it's unit-testable directly per the `structureTree.ts` precedent.
  */
@@ -27,6 +32,7 @@ import { createPrng } from '../../../../lib/engine/prng.ts';
 import { expandGrammar, normaliseArtefact } from '../../../../lib/engine/generation/grammar.ts';
 import {
 	assignDecorativeDetails,
+	enforceSubstrates,
 	expandDecoration,
 } from '../../../../lib/engine/generation/decoration.ts';
 import { assignMaterials, drawStratum } from '../../../../lib/engine/generation/materials.ts';
@@ -39,6 +45,7 @@ import type {
 	DecorativeTechnique,
 	DecorativeTechniqueDefinition,
 } from '../../../../lib/types/decoration.ts';
+import type { MotifDefinition } from '../../../../lib/types/world.ts';
 import type { ExplorerCulture } from '../../../../lib/data/explorer-cultures.ts';
 
 /** Whether a layer's prerequisite is met by the component it landed on. */
@@ -47,10 +54,24 @@ export type PrerequisiteVerdict =
 	| 'none'
 	/** A material prerequisite the component's assigned material satisfies. */
 	| 'met'
-	/** A material prerequisite the component's assigned material fails — 2GN.30 will reject this. */
+	/** A material prerequisite the component's assigned material fails — `enforceSubstrates` strips this. */
 	| 'unmet'
-	/** A form prerequisite; resolving it against component geometry is 2GN.30's job. */
+	/** A form prerequisite; resolving it against component geometry is roadmap 2GN.104. */
 	| 'unevaluated';
+
+/** The motif a layer carries, resolved from `motifRef` (roadmap 2GN.33). */
+export interface InspectedMotif {
+	id: string;
+
+	/** The motif's label, or its id when the producing culture's vocabulary doesn't hold it. */
+	label: string;
+
+	/** The `culturalOrigin` stamped at selection time — the only record for a borrowed motif. */
+	origin: string;
+
+	/** True when `origin` is not the producing culture: a motif that arrived by exchange. */
+	borrowed: boolean;
+}
 
 /** One decorative layer, joined to its technique definition and checked against its substrate. */
 export interface InspectedLayer {
@@ -63,6 +84,12 @@ export interface InspectedLayer {
 	requirement: string | undefined;
 
 	verdict: PrerequisiteVerdict;
+
+	/** The motif this layer carries, when its technique takes one and the pool was non-empty. */
+	motif: InspectedMotif | undefined;
+
+	/** The material this layer introduces (inlay, gilding…), when its technique takes one. */
+	introducedMaterial: MaterialDefinition | undefined;
 
 	/** Nesting depth. Always `0` today — nothing produces sublayers until 2GN.31/2GN.32. */
 	depth: number;
@@ -93,11 +120,27 @@ export interface DecorationModel {
 	/** One entry per component, in flattened order. Components with no layers are included. */
 	components: DecoratedComponent[];
 
-	/** Total layers across the artefact, counting any nesting. */
+	/** Total layers the grammar rolled, counting any nesting, before enforcement. */
 	layerCount: number;
 
-	/** Layers whose material prerequisite is unmet — what 2GN.30 will reject. */
+	/** Layers whose material prerequisite is unmet — the ones `enforceSubstrates` strips. */
 	unmetCount: number;
+
+	/**
+	 * Layers `enforceSubstrates` actually removed, measured by running it (roadmap 2GN.30). Equal to
+	 * `unmetCount` while layers are flat; once sublayers exist a stripped parent takes its sublayers
+	 * with it, so this can exceed the unmet count.
+	 */
+	strippedCount: number;
+
+	/** Layers carrying a motif. */
+	motifCount: number;
+
+	/** Layers carrying a motif whose origin is not the producing culture. */
+	borrowedMotifCount: number;
+
+	/** Layers introducing a material of their own. */
+	introducedMaterialCount: number;
 
 	/** Deepest nesting reached. Always `0` until 2GN.31/2GN.32 land. */
 	maxDepth: number;
@@ -107,11 +150,34 @@ const TECHNIQUE_INDEX = new Map<DecorativeTechnique, DecorativeTechniqueDefiniti
 	DECORATIVE_TECHNIQUES.map((definition) => [definition.technique, definition]),
 );
 
-/** Joins a raw layer to its technique definition and judges its prerequisite. */
+/** Resolves a layer's motif fields against the producing culture's own vocabulary. */
+function inspectMotif(
+	layer: DecorativeLayer,
+	cultureId: string,
+	vocabulary: ReadonlyMap<string, MotifDefinition>,
+): InspectedMotif | undefined {
+	if (layer.motifRef === undefined) return undefined;
+
+	const definition = vocabulary.get(layer.motifRef);
+	// The stamped origin is authoritative: a borrowed motif is absent from the native vocabulary,
+	// so the definition lookup can miss while the origin is still known.
+	const origin = layer.motifCulturalOrigin ?? definition?.culturalOrigin ?? 'unknown';
+
+	return {
+		id: layer.motifRef,
+		label: definition?.label ?? layer.motifRef,
+		origin,
+		borrowed: origin !== cultureId,
+	};
+}
+
+/** Joins a raw layer to its technique definition, judges its prerequisite and resolves its arguments. */
 function inspect(
 	layer: DecorativeLayer,
 	material: MaterialDefinition,
 	depth: number,
+	cultureId: string,
+	vocabulary: ReadonlyMap<string, MotifDefinition>,
 ): InspectedLayer {
 	const definition = TECHNIQUE_INDEX.get(layer.technique);
 	const substrate = definition?.substrate;
@@ -132,9 +198,20 @@ function inspect(
 		category: definition?.category ?? 'surface-treatment',
 		requirement,
 		verdict,
+		motif: inspectMotif(layer, cultureId, vocabulary),
+		introducedMaterial: layer.material === undefined
+			? undefined
+			: MATERIALS.find((m) => m.id === layer.material),
 		depth,
-		sublayers: layer.sublayers.map((sublayer) => inspect(sublayer, material, depth + 1)),
+		sublayers: layer.sublayers.map((sublayer) =>
+			inspect(sublayer, material, depth + 1, cultureId, vocabulary)
+		),
 	};
+}
+
+/** Counts every layer in a tree, including nested ones. */
+function countLayers(layers: readonly DecorativeLayer[]): number {
+	return layers.reduce((total, layer) => total + 1 + countLayers(layer.sublayers), 0);
 }
 
 /** Walks an inspected layer tree, applying `visit` to every node. */
@@ -206,6 +283,14 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 		stratum,
 	);
 
+	// Enforcement is measured, not inferred from the verdicts: `enforceSubstrates` is the pipeline's
+	// own strip (roadmap 2GN.30), so the count it reports is the truth this panel should show.
+	const strippedCount = countLayers(layers) - countLayers(enforceSubstrates(layers, assignments));
+
+	const vocabulary = new Map(
+		culture.profile.motifVocabulary.motifs.map((motif) => [motif.id, motif]),
+	);
+
 	const components = artefact.components.map((component, index) => {
 		const material = MATERIALS.find((m) => m.id === assignments[index].materialId)!;
 
@@ -216,20 +301,36 @@ export function inspectDecoration(seed: string, culture: ExplorerCulture): Decor
 			material,
 			layers: layers
 				.filter((layer) => layer.targetComponentId === component.id)
-				.map((layer) => inspect(layer, material, 0)),
+				.map((layer) => inspect(layer, material, 0, culture.id, vocabulary)),
 		};
 	});
 
 	let layerCount = 0;
 	let unmetCount = 0;
+	let motifCount = 0;
+	let borrowedMotifCount = 0;
+	let introducedMaterialCount = 0;
 	let maxDepth = 0;
 	for (const component of components) {
 		walk(component.layers, (layer) => {
 			layerCount++;
 			if (layer.verdict === 'unmet') unmetCount++;
+			if (layer.motif !== undefined) motifCount++;
+			if (layer.motif?.borrowed) borrowedMotifCount++;
+			if (layer.introducedMaterial !== undefined) introducedMaterialCount++;
 			maxDepth = Math.max(maxDepth, layer.depth);
 		});
 	}
 
-	return { artefact, components, layerCount, unmetCount, maxDepth };
+	return {
+		artefact,
+		components,
+		layerCount,
+		unmetCount,
+		strippedCount,
+		motifCount,
+		borrowedMotifCount,
+		introducedMaterialCount,
+		maxDepth,
+	};
 }
