@@ -1032,20 +1032,23 @@
 						"description": "Explorer: description viewer — three-register prose side by side, register divergence highlighting",
 						"status": "blocked",
 						"dependsOn": [
+							"2GN.160",
 							"2GN.40",
 							"2GN.41",
 							"2GN.42"
 						],
+						"notes": "Rescoped 2026-09-25 (roadmap-review, deps lens): this is now the three-register extension of 2GN.160, the minimal viewer that surfaces `generateDescription` as shipped by 2GN.38.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.63",
-						"description": "Explorer: excavation viewer — artefacts grouped by site, ambiguity distribution chart",
+						"description": "Explorer: excavation + provenance viewer — artefacts grouped by site, per-site provenance (2GN.47)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.45",
+							"2GN.44",
 							"2GN.47"
 						],
+						"notes": "Split 2026-09-25 (roadmap-review, deps lens): the ambiguity distribution chart moved to 2GN.162 so this viewer surfaces excavation composition and provenance without waiting on the 2GN.138 interpretive-challenge spike.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1828,13 +1831,12 @@
 					},
 					{
 						"id": "2GN.149",
-						"description": "Explorer: scholars & names panel — seed → `NPCScholarSeed` cards (name, specialisation, career stage), sampled site/culture/scholar names per phonology, modern-language institution names",
+						"description": "Explorer: scholars panel — seed → `NPCScholarSeed` cards (name, specialisation, career stage)",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.48",
-							"2GN.66",
-							"2GN.130"
+							"2GN.48"
 						],
+						"notes": "Split 2026-09-25 (roadmap-review, deps lens): the names half moved to 2GN.161 so NPC `InterpretiveModel` work (2GN.49) gates on the scholar surface alone.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1937,6 +1939,50 @@
 							"2GN.59",
 							"2GN.144"
 						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.160",
+						"description": "Explorer: description viewer — `generateDescription`'s `ArtefactPresentation` per component (ordered observation list, register-filtered; caller-supplied provenance stub per 2GN.38)",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.38"
+						],
+						"notes": "Filed 2026-09-25 (roadmap-review, deps lens): 2GN.38 shipped with no Explorer surface, and 2GN.39/2GN.44/2GN.148 build on it. 2GN.62 is this viewer's three-register extension.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.161",
+						"description": "Explorer: names panel — sampled site/culture/scholar names per phonology (2GN.66), modern-language institution names (2GN.130)",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.66",
+							"2GN.130"
+						],
+						"notes": "Split from 2GN.149 on 2026-09-25 (roadmap-review, deps lens) so provenance generation (2GN.47) gates on the names surface rather than on scholar cards.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.162",
+						"description": "Explorer: ambiguity distribution chart on the excavation viewer (2GN.63), against the 2GN.45 targets",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.63",
+							"2GN.45"
+						],
+						"notes": "Split from 2GN.63 on 2026-09-25 (roadmap-review, deps lens): the chart needs the 2GN.138 interpretive-challenge metric, which the excavation viewer itself does not.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.163",
+						"description": "Explorer: material viewer (2GN.60) shows re-keyed `MaterialSelector` affinities (2GN.123) and the found/produced availability model (2GN.126)",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.60",
+							"2GN.123",
+							"2GN.126"
+						],
+						"notes": "Filed 2026-09-25 (roadmap-review, deps lens): the M3 generators 3WS.3/3WS.6/3WS.7 consume the affinity and availability models, and neither had an Explorer surface.",
 						"assignee": "Jason Warren"
 					}
 				]
