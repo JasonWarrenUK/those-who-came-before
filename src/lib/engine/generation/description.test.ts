@@ -116,10 +116,9 @@ Deno.test('falls back to interpretive when observational is unavailable', () => 
 });
 
 Deno.test('REGISTER_PREFERENCE is exhaustive over the three shipped registers', () => {
-	// The `?? registers[0]` fallback in foregroundedRegister only matters for a `registers` list
-	// that contains no REGISTER_PREFERENCE member — unreachable via the real three-value
-	// DescriptionRegister type, so this pins the invariant that makes it unreachable rather than
-	// exercising dead code.
+	// foregroundedRegister throws when `registers` holds no REGISTER_PREFERENCE member, a case
+	// unreachable via the real three-value DescriptionRegister type; this pins the invariant that
+	// makes the throw unreachable rather than exercising dead code.
 	assertEquals(REGISTER_PREFERENCE, ['observational', 'interpretive', 'technical']);
 });
 
@@ -251,9 +250,7 @@ Deno.test('rawData carries the parameter value and material id, never standing o
 	for (const obs of result.primaryObservations) {
 		assert(!obs.rawData.has('standing'));
 		assert(!obs.rawData.has('provenance'));
-		if (obs.rawData.has('material')) {
-			assertEquals(obs.rawData.get('material'), 'bronze');
-		}
+		assertEquals(obs.rawData.get('material'), 'bronze');
 	}
 });
 
