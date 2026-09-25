@@ -20,14 +20,17 @@
  * differs by value (a hexagonal cross-section is filed differently from a round one), and
  * `craftDomain` in `decoration.ts` where a technique's process differs by substrate (engraving
  * metal is a different physical act from engraving stone). No other condition field is used —
- * `materialId`/`materialTag` gates are reserved for 2GN.38's fuller selection pass rather than
- * authored speculatively.
+ * `materialId`/`materialTag` gates are reserved for authoring against a tested claim rather than a
+ * speculative one; the matcher (`engine/generation/description.ts`'s `selectVariant`, roadmap
+ * 2GN.38, absorbing 2GN.93) honours them fully whenever a template does use them.
  *
  * Out of scope, and owned downstream, exactly as `observational/index.ts` states:
- * - expanding a template against a component's actual property values (`engine/generation/
- *   description.ts`, roadmap 2GN.39)
- * - selecting among a property's variants by lens/hypothesis alignment (roadmap 2GN.38)
- * - honouring `condition`'s material/craft-domain fields during selection (roadmap 2GN.93)
+ * - expanding a template against a component's actual property values beyond the provisional
+ *   `#slot#` expander (`engine/generation/description.ts`, roadmap 2GN.39)
+ *
+ * Selection among a property's variants (register foregrounding, `VariantCondition` matching
+ * including the material join) lives in `engine/generation/description.ts`'s
+ * `selectVariant`/`generateDescription` (roadmap 2GN.38, absorbing 2GN.93).
  */
 
 import type { DescriptionTemplate } from '../../../types/description.ts';

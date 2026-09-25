@@ -720,7 +720,7 @@
 							"M1",
 							"2GN.91"
 						],
-						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact and reads the tag distribution for register selection, correctly owns that edge instead. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
+						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact, correctly owns that edge instead — though 2GN.38 itself (2026-09-24) ruled selection must never read the tag distribution, since `groundTruthTags` is occluded; register selection is neutral, not tag-driven. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
 						"assignee": "Jason Warren",
 						"pr": 68
 					},
@@ -733,7 +733,7 @@
 							"M1",
 							"2GN.91"
 						],
-						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact and reads the tag distribution for register selection, correctly owns that edge instead. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
+						"notes": "Deliberately does not depend on 2GN.27/2GN.68 (tag-accumulation changes) — template authoring keys on fixed structural/material fields (1FD.31's DescriptionTemplate/Variant shape, 2GN.91's VariantCondition: property/craftDomain/materialId/materialTag), not on the derived function/elite/ceremonial tags those tasks compute. 2GN.38, which assembles descriptions against a fully-classified artefact, correctly owns that edge instead — though 2GN.38 itself (2026-09-24) ruled selection must never read the tag distribution, since `groundTruthTags` is occluded; register selection is neutral, not tag-driven. Confirmed by roadmap-review (deps, M2) 2026-08-15.",
 						"assignee": "Jason Warren",
 						"pr": 68
 					},
@@ -758,7 +758,7 @@
 					{
 						"id": "2GN.38",
 						"description": "`engine/generation/description.ts` — `generateDescription(artefact, registers): ArtefactPresentation` — assemble ordered observation list per component",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.34",
 							"2GN.68",
@@ -767,13 +767,13 @@
 							"2GN.37",
 							"2GN.27"
 						],
-						"notes": "`ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance` generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s inline default into an exported `mockProvenance` fixture) rather than reordering — matches the 2GN.23 M2-provisional convention. Revisit once 2GN.47 lands real provenance.",
+						"notes": "`ArtefactPresentation.provenance: ProvenancePresentation` is required, but `Provenance` generation is 2GN.47, which sits downstream via `2GN.38 → 2GN.44 → 2GN.47`; per dependency sweep 2026-07-25 this task takes a caller-supplied `Provenance` (extract `mockArtefact`'s inline default into an exported `mockProvenance` fixture) rather than reordering — matches the 2GN.23 M2-provisional convention. Revisit once 2GN.47 lands real provenance. **Done 2026-09-24.** Absorbed 2GN.93 (variant selection honours `condition`'s material fields): one matcher (`engine/generation/description.ts`'s `selectVariant`/`matchesCondition`) covers `values` plus the material join (`craftDomain`/`materialId`/`materialTag` via `componentId -> MaterialAssignment -> MaterialDefinition`), fields AND together, material gates fail closed when the component's material is unresolved. Selection reads no ground truth: register and variant choice are neutral (no lens yet, M6/6LS) — never `groundTruthTags`, which is occluded; foregrounds observational by default (doc 04 §3.4), falling back through `REGISTER_PREFERENCE`, pinned by a diegesis-guard test asserting identical output across differing `groundTruthTags`. `prose.ts`'s provisional value-gate-only `selectVariant` was retired in favour of this single path; `prose.ts` is now a thin wrapper (`describeProse` = observational register, no material known, fails closed on any material-gated variant — output unchanged, `prose.test.ts` passes unchanged). `suggestedTags`/`crossReferences` stay empty and `secondaryObservations` stays empty (every salience 1.0) — both lens-owned, roadmap 6LS.11. `label` is a `physicalLabel` pass-through (2GN.42 owns composing it); provenance is a data projection only (`projectProvenance`), `mockProvenance` exported from `tests/fixtures/artefact.ts` per the 2GN.23 M2-provisional convention.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.39",
 						"description": "`engine/generation/description.ts` — template expansion: parameterised template system with property slots",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.38"
 						],
@@ -820,7 +820,7 @@
 					{
 						"id": "2GN.44",
 						"description": "`engine/generation/excavation.ts` — excavation composition: generate artefact batches with contextual juxtapositions (settlement + ritual intrusion, burial + trade goods, workshop + prestige item)",
-						"status": "blocked",
+						"status": "todo",
 						"dependsOn": [
 							"2GN.38"
 						],
@@ -1385,12 +1385,12 @@
 					{
 						"id": "2GN.93",
 						"description": "`engine/generation/description.ts` — variant selection honours `condition`: filter candidates by the component's assigned material (via the `componentId → MaterialAssignment → MaterialDefinition` join) before emphasis-based selection",
-						"status": "todo",
+						"status": "done",
 						"dependsOn": [
 							"2GN.91",
 							"2GN.111"
 						],
-						"notes": "Nothing currently does the material join at description time — `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant selection — resolve at pickup whether this is a distinct task or 2GN.38's description should instead be amended to state selection honours `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as separately-tracked selection logic.",
+						"notes": "Nothing currently does the material join at description time — `NormalisedComponent` carries only `allowedMaterialTags` (a constraint), the actual assignment lives on `ClassifiedArtefact.materials` as a side-table (`MaterialAssignment[]`, joined by `componentId`). ⚠️ Overlaps 2GN.38, which already owns `generateDescription`'s variant selection — resolve at pickup whether this is a distinct task or 2GN.38's description should instead be amended to state selection honours `condition`. Flagged unresolved at authoring time (2026-08-05); do not let both exist as separately-tracked selection logic. **Done 2026-09-24, absorbed into 2GN.38** rather than tracked separately, per this task's own flagged ambiguity: `engine/generation/description.ts`'s `matchesCondition` is the one selection path, doing the `componentId -> MaterialAssignment -> MaterialDefinition` join and honouring all four `VariantCondition` fields.",
 						"assignee": "Jason Warren"
 					},
 					{

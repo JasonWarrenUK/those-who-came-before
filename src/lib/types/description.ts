@@ -6,7 +6,7 @@
  * (lens.ts) throughout: doc 05 §13's code blocks predate the MVP narrowing and type these fields
  * as the five-value `ObservationRegister`, which is post-MVP along with the `RegisterAccess`
  * acquisition model (doc 12 §2.10, doc 13 §4). This module is data shapes only, no behaviour;
- * generation lives under `engine/generation/` (roadmap 2GN.33–2GN.38).
+ * generation lives under `engine/generation/` (roadmap 2GN.33–2GN.39).
  */
 
 import type { CrossReference, DescriptionRegister } from './lens.ts';
@@ -175,11 +175,13 @@ export interface TagSuggestion {
 }
 
 /**
- * Provisional, not doc-specified: named by `ArtefactPresentation.provenance` (doc 05 §13.2) but
- * never shaped. The player-visible projection of world.ts `Provenance` (doc 05 §3.5): the site
- * and context groups are observable, while `cultureId`, `phaseId` and `year` are occluded and
- * deliberately absent — absolute dating is not free information (doc 05 §4.7); relative dating
- * via stratigraphy is. Expect this to firm up when `generateDescription` lands (roadmap 2GN.38).
+ * Not doc-specified, but firmed up by `generateDescription`'s `projectProvenance`
+ * (`engine/generation/description.ts`, roadmap 2GN.38): the player-visible projection of world.ts
+ * `Provenance` (doc 05 §3.5). The site and context groups are observable and rendered directly
+ * (`siteName` via `renderName`, roadmap 2GN.66), while `cultureId`, `phaseId` and `year` are
+ * occluded and deliberately absent — absolute dating is not free information (doc 05 §4.7);
+ * relative dating via stratigraphy is. `dating` stays absent until an NPC `DatingFramework` covers
+ * the layer (roadmap M9) — nothing produces one yet, so `projectProvenance` never sets it.
  */
 export interface ProvenancePresentation {
 	/** Site name, as recorded at excavation. */

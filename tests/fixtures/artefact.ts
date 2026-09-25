@@ -211,7 +211,13 @@ export function relativeClassificationContext(
 	};
 }
 
-function mockProvenance(): Provenance {
+/**
+ * A valid `Provenance` (doc 05 §3.5): a mock settlement site named 'Tesu' when rendered
+ * (`renderName`, `engine/world/naming.ts`), no associated finds. Exported (roadmap 2GN.38) so
+ * callers needing a caller-supplied provenance ahead of real generation (roadmap 2GN.47) don't
+ * each hand-roll one — matches the 2GN.23 M2-provisional convention `mockArtefact` itself follows.
+ */
+export function mockProvenance(): Provenance {
 	return {
 		cultureId: 'test-culture',
 		phaseId: 'test-phase',

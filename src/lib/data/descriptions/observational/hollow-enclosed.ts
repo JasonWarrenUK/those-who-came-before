@@ -42,8 +42,8 @@ export const HOLLOW_ENCLOSED_TEMPLATES: readonly DescriptionTemplate[] = [
 			{
 				// `opening: 'none'` (doc 05 §5.3) is a sealed vessel, not an absent measurement — this
 				// fixed-text variant keeps that fact observable rather than dropping the clause like an
-				// unmeasured property (see the unconditioned variant below, selected by `describeProse`
-				// when `opening !== 'none'`).
+				// unmeasured property (see the unconditioned variant below, selected by
+				// `description.ts`'s `selectVariant` when `opening !== 'none'`).
 				template: 'The form has no opening.',
 				emphasis: [],
 				register: 'observational',
