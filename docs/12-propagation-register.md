@@ -3488,8 +3488,7 @@ lines) but the wrong shape for a table cell, and a comment is invisible to any p
 
 `ClassificationRule` gains two required phrases (`types/tags.ts`): `reads`, the condition in plain
 words (`a short blade with a sharp point`), and `concludes`, the reading its tags stand for
-(`the
-dagger family`). Two fields rather than one sentence so a table can give each its own column
+(`the dagger family`). Two fields rather than one sentence so a table can give each its own column
 and a reader can scan conditions and conclusions independently. Both are phrased against the
 _current_ condition rather than how it came to be. All 44 shipped rules carry them, pinned by
 `classification.test.ts` (non-empty, no terminal punctuation, at most 140 characters each). The
