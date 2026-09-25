@@ -421,7 +421,7 @@
 						"description": "`engine/generation/plausibility.ts` — physical viability rules (structural integrity, load paths, cantilever limits)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.12",
+							"2GN.58",
 							"2GN.116",
 							"2GN.141"
 						],
@@ -433,7 +433,7 @@
 						"description": "`engine/generation/plausibility.ts` — ergonomic rules (grip length for edged forms, handleability)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.12",
+							"2GN.58",
 							"2GN.116"
 						],
 						"assignee": "Jason Warren"
@@ -455,7 +455,7 @@
 						"description": "`engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.12",
+							"2GN.58",
 							"2GN.137"
 						],
 						"assignee": "Jason Warren"
@@ -495,7 +495,7 @@
 						"description": "`engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.20",
+							"2GN.59",
 							"2GN.118"
 						],
 						"assignee": "Jason Warren"
@@ -613,7 +613,7 @@
 						"description": "`engine/generation/decoration.ts` — resolve `kind: 'form'` decorative substrates (wire-wrapping/wrapping/beading's `grippable`/`attachment-point`) against a `NormalisedComponent`'s geometry, and feed the result into `enforceSubstrates` (2GN.30)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.30",
+							"2GN.150",
 							"2GN.10",
 							"2GN.116"
 						],
@@ -625,7 +625,7 @@
 						"description": "`engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.29",
+							"2GN.61",
 							"2GN.132"
 						],
 						"assignee": "Jason Warren",
@@ -636,7 +636,7 @@
 						"description": "`engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis`",
 						"status": "todo",
 						"dependsOn": [
-							"2GN.29",
+							"2GN.61",
 							"2GN.131"
 						],
 						"assignee": "Jason Warren",
@@ -654,9 +654,9 @@
 					{
 						"id": "2GN.76",
 						"description": "`engine/generation/decoration.ts` — motif salience fluctuates across a culture's lifespan: native and borrowed motifs are not equally prominent at every point in the culture's timeline; motif selection weights vary by phase",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.33"
+							"2GN.150"
 						],
 						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension."
 					},
@@ -773,9 +773,9 @@
 					{
 						"id": "2GN.39",
 						"description": "`engine/generation/description.ts` — template expansion: parameterised template system with property slots",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.38"
+							"2GN.160"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -820,9 +820,9 @@
 					{
 						"id": "2GN.44",
 						"description": "`engine/generation/excavation.ts` — excavation composition: generate artefact batches with contextual juxtapositions (settlement + ritual intrusion, burial + trade goods, workshop + prestige item)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.38"
+							"2GN.160"
 						],
 						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`).",
 						"assignee": "Jason Warren"
@@ -852,7 +852,7 @@
 						"description": "`engine/generation/excavation.ts` — provenance generation: site name, site type (weighted by culture), region, layer, associated finds, preservation state, deposition type (doc 08's `engine/world/provenance.ts` is folded in here)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.66",
+							"2GN.161",
 							"2GN.44"
 						],
 						"notes": "`region` is a provisional string here too (same caveat as 2GN.26; dependency sweep 2026-07-25) — no region vocabulary or culture→region binding exists yet, so this task mints convention-agreed strings for 3WS.7 to reconcile once real geography lands.",
@@ -863,8 +863,8 @@
 						"description": "`engine/generation/description.ts` — wire real generated `Provenance` (2GN.47) into `generateDescription()`'s `ArtefactPresentation.provenance` output, replacing the caller-supplied stub fixture from 2GN.38",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.38",
-							"2GN.47"
+							"2GN.160",
+							"2GN.63"
 						],
 						"notes": "2GN.38 took a caller-supplied `Provenance` (per the 2GN.23 M2-provisional convention) because real generation (2GN.47) sits downstream in the dependency chain 2GN.38 → 2GN.44 → 2GN.47. This task closes that loop once 2GN.47 exists: swap the stub `mockProvenance` fixture at the `generateDescription` call site for real generated provenance, and update any tests still asserting against the stub.",
 						"assignee": "Jason Warren"
@@ -883,9 +883,9 @@
 					{
 						"id": "2GN.49",
 						"description": "`engine/world/scholars.ts` — NPC `InterpretiveModel` generation: cultural/artefact/chrono claims with calibrated wrongness (~70% correct, ~30% wrong)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.48"
+							"2GN.149"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -895,7 +895,7 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.49",
-							"2GN.47"
+							"2GN.63"
 						],
 						"notes": "Signature drops `WorldState` for the loose bag M2 can supply (see 2GN.56's note; dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
@@ -964,7 +964,7 @@
 						"description": "`engine/generation/grammar.ts` — arrangement detection + pattern assignment: annotate `NormalisedComponent.arrangementGroup` (pattern, index, totalInGroup) at flatten time, descoped out of 2GN.8 since the grammar never assigns an arrangement pattern (2GN.3 rolls repetition incidentally, 2GN.6's `checkAccumulation` only validates admissibility, never labels one), so `arrangementGroup.pattern` has no faithful source at flatten time and fabricating one would invent data; detection reuses `tallyArrangements`' same-primitiveType-within-one-top-level-group boundary (already the detection contract behind 2GN.6, cheap to apply again here), leaving pattern *assignment* as the open question this task owns — may mean threading a choice through `expandGrammar`'s determinism-critical draw sequence; nothing consumes the field yet, so this task is currently childless in the graph",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.8",
+							"2GN.57",
 							"2GN.108",
 							"2GN.139"
 						],
@@ -975,9 +975,9 @@
 						"description": "`engine/generation/pipeline.ts` — `runGenerationPipeline(culture, period, geology, trade, corpus, prng): ClassifiedArtefact` — full 9-stage orchestrator",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.53",
-							"2GN.16",
-							"2GN.30"
+							"2GN.64",
+							"2GN.152",
+							"2GN.150"
 						],
 						"notes": "`WorldState` does not exist as a type until 3WS.9 (`save.ts` confirms: \"No runtime `WorldState` aggregate exists yet\"), so this and the four corpus-chain signatures above (2GN.48/50/51) take the loose bag M2 can actually supply; 3WS.15 collapses them to the real `WorldState` parameter once it lands (dependency sweep 2026-07-25).",
 						"assignee": "Jason Warren"
@@ -1142,7 +1142,7 @@
 						"description": "`engine/generation/grammar.ts` — deliberately model multi-part assemblages: distinguish an intentional co-deposited group (hoard, burial set) from an unattached stray component, since `<object> ::= <component-group>+` currently lets `expandGrammar` roll multiple independent groups with no signal for whether that's a designed assemblage or an accidental artefact of complexity-budget rolls",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.8",
+							"2GN.57",
 							"2GN.108",
 							"2GN.140"
 						],
@@ -1153,10 +1153,9 @@
 						"description": "`engine/generation/materials.ts` + `engine/generation/decoration.ts` — whole-object coherence pass: check material and decorative choices are coherent across an artefact's components as a set (not necessarily mono-material) rather than validating each component in isolation",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.30",
+							"2GN.150",
 							"2GN.31",
-							"2GN.32",
-							"2GN.33"
+							"2GN.32"
 						],
 						"notes": "Dependency sweep 2026-07-25 corrected the dependency from 2GN.23 to 2GN.75: \"as a set\" requires the whole-artefact material assignment, which only 2GN.75 produces. The direct 2GN.75 edge was pruned in the 2GN.85 dependency sweep (2026-08-04) as transitively implied by 2GN.30, which already depends on it.",
 						"assignee": "Jason Warren"
@@ -1166,7 +1165,7 @@
 						"description": "`engine/generation/description.ts` + `engine/generation/classification.ts` — consume assemblage membership: describe/classify a multi-part assemblage distinctly from a single object once 2GN.69 lands",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.69",
+							"2GN.155",
 							"2GN.39"
 						],
 						"assignee": "Jason Warren"
@@ -1764,7 +1763,7 @@
 						"description": "`src/lib/data/plausibility.ts` — revisit the material-structural plausibility rules (roadmap 2GN.15) once `fragility` is re-authored to the working state: (1) reconsider whether `fragility` should be reintroduced as a genuine second axis in the wrapped-join check, alongside `rigidity`, and (2) confirm which state (worked vs finished) the rigid-fastener and wrapped-join rules actually want to read once 2GN.105 implements the per-state `{worked, finished}` shape 2GN.111 ruled for `rigidity` (the current code reads the pre-split scalar interface, since 2GN.105 hasn't landed yet)",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.105"
+							"2GN.151"
 						],
 						"notes": "Filed 2026-08-21 during 2GN.15's implementation. 2GN.15's wrapped-join rule deliberately does not use `fragility` today: jade's currently-authored finished-state `fragility: 2` would have wrongly passed a rigid, unbendable stone as \"wrappable\" under an OR-with-rigidity test, and `fragility` is pinned by 2GN.105 (still open) to move to the working state `computeLayerGrade` actually needs, so today's values describe the wrong moment for a workability question either way.",
 						"assignee": "Jason Warren"
@@ -1822,9 +1821,9 @@
 					{
 						"id": "2GN.147",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — widen `wire-wrapping`'s introduced-material tag set (currently `['metal']` alone) and audit `isGildingMaterial`'s realised gold/silver-only pool, so at least one technique-appropriate non-prized candidate exists per culture for both techniques",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.68"
+							"2GN.150"
 						],
 						"notes": "Filed 2026-09-17 from the 2GN.68 spike (doc 12 §2.61). `gilding` and `wire-wrapping` are both 100%-prized under every measured Explorer preset — every candidate in each pool clears `STANDING_CUT` — so 2GN.68's stratum draw (`assignDecorativeDetails`, shared with `assignMaterials`) has nothing non-prized to redirect selection weight toward on these two techniques specifically. Measured: forcing every artefact commoner and tallying which technique supplied a prized layer, `gilding`/`wire-wrapping` alone account for 79–97% of remaining commoner-artefact hits in thalassar/xoconahtl, while every other technique's suppression already works (0.3–0.8% commoner hit rate). `gilding`'s pool is gated by `isGildingMaterial` (`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3`, roadmap 2GN.78) rather than a tag, so widening it means either loosening that physical gate or accepting metals it correctly excludes stay excluded and the pool genuinely has no non-metal analogue; `wire-wrapping`'s `['metal']` tag set may admit a second material class (fibre-wrapped wire is real) without weakening the technique's own logic. Data-authoring work, not a design question — no spike needed. ⚠️ calibration-shifting once landed: re-measure R32 (`precious-materials-in-decoration`) against the four Explorer presets and record the new rate in `docs/spikes/2GN.68-decoration-material-standing.md`'s reopen conditions.",
 						"assignee": "Jason Warren"
@@ -1845,7 +1844,8 @@
 						"status": "todo",
 						"dependsOn": [
 							"2GN.61",
-							"2GN.68"
+							"2GN.68",
+							"2GN.30"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1997,7 +1997,7 @@
 						"description": "`engine/world/seed.ts` — `createWorldSeed(raw: string): WorldSeed` — seed string → PRNG",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.56",
+							"2GN.65",
 							"M2"
 						],
 						"assignee": "Jason Warren"
@@ -2018,8 +2018,7 @@
 						"dependsOn": [
 							"3WS.2",
 							"2GN.110",
-							"2GN.123",
-							"2GN.126"
+							"2GN.163"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -2047,7 +2046,7 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.5",
-							"2GN.126"
+							"2GN.163"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -2057,8 +2056,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"3WS.1",
-							"2GN.126",
-							"2GN.144"
+							"2GN.163",
+							"2GN.159"
 						],
 						"notes": "Inherits the region-vocabulary decision dependency sweep 2026-07-25 deferred here: decide whether regions become first-class (`Culture` gains a region binding, ⚠️ breaking) or stay convention-agreed strings, and reconcile the provisional region strings 2GN.26 and 2GN.47 already mint against mock fixtures. That decision is now ruled by 2GN.142 (2026-08-24), with implementation filed as 2GN.144 (2026-08-25): region is world-level, referenced by `CulturePhase.geography.regions: string[]` — this task generates the real `GeologicalContext`/regions for production cultures and needs that field to exist before it can populate it.",
 						"assignee": "Jason Warren"
