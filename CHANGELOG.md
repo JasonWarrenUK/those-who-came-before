@@ -7,6 +7,36 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.58.0] - 2026-09-25
+
+### Added
+
+- Classified artefacts now come with a written description: one observation per structural
+  component, ordered by where each component sits on the object, voiced in a single register
+  (observational, interpretive or technical) with a neutral provenance summary alongside.
+- Choosing a description's register and wording never reads the artefact's hidden true tag scores:
+  two artefacts differing only in those scores read identically. This holds the diegesis line until
+  the lens system lands in Milestone 6.
+
+### Changed
+
+- A description variant whose material or property conditions the component fails is skipped rather
+  than rendered with gaps, and a template with a missing value is dropped instead of printed
+  half-filled.
+
+## [0.57.0] - 2026-09-18
+
+### Added
+
+- Decorative layers now receive real motifs and materials in every production pipeline (previously
+  only in tests), so the "motif cultural origins" and "precious materials in decoration"
+  classification fields fire on live data instead of sitting at empty defaults.
+- Decoration and structural material choice now share one per-artefact social-stratum draw, so an
+  ordinary commoner's object no longer turns up gilded by accident. Structural material selection
+  for a given seed is unchanged.
+- Trade goods are now a rare scholar specialisation: the `trade-good` tag clears the award threshold
+  once the scholar calibration sweep runs against the wired decoration pipeline.
+
 ## [0.56.0] - 2026-09-17
 
 ### Breaking
@@ -23,6 +53,9 @@ All notable changes to this project are documented here. Format follows
   other, based on what tends to co-occur on real digs, rather than picked independently.
 - Scholars now carry an identity ready for their own beliefs and biases to be layered on in a
   future update.
+
+<details>
+<summary>0.55.0 and earlier</summary>
 
 ## [0.55.0] - 2026-09-15
 
@@ -95,7 +128,12 @@ All notable changes to this project are documented here. Format follows
   components a candidate material could actually be made into, separate from whether the culture can
   obtain it at all.
 
-[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.55.0...HEAD
+</details>
+
+[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.58.0...HEAD
+[0.58.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.57.0...v0.58.0
+[0.57.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.56.0...v0.57.0
+[0.56.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.55.0...v0.56.0
 [0.55.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.54.0...v0.55.0
 [0.54.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.53.0...v0.54.0
 [0.53.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.52.0...v0.53.0
