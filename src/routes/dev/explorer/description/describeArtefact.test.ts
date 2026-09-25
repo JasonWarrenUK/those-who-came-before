@@ -25,7 +25,11 @@ Deno.test('describeArtefact — one entry per component, in position order', () 
 	assertEquals(model.components.length, model.artefact.components.length);
 	assertEquals(
 		model.components.map((c) => c.shortId),
-		model.artefact.components.map((c) => `c${c.position}`).sort(),
+		// Numeric on position: a bare `.sort()` would put `c10` before `c2` once an artefact reaches
+		// eleven components, which sampled seeds do.
+		[...model.artefact.components]
+			.sort((a, b) => a.position - b.position)
+			.map((c) => `c${c.position}`),
 	);
 });
 
