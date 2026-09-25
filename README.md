@@ -8,7 +8,7 @@
 > 2. Excavation batches: artefacts dug together, with a burial's trade goods or a workshop's one prestige piece sitting among the everyday finds
 > 3. A fuller description template system with property slots
 > 
-A run of design rulings on decoration layering, the material catalogue and component roles still stands between here and the end of the generation milestone; after it, world state: chronology, cultures and the seed that ties one dig to one history. There is no playable game yet.
+> A run of design rulings on decoration layering, the material catalogue and component roles still stands between here and the end of the generation milestone; after it, world state: chronology, cultures and the seed that ties one dig to one history. There is no playable game yet.
 
 ---
 
