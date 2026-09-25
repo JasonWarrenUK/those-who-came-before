@@ -7,6 +7,28 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-09-25
+
+### Breaking
+
+- Every classification rule now carries `reads` and `concludes` phrases alongside its condition, so
+  a custom rule literal needs both fields to satisfy the type.
+
+### Added
+
+- The Project Explorer gains four panels: a description viewer showing the generated write-up for
+  each artefact component, a names panel showing the world's languages and the site, culture and
+  scholar names each one produces, a scholars panel showing the generated NPC scholar cohort, and a
+  motif and introduced-material view on the decoration inspector, alongside a stripped-by-enforcement
+  count in place of the old unmet-prerequisite count.
+- The rule calibration panel's Tags and Rules tables are sortable: click a column heading to sort by
+  it, click again to reverse. The Rules table also shows each rule's `reads`/`concludes` phrases.
+
+### Fixed
+
+- The description viewer's per-observation label could show a fragment of the seed instead of the
+  property name when the seed contained a colon.
+
 ## [0.58.0] - 2026-09-25
 
 ### Added
@@ -37,6 +59,9 @@ All notable changes to this project are documented here. Format follows
 - Trade goods are now a rare scholar specialisation: the `trade-good` tag clears the award threshold
   once the scholar calibration sweep runs against the wired decoration pipeline.
 
+<details>
+<summary>0.56.0 and earlier</summary>
+
 ## [0.56.0] - 2026-09-17
 
 ### Breaking
@@ -53,9 +78,6 @@ All notable changes to this project are documented here. Format follows
   other, based on what tends to co-occur on real digs, rather than picked independently.
 - Scholars now carry an identity ready for their own beliefs and biases to be layered on in a
   future update.
-
-<details>
-<summary>0.55.0 and earlier</summary>
 
 ## [0.55.0] - 2026-09-15
 
@@ -130,7 +152,8 @@ All notable changes to this project are documented here. Format follows
 
 </details>
 
-[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.58.0...HEAD
+[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.59.0...HEAD
+[0.59.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.58.0...v0.59.0
 [0.58.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.57.0...v0.58.0
 [0.57.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.56.0...v0.57.0
 [0.56.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.55.0...v0.56.0
