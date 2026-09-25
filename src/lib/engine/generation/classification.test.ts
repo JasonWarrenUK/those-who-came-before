@@ -727,7 +727,13 @@ function rule(
 	tags: [ArtefactTag, number][],
 ): ClassificationRule {
 	fixtureRuleCount += 1;
-	return { id: `fixture-rule-${fixtureRuleCount}`, condition, tags: new Map(tags) };
+	return {
+		id: `fixture-rule-${fixtureRuleCount}`,
+		reads: `fixture condition ${fixtureRuleCount}`,
+		concludes: `fixture reading ${fixtureRuleCount}`,
+		condition,
+		tags: new Map(tags),
+	};
 }
 
 /**

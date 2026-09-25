@@ -88,6 +88,12 @@ export interface RuleCalibration {
 	/** The rule's stable id (roadmap 2GN.113), which survives deletion and reordering. */
 	ruleId: string;
 
+	/** What the rule's condition reads, as authored on the rule. */
+	reads: string;
+
+	/** What firing the rule concludes, as authored on the rule. */
+	concludes: string;
+
 	/** The rule's index in `CLASSIFICATION_RULES`, its position in the shipped array. */
 	ruleIndex: number;
 
@@ -289,6 +295,8 @@ export function calibrateRules(
 		return {
 			label: ruleDisplayLabelAt(ruleIndex),
 			ruleId: rule.id,
+			reads: rule.reads,
+			concludes: rule.concludes,
 			ruleIndex,
 			fireCount,
 			firePercent,

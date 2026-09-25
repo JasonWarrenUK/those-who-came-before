@@ -316,6 +316,20 @@ export interface ClassificationRule {
 	 */
 	id: string;
 
+	/**
+	 * What the condition reads, as a plain phrase (`a short blade with a sharp point`), for
+	 * display in the Explorer's calibration and tag panels. States the current condition rather
+	 * than how it came to be; the JSDoc above each shipped rule keeps history and measurements.
+	 */
+	reads: string;
+
+	/**
+	 * What firing concludes, as a plain phrase (`the dagger family`): the archaeological reading
+	 * the awarded tags stand for. Paired with `reads` so a table can show the two halves in their
+	 * own columns.
+	 */
+	concludes: string;
+
 	/** Predicate over the artefact's unified extracted features and its culture-phase baselines. */
 	condition: (features: ExtractedFeatures, context: ClassificationContext) => boolean;
 

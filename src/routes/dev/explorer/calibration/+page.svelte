@@ -176,13 +176,17 @@ function contributionText(rule: RuleCalibration): string {
 			<h3 class="font-semibold">Rules</h3>
 			<p class="text-base-content/60 mb-2 text-xs">
 				In `CLASSIFICATION_RULES` order, so labels match the Tag Inspector and the pinned test
-				blocks. Dormant rules have no producer in the current pipeline yet.
+				blocks. "Reads" is the condition in plain words and "Concludes" the reading its tags stand
+				for, both authored on the rule. Dormant rules have no producer in the current pipeline
+				yet.
 			</p>
 			<div class="overflow-x-auto">
 				<table class="table table-sm">
 					<thead>
 						<tr>
 							<th>Rule</th>
+							<th>Reads</th>
+							<th>Concludes</th>
 							<th class="text-right">Fires</th>
 							<th>Verdict</th>
 							<th>Contributes</th>
@@ -191,7 +195,12 @@ function contributionText(rule: RuleCalibration): string {
 					<tbody>
 						{#each report.rules as rule (rule.ruleIndex)}
 							<tr>
-								<td class="font-mono">{rule.label}</td>
+								<td class="align-top font-mono">
+									{rule.label}
+									<div class="text-base-content/50 text-xs">{rule.ruleId}</div>
+								</td>
+								<td class="max-w-xs text-sm">{rule.reads}</td>
+								<td class="max-w-xs text-sm">{rule.concludes}</td>
 								<td class="text-right font-mono">
 									{rule.firePercent.toFixed(1)}%
 									<span class="text-base-content/50 text-xs">({rule.fireCount})</span>

@@ -182,6 +182,25 @@ Deno.test('rule ids: every rule carries a unique, non-empty, kebab-case id (road
 	);
 });
 
+Deno.test('rule readings: every rule carries plain-prose `reads` and `concludes` phrases for the Explorer', () => {
+	// The calibration panel shows both beside each rule's fire rate; a blank would render as a
+	// hole in the table, a sentence-terminated one would read oddly in a phrase column and a wall
+	// of history belongs in the JSDoc.
+	for (const rule of CLASSIFICATION_RULES) {
+		for (const [field, text] of [['reads', rule.reads], ['concludes', rule.concludes]] as const) {
+			assert(text.trim().length > 0, `rule '${rule.id}' has an empty ${field}`);
+			assertFalse(
+				/[.!?]$/.test(text.trim()),
+				`rule '${rule.id}' ${field} is a phrase, no full stop`,
+			);
+			assert(
+				text.length <= 140,
+				`rule '${rule.id}' ${field} is ${text.length} chars; keep it to a cell`,
+			);
+		}
+	}
+});
+
 Deno.test('rule ids: requireRuleById round-trips every shipped rule, and rejects a retired id', () => {
 	for (const rule of CLASSIFICATION_RULES) {
 		assertEquals(requireRuleById(rule.id), rule, `requireRuleById('${rule.id}') must return it`);
@@ -205,7 +224,13 @@ Deno.test('rule ids: the display label is positional, and separate from identity
 
 	// A rule that is not in the shipped array has no position, so no label.
 	assertEquals(
-		ruleDisplayLabel({ id: 'not-shipped', condition: () => false, tags: new Map() }),
+		ruleDisplayLabel({
+			id: 'not-shipped',
+			reads: 'nothing',
+			concludes: 'nothing',
+			condition: () => false,
+			tags: new Map(),
+		}),
 		undefined,
 	);
 
