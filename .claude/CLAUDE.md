@@ -12,21 +12,23 @@ filters future observations, leading to confirmation bias and systematic error.
 **Current Status**: Extensive design specification (docs 00-13). The repo was reset for launch:
 `src/` holds a bare SvelteKit + Deno skeleton (one route, three static components, DaisyUI theming).
 The pre-reset tech demo that briefly lived in `backlog/` as dead reference code has been deleted; it
-was never a porting source. Implementation is underway from `docs/roadmaps/mvp.md`: Deno migration
-(1FD.1–1FD.5) and much of Milestone 2's generation pipeline (grammar, plausibility, materials,
-decoration) are complete.
+was never a porting source. Implementation is underway from the phase roadmaps in `docs/roadmaps/`:
+the Foundation phase is complete, and the active Generation Pipeline phase has grammar,
+plausibility, materials and decoration largely done. Its Stack Migration milestone (off Deno, to
+Bun) gates every other open task.
 
 ## Critical Context
 
 ### Documentation Primacy
 
 This project has **14 comprehensive design documents** (docs/00-13) that specify every system in
-detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on this codebase:
+detail, plus an executable roadmap in `docs/roadmaps/` (one file per phase, indexed by
+`docs/roadmaps/README.md`). When working on this codebase:
 
 1. **Always check the design docs first** before implementing anything
 2. The docs are the source of truth for design; `.claude/roadmaps.json` is the machine-readable
-   source of truth for task sequencing, dependency edges and completion state.
-   `docs/roadmaps/mvp.md` is its human-readable projection (task lines, annotations, Mermaid
+   source of truth for task sequencing, dependency edges and completion state. Each phase's
+   `docs/roadmaps/{phase}.md` is its human-readable projection (task lines, annotations, Mermaid
    diagram), kept in sync by the `/roadmap-maintain` skill; when the two disagree, the JSON governs
 3. Current implementation is ~2% complete; most systems exist only in specification
 4. Docs are the source of truth for design intent, never for what shipped code currently does. Doc
@@ -40,8 +42,8 @@ detail, plus an executable roadmap at `docs/roadmaps/mvp.md`. When working on th
 
 - **Understanding the vision**: Read docs 02 (Design Pillars) → 03 (Core Loop) → 04 (Interpretive
   Lens)
-- **Implementing a feature**: Read `docs/roadmaps/mvp.md` (readable task list + status, projected
-  from `.claude/roadmaps.json`) → relevant spec doc → doc 08 (Architecture)
+- **Implementing a feature**: Read the active phase's file in `docs/roadmaps/` (readable task list
+  and status, projected from `.claude/roadmaps.json`) → relevant spec doc → doc 08 (Architecture)
 - **Working on generation**: Doc 05 (Generation Architecture) — most technically dense
 - **Working on documents/career**: Doc 06 (Knowledge Model) → doc 07 (Career) → doc 10 (Documents)
 - **Understanding decisions**: Doc 11 (Deferred Decisions) → doc 13 (Post-MVP)
@@ -243,18 +245,27 @@ From doc 11, section 2.8:
 ## Implementation Roadmap
 
 The execution roadmap lives in **`.claude/roadmaps.json`** (canonical: task IDs, statuses,
-`dependsOn` edges), projected into **`docs/roadmaps/mvp.md`**: 10 milestones (1FD Foundation → 10NP
-NPC Systems) with task lines, checkbox completion state and the dependency diagram. Take task
-selection and completion state from the JSON; read `mvp.md` for the per-task delivery notes and
-design commentary the JSON doesn't carry. Doc 09 is the narrative source the roadmap was derived
-from (24 phases with design rationale); when they diverge on sequencing, the roadmap governs.
+`dependsOn` edges) as ten phases, each projected into its own **`docs/roadmaps/{phase}.md`** with
+thematic milestones, task lines, checkbox completion state and the dependency diagram, plus a
+dashboard at `docs/artefacts/roadmap-{phase}.html`. `docs/roadmaps/README.md` indexes them. Take
+task selection and completion state from the JSON; read the phase file for the per-task delivery
+notes and design commentary the JSON doesn't carry. Doc 09 is the narrative source the roadmap was
+derived from (24 phases with design rationale); when they diverge on sequencing, the roadmap
+governs.
 
-Milestone sequence: 1 Foundation (types, PRNG, tests, Explorer shell) → 2 Generation Pipeline → 3
-World State & Integration → 4 Player Interface → 5 Knowledge Model → 6 Lens System → 7
-Contradictions → 8 Persistence → 9 Career & Publication → 10 NPC Systems.
+Phase sequence: Foundation (types, PRNG, tests, Explorer shell; complete) → Generation Pipeline
+(active) → World State & Integration → Player Interface → Knowledge Model → Lens System →
+Contradictions → Persistence → Career & Publication → NPC Systems. Task ID prefixes keep the old
+milestone numbering (1FD, 2GN, 3WS … 10NP, plus 11SM for the stack migration).
 
-**Each milestone produces something runnable and testable.** The Project Explorer (`/dev/explorer`)
-is the developer workbench that grows with each milestone.
+Only one phase is active. Future phases are stored with `archived: true` as a stand-in for a planned
+state the roadmap plugin does not have yet (goblin-scout 3.x will add one). Each carries an external
+gate `G1` ("{previous phase} phase complete") on its entry task; promoting a phase means lifting
+that gate, archiving the finished phase and un-archiving the next. Dependencies resolve only within
+a phase, so cross-phase edges were turned into `Extends {ID}` notes in the 2026-11-18 split.
+
+**Each phase produces something runnable and testable.** The Project Explorer (`/dev/explorer`) is
+the developer workbench that grows with each milestone.
 
 ## File Naming Conventions
 
@@ -338,10 +349,11 @@ For complex outputs (generated artefacts, lens-filtered descriptions).
 - ✅ Single route (`src/routes/+page.svelte`) and three static components (Header, Footer, Timeline
   empty state)
 - ✅ Tailwind + DaisyUI theming (caramellatte/coffee) in `app.css`
-- ✅ Generation pipeline, partial (Milestone 2, `docs/roadmaps/mvp.md`): bottom-up structural
-  grammar, plausibility checking (`checkPlausibility`, 2GN.12), material assignment, and decorative
-  motif + introduced-material resolution (2GN.33) are complete; material↔classification integration
-  (2GN.27) and several other 2GN.x tasks remain
+- ✅ Generation pipeline, partial (Generation Pipeline phase,
+  `docs/roadmaps/generation-pipeline.md`): bottom-up structural grammar, plausibility checking
+  (`checkPlausibility`, 2GN.12), material assignment, and decorative motif + introduced-material
+  resolution (2GN.33) are complete; material↔classification integration (2GN.27) and several other
+  2GN.x tasks remain
 
 **What's specified but unbuilt**:
 
@@ -370,7 +382,7 @@ When making any design decision, these take precedence.
 ### When Adding a Feature
 
 1. Check if it's already specified in docs 00-13
-2. If yes: implement per spec in the appropriate milestone task (`docs/roadmaps/mvp.md`)
+2. If yes: implement per spec in the appropriate roadmap task (`docs/roadmaps/`)
 3. If no: check against design pillars (doc 02)
 4. Ensure it fits the data flow (engine → stores → components)
 
@@ -400,15 +412,14 @@ When making any design decision, these take precedence.
 From doc 09: A developer-facing UI at `/dev/explorer` for testing each system as it's built. Not the
 player UI.
 
-Features grow per milestone (see the Explorer-extension tasks in each milestone of
-`docs/roadmaps/mvp.md`):
+Features grow per phase (see the Explorer tasks inside each phase's thematic milestones in
+`docs/roadmaps/`):
 
-- Milestone 1: Seed input, PRNG output display, type index
-- Milestone 2: Structure viewer, plausibility panel, tag inspector, material/decoration/description
-  viewers, corpus browser
-- Milestone 3: Chronology timeline, culture profiles, store inspector
-- Later milestones: Lens testing, contradiction inspection, document lineage, career state, NPC
-  panels
+- Foundation: Seed input, PRNG output display, type index
+- Generation Pipeline: Structure viewer, plausibility panel, tag inspector,
+  material/decoration/description viewers, corpus browser
+- World State & Integration: Chronology timeline, culture profiles, store inspector
+- Later phases: Lens testing, contradiction inspection, document lineage, career state, NPC panels
 
 ## Migration Notes
 
@@ -433,7 +444,8 @@ tasks (pipeline at 2GN.x, stores at 3WS.x).
 ## References
 
 - `.claude/roadmaps.json`: Execution roadmap (TASK SEQUENCE — authoritative for what to build next)
-- `docs/roadmaps/mvp.md`: Human-readable roadmap projection (delivery notes, dependency diagram)
+- `docs/roadmaps/`: Human-readable roadmap projections, one per phase (delivery notes, dependency
+  diagrams), indexed by `docs/roadmaps/README.md`
 - Doc 00: Project overview (navigation guide)
 - Doc 01: Project audit (historical snapshot of the pre-reset codebase)
 - Doc 02: Design pillars
@@ -443,7 +455,7 @@ tasks (pipeline at 2GN.x, stores at 3WS.x).
 - Doc 06: Knowledge & contradiction model
 - Doc 07: Career & social systems
 - Doc 08: Technical architecture (THIS IS YOUR BUILD GUIDE)
-- Doc 09: Implementation roadmap narrative (source doc for mvp.md; design rationale)
+- Doc 09: Implementation roadmap narrative (source doc for the phase roadmaps; design rationale)
 - Doc 10: Document tradition system
 - Doc 11: Deferred design questions (locked decisions)
 - Doc 12: Propagation register (cross-doc consistency log)

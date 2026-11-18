@@ -129,7 +129,7 @@ const RELATIVE_COUNT = CLASSIFICATION_RULES.filter((rule) => {
  * it means nothing.
  *
  * **A bare "all N rules" is deliberately not matched.** It reads as a total but is just as often a
- * subset — `docs/roadmaps/mvp.md` uses "not all 34 rules the ruling's selector catches" for the
+ * subset — `docs/roadmaps/generation-pipeline.md` uses "not all 34 rules the ruling's selector catches" for the
  * relative count, correctly. Nothing in the phrase distinguishes the two, so matching it produced
  * false positives on prose that was right. The qualified forms below are unambiguous.
  *
@@ -477,18 +477,22 @@ Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.
 
 Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)', async () => {
 	const roadmap: {
+		name: string;
 		milestones: { id: string; tasks: { status: string }[] }[];
 	}[] = JSON.parse(await Deno.readTextFile(new URL('../.claude/roadmaps.json', import.meta.url)));
-	const phase = roadmap[0];
-	const total = phase.milestones.reduce((n, m) => n + m.tasks.length, 0);
-	const done = phase.milestones.reduce(
-		(n, m) => n + m.tasks.filter((t) => t.status === 'done').length,
-		0,
-	);
-	const m2 = phase.milestones.find((m) => m.id === 'M2');
-	if (!m2) throw new Error('Milestone 2 not found in .claude/roadmaps.json — has the id changed?');
-	const m2Total = m2.tasks.length;
-	const m2Done = m2.tasks.filter((t) => t.status === 'done').length;
+	// The MVP spans every phase since the 2026-11-18 split (one phase per former milestone), so the
+	// totals count across all of them, archived ones included.
+	const allTasks = roadmap.flatMap((phase) => phase.milestones.flatMap((m) => m.tasks));
+	const total = allTasks.length;
+	const done = allTasks.filter((t) => t.status === 'done').length;
+	// The former Milestone 2 is now the Generation Pipeline phase.
+	const generation = roadmap.find((phase) => phase.name === 'Generation Pipeline');
+	if (!generation) {
+		throw new Error('Generation Pipeline phase not found in .claude/roadmaps.json: renamed?');
+	}
+	const generationTasks = generation.milestones.flatMap((m) => m.tasks);
+	const m2Total = generationTasks.length;
+	const m2Done = generationTasks.filter((t) => t.status === 'done').length;
 
 	// "…rebuilt against a 328-task MVP roadmap; 95 tasks were done…Milestone 2…at 55 of 110 tasks."
 	const ROADMAP_TOTAL = /\b(\d+)-task MVP roadmap\b/;
@@ -551,7 +555,9 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 					file: path,
 					line: index + 1,
 					text: split_m[0],
-					problem: `states ${split_m[1]} of ${split_m[2]}; Milestone 2 has ${m2Done} of ${m2Total}`,
+					problem: `states ${split_m[1]} of ${
+						split_m[2]
+					}; Generation Pipeline has ${m2Done} of ${m2Total}`,
 				});
 			}
 			const regDone_m = line.match(REGISTER_DONE);

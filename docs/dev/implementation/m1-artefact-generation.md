@@ -1,11 +1,11 @@
 # Milestone 1 — Artefact Generation (CFG-First Anatomy with Blueprint Output)
 
-> **Historical note:** this document predates `docs/roadmaps/mvp.md`'s current task scheme (1FD.x,
-> 2GN.x, 3WS.x, …). "Milestone 1" here does **not** correspond to mvp.md's Milestone 1 (Foundation)
-> — this document's scope (CFG-first anatomy, blueprint output) maps roughly onto mvp.md's Milestone
-> 2 (Generation Pipeline). Kept for historical design rationale — roadmap task 1FD.11 cites it as
-> the origin of `MaterialDefinition`'s `{id, displayName, tags}` shape — not as a current task list.
-> Take task selection and completion state from `docs/roadmaps/mvp.md`.
+> **Historical note:** this document predates the current roadmap's task scheme (1FD.x, 2GN.x,
+> 3WS.x, …). "Milestone 1" here does **not** correspond to the Foundation phase; its scope
+> (CFG-first anatomy, blueprint output) maps roughly onto the Generation Pipeline phase. Kept for
+> historical design rationale (roadmap task 1FD.11 cites it as the origin of `MaterialDefinition`'s
+> `{id, displayName, tags}` shape), not as a current task list. Take task selection and completion
+> state from `.claude/roadmaps.json`, projected in `docs/roadmaps/`.
 
 ## Purpose
 

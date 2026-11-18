@@ -5,7 +5,7 @@ _February 2026_
 > **Historical snapshot (February 2026).** This audit describes the pre-reset codebase. The src/
 > code and milestone specs referenced below were removed in the build/reset-for-launch reset;
 > surviving fragments live in backlog/. For current status see .claude/CLAUDE.md and
-> docs/roadmaps/mvp.md.
+> docs/roadmaps/README.md.
 
 ---
 

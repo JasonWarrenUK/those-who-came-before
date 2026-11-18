@@ -1,11 +1,10 @@
 # Milestone 3 — Subjective World State (Player Knowledge Model)
 
-> **Historical note:** this document predates `docs/roadmaps/mvp.md`'s current task scheme (1FD.x,
-> 2GN.x, 3WS.x, 5KN.x, …). "Milestone 3" here does **not** correspond to mvp.md's Milestone 3 (World
-> State & Integration) — this document's scope (subjective interpretation: notes, hypotheses,
-> inferred traits) maps roughly onto mvp.md's Milestone 5 (Knowledge Model). Kept for historical
-> design rationale, not as a current task list. Take task selection and completion state from
-> `docs/roadmaps/mvp.md`.
+> **Historical note:** this document predates the current roadmap's task scheme (1FD.x, 2GN.x,
+> 3WS.x, 5KN.x, …). "Milestone 3" here does **not** correspond to the World State & Integration
+> phase; its scope (subjective interpretation: notes, hypotheses, inferred traits) maps roughly onto
+> the Knowledge Model phase. Kept for historical design rationale, not as a current task list. Take
+> task selection and completion state from `.claude/roadmaps.json`, projected in `docs/roadmaps/`.
 
 ## Purpose
 

@@ -50,7 +50,7 @@
 ├── 05-generation-architecture.md     # these pages' main source
 ├── 11-deferred-design-questions.md   # locked decisions
 ├── 12-propagation-register.md        # cross-document correction ledger
-├── roadmaps/mvp.md                   # task-level plan (projection of roadmaps.json)
+├── roadmaps/                         # task-level plan, one file per phase (projections of roadmaps.json)
 └── spikes/                           # one write-up per design spike, named by task id</code></pre>
 
   <h2>What happens when the spec is wrong</h2>
@@ -89,7 +89,7 @@
   <p>Start with doc 02 (the six pillars), then doc 03 (the systems map), then doc 05 with these pages beside it; doc 00 carries reading orders for other purposes (implementing, reviewing, catching up on decisions). For code, <code>src/lib/engine/prng.ts</code> then <code>src/lib/engine/generation/grammar.ts</code> top to bottom. Start each module at its JSDoc block: the contracts live there, several run longer than the code beneath them, and the doc-12 cross-references inside them are load-bearing rather than decorative.</p>
 
   <div class="srcbox"><span class="tag">Where it lives</span>
-    Docs: <code>docs/00</code>–<code>13</code> · Spikes: <code>docs/spikes/</code> · Roadmap: <code>docs/roadmaps/mvp.md</code> (projection of <code>.claude/roadmaps.json</code>) · Agent guide: <code>.claude/CLAUDE.md</code>
+    Docs: <code>docs/00</code>–<code>13</code> · Spikes: <code>docs/spikes/</code> · Roadmap: <code>docs/roadmaps/</code> (per-phase projections of <code>.claude/roadmaps.json</code>) · Agent guide: <code>.claude/CLAUDE.md</code>
   </div>
 </article>
 </main>

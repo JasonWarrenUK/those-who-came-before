@@ -1,10 +1,10 @@
 # Milestone 2 — Objective World State (Cultures + Chronology)
 
-> **Historical note:** this document predates `docs/roadmaps/mvp.md`'s current task scheme (1FD.x,
-> 2GN.x, 3WS.x, …). "Milestone 2" here does **not** correspond to mvp.md's Milestone 2 (Generation
-> Pipeline) — this document's scope (objective world state: cultures, chronology) maps roughly onto
-> mvp.md's Milestone 3 (World State & Integration). Kept for historical design rationale, not as a
-> current task list. Take task selection and completion state from `docs/roadmaps/mvp.md`.
+> **Historical note:** this document predates the current roadmap's task scheme (1FD.x, 2GN.x,
+> 3WS.x, …). "Milestone 2" here does **not** correspond to the Generation Pipeline phase; its scope
+> (objective world state: cultures, chronology) maps roughly onto the World State & Integration
+> phase. Kept for historical design rationale, not as a current task list. Take task selection and
+> completion state from `.claude/roadmaps.json`, projected in `docs/roadmaps/`.
 
 ## Purpose
 
