@@ -102,6 +102,18 @@ Deno.test('diegesis guard: different groundTruthTags produce an identical presen
 	);
 });
 
+Deno.test('diegesis guard: the occluded stratum never reaches the presentation (roadmap 2GN.165)', () => {
+	const commoner = artefact();
+	const elite = artefact({
+		stratum: 'elite',
+		features: { ...commoner.features, madeForEliteStratum: true },
+	});
+	assertEquals(
+		generateDescription(commoner, ['observational', 'interpretive', 'technical']),
+		generateDescription(elite, ['observational', 'interpretive', 'technical']),
+	);
+});
+
 Deno.test('foregrounds observational when available, regardless of list order', () => {
 	const a = artefact();
 	const result = generateDescription(a, ['technical', 'interpretive', 'observational']);

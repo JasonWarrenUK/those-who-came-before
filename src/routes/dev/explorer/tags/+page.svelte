@@ -37,6 +37,7 @@ const FEATURE_SECTIONS: { group: FeatureGroup; title: string; note?: string }[] 
 	{ group: 'structural', title: 'Structural' },
 	{ group: 'decorative', title: 'Decorative' },
 	{ group: 'material', title: 'Material' },
+	{ group: 'occluded', title: 'Occluded', note: 'ground truth; no agent observes these' },
 	{ group: 'complexity', title: 'Complexity' },
 	{ group: 'mechanical', title: 'Mechanical', note: 'no rule may read these' },
 ];

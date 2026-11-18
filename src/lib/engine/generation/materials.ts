@@ -26,6 +26,7 @@
  */
 
 import type {
+	ArtefactStratum,
 	MaterialAssignment,
 	MaterialDefinition,
 	MaterialProvenance,
@@ -90,13 +91,9 @@ const STANDING_BY_LEVEL: Readonly<Record<AvailabilityLevel, number>> = {
 	'absent': 1 / SCARCITY_WEIGHT['trade-only'],
 };
 
-/**
- * Which social stratum an artefact was made for (doc 11 §2.9, roadmap 2GN.27). Drawn once per
- * artefact in `assignMaterials` from `society.stratification`; an elite artefact favours prized
- * materials, a commoner artefact avoids them. Not recorded on the artefact: it manifests through
- * the materials, which is what a scholar reads.
- */
-export type ArtefactStratum = 'elite' | 'commoner';
+// `ArtefactStratum` lives in `types/artefact.ts` since roadmap 2GN.165 recorded it on
+// `ClassifiedArtefact`; re-exported here so engine callers keep importing it beside `drawStratum`.
+export type { ArtefactStratum };
 
 /**
  * Share of a fully stratified culture's output made for its elite. `P(elite) = stratification ×`

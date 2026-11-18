@@ -444,7 +444,7 @@ function measureFireRates(): {
 					artefact,
 					layers,
 					assignments,
-					{ culture, phase, geology: world.geology },
+					{ culture, phase, geology: world.geology, stratum },
 					MATERIALS,
 				);
 

@@ -78,6 +78,7 @@ function mockExtractedFeatures(): ExtractedFeatures {
 		motifCulturalOrigins: [],
 		techniqueComplexity: 0,
 		preciousMaterialsInDecoration: false,
+		madeForEliteStratum: false,
 		materialStanding: 0,
 		functionalComplexity: 0.5,
 		decorativeComplexity: 0,
@@ -138,6 +139,7 @@ export function neutralExtractedFeatures(
 		motifCulturalOrigins: [],
 		techniqueComplexity: 0,
 		preciousMaterialsInDecoration: false,
+		madeForEliteStratum: false,
 		materialStanding: 0,
 		functionalComplexity: 0,
 		decorativeComplexity: 0,
@@ -270,8 +272,9 @@ export function mockNormalisedArtefact(
 
 /**
  * Builds a mock `ClassifiedArtefact`: a `mockNormalisedArtefact` base plus one material
- * assignment, no decorative layers, a full `ExtractedFeatures` set, ground-truth tags, a neutral
- * physical label and a valid `Provenance`. `materials[0].componentId` matches the base
+ * assignment, no decorative layers, a full `ExtractedFeatures` set, a commoner `stratum` (matching
+ * `features.madeForEliteStratum: false`), ground-truth tags, a neutral physical label and a valid
+ * `Provenance`. `materials[0].componentId` matches the base
  * component's `id` by default so the fixture reads coherently on its own.
  *
  * Overrides replace whole top-level branches rather than deep-merging, matching
@@ -296,6 +299,7 @@ export function mockArtefact(overrides: Partial<ClassifiedArtefact> = {}): Class
 		materials,
 		decorativeLayers: [],
 		features: mockExtractedFeatures(),
+		stratum: 'commoner',
 		groundTruthTags: new Map<ArtefactTag, number>([
 			['tool', 0.8],
 			['utilitarian', 0.6],

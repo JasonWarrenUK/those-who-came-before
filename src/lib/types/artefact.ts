@@ -457,6 +457,15 @@ export interface NormalisedArtefact {
 }
 
 /**
+ * Which social stratum an artefact was made for (doc 11 §2.9, roadmap 2GN.27). Drawn once per
+ * artefact by `drawStratum` (`engine/generation/materials.ts`) from `society.stratification`; an
+ * elite artefact favours prized materials, a commoner artefact avoids them. Recorded on
+ * `ClassifiedArtefact.stratum` as an occluded fact (roadmap 2GN.165): scholars see only the
+ * materials it shaped.
+ */
+export type ArtefactStratum = 'elite' | 'commoner';
+
+/**
  * The single unified feature set extracted once across a complete artefact — structure, materials
  * and decorative layers together (doc 05 §9.1). Consumed by classification rules (doc 05 §9.2,
  * `ClassificationRule` in tags.ts) to score function and context tags. Every feature is traceable
@@ -471,7 +480,8 @@ export interface NormalisedArtefact {
  * too coarse to carry that rule set (e.g. distinguishing a paring knife from a dagger needs the
  * edged component's own sharpness and length, not just `hasEdge`). Every new field's exact union
  * matches a real primitive parameter vocabulary; see `classification.ts`'s module JSDoc for the
- * signal-to-field mapping. **Boundary**: `portability`/`inspectionDepth` are mechanical (doc 05
+ * signal-to-field mapping. **Exception**: `madeForEliteStratum` (roadmap 2GN.165) is occluded and
+ * traces to the stage-6 stratum draw, with no source component or layer. **Boundary**: `portability`/`inspectionDepth` are mechanical (doc 05
  * §5.2 handling/inspection) and must never be read by a classification rule — `massBand`/`sizeBand`
  * are the physical-fact equivalents rules should use instead (doc 12 propagation register).
  */
@@ -686,6 +696,22 @@ export interface ExtractedFeatures {
 	 */
 	preciousMaterialsInDecoration: boolean;
 
+	// Occluded
+	/**
+	 * Whether the artefact was made for its culture's elite stratum: `ClassifiedArtefact.stratum ===
+	 * 'elite'`, carried into the feature set so a classification rule can award the social `elite`
+	 * tag from the stratum itself (roadmap 2GN.164 ruling 2, doc 11 §2.24; the rule lands at
+	 * 2GN.166). Populated by `extractFeatures` from `ProductionContext.stratum`; `false` when no
+	 * context is supplied, the same honest no-evidence default the other context-dependent fields
+	 * use.
+	 *
+	 * Visibility: **occluded**, unlike every physical feature above. No agent observes who an object
+	 * was made for; the player sees only the material and decoration markers the stratum draw left
+	 * behind, so a commoner holding prized materials in a rich culture is a genuine misreading.
+	 * Nothing player-facing may read this field.
+	 */
+	madeForEliteStratum: boolean;
+
 	// Material
 	/**
 	 * The highest `MaterialAssignment.standing` across the artefact's structural components (doc 11
@@ -740,6 +766,15 @@ export interface ClassifiedArtefact extends NormalisedArtefact {
 
 	/** The unified extracted feature set (doc 05 §9.1). */
 	features: ExtractedFeatures;
+
+	/**
+	 * The social stratum the artefact was made for, as drawn by `drawStratum` at stage 6 and shared
+	 * by `assignMaterials` and `assignDecorativeDetails` (roadmap 2GN.27, 2GN.68, 2GN.165). The ground
+	 * truth behind the social `elite` tag (roadmap 2GN.164 ruling 2). Visibility: occluded. Hidden
+	 * from the player and from every agent's interpretive model; agents read only the materials and
+	 * decoration it shaped. Always equals `features.madeForEliteStratum ? 'elite' : 'commoner'`.
+	 */
+	stratum: ArtefactStratum;
 
 	/**
 	 * The true function/context tag scores (doc 05 §9.2–§9.3). Visibility: occluded — never

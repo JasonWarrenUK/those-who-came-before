@@ -208,7 +208,7 @@ export function sampleBaselines(
 			artefact,
 			layers,
 			assignments,
-			{ culture: target.profile, phase: target.phase, geology: target.geology },
+			{ culture: target.profile, phase: target.phase, geology: target.geology, stratum },
 			materials,
 		);
 

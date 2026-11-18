@@ -600,19 +600,19 @@ Deno.test('extractFeatures: motifCulturalOrigins resolves motifRef against the p
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [], 'test-motif')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 	const nativePlusBorrowed = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [layer('inlay', [], 'diffusion-motif')], 'test-motif')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 	const unresolvable = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving', [], 'no-such-motif')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 
 	// A single native motif reads one origin, the culture's own id — never double-counted (every
@@ -638,24 +638,44 @@ Deno.test('extractFeatures: preciousMaterialsInDecoration reads materialStanding
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('inlay', [], undefined, 0.5, 'iron')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 	const withUnprized = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('inlay', [], undefined, 0.5, 'bronze')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 	const noLayerMaterial = extractFeatures(
 		artefactOf([component('c0', 'bar-form')]),
 		[layer('engraving')],
 		[],
-		{ culture, phase, geology },
+		{ culture, phase, geology, stratum: 'commoner' },
 	);
 
 	assertEquals(withPrized.preciousMaterialsInDecoration, true);
 	assertEquals(withUnprized.preciousMaterialsInDecoration, false);
 	assertEquals(noLayerMaterial.preciousMaterialsInDecoration, false);
+});
+
+// --- Occluded stratum ----------------------------------------------------------------------------------------------
+
+Deno.test('extractFeatures: madeForEliteStratum copies the context stratum and is false without context (roadmap 2GN.165)', () => {
+	const artefact = artefactOf([component('c0', 'bar-form')]);
+	const world = {
+		culture: mockCulturalProfile(),
+		phase: mockPhaseCharacteristics(),
+		geology: mockGeologicalContext(),
+	};
+
+	const elite = extractFeatures(artefact, [], [], { ...world, stratum: 'elite' });
+	const commoner = extractFeatures(artefact, [], [], { ...world, stratum: 'commoner' });
+
+	assertEquals(elite.madeForEliteStratum, true);
+	assertEquals(commoner.madeForEliteStratum, false);
+	assertEquals(extractFeatures(artefact).madeForEliteStratum, false);
+	// The stratum moves nothing physical: every other field is identical across the two draws.
+	assertEquals({ ...elite, madeForEliteStratum: false }, commoner);
 });
 
 // --- Combined complexity -----------------------------------------------------------------------------------------
