@@ -2007,7 +2007,8 @@
 							"2GN.164"
 						],
 						"notes": "Per 2GN.164 ruling 2. Breaking: `ClassifiedArtefact` gains a required field, so `mockArtefact`, the Explorer description, tag and calibration copies, and `types/save.ts` need updating. The stratum is occluded (never in a `PropertyVisibility` above `occluded`); the player sees only the material and decoration markers.",
-						"assignee": "Jason Warren"
+						"assignee": "Jason Warren",
+						"started": "2026-11-18"
 					},
 					{
 						"id": "2GN.166",
