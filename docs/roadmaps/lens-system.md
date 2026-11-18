@@ -4,8 +4,8 @@
 (goblin-scout 3.x); promote it once the phase before it is done. Index: [roadmaps](README.md).
 
 **Gate G1:** Knowledge Model phase complete. Stands in for the cross-phase edge to Knowledge Model.
-Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark
-the gate done.
+Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty
+the gate's blocks, mark the gate done, then run roadmap.py recompute and validate.
 
 ---
 

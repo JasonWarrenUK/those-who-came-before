@@ -249,9 +249,10 @@ The execution roadmap lives in **`.claude/roadmaps.json`** (canonical: task IDs,
 thematic milestones, task lines, checkbox completion state and the dependency diagram, plus a
 dashboard at `docs/artefacts/roadmap-{phase}.html`. `docs/roadmaps/README.md` indexes them. Take
 task selection and completion state from the JSON; read the phase file for the per-task delivery
-notes and design commentary the JSON doesn't carry. Doc 09 is the narrative source the roadmap was
-derived from (24 phases with design rationale); when they diverge on sequencing, the roadmap
-governs.
+notes and design commentary the JSON doesn't carry. Cross-phase `Extends {ID}` references are the
+exception: they live only in each task's JSON `notes` field, and neither the phase files nor the
+dashboards render them yet. Doc 09 is the narrative source the roadmap was derived from (24 phases
+with design rationale); when they diverge on sequencing, the roadmap governs.
 
 Phase sequence: Foundation (types, PRNG, tests, Explorer shell; complete) → Generation Pipeline
 (active) → World State & Integration → Player Interface → Knowledge Model → Lens System →
@@ -260,9 +261,12 @@ milestone numbering (1FD, 2GN, 3WS … 10NP, plus 11SM for the stack migration).
 
 Only one phase is active. Future phases are stored with `archived: true` as a stand-in for a planned
 state the roadmap plugin does not have yet (goblin-scout 3.x will add one). Each carries an external
-gate `G1` ("{previous phase} phase complete") on its entry task; promoting a phase means lifting
-that gate, archiving the finished phase and un-archiving the next. Dependencies resolve only within
-a phase, so cross-phase edges were turned into `Extends {ID}` notes in the 2026-11-18 split.
+gate `G1` ("{previous phase} phase complete") on its entry task. Promoting a phase means lifting
+that gate (remove `G1` from the entry task's `dependsOn`, empty the gate's `blocks`, mark it done),
+archiving the finished phase, un-archiving the next, then running `roadmap.py recompute` and
+`validate`: `validate` rejects a `blocks` entry that no longer depends on the gate, even once the
+gate is done, so clearing `dependsOn` alone fails. Dependencies resolve only within a phase, so
+cross-phase edges were turned into `Extends {ID}` notes in the 2026-11-18 split.
 
 **Each phase produces something runnable and testable.** The Project Explorer (`/dev/explorer`) is
 the developer workbench that grows with each milestone.

@@ -5,7 +5,8 @@
 
 **Gate G1:** World State & Integration phase complete. Stands in for the cross-phase edge to World
 State & Integration. Lift it when this phase is promoted to active: remove G1 from each blocked
-task's dependsOn and mark the gate done.
+task's dependsOn, empty the gate's blocks, mark the gate done, then run roadmap.py recompute and
+validate.
 
 ---
 

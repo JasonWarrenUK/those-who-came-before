@@ -2235,7 +2235,7 @@
 				"blocks": [
 					"3WS.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Generation Pipeline. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Generation Pipeline. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -2502,7 +2502,7 @@
 				"blocks": [
 					"4UI.1"
 				],
-				"notes": "Stands in for the cross-phase edge to World State & Integration. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to World State & Integration. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -2618,7 +2618,7 @@
 				"blocks": [
 					"5KN.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Player Interface. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Player Interface. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -2894,7 +2894,7 @@
 				"blocks": [
 					"6LS.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Knowledge Model. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Knowledge Model. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -3094,7 +3094,7 @@
 				"blocks": [
 					"7CD.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Lens System. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Lens System. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -3438,7 +3438,7 @@
 				"blocks": [
 					"8PS.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Contradictions. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Contradictions. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -3564,7 +3564,7 @@
 				"blocks": [
 					"9CR.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Persistence. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Persistence. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [
@@ -3968,7 +3968,7 @@
 				"blocks": [
 					"10NP.1"
 				],
-				"notes": "Stands in for the cross-phase edge to Career & Publication. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn and mark the gate done."
+				"notes": "Stands in for the cross-phase edge to Career & Publication. Lift it when this phase is promoted to active: remove G1 from each blocked task's dependsOn, empty the gate's blocks (validate rejects a blocks entry that no longer depends on the gate, even when the gate is done), mark the gate done, then run roadmap.py recompute and validate."
 			}
 		],
 		"milestones": [

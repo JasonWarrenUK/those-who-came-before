@@ -5,7 +5,7 @@
 
 **Gate G1:** Career & Publication phase complete. Stands in for the cross-phase edge to Career &
 Publication. Lift it when this phase is promoted to active: remove G1 from each blocked task's
-dependsOn and mark the gate done.
+dependsOn, empty the gate's blocks, mark the gate done, then run roadmap.py recompute and validate.
 
 ---
 
