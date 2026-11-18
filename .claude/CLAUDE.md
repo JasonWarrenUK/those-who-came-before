@@ -57,7 +57,7 @@ do not work here.
 deno task dev            # Dev server with HMR
 deno task build          # Production build
 deno task preview        # Preview production build
-deno task check          # Type checking (svelte-check via deno)
+deno task check          # Type checking (svelte-check via deno, then check:scripts for scripts/dev/)
 deno fmt                 # Format (replaced Prettier)
 deno lint                # Lint (replaced ESLint)
 deno task test           # Run tests (--allow-env --allow-read; runner config lands with task 1FD.34)
