@@ -315,14 +315,17 @@ oriented artefacts
       reversal-invariant — reverse the component and it still reads "one end" while which end has
       silently changed, with no data recording which it was. `none` and `both-ends` are symmetric
       and survive reversal untouched; `single-end` is the sole asymmetric value in the parameter. No
-      production code reads it today (`hasImpactSurfaceIn` tests `bar-form`'s taper only for
-      `'none'`; `bladeProfile` reads `elongated`'s symmetric taper instead), so nothing breaks now —
-      but this spike must either make `single-end` a claim about the oriented axis or accept that
-      reversal silently corrupts it
+      classification rule reads it today (`hasImpactSurfaceIn` tests `bar-form`'s taper only for
+      `'none'`; `bladeProfile` reads `elongated`'s symmetric taper instead), but the description
+      layer does: `data/descriptions/observational/bar-form.ts:43` interpolates it into "The form
+      narrows with a #taper# taper." and `interpretive/bar-form.ts:69` reads a single-end taper as
+      the working end of a tool. Nothing breaks now, since nothing reverses yet; this spike must
+      either make `single-end` a claim about the oriented axis or accept that reversal silently
+      corrupts both the value and the player-facing prose built on it
 - [ ] **2GN.116** — design spike — should component roles (grip-system, head-system and whatever
-      else the vocabulary needs) become first-class grammar output? _(unblocked)_ — filed 2026-08-13
-      from the 2GN.108 spike session. All three rules in `data/plausibility.ts` are explicitly
-      proxies standing in for an absent role concept: `hasGrippableSecondComponent` merely counts
+      else the vocabulary needs) become first-class grammar output? — filed 2026-08-13 from the
+      2GN.108 spike session. All three rules in `data/plausibility.ts` are explicitly proxies
+      standing in for an absent role concept: `hasGrippableSecondComponent` merely counts
       components, `hasAdequateGripLength` looks for some other medium/long `bar-form`/`elongated`
       component anywhere on the artefact (its own comment conceding a `disc-form` elsewhere "says
       nothing about grip length"), and `hasRigidShaft` accepts any rigid `sheet-form`/`bar-form`
@@ -414,10 +417,10 @@ oriented artefacts
       carries no live consequence yet — but 2GN.118 noted that "harmless because unread" is exactly
       what let `base-pointed-amphora` sit broken
 - [ ] **2GN.122** — design spike — is there one aperture model, and does it subsume `perforation`?
-      _(unblocked; soft-depends on 2GN.118)_ — filed 2026-08-13 from the 2GN.118 spike session,
-      cases (b) `opening` and (c) `perforation`. 2GN.118 ruled that `opening` is not one axis but at
-      least two crushed into one field: **presence/count** (`closed` and `none` are the same
-      physical fact, scored identically at 0 by `OPENNESS_BY_OPENING`) and **aperture size**
+      _(soft-depends on 2GN.118)_ — filed 2026-08-13 from the 2GN.118 spike session, cases (b)
+      `opening` and (c) `perforation`. 2GN.118 ruled that `opening` is not one axis but at least two
+      crushed into one field: **presence/count** (`closed` and `none` are the same physical fact,
+      scored identically at 0 by `OPENNESS_BY_OPENING`) and **aperture size**
       (`wide`/`narrow`/`slit`). It also ruled the two primitives' vocabularies commensurable —
       `OPENNESS_BY_OPENING` already ranks all seven values on one 0–1 scale, and three shipped rules
       pair the cylinder and vessel labels as synonyms by hand, which is the rule layer compensating
@@ -1124,8 +1127,8 @@ with standing and provenance
       leather), which archaeologically common materials earn a slot (shell, amber, horn, pigments,
       composites), whether new `MaterialTag` members are admitted, and the per-candidate
       recalibration cost (`EXPECTED_TAG_SHARES`/`EXPECTED_INTRA_TAG_SHARES` move; every authored
-      `materialAffinities` entry array and the 2GN.128 validator verdicts are touched) _(unblocked)_
-      _(blocked: depends on M1)_
+      `materialAffinities` entry array and the 2GN.128 validator verdicts are touched) _(blocked:
+      depends on M1)_
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no
     doc section defines selection criteria or a target catalogue size, and the change is
     calibration-shifting. This spike rules the scope; 2GN.124 implements it.
@@ -2148,8 +2151,8 @@ culture-relative baselines
       the three attributes to 1.0 for the spike. Not a pipeline defect; a fixture coverage gap with
       no reusable preset today
 - [ ] **2GN.119** — design spike — should classification conditions read _relations between
-      components_ rather than isolated component properties? _(unblocked)_ — filed 2026-08-13 by the
-      2GN.97 ruling. Measured over the 43 rules shipped at the time: **10 of the 24 unmigrated rules
+      components_ rather than isolated component properties? — filed 2026-08-13 by the 2GN.97
+      ruling. Measured over the 43 rules shipped at the time: **10 of the 24 unmigrated rules
       condition on exactly one property** (`f.x === 'value'` and nothing else) — both `base-*`
       rules, all three `perforation-*`, both `ring-*`, both `sheet-*` and `size-small-personal`. A
       further 7 read two properties describing the **same** component (the container rules pair
@@ -2415,7 +2418,7 @@ ambiguity mix
       bands (~30-40% clear / ~40-50% moderate / ~20-30% high) trace to no doc section. Rule the
       scoring formula (candidate inputs: classification-rule fire counts and margins, tag ambiguity,
       occluded-property coverage) and re-derive or ratify the bands against measured generator
-      output _(unblocked)_ _(blocked: depends on M1)_
+      output _(blocked: depends on M1)_
   - Note: Filed 2026-08-20 from the M2 dependency audit: 2GN.45 and 2GN.46 both require a metric doc
     05 deliberately left qualitative, and 2GN.45's bands appear to originate in the roadmap task
     text itself. Blocks both.
