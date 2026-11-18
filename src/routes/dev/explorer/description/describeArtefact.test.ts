@@ -20,6 +20,19 @@ Deno.test('describeArtefact — is deterministic for the same seed, culture and 
 	);
 });
 
+Deno.test('describeArtefact: the artefact stratum and madeForEliteStratum come from one draw (roadmap 2GN.165)', () => {
+	// Xoconahtl's stratification (0.85) puts eliteShare at 0.34, so 40 seeds all but guarantee both
+	// strata appear and the agreement check is not vacuous.
+	const xoconahtl = EXPLORER_CULTURES.find((culture) => culture.id === 'xoconahtl')!;
+	const strata = new Set<string>();
+	for (let i = 0; i < 40; i++) {
+		const { artefact } = describeArtefact(`desc-stratum-${i}`, xoconahtl, ALL_REGISTERS);
+		assertEquals(artefact.features.madeForEliteStratum, artefact.stratum === 'elite');
+		strata.add(artefact.stratum);
+	}
+	assertEquals(strata, new Set(['elite', 'commoner']));
+});
+
 Deno.test('describeArtefact — one entry per component, in position order', () => {
 	const model = describeArtefact('desc-components', khaltiris, ALL_REGISTERS);
 	assertEquals(model.components.length, model.artefact.components.length);

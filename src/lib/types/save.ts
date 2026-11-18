@@ -126,7 +126,9 @@ export interface SerialisedWorldState {
 
 	/**
 	 * Generated artefacts with occluded ground truth (doc 08 §3.3). Converts each artefact's
-	 * `components[].properties` and `groundTruthTags` Maps.
+	 * `components[].properties` and `groundTruthTags` Maps. The occluded `stratum` (roadmap 2GN.165)
+	 * is a string union and passes through unchanged; it must persist, since the stratum draw is not
+	 * recoverable from the saved materials alone.
 	 */
 	artefacts: Serialised<ClassifiedArtefact>[];
 

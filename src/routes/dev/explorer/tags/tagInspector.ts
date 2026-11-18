@@ -77,7 +77,13 @@ export interface ScoredTag {
 }
 
 /** Which part of the feature contract a field belongs to, for grouping in the panel. */
-export type FeatureGroup = 'structural' | 'decorative' | 'material' | 'complexity' | 'mechanical';
+export type FeatureGroup =
+	| 'structural'
+	| 'decorative'
+	| 'material'
+	| 'occluded'
+	| 'complexity'
+	| 'mechanical';
 
 /** One `ExtractedFeatures` field, ready to display. */
 export interface FeatureReading {
@@ -145,6 +151,9 @@ const TAG_ORDER: readonly Tag[] = [...ABSOLUTE_TAGS, ...RELATIVE_TAGS];
  * classification rule may read them — doc 12 §2.19 fixed that boundary (`massBand`/`sizeBand` are
  * the physical-fact equivalents rules use instead), and `classification.test.ts` enforces it. They
  * are shown so the panel reflects the whole contract, not to imply they feed a score.
+ *
+ * `madeForEliteStratum` is grouped `occluded` (roadmap 2GN.165): it copies the stratum draw and has
+ * no physical counterpart, so the panel labels it as ground truth no agent can observe.
  */
 const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup])[] = [
 	['hasEdge', 'structural'],
@@ -179,6 +188,7 @@ const FEATURE_GROUPS: readonly (readonly [keyof ExtractedFeatures, FeatureGroup]
 	['techniqueComplexity', 'decorative'],
 	['preciousMaterialsInDecoration', 'decorative'],
 	['materialStanding', 'material'],
+	['madeForEliteStratum', 'occluded'],
 	['functionalComplexity', 'complexity'],
 	['decorativeComplexity', 'complexity'],
 	['overallComplexity', 'complexity'],
@@ -327,7 +337,7 @@ export function inspectTags(seed: string, culture: ExplorerCulture): TagInspecti
 		artefact,
 		layers,
 		assignments,
-		{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
+		{ culture: culture.profile, phase: culture.phase, geology: culture.geology, stratum },
 		MATERIALS,
 	);
 	// Nine rules now read a ClassificationContext (roadmap 2GN.82); the baseline is memoised per

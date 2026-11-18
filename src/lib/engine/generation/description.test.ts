@@ -102,6 +102,22 @@ Deno.test('diegesis guard: different groundTruthTags produce an identical presen
 	);
 });
 
+Deno.test('diegesis guard: the occluded stratum never reaches the presentation (roadmap 2GN.165)', () => {
+	const commoner = artefact();
+	const elite = artefact({
+		stratum: 'elite',
+		features: { ...commoner.features, madeForEliteStratum: true },
+	});
+	// One register per call: generateDescription renders only the register it foregrounds, so a
+	// combined list would compare the observational templates alone.
+	for (const register of ['observational', 'interpretive', 'technical'] as const) {
+		assertEquals(
+			generateDescription(commoner, [register]),
+			generateDescription(elite, [register]),
+		);
+	}
+});
+
 Deno.test('foregrounds observational when available, regardless of list order', () => {
 	const a = artefact();
 	const result = generateDescription(a, ['technical', 'interpretive', 'observational']);

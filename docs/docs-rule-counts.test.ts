@@ -129,7 +129,7 @@ const RELATIVE_COUNT = CLASSIFICATION_RULES.filter((rule) => {
  * it means nothing.
  *
  * **A bare "all N rules" is deliberately not matched.** It reads as a total but is just as often a
- * subset — `docs/roadmaps/mvp.md` uses "not all 34 rules the ruling's selector catches" for the
+ * subset — `docs/roadmaps/generation-pipeline.md` uses "not all 34 rules the ruling's selector catches" for the
  * relative count, correctly. Nothing in the phrase distinguishes the two, so matching it produced
  * false positives on prose that was right. The qualified forms below are unambiguous.
  *
@@ -477,23 +477,28 @@ Deno.test('docs: no prose states a stale classification-rule count (roadmap 2GN.
 
 Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)', async () => {
 	const roadmap: {
+		name: string;
 		milestones: { id: string; tasks: { status: string }[] }[];
 	}[] = JSON.parse(await Deno.readTextFile(new URL('../.claude/roadmaps.json', import.meta.url)));
-	const phase = roadmap[0];
-	const total = phase.milestones.reduce((n, m) => n + m.tasks.length, 0);
-	const done = phase.milestones.reduce(
-		(n, m) => n + m.tasks.filter((t) => t.status === 'done').length,
-		0,
-	);
-	const m2 = phase.milestones.find((m) => m.id === 'M2');
-	if (!m2) throw new Error('Milestone 2 not found in .claude/roadmaps.json — has the id changed?');
-	const m2Total = m2.tasks.length;
-	const m2Done = m2.tasks.filter((t) => t.status === 'done').length;
+	// The MVP spans every phase since the 2026-11-18 split (one phase per former milestone), so the
+	// totals count across all of them, archived ones included.
+	const allTasks = roadmap.flatMap((phase) => phase.milestones.flatMap((m) => m.tasks));
+	const total = allTasks.length;
+	const done = allTasks.filter((t) => t.status === 'done').length;
+	// The former Milestone 2 is now the Generation Pipeline phase.
+	const generation = roadmap.find((phase) => phase.name === 'Generation Pipeline');
+	if (!generation) {
+		throw new Error('Generation Pipeline phase not found in .claude/roadmaps.json: renamed?');
+	}
+	const generationTasks = generation.milestones.flatMap((m) => m.tasks);
+	const generationTotal = generationTasks.length;
+	const generationDone = generationTasks.filter((t) => t.status === 'done').length;
 
-	// "…rebuilt against a 328-task MVP roadmap; 95 tasks were done…Milestone 2…at 55 of 110 tasks."
+	// "…rebuilt against a 391-task MVP roadmap; 125 tasks were done…The Generation Pipeline
+	// phase…at 85 of 172 tasks."
 	const ROADMAP_TOTAL = /\b(\d+)-task MVP roadmap\b/;
 	const ROADMAP_DONE = /\b(\d+) tasks were done\b/;
-	const M2_SPLIT = /\bat (\d+) of (\d+) tasks\b/;
+	const GENERATION_SPLIT = /\bat (\d+) of (\d+) tasks\b/;
 	// "Forty-two entries had completed…, two pending on unbuilt…" — the one sentence in site/ that
 	// states the propagation register's own counts. Anchored to "entries had completed" / "pending
 	// on" specifically: a bare "N pending" or "no pending" also matches unrelated checklists (doc 00's
@@ -545,13 +550,18 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 					problem: `states ${done_m[1]} done; roadmaps.json has ${done} done`,
 				});
 			}
-			const split_m = line.match(M2_SPLIT);
-			if (split_m && (Number(split_m[1]) !== m2Done || Number(split_m[2]) !== m2Total)) {
+			const split_m = line.match(GENERATION_SPLIT);
+			if (
+				split_m &&
+				(Number(split_m[1]) !== generationDone || Number(split_m[2]) !== generationTotal)
+			) {
 				stale.push({
 					file: path,
 					line: index + 1,
 					text: split_m[0],
-					problem: `states ${split_m[1]} of ${split_m[2]}; Milestone 2 has ${m2Done} of ${m2Total}`,
+					problem: `states ${split_m[1]} of ${
+						split_m[2]
+					}; Generation Pipeline has ${generationDone} of ${generationTotal}`,
 				});
 			}
 			const regDone_m = line.match(REGISTER_DONE);
@@ -582,7 +592,7 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 		stale.length === 0,
 		`${stale.length} prose claim(s) about the roadmap or propagation register are stale:\n` +
 			stale.map((m) => `  ${m.file}:${m.line}  "${m.text}" — ${m.problem}`).join('\n') +
-			`\n\nCurrent state: ${total} roadmap tasks (${done} done), Milestone 2 at ${m2Done} of ` +
-			`${m2Total}, propagation register at ${registerDone} completed / ${registerPending} pending.`,
+			`\n\nCurrent state: ${total} roadmap tasks (${done} done), Generation Pipeline at ` +
+			`${generationDone} of ${generationTotal}, propagation register at ${registerDone} completed / ${registerPending} pending.`,
 	);
 });

@@ -1,14 +1,25 @@
 # Those Who Came Before
 
-**An archaeological artefact discovery game where player mistakes compound into an unreliable narrative**
+**An archaeological artefact discovery game where player mistakes compound into an unreliable
+narrative**
 
 > [!NOTE]
+>
 > ## Up Next
-> 1. The generated scholars get beliefs of their own: each one will hold a set of claims about cultures, artefacts and dates, deliberately right about most and wrong about some, so the corpus the player inherits carries real errors to find.
-> 2. Excavation batches: artefacts dug together, with a burial's trade goods or a workshop's one prestige piece sitting among the everyday finds
-> 3. A fuller description template system with property slots
-> 
-> A run of design rulings on decoration layering, the material catalogue and component roles still stands between here and the end of the generation milestone; after it, world state: chronology, cultures and the seed that ties one dig to one history. There is no playable game yet.
+>
+> 1. Stack migration: Deno is winding down, so a spike (11SM.1) picks the replacement runtime, test
+>    runner, formatter, adapter and host, and the port follows. Everything below waits on it.
+> 2. The generated scholars get beliefs of their own: each one will hold a set of claims about
+>    cultures, artefacts and dates, deliberately right about most and wrong about some, so the
+>    corpus the player inherits carries real errors to find.
+> 3. Excavation batches: artefacts dug together, with a burial's trade goods or a workshop's one
+>    prestige piece sitting among the everyday finds
+> 4. A fuller description template system with property slots
+>
+> After the migration, a run of design rulings on decoration layering, the material catalogue and
+> component roles still stands between here and the end of the generation phase; after it, world
+> state: chronology, cultures and the seed that ties one dig to one history. There is no playable
+> game yet.
 
 ---
 
@@ -28,15 +39,16 @@ unreliable narrator.
 
 The design is specified across fourteen documents (docs 00 to 13); doc 11 and doc 12 both record
 their open questions resolved as of the current design round. The implementation was reset for
-launch and is being rebuilt milestone by milestone against the [MVP roadmap](docs/roadmaps/mvp.md).
-**124 of 377 roadmap tasks are done (33%).** Milestone 1 (Foundation) is complete: Deno runtime, the
-full type system, the seeded PRNG and the Project Explorer shell. Milestone 2 (Generation Pipeline)
-is 84/158 done: the component grammar system, plausibility checking, material assignment, decorative
+launch and is being rebuilt phase by phase against the [MVP roadmaps](docs/roadmaps/README.md).
+**125 of 391 roadmap tasks are done (32%).** The Foundation phase is complete: Deno runtime, the
+full type system, the seeded PRNG and the Project Explorer shell. The Generation Pipeline phase is
+85/172 done: the component grammar system, plausibility checking, material assignment, decorative
 motif and introduced-material resolution, feature extraction, tag classification, description
-generation, NPC scholar generation and the language/naming system are all in place; a handful of
-integration and calibration follow-ons remain. Exact task-by-task status lives in
-[`.claude/roadmaps.json`](.claude/roadmaps.json) (canonical) and its projection,
-[`docs/roadmaps/mvp.md`](docs/roadmaps/mvp.md), not this summary.
+generation, NPC scholar generation and the language/naming system are all in place. Its first
+milestone moves the project off Deno (which is winding down after joining Cloudflare) before any
+other work continues. Exact task-by-task status lives in
+[`.claude/roadmaps.json`](.claude/roadmaps.json) (canonical) and its per-phase projections in
+[`docs/roadmaps/`](docs/roadmaps/README.md), not this summary.
 
 <details>
   <summary><strong>What the Repository Currently Contains</strong></summary>
@@ -93,7 +105,7 @@ deno task sample:classification   # scored tag map with per-rule contributions
 ## Documentation
 
 - [Project Knowledge Overview](docs/00-project-overview.md): index of design documents 01 to 13
-- [MVP Roadmap](docs/roadmaps/mvp.md): milestone-by-milestone execution plan
+- [MVP Roadmaps](docs/roadmaps/README.md): phase-by-phase execution plan
 - [Agent Guide](.claude/CLAUDE.md): development guidance for AI coding assistants
 
 ## Contributing

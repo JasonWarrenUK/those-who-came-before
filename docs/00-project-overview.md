@@ -103,7 +103,8 @@ state (phases 2–9), corpus generation, descriptions and the player interface (
 knowledge (phases 13–14), the lens (phases 15–16), contradictions (phases 17–18), persistence (phase
 19), career (phases 20–21), NPCs (phases 22–23) and expansion tracks (phase 24). Each phase has a
 definition of done, and every phase grows the `/dev/explorer` developer workbench. The live
-task-level execution roadmap derived from doc 09 is `docs/roadmaps/mvp.md`.
+task-level execution roadmap derived from doc 09 is `docs/roadmaps/`, one file per phase (indexed by
+`docs/roadmaps/README.md`).
 
 ### Doc 10 — Document Tradition System
 
@@ -178,9 +179,9 @@ list) lived in the external design workspace and are not part of this repository
 **If you want the big picture:** Doc 02 → Doc 03 → Doc 04 (the pillars, the systems map, and the
 core mechanic).
 
-**If you’re implementing:** `docs/roadmaps/mvp.md` → Doc 09 → the phase-relevant spec doc → Doc 08
-(the live roadmap tells you the current task, doc 09 gives the phase context, the spec doc tells you
-how, the architecture doc tells you where it goes).
+**If you’re implementing:** the active phase in `docs/roadmaps/` → Doc 09 → the phase-relevant spec
+doc → Doc 08 (the live roadmap tells you the current task, doc 09 gives the phase context, the spec
+doc tells you how, the architecture doc tells you where it goes).
 
 **If you’re reviewing the design:** Doc 02 → Doc 03 → Doc 05 → Doc 06 → Doc 07 → Doc 10 (pillars
 through to full system specifications).

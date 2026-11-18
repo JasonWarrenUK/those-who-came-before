@@ -150,7 +150,7 @@ const samples = Array.from({ length: options.count }, (_, index) => {
 		artefact,
 		layers,
 		assignments,
-		{ culture: world.culture, phase: world.phase, geology: world.geology },
+		{ culture: world.culture, phase: world.phase, geology: world.geology, stratum },
 		MATERIALS,
 	);
 	const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);

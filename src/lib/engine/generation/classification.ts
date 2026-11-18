@@ -5,7 +5,8 @@
  * together — and produces the single `ExtractedFeatures` set the classification rules
  * (`data/classification.ts`, roadmap 2GN.17) score against. Every field is derived from a signal
  * the grammar actually rolls (`data/grammars/primitives.ts`) or a decorative-layer fact; nothing
- * is fabricated. Pure and PRNG-free: same artefact in, same features out.
+ * is fabricated. The one exception is the occluded `madeForEliteStratum`, copied from the stage-6
+ * stratum draw (see the Stratum bullet below). Pure and PRNG-free: same artefact in, same features out.
  *
  * Field families and their collapse policies (each multi-component collision resolves to ONE
  * value, per the contracts pinned in `types/artefact.ts` JSDoc):
@@ -63,6 +64,10 @@
  *   was drawn from the producing culture's own pool (native or borrowed via
  *   `assignDecorativeDetails`'s `sharedMotifSources`), and some motif ids repeat across cultures'
  *   authored vocabularies, making a global scan both unnecessary and ambiguous.
+ * - **Stratum** (roadmap 2GN.165): `madeForEliteStratum` copies `ProductionContext.stratum`, the
+ *   stage-6 draw, verbatim. The one occluded member of the set: it is the ground truth behind the
+ *   social `elite` tag (roadmap 2GN.164 ruling 2) and has no physical counterpart on the object.
+ *   `false` with no context.
  *
  * Unrecognised or absent parameter values in band-valued fields degrade gracefully to each
  * primitive's first-listed BNF value rather than throwing, mirroring `bandExtentCm` in
@@ -75,6 +80,7 @@
  */
 
 import type {
+	ArtefactStratum,
 	Attachment,
 	ExtractedFeatures,
 	MaterialAssignment,
@@ -397,6 +403,13 @@ export interface ProductionContext {
 	phase: PhaseCharacteristics;
 	/** World-level material scarcity, feeding `materialStanding` for layer materials. */
 	geology: GeologicalContext;
+	/**
+	 * The stratum the artefact was made for (roadmap 2GN.165): the same `drawStratum` value the
+	 * caller passed to `assignMaterials` and `assignDecorativeDetails`. Read verbatim into the
+	 * occluded `madeForEliteStratum`. Required: every caller that has world context has already
+	 * drawn it, and a context missing one would silently read as commoner.
+	 */
+	stratum: ArtefactStratum;
 }
 
 /**
@@ -415,7 +428,8 @@ export interface ProductionContext {
  *   extraction with no world context — `motifCulturalOrigins` stays `[]` (unless every layer
  *   already carries its own `motifCulturalOrigin`) and `preciousMaterialsInDecoration` stays
  *   `false`, the same honest-no-evidence default `materialStanding` (structural) already uses when
- *   `assignments` is empty, never a fabricated neutral culture.
+ *   `assignments` is empty, never a fabricated neutral culture. `madeForEliteStratum` likewise
+ *   stays `false`.
  * @param materialCatalogue - The candidate catalogue a layer's `material` id resolves against.
  *   Defaults to the shipped `MATERIALS`.
  * @returns The complete `ExtractedFeatures` contract the 2GN.17 rules were authored against.
@@ -590,6 +604,7 @@ export function extractFeatures(
 		motifCulturalOrigins: [...tally.motifOrigins],
 		techniqueComplexity: tally.maxDepth * tally.techniques.size,
 		preciousMaterialsInDecoration: tally.hasPreciousMaterial,
+		madeForEliteStratum: context?.stratum === 'elite',
 		materialStanding,
 		decorativeComplexity,
 		overallComplexity: functionalComplexity + decorativeComplexity,

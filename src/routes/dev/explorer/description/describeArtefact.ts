@@ -195,7 +195,7 @@ export function describeArtefact(
 		artefact,
 		layers,
 		assignments,
-		{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
+		{ culture: culture.profile, phase: culture.phase, geology: culture.geology, stratum },
 		MATERIALS,
 	);
 	const groundTruthTags = classifyArtefact(features, CLASSIFICATION_RULES, baselineFor(culture));
@@ -205,6 +205,8 @@ export function describeArtefact(
 		materials: assignments,
 		decorativeLayers: layers,
 		features,
+		// The same draw the context above carried, so the two records of the stratum cannot disagree.
+		stratum,
 		groundTruthTags,
 		physicalLabel: '', // No producer until roadmap 2GN.21; see the module doc.
 		provenance: stubProvenance(culture),

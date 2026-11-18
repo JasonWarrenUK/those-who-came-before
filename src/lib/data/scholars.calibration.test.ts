@@ -127,7 +127,7 @@ function sweep(): SweepResult {
 				artefact,
 				gradedLayers,
 				assignments,
-				{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
+				{ culture: culture.profile, phase: culture.phase, geology: culture.geology, stratum },
 				MATERIALS,
 			);
 			const tags = classifyArtefact(features, CLASSIFICATION_RULES, context);

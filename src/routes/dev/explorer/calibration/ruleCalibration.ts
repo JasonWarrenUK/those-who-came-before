@@ -258,7 +258,7 @@ export function calibrateRules(
 			artefact,
 			layers,
 			assignments,
-			{ culture: culture.profile, phase: culture.phase, geology: culture.geology },
+			{ culture: culture.profile, phase: culture.phase, geology: culture.geology, stratum },
 			MATERIALS,
 		);
 		const scores = classifyArtefact(features, CLASSIFICATION_RULES, context);
