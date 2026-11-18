@@ -481,9 +481,10 @@ export type ArtefactStratum = 'elite' | 'commoner';
  * edged component's own sharpness and length, not just `hasEdge`). Every new field's exact union
  * matches a real primitive parameter vocabulary; see `classification.ts`'s module JSDoc for the
  * signal-to-field mapping. **Exception**: `madeForEliteStratum` (roadmap 2GN.165) is occluded and
- * traces to the stage-6 stratum draw, with no source component or layer. **Boundary**: `portability`/`inspectionDepth` are mechanical (doc 05
- * §5.2 handling/inspection) and must never be read by a classification rule — `massBand`/`sizeBand`
- * are the physical-fact equivalents rules should use instead (doc 12 propagation register).
+ * traces to the stage-6 stratum draw, with no source component or layer. **Boundary**:
+ * `portability`/`inspectionDepth` are mechanical (doc 05 §5.2 handling/inspection) and must never
+ * be read by a classification rule: `massBand`/`sizeBand` are the physical-fact equivalents rules
+ * should use instead (doc 12 propagation register).
  */
 export interface ExtractedFeatures {
 	// Structural features
