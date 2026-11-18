@@ -491,13 +491,14 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 		throw new Error('Generation Pipeline phase not found in .claude/roadmaps.json: renamed?');
 	}
 	const generationTasks = generation.milestones.flatMap((m) => m.tasks);
-	const m2Total = generationTasks.length;
-	const m2Done = generationTasks.filter((t) => t.status === 'done').length;
+	const generationTotal = generationTasks.length;
+	const generationDone = generationTasks.filter((t) => t.status === 'done').length;
 
-	// "…rebuilt against a 328-task MVP roadmap; 95 tasks were done…Milestone 2…at 55 of 110 tasks."
+	// "…rebuilt against a 391-task MVP roadmap; 125 tasks were done…The Generation Pipeline
+	// phase…at 85 of 172 tasks."
 	const ROADMAP_TOTAL = /\b(\d+)-task MVP roadmap\b/;
 	const ROADMAP_DONE = /\b(\d+) tasks were done\b/;
-	const M2_SPLIT = /\bat (\d+) of (\d+) tasks\b/;
+	const GENERATION_SPLIT = /\bat (\d+) of (\d+) tasks\b/;
 	// "Forty-two entries had completed…, two pending on unbuilt…" — the one sentence in site/ that
 	// states the propagation register's own counts. Anchored to "entries had completed" / "pending
 	// on" specifically: a bare "N pending" or "no pending" also matches unrelated checklists (doc 00's
@@ -549,15 +550,18 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 					problem: `states ${done_m[1]} done; roadmaps.json has ${done} done`,
 				});
 			}
-			const split_m = line.match(M2_SPLIT);
-			if (split_m && (Number(split_m[1]) !== m2Done || Number(split_m[2]) !== m2Total)) {
+			const split_m = line.match(GENERATION_SPLIT);
+			if (
+				split_m &&
+				(Number(split_m[1]) !== generationDone || Number(split_m[2]) !== generationTotal)
+			) {
 				stale.push({
 					file: path,
 					line: index + 1,
 					text: split_m[0],
 					problem: `states ${split_m[1]} of ${
 						split_m[2]
-					}; Generation Pipeline has ${m2Done} of ${m2Total}`,
+					}; Generation Pipeline has ${generationDone} of ${generationTotal}`,
 				});
 			}
 			const regDone_m = line.match(REGISTER_DONE);
@@ -588,7 +592,7 @@ Deno.test('roadmap: no prose states a stale task total (roadmap 2GN.114 audit)',
 		stale.length === 0,
 		`${stale.length} prose claim(s) about the roadmap or propagation register are stale:\n` +
 			stale.map((m) => `  ${m.file}:${m.line}  "${m.text}" — ${m.problem}`).join('\n') +
-			`\n\nCurrent state: ${total} roadmap tasks (${done} done), Milestone 2 at ${m2Done} of ` +
-			`${m2Total}, propagation register at ${registerDone} completed / ${registerPending} pending.`,
+			`\n\nCurrent state: ${total} roadmap tasks (${done} done), Generation Pipeline at ` +
+			`${generationDone} of ${generationTotal}, propagation register at ${registerDone} completed / ${registerPending} pending.`,
 	);
 });
