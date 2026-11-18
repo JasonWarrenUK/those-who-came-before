@@ -108,10 +108,14 @@ Deno.test('diegesis guard: the occluded stratum never reaches the presentation (
 		stratum: 'elite',
 		features: { ...commoner.features, madeForEliteStratum: true },
 	});
-	assertEquals(
-		generateDescription(commoner, ['observational', 'interpretive', 'technical']),
-		generateDescription(elite, ['observational', 'interpretive', 'technical']),
-	);
+	// One register per call: generateDescription renders only the register it foregrounds, so a
+	// combined list would compare the observational templates alone.
+	for (const register of ['observational', 'interpretive', 'technical'] as const) {
+		assertEquals(
+			generateDescription(commoner, [register]),
+			generateDescription(elite, [register]),
+		);
+	}
 });
 
 Deno.test('foregrounds observational when available, regardless of list order', () => {
