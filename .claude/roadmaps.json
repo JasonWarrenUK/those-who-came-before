@@ -2,6 +2,7 @@
 	{
 		"name": "MVP Implementation",
 		"path": "docs/roadmaps/mvp.md",
+		"min_plugin": "2.10.0",
 		"archived": false,
 		"externalGates": [],
 		"milestones": [
@@ -634,10 +635,11 @@
 					{
 						"id": "2GN.32",
 						"description": "`engine/generation/decoration.ts` — recursion depth cap from `craftSpecialisation` × `aesthetics.decorativeEmphasis`",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.61",
-							"2GN.131"
+							"2GN.131",
+							"2GN.169"
 						],
 						"assignee": "Jason Warren",
 						"notes": "**Ruled 2026-08-25 by 2GN.131 (doc 11 §2.22, doc 12 §2.58):** the formula is fixed — continuation chance `BASE_SUBLAYER_PROBABILITY × decorationVolume(phase) × SUBLAYER_DECAY^(d−1)`, ceiling `1 + round(craftSpecialisation × (MAX_SUBLAYER_DEPTH − 1))` with MAX 3 — and lives inside 2GN.31's `expandSublayers` pass. This task's remaining scope is calibration: choose BASE, DECAY and the ceiling rounding against measured `maxDepth` distributions per cell so high/high is not near-certainly depth 3 (85% at BASE 0.5 in the spike's simulation), record the four-corner table, and add `maxDepth` guards alongside the re-recorded R39/R40 pins."
@@ -820,11 +822,12 @@
 					{
 						"id": "2GN.44",
 						"description": "`engine/generation/excavation.ts` — excavation composition: generate artefact batches with contextual juxtapositions (settlement + ritual intrusion, burial + trade goods, workshop + prestige item)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.160"
+							"2GN.160",
+							"2GN.165"
 						],
-						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`).",
+						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`). Boundary ruled 2026-11-18 (2GN.164 planning): the archetype is a caller-supplied input; 2GN.44 owns the archetype table (site type, deposit contexts, lever) and composition, and does no `craftInvestment` weighting and fills no `Provenance` fields beyond `cultureId`/`phaseId`; 2GN.47 adds culture-weighted selection and the rest of `Provenance`. Depends on 2GN.165 because the forced-elite lever is exact only once the stratum is carried as truth.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -833,7 +836,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.44",
-							"2GN.138"
+							"2GN.138",
+							"2GN.166"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -843,7 +847,8 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.44",
-							"2GN.138"
+							"2GN.138",
+							"2GN.166"
 						],
 						"assignee": "Jason Warren"
 					},
@@ -1984,6 +1989,73 @@
 						],
 						"notes": "Filed 2026-09-25 (roadmap-review, deps lens): the M3 generators 3WS.3/3WS.6/3WS.7 consume the affinity and availability models, and neither had an Explorer surface.",
 						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.164",
+						"description": "design spike: elite and ritual tag semantics. Does `elite` mean object rank or social position, how does it follow `stratification`, and does `ritual` read deposition context?",
+						"status": "done",
+						"dependsOn": [],
+						"notes": "Done 2026-11-18. Run as an interview while planning 2GN.44 (`docs/spikes/2GN.164-elite-ritual-tags.md`, doc 11 §2.24, doc 12 §2.64). Measured over the four Explorer presets at n=300-400: the `elite` tag does not track `stratification` (share scoring elite >= 0.8 is 0.45 / 0.68 / 0.76 / 0.59 at stratification 0.40 / 0.60 / 0.60 / 0.85), because five percentile-relative rules fire at a fixed rate in every culture; decorative complexity is identical across strata, so the stratum draw moves materials only; `ritual` has two rules, both reading decoration quantity. Rulings: (1) split `elite` into a social `elite` and a rank tag; (2) social `elite` ground truth is the stratum itself, carried as an occluded fact (2GN.165, 2GN.166); (3) stratum-responsive decoration is a separate spike (2GN.169) that blocks downstream work but not this split; (4) `ritual` stays object-level and ritual context becomes a graded pure function over `Provenance` (2GN.168); (5) the rank tag is named `lavish`. Figural objects have no grammar vocabulary: 2GN.170.",
+						"assignee": "Jason Warren",
+						"ended": "2026-11-18"
+					},
+					{
+						"id": "2GN.165",
+						"description": "`types/artefact.ts` + `engine/generation/classification.ts` + `tests/fixtures/artefact.ts` — carry the drawn `ArtefactStratum` as an occluded fact: a `stratum` field on `ClassifiedArtefact` and an occluded `madeForEliteStratum` member of `ExtractedFeatures`, threaded from the stratum draw through feature extraction",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.164"
+						],
+						"notes": "Per 2GN.164 ruling 2. Breaking: `ClassifiedArtefact` gains a required field, so `mockArtefact`, the Explorer description, tag and calibration copies, and `types/save.ts` need updating. The stratum is occluded (never in a `PropertyVisibility` above `occluded`); the player sees only the material and decoration markers.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.166",
+						"description": "`data/classification.ts` + `types/tags.ts` — tag split: add `lavish` to `RELATIVE_TAGS`, move all 13 existing `elite` rule contributions to it, add one `made-for-elite-stratum` rule awarding `elite`, reassign the 11 interpretive description `emphasis` entries and `SITE_TYPE_TAG_AFFINITY.cache`, update doc 05 §9 and the rule-count docs guard",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.165"
+						],
+						"notes": "Per 2GN.164 rulings 1, 2 and 5. Breaking: tag vocabulary and rule weights change, so every consumer of `elite` (scholars, descriptions, Explorer tag inspector) shifts. The two material rules (`material-standing-prized`, `precious-materials-in-decoration`) move to `lavish` too: prized materials are evidence of a lavish object, the stratum is the truth about who it was for. Social `elite` frequency should then equal `eliteShare` per culture (0.16 / 0.24 / 0.24 / 0.34 in the presets); pin that in a test.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.167",
+						"description": "`data/scholars.ts` — re-measure `TAG_FREQUENCY` and `TAG_COOCCURRENCE_LIFT` and `scholars.calibration.test.ts` against the post-split tag vocabulary",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.166"
+						],
+						"notes": "Nineteen lift pairs and one frequency entry carry `elite`; `lavish` needs its own entries. Measured, not authored, per the 2GN.48 convention.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.168",
+						"description": "`data/excavations.ts` + `engine/generation/excavation.ts` — `ritualContextOf(provenance)`: a graded 0 to 1 pure function from an authored (site type, deposition) table, nothing stored",
+						"status": "blocked",
+						"dependsOn": [
+							"2GN.44"
+						],
+						"notes": "Per 2GN.164 ruling 4. Neither field says \"ritual context\" alone (`deliberate-placement` at a shrine versus a settlement hearth; `casual-discard` at a shrine scores low), so the table is authored design content. Held as a function rather than a stored flag so it cannot drift from the `Provenance` facts it derives from and retuning needs no save migration. The object-level `ritual` tag is untouched. Consumed later by contradiction detection (M7).",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.169",
+						"description": "design spike — should the elite stratum also drive decorative volume, complexity and depth (labour investment), rather than materials alone?",
+						"status": "todo",
+						"dependsOn": [
+							"2GN.164"
+						],
+						"notes": "Filed 2026-11-18 by 2GN.164. Measured: `decorativeComplexity` is identical across elite, commoner and drawn strata in every preset, so an elite-stratum artefact differs from a commoner one by materials only; archaeologically elite goods also show more labour. Would reopen 2GN.98 (volume reads `decorativeEmphasis` alone) and 2GN.131 (depth cap from `craftSpecialisation` and emphasis). Blocks the downstream tasks that consume decoration inputs (2GN.32, 2GN.96) but not the tag split, since ground truth comes from the stratum. 2GN.147 (widen the gilding and wire-wrapping pools) is the cheaper evidence-sharpening work in the meantime.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "2GN.170",
+						"description": "design spike — figural objects (idols, figurines, effigies) have no vocabulary in the structural grammar, so the object-level `ritual` tag cannot fire on them",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-11-18 by 2GN.164. Grep finds no `idol`, `figurine`, `effigy` or `anthropomorph*` in `data/`, `engine/` or `types/`; the eight primitives are all geometric and `ritual` fires only on decoration quantity. A household idol (ritual by object, domestic by context) is therefore not generable. Standalone by design: no existing task owns it.",
+						"assignee": "Jason Warren"
 					}
 				]
 			},
@@ -2206,9 +2278,10 @@
 							"2GN.95",
 							"3WS.4",
 							"3WS.9",
-							"3WS.21"
+							"3WS.21",
+							"2GN.169"
 						],
-						"notes": "**Re-scoped 2026-09-15 by 2GN.27 (doc 11 §2.9, doc 12 §2.59):** the stratification gate covers the decoration-side `elite` awards only. Material-side `elite` needs none: stratification enters at stage 6 as `assignMaterials`' stratum draw, and the material-standing rule's realised rate already tracks it (12% at 0.4, 35% at 0.85). Extending that stratum to the decoration budget, so a stratified culture's elite artefacts are also the lavish ones, is the natural shape for this task's gate. Split out of 2GN.95's scope 2026-08-05: doc 11 §2.9 says baselines are \"cached in world state\", but `WorldState` does not exist (`types/save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase timeline; every fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc 11 §2.9's own named prerequisite for that measurement to mean anything rather than measure noise across incoherent phases. `stratification` is ruled a live input gating how much `elite` can exist at all, independent of any one distribution — deliberately absent from `ClassificationContext` until this task, since declaring it unread would be a lie the type tells. Moved from M2 to M3 2026-08-05: its dependencies (3WS.4/3WS.9/3WS.21) are all M3 tasks, and M3's own entry point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work without a cycle.",
+						"notes": "**Re-scoped 2026-09-15 by 2GN.27 (doc 11 §2.9, doc 12 §2.59):** the stratification gate covers the decoration-side `elite` awards only. Material-side `elite` needs none: stratification enters at stage 6 as `assignMaterials`' stratum draw, and the material-standing rule's realised rate already tracks it (12% at 0.4, 35% at 0.85). Extending that stratum to the decoration budget, so a stratified culture's elite artefacts are also the lavish ones, is the natural shape for this task's gate. Split out of 2GN.95's scope 2026-08-05: doc 11 §2.9 says baselines are \"cached in world state\", but `WorldState` does not exist (`types/save.ts` — lands at 3WS.9). Drift-vs-preceding-phase needs a real multi-phase timeline; every fixture today is single-phase, and 3WS.21 (phase-attribute continuity) is doc 11 §2.9's own named prerequisite for that measurement to mean anything rather than measure noise across incoherent phases. `stratification` is ruled a live input gating how much `elite` can exist at all, independent of any one distribution — deliberately absent from `ClassificationContext` until this task, since declaring it unread would be a lie the type tells. Moved from M2 to M3 2026-08-05: its dependencies (3WS.4/3WS.9/3WS.21) are all M3 tasks, and M3's own entry point (3WS.1) gates on the whole of M2 completing — an M2 task cannot depend on M3 work without a cycle. Re-scoped again 2026-11-18 by 2GN.164: the decoration-side `elite` gate is superseded. Social `elite` is read from the stratum (2GN.165, 2GN.166) and the percentile decoration rules award `lavish`, which needs no stratification gate. Remaining scope: baselines on `WorldState` and drift-vs-preceding-phase. The generator-side idea of a stratum-driven decoration budget is 2GN.169, which this task now waits on.",
 						"assignee": ""
 					},
 					{
