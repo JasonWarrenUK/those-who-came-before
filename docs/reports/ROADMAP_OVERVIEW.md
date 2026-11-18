@@ -51,7 +51,8 @@ state (goblin-scout 3.x), and each carries a gate standing in for the phase befo
 ## External blockers (flag early)
 
 - Deno end of life: Deno Deploy shuts about six months after the 9 October 2026 announcement and
-  runtime development ends a year after that. The Stack Migration milestone addresses it.
+  runtime development ends a year after the announcement, around October 2027. The Stack Migration
+  milestone addresses it.
 - Planned phase state: tracked with the roadmap plugin (goblin-scout 3.x); until then future phases
   use `archived` as a stand-in.
 
