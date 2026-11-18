@@ -42,6 +42,7 @@ they are and use the closed set for new files.
 | 2GN.132 | Sublayer generation: slot loop or separate pass? (unimplemented; 2GN.31) | 2026-08-25 | doc 11 §2.21, doc 12 §2.57 | [2GN.132](2GN.132-sublayer-placement.md)              |
 | 2GN.131 | What the decorative recursion depth cap computes (unimplemented; 2GN.32) | 2026-08-25 | doc 11 §2.22, doc 12 §2.58 | [2GN.131](2GN.131-recursion-depth-cap.md)             |
 | 2GN.48  | Scholar cohort shape, specialisation coherence, site preference source   | 2026-09-17 | doc 11 §2.23, doc 12 §2.60 | [2GN.48](2GN.48-scholar-cohort.md)                    |
+| 2GN.164 | Elite and ritual tag semantics (unimplemented; 2GN.165 to 2GN.168)       | 2026-11-18 | doc 11 §2.24, doc 12 §2.64 | [2GN.164](2GN.164-elite-ritual-tags.md)               |
 
 Not in this directory by design: 2GN.10 (primitive→material table) was ruled interactively and lives
 only in doc 11 §2.16.
@@ -58,6 +59,8 @@ is ruled, create its file and move the row up.
 | 2GN.119 | Should classification conditions read relations between components?              | —          | 1 direct                        |
 | 2GN.122 | One aperture model; does it subsume `perforation`?                               | —          | 1 direct                        |
 | 2GN.125 | Does `AvailabilityLevel` conflate found with produced materials?                 | 2GN.124    |                                 |
+| 2GN.169 | Should the elite stratum drive decorative volume, complexity and depth?          | —          | 2GN.32, 2GN.96                  |
+| 2GN.170 | Figural objects (idols, figurines) have no grammar vocabulary                    | —          |                                 |
 | 2GN.135 | Inputs to the derived `wallThickness`/`diameter` quantity                        | —          | 2GN.120                         |
 | 2GN.136 | Material catalogue widening: criteria and target size                            | —          | 2GN.124                         |
 | 2GN.138 | Define "interpretive challenge" as a per-artefact metric; ratify ambiguity bands | —          | 2GN.45, 2GN.46                  |

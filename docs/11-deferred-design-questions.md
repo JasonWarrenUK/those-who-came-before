@@ -1175,6 +1175,40 @@ both measured tables against drift with tolerance, the same convention as
 the frozen `TAG_COOCCURRENCE_LIFT` table with a live per-world computation once real culture/grammar
 data is reachable from generation.
 
+### 2.24 Elite Splits Into a Social Tag and a Rank Tag; Ritual Context Is Derived (roadmap 2GN.164)
+
+**Decision (2026-11-18):** run as an interview with measurements while planning 2GN.44.
+
+- **`elite` and `lavish` are separate tags.** `elite` claims the object was made for the elite
+  stratum; `lavish` is the observable rank of an object's display of investment within its culture's
+  output. All 13 current `elite` rule contributions (the percentile decoration rules and the two
+  material rules included) move to `lavish`. Measured: the existing tag does not follow
+  `stratification` (share scoring `elite` >= 0.8 is 0.45 / 0.68 / 0.76 / 0.59 at stratification 0.40
+  / 0.60 / 0.60 / 0.85) because five percentile-relative rules fire at a fixed rate in every
+  culture, the flattening §2.9 warned against.
+- **Social `elite` ground truth is the drawn stratum.** One rule reads an occluded
+  `madeForEliteStratum` feature, so the tag's frequency equals `eliteShare` in every culture. The
+  materials and decoration remain the player's imperfect evidence. This supersedes the
+  classifier-side stratification gate §2.9 described for decoration-side `elite` awards.
+- **Stratum-responsive decoration is not ruled here.** Measured: decorative complexity is identical
+  across strata, so the stratum draw moves materials only. Whether it should also drive volume,
+  complexity and depth reopens §2.10 and §2.22 and is its own spike (2GN.169).
+- **`ritual` stays an object-level tag.** Ritual context is a graded 0 to 1 pure function of
+  `Provenance.site.type` and `context.deposition` from an authored table, nothing stored (2GN.168),
+  so an object-ritual household idol and a plain pot in a temple are distinguishable by two
+  independent axes. Figural objects have no grammar vocabulary today (2GN.170).
+
+Full reasoning, the measurements and the rejected mechanisms (a commoner-baseline percentile,
+material markers alone, a stratification weight gate, classification reading deposition, a stored
+context flag): `docs/spikes/2GN.164-elite-ritual-tags.md`.
+
+**Affects:** `types/artefact.ts` (`ClassifiedArtefact.stratum`,
+`ExtractedFeatures.madeForEliteStratum`; breaking), `types/tags.ts` (`lavish` joins `RELATIVE_TAGS`;
+breaking), `data/classification.ts` (rules re-pointed, one rule added), `data/scholars.ts` (measured
+tables re-measured), `data/descriptions/interpretive/` (11 `emphasis` entries reassigned). Roadmap:
+2GN.164 done; 2GN.165 to 2GN.170 filed; 2GN.44 gains a 2GN.165 edge; 2GN.45, 2GN.46 gain a 2GN.166
+edge; 2GN.32 and 2GN.96 gain a 2GN.169 edge; 2GN.96 re-scoped.
+
 ---
 
 _This document is a living registry. New questions and decisions should be added as they emerge

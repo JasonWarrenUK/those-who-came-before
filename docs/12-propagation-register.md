@@ -3503,6 +3503,33 @@ breakdown can read the same fields when it wants to. ⚠️ Breaking for anythin
 | — | `routes/dev/explorer/calibration/`: `RuleCalibration.reads`/`.concludes` and two new columns  | 2026-09-25 |
 | — | Doc 05 §13 and `site/mechanism/classification.html`: quoted interface updated                 | 2026-09-25 |
 
+### 2.64 The Elite Tag Followed Rank, Not Stratification; the Fix Is a Split (2026-11-18)
+
+Planning 2GN.44 (excavation composition) asked what generation can actually steer toward a "workshop
+with a prestige item" or a "ritual intrusion". The levers turned out to be weaker than the tag names
+implied. Measured over the four Explorer presets: `elite` does not track `stratification` (share
+scoring >= 0.8 is 0.45 / 0.68 / 0.76 / 0.59 at 0.40 / 0.60 / 0.60 / 0.85), because five of its
+thirteen rules compare against a culture-relative percentile and fire at a fixed rate everywhere;
+decorative complexity is identical across strata, so the 2GN.27 stratum draw moves materials only;
+and `ritual` reads decoration quantity alone. Doc 11 §2.9's intent (few elite artefacts in a flat
+society) was never met at the tag level, and the 2GN.27 note that no classifier gate was needed held
+for the materials rule only.
+
+Ruled as doc 11 §2.24: `elite` splits into a social tag whose ground truth is the drawn stratum and
+a rank tag `lavish` that takes every current `elite` rule contribution; `ritual` stays object-level
+with ritual context derived as a graded function of site type and deposition. Stratum-responsive
+decoration is deferred to its own spike. Nothing is implemented yet: the code propagation is tracked
+by roadmap 2GN.165 to 2GN.168, and a re-measurement of the scholar tag tables follows the split
+(2GN.167). Breaking, when it lands: `ClassifiedArtefact` gains a required `stratum` field and the
+tag vocabulary gains `lavish`.
+
+| § | Propagation                                                                                      | Date       |
+| - | ------------------------------------------------------------------------------------------------ | ---------- |
+| — | `docs/spikes/2GN.164-elite-ritual-tags.md`: spike record; README row added                       | 2026-11-18 |
+| — | Doc 11 §2.24: locked decision                                                                    | 2026-11-18 |
+| — | Roadmap: 2GN.164 done, 2GN.165 to 2GN.170 filed, edges on 2GN.44, 2GN.45, 2GN.46, 2GN.32, 2GN.96 | 2026-11-18 |
+| — | Code, fixtures, scholar tables, doc 05 §9: pending (2GN.165, 2GN.166, 2GN.167)                   | pending    |
+
 ---
 
 _This document is a living register. Items are added during design sessions and resolved during
