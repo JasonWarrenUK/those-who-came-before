@@ -454,11 +454,13 @@
 					{
 						"id": "2GN.16",
 						"description": "`engine/generation/plausibility.ts` — re-expansion loop: on failure, re-expand from grammar up to N attempts",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.58",
-							"2GN.137"
+							"2GN.137",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -494,11 +496,13 @@
 					{
 						"id": "2GN.21",
 						"description": "`engine/generation/classification.ts` — `physicalLabel` generation from observable properties (neutral, not interpretive)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.59",
-							"2GN.118"
+							"2GN.118",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -624,13 +628,14 @@
 					{
 						"id": "2GN.31",
 						"description": "`engine/generation/decoration.ts` — layering support: `DecorativeLayer` with sublayers, decoration-on-decoration",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.61",
-							"2GN.132"
+							"2GN.132",
+							"M11"
 						],
-						"assignee": "Jason Warren",
-						"notes": "**Ruled 2026-08-25 by 2GN.132 (doc 11 §2.21, doc 12 §2.57):** ship `expandSublayers(layers, assignments, details, culture, phase, geology, trade, prng)` (name provisional) as a pure pass over `expandDecoration`'s flat output, seeded `${seed}-sublayers`, positioned after `assignMaterials`/`assignDecorativeDetails` and before `gradeDecorativeLayers`/`enforceSubstrates`. A sublayer's substrate is the parent's introduced material where its technique introduces one, otherwise the parent's target component's assigned material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s sample loop and both Explorer sample paths (`decorationLayers.ts`, `tagInspector.ts`), re-records the pins that move (`maxDepth`/`techniqueComplexity`, R39/R40 thresholds) with drift annotated, and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131. Sequencing note (PR #76 review): `gradeDecorativeLayers`/`enforceSubstrates` resolve material by `targetComponentId`, so until 2GN.133 lands a sublayer over an introduced material is graded/checked against the component's material; `expandSublayers` resolves the parent material for its own draw, and 2GN.133 remains the sequenced follow-on."
+						"notes": "**Ruled 2026-08-25 by 2GN.132 (doc 11 §2.21, doc 12 §2.57):** ship `expandSublayers(layers, assignments, details, culture, phase, geology, trade, prng)` (name provisional) as a pure pass over `expandDecoration`'s flat output, seeded `${seed}-sublayers`, positioned after `assignMaterials`/`assignDecorativeDetails` and before `gradeDecorativeLayers`/`enforceSubstrates`. A sublayer's substrate is the parent's introduced material where its technique introduces one, otherwise the parent's target component's assigned material. `expandDecoration` untouched. The same PR wires the pass into `calibration.test.ts`'s sample loop and both Explorer sample paths (`decorationLayers.ts`, `tagInspector.ts`), re-records the pins that move (`maxDepth`/`techniqueComplexity`, R39/R40 thresholds) with drift annotated, and retires `classification.test.ts`'s 2GN.31 regression guard. Depth cap per 2GN.131. Sequencing note (PR #76 review): `gradeDecorativeLayers`/`enforceSubstrates` resolve material by `targetComponentId`, so until 2GN.133 lands a sublayer over an introduced material is graded/checked against the component's material; `expandSublayers` resolves the parent material for its own draw, and 2GN.133 remains the sequenced follow-on. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
+						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.32",
@@ -656,11 +661,12 @@
 					{
 						"id": "2GN.76",
 						"description": "`engine/generation/decoration.ts` — motif salience fluctuates across a culture's lifespan: native and borrowed motifs are not equally prominent at every point in the culture's timeline; motif selection weights vary by phase",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.150"
+							"2GN.150",
+							"M11"
 						],
-						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension."
+						"notes": "Added 2026-07-25 during the 2GN.33 design interview: `assignDecorativeDetails` weights native motifs at 1 and borrowed motifs by exchange intensity, with no temporal variation — this task adds the phase-driven salience dimension. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands."
 					},
 					{
 						"id": "2GN.79",
@@ -775,10 +781,12 @@
 					{
 						"id": "2GN.39",
 						"description": "`engine/generation/description.ts` — template expansion: parameterised template system with property slots",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.160"
+							"2GN.160",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -825,9 +833,10 @@
 						"status": "blocked",
 						"dependsOn": [
 							"2GN.160",
-							"2GN.165"
+							"2GN.165",
+							"M11"
 						],
-						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`). Boundary ruled 2026-11-18 (2GN.164 planning): the archetype is a caller-supplied input; 2GN.44 owns the archetype table (site type, deposit contexts, lever) and composition, and does no `craftInvestment` weighting and fills no `Provenance` fields beyond `cultureId`/`phaseId`; 2GN.47 adds culture-weighted selection and the rest of `Provenance`. Depends on 2GN.165 because the forced-elite lever is exact only once the stratum is carried as truth.",
+						"notes": "Add a `mockProvenance` (and similar) fixture export to `tests/fixtures/` alongside this task per the 1FD.35 pattern (dependency sweep 2026-07-25 found no exported `Provenance` factory — only an inline unexported default inside `mockArtefact`). Boundary ruled 2026-11-18 (2GN.164 planning): the archetype is a caller-supplied input; 2GN.44 owns the archetype table (site type, deposit contexts, lever) and composition, and does no `craftInvestment` weighting and fills no `Provenance` fields beyond `cultureId`/`phaseId`; 2GN.47 adds culture-weighted selection and the rest of `Provenance`. Depends on 2GN.165 because the forced-elite lever is exact only once the stratum is carried as truth. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -888,10 +897,12 @@
 					{
 						"id": "2GN.49",
 						"description": "`engine/world/scholars.ts` — NPC `InterpretiveModel` generation: cultural/artefact/chrono claims with calibrated wrongness (~70% correct, ~30% wrong)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.149"
+							"2GN.149",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1178,11 +1189,13 @@
 					{
 						"id": "2GN.72",
 						"description": "`engine/generation/classification.ts` — per-component feature provenance: record which component each collapsed `ExtractedFeatures` field was derived from (doc 12 §2.20 defers this explicitly — the collapse policies are documented but carry no references), so a feature can be traced to its source without re-implementing the dominance rules outside the engine. Prerequisite for attributing classification evidence to components rather than only to rules",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.19",
-							"2GN.97"
+							"2GN.97",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1382,11 +1395,12 @@
 					{
 						"id": "2GN.92",
 						"description": "Doc 05 §13.1 + doc 12 propagation entry — record the `VariantCondition` shape change and the selection-order contract (condition filters the candidate set, then emphasis selects within it)",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.91"
+							"2GN.91",
+							"M11"
 						],
-						"notes": "Docs task pairing 2GN.91's type change. Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a condition field; update the quoted interface and prose to match. Doc 12 gets a numbered propagation entry (next after §2.29) recording the change and its origin, matching the convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split.",
+						"notes": "Docs task pairing 2GN.91's type change. Doc 05 §13.1 currently publishes `DescriptionTemplate`/`DescriptionVariant` without a condition field; update the quoted interface and prose to match. Doc 12 gets a numbered propagation entry (next after §2.29) recording the change and its origin, matching the convention §2.28/§2.29 set for the `AbsoluteTag`/`RelativeTag` split. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1423,33 +1437,36 @@
 					{
 						"id": "2GN.105",
 						"description": "`engine/generation/materials.ts` + `types/artefact.ts` + `data/materials.ts` — apply 2GN.111's ruling to the property model: give `rigidity` per-state values (`{worked, finished}`), re-author `fragility` and `hardness` to the **working** state across all 16 materials (they feed `computeLayerGrade` and nothing else, so the current finished-state authoring is wrong — glass `fragility: 7` cold while decorated hot, fired clay `6` fired while decorated wet), and document the pinned state on `formability` (working) and the state-independence of `grainFineness`, `porosity` and `combustibility`. ⚠️ re-authoring `fragility`/`hardness` shifts `meanDecorativeGrade` for glass and fired clay, so the 2GN.79 calibration guard will flag it and `EXPECTED_FIRE_RATES` needs re-recording with the drift annotated",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.111"
+							"2GN.111",
+							"M11"
 						],
-						"notes": "Rescoped 2026-08-13 by the 2GN.111 ruling. Was filed presupposing per-state values on every axis ('at minimum worked vs finished'); the spike measured that exactly one axis needs them, so this task now audits a specific list rather than performing a general reconciliation. Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ.",
+						"notes": "Rescoped 2026-08-13 by the 2GN.111 ruling. Was filed presupposing per-state values on every axis ('at minimum worked vs finished'); the spike measured that exactly one axis needs them, so this task now audits a specific list rather than performing a general reconciliation. Surfaced 2026-08-11 during 2GN.102 (doc 12 §2.38). Adding `formability` forced the discovery that its six siblings were authored against the finished object, without the question ever being asked or stated: `glass` (`fragility: 7`) reads cold glass, though hot glass (what `formability` reads) is viscous and freely formable; `iron`'s `hardness`/`rigidity` describe cold-worked iron, not the material as forged hot; `fired-clay`'s `fragility: 6` reads the fired result, though the working state is wet clay; `leather`'s `rigidity: 2` reads cured hide, though wet-moulded cuir bouilli holds a raised form. Only `fired-clay`'s data-file comment ever named this choice, as a one-off aside rather than a stated convention. Not a 2GN.102 workaround to clear — `relief`'s leather exclusion was already corrected on its cured-state merits in that task — this is the general problem of a single finished-state number standing in for a material whose worked properties differ. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.106",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — add `formability` to `MaterialDifficultyAxis`, an `AXIS_NORMALISATION` entry, and per-technique `TECHNIQUE_MATERIAL_SENSITIVITY` weights, with re-measured grade distributions and 2GN.103's regional pins re-verified",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.102",
-							"2GN.111"
+							"2GN.111",
+							"M11"
 						],
-						"notes": "Filed 2026-08-11 alongside 2GN.102 (doc 12 §2.38). Must first revisit the rung-5 casting/forging conflation recorded in that entry: `formability`'s rung 5 deliberately groups cast metals (bronze/gold/silver) with hot-forged iron as one plastic-working-regime rung — a simplification that is inert while `relief`'s gate is a `>= 3` threshold (rungs 3–6 pass identically) but becomes load-bearing the moment this task reads the rungs as a difficulty gradient rather than a threshold. Note the `1`–`6` range differs from the other five difficulty axes' `1`–`7`, so `AXIS_NORMALISATION`'s `mid`/`half` need their own values, not a copy of a sibling's.",
+						"notes": "Filed 2026-08-11 alongside 2GN.102 (doc 12 §2.38). Must first revisit the rung-5 casting/forging conflation recorded in that entry: `formability`'s rung 5 deliberately groups cast metals (bronze/gold/silver) with hot-forged iron as one plastic-working-regime rung — a simplification that is inert while `relief`'s gate is a `>= 3` threshold (rungs 3–6 pass identically) but becomes load-bearing the moment this task reads the rungs as a difficulty gradient rather than a threshold. Note the `1`–`6` range differs from the other five difficulty axes' `1`–`7`, so `AXIS_NORMALISATION`'s `mid`/`half` need their own values, not a copy of a sibling's. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.107",
 						"description": "`data/decorations.ts` — sweep every `kind: 'material'` substrate test for exclusions that are artefacts of a proxy axis rather than attested practice, the way `relief`'s leather exclusion was",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.102",
-							"2GN.111"
+							"2GN.111",
+							"M11"
 						],
-						"notes": "Filed 2026-08-11 during 2GN.102 (doc 12 §2.38). `relief` excluded leather solely as collateral from `rigidity >= 3`, a test aimed at linen, with no material-science basis — corrected in 2GN.102 once `formability` gave the gate something honest to key on. `overlay` uses the identical `rigidity >= 3` test `relief` used to carry; if `formability` is the correct gate for one, `overlay` is the first candidate for the same scrutiny. `studs`/`gilding` already carry a named leather exception and are not suspect on the same grounds.",
+						"notes": "Filed 2026-08-11 during 2GN.102 (doc 12 §2.38). `relief` excluded leather solely as collateral from `rigidity >= 3`, a test aimed at linen, with no material-science basis — corrected in 2GN.102 once `formability` gave the gate something honest to key on. `overlay` uses the identical `rigidity >= 3` test `relief` used to carry; if `formability` is the correct gate for one, `overlay` is the first candidate for the same scrutiny. `studs`/`gilding` already carry a named leather exception and are not suspect on the same grounds. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1465,11 +1482,13 @@
 					{
 						"id": "2GN.109",
 						"description": "`src/lib/data/classification.ts` — replacement edge-family rule for the short-bodied non-blade edge, framed morphologically rather than as a truth-table cell. The deleted R4 (roadmap 2GN.87) failed because its condition described a combination of feature *bands* rather than a shape: whatever signal this rule reads must be one the generator can actually vary independently. **Void if 2GN.108 rules the form out of MVP scope** — file the closure rather than authoring a rule for a form the game does not produce. Adding it shifts `CLASSIFICATION_RULES` indices again, so the pinned-index blocks in `classification.test.ts`, `EXPECTED_FIRE_RATES`/`MIGRATED_RULE_INDICES`/`UNIVERSAL_BY_DESIGN` in `calibration.test.ts` and the Explorer panel's label lookups all need updating together",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.108",
-							"2GN.118"
+							"2GN.118",
+							"M11"
 						],
+						"notes": "Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1515,32 +1534,36 @@
 					{
 						"id": "2GN.114",
 						"description": "`tests/fixtures/culture.ts` — extend `mockCulturalProfile`/`mockPhaseCharacteristics` with a high-craft/elite preset (`craftSpecialisation`, `decorativeEmphasis`, `motifComplexity` pushed toward 1.0), so elite/ceremonial-grade artefacts are reachable through ordinary sampling and Explorer calibration runs rather than only via hand-built overrides",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.110"
+							"2GN.110",
+							"M11"
 						],
 						"softDependsOn": [
 							"2GN.98"
 						],
-						"notes": "Filed from a real-world-find coverage spike (2026-08-13): ran the full M2 chain (expandGrammar → normaliseArtefact → expandDecoration → assignMaterials → gradeDecorativeLayers → extractFeatures → classifyArtefact) against 18 common real-world archaeological find types across 3000 sampled artefacts (6 mock regions × 500). Coverage (18/18) and frequency ordering (dominant > common > occasional > rare, unranked) both held with no tuning aimed at the outcome. The one gap: `meanDecorativeGrade` capped at ~0.494 across every region under the flat-neutral-0.5 `mockPhaseCharacteristics`/`mockCulturalProfile` fixtures, making elite/ceremonial signatures (gold-lunula-style ornament, ceremonial mace-head) invisible to any default-fixture test or Explorer run — confirmed reachable (70/1000 and 392/1000 respectively) only after hand-pushing `craftSpecialisation`/`decorativeEmphasis`/`motifComplexity` to 1.0 for the spike. Not a pipeline defect; a fixture coverage gap with no reusable preset today.",
+						"notes": "Filed from a real-world-find coverage spike (2026-08-13): ran the full M2 chain (expandGrammar → normaliseArtefact → expandDecoration → assignMaterials → gradeDecorativeLayers → extractFeatures → classifyArtefact) against 18 common real-world archaeological find types across 3000 sampled artefacts (6 mock regions × 500). Coverage (18/18) and frequency ordering (dominant > common > occasional > rare, unranked) both held with no tuning aimed at the outcome. The one gap: `meanDecorativeGrade` capped at ~0.494 across every region under the flat-neutral-0.5 `mockPhaseCharacteristics`/`mockCulturalProfile` fixtures, making elite/ceremonial signatures (gold-lunula-style ornament, ceremonial mace-head) invisible to any default-fixture test or Explorer run — confirmed reachable (70/1000 and 392/1000 respectively) only after hand-pushing `craftSpecialisation`/`decorativeEmphasis`/`motifComplexity` to 1.0 for the spike. Not a pipeline defect; a fixture coverage gap with no reusable preset today. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.115",
 						"description": "design spike — what defines an artefact's working end in general, for artefacts with no edge? 2GN.108 ruled that normalisation must orient the artefact (working end at a shared pole across all artefacts sharing a dimensional axis) and that orientation is achieved by reversal rather than rejection, but ruled the general pole definition out of its own scope. For edged forms the working end is the edge; for a hafted head it is the head; for a vessel, disc, ring or pin there may be no functional pole at all. Rule whether orientation is total (every artefact oriented, which needs a pole rule for shapes that have no working end) or partial by design (only artefacts with a distinguishable functional pole are oriented, the rest left unoriented as `bladeLengthBand` already reports `'none'` for edgeless forms). ⚠️ this blocks implementation rather than 2GN.108's ruling: reversal cannot be implemented for edged forms and retrofitted to a different general convention without repeating the recalibration sweep",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.108"
+							"2GN.108",
+							"M11"
 						],
-						"notes": "Split out of 2GN.108 during the 2026-08-13 spike session. 2GN.108 established that `position` is intended as an oriented shared axis but is minted in `grammar.ts` as a depth-first traversal index (primary-before-attachments), so the invariant is unenforced — a blade can land at position 0 with its haft after it, and nothing rejects or reverses it. The three existing plausibility proxies (`hasGrippableSecondComponent`, `hasAdequateGripLength`, `hasRigidShaft`) each guess around this absence. Reversal was chosen over rejection because a mirrored artefact carries no information (it is the same artefact described backwards), so rejecting it spends re-expansion budget to enforce something probabilistically rather than by construction — but reversal only works if orientation is definable wherever it is applied, which is this spike's question. ⚠️ **Constraint added 2026-08-13 by 2GN.118 (Finding 6):** `bar-form`'s `taper: ['none','single-end','both-ends']` encodes *which end*, and `single-end` is not reversal-invariant — reverse the component and it still reads 'one end' while which end has silently changed, with no data recording which it was. `none` and `both-ends` are symmetric and survive reversal untouched; `single-end` is the sole asymmetric value in the parameter. No classification rule reads `single-end` — `hasImpactSurfaceIn` tests `bar-form`'s taper only for `'none'`, and the one other rule-side consumer (`bladeProfile`, `classification.ts:181`) reads `elongated`'s taper, a different primitive whose `['none','gradual','abrupt']` vocabulary is symmetric and reversal-safe. The description layer does read it, though: `data/descriptions/observational/bar-form.ts:43` interpolates it into 'The form narrows with a `#taper#` taper.' (asserted at `prose.test.ts:123`), so `single-end` already reaches player-facing prose. A reversal would therefore leave a description asserting which end tapers while no data records which end it was — doc 02 pillar 3 (Simulation Honesty), not a dormant parameter — so whatever this spike rules must either make `single-end` a claim about the oriented axis or accept that reversal silently corrupts it. Ruling reversal without addressing it leaves a parameter whose meaning depends on a traversal order the ruling is designed to stop being meaningful.",
+						"notes": "Split out of 2GN.108 during the 2026-08-13 spike session. 2GN.108 established that `position` is intended as an oriented shared axis but is minted in `grammar.ts` as a depth-first traversal index (primary-before-attachments), so the invariant is unenforced — a blade can land at position 0 with its haft after it, and nothing rejects or reverses it. The three existing plausibility proxies (`hasGrippableSecondComponent`, `hasAdequateGripLength`, `hasRigidShaft`) each guess around this absence. Reversal was chosen over rejection because a mirrored artefact carries no information (it is the same artefact described backwards), so rejecting it spends re-expansion budget to enforce something probabilistically rather than by construction — but reversal only works if orientation is definable wherever it is applied, which is this spike's question. ⚠️ **Constraint added 2026-08-13 by 2GN.118 (Finding 6):** `bar-form`'s `taper: ['none','single-end','both-ends']` encodes *which end*, and `single-end` is not reversal-invariant — reverse the component and it still reads 'one end' while which end has silently changed, with no data recording which it was. `none` and `both-ends` are symmetric and survive reversal untouched; `single-end` is the sole asymmetric value in the parameter. No classification rule reads `single-end` — `hasImpactSurfaceIn` tests `bar-form`'s taper only for `'none'`, and the one other rule-side consumer (`bladeProfile`, `classification.ts:181`) reads `elongated`'s taper, a different primitive whose `['none','gradual','abrupt']` vocabulary is symmetric and reversal-safe. The description layer does read it, though: `data/descriptions/observational/bar-form.ts:43` interpolates it into 'The form narrows with a `#taper#` taper.' (asserted at `prose.test.ts:123`), so `single-end` already reaches player-facing prose. A reversal would therefore leave a description asserting which end tapers while no data records which end it was — doc 02 pillar 3 (Simulation Honesty), not a dormant parameter — so whatever this spike rules must either make `single-end` a claim about the oriented axis or accept that reversal silently corrupts it. Ruling reversal without addressing it leaves a parameter whose meaning depends on a traversal order the ruling is designed to stop being meaningful. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.116",
 						"description": "design spike — should component roles (grip-system, head-system and whatever else the vocabulary needs) become first-class grammar output? All three rules in `data/plausibility.ts` are explicitly proxies standing in for an absent role concept: `hasGrippableSecondComponent` merely counts components, `hasAdequateGripLength` looks for some other medium/long `bar-form` or `elongated` component anywhere on the artefact (its own comment conceding a `disc-form` elsewhere \"says nothing about grip length\"), and `hasRigidShaft` accepts any rigid `sheet-form`/`bar-form` regardless of whether it bears the load. `types/plausibility.ts` names the same hole: the model cannot express a property-level concept like \"a grippable component\". Rule whether roles are authored into the grammar, derived from the attachment graph, or left as proxies for MVP — and if authored, what the role vocabulary is and what it costs across the primitive registry",
-						"status": "todo",
-						"dependsOn": [],
-						"notes": "Filed 2026-08-13 from the 2GN.108 spike session. Scoped deliberately narrow: 2GN.108 established that grip-to-edge span is derivable from existing structure (`attachments` graph + `position` + per-component extents) without any role vocabulary, so roles are NOT a prerequisite for oriented normalisation or for a proportional `bladeLengthBand`. What roles would serve is the remaining proxy work in 2GN.13 and 2GN.14, which is why both now depend on this. Note that the `'grip-system'`/`'head-system'` strings in `types/interpretation.ts` are JSDoc illustration, not a defined type, and doc 05's `arrangementGroup` is repetition structure (symmetric/radial/linear-array), unrelated to role — so this vocabulary would be genuinely new rather than a specified-but-unwired concept.",
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
+						"notes": "Filed 2026-08-13 from the 2GN.108 spike session. Scoped deliberately narrow: 2GN.108 established that grip-to-edge span is derivable from existing structure (`attachments` graph + `position` + per-component extents) without any role vocabulary, so roles are NOT a prerequisite for oriented normalisation or for a proportional `bladeLengthBand`. What roles would serve is the remaining proxy work in 2GN.13 and 2GN.14, which is why both now depend on this. Note that the `'grip-system'`/`'head-system'` strings in `types/interpretation.ts` are JSDoc illustration, not a defined type, and doc 05's `arrangementGroup` is repetition structure (symmetric/radial/linear-array), unrelated to role — so this vocabulary would be genuinely new rather than a specified-but-unwired concept. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1565,9 +1588,11 @@
 					{
 						"id": "2GN.119",
 						"description": "design spike — should classification conditions read *relations between components* rather than isolated component properties? Measured 2026-08-13 over the 43 rules shipped at the time, during 2GN.97: **10 of the 24 unmigrated rules condition on exactly one property** (`f.x === 'value'` and nothing else) — `base-pedestal-display`, `base-pointed-amphora`, the three `perforation-*` rules, both `ring-*` rules, both `sheet-*` rules and `size-small-personal`. A further 7 read two properties that both describe the *same* component (the container rules pair `hasContainer`, a presence flag, with a feature extracted off the dominant container). Exactly one rule is genuinely relational (`motif-multiple-origins`, comparing origins across the artefact's decoration). A base is a relationship between the base and what it supports: a pedestal under a statue and a pedestal under a hat-stand carry opposite readings, identical `baseType`, and no amount of culture-relativity separates them because the difference is not cultural. The rule reads one term of a two-term relation and discards the term carrying the meaning — doc 02 Simulation Honesty. ⚠️ This is orthogonal to doc 11 §2.9's absolute/relative cut: `perforation-central-rotation` awards `tool` (an AbsoluteTag) and is under-conditioned identically, so the defect is a property of how conditions are written, not of which vocabulary they award from. `NormalisedArtefact.attachments` and `NormalisedComponent.position` are populated and unread by every rule — the same unused-graph finding as 2GN.108. Rule whether conditions gain access to component relations, what that does to `ClassificationRule.condition`'s signature (already widened once by 2GN.80), and which rules are rewritten versus left as affordance readings",
-						"status": "todo",
-						"dependsOn": [],
-						"notes": "Filed 2026-08-13 from the 2GN.97 spike session. Scope is **all 43 rules**, not the 24 unmigrated ones: the measurement that produced it covered the 24, but the defect cuts across the absolute/relative boundary, so scoping to relative-award rules would audit the wrong set. Supersedes the framing 2GN.97 inherited — those rules are not unmigrated-but-fine awaiting a baseline, a class of them is under-conditioned, and no baseline of any kind fixes an under-conditioned rule. Absorbs the ambiguity originally filed as a competing-readings question (a central perforation reads spindle-whorl or pendant depending on the disc's size, mass and what it attaches to — the ambiguity IS the missing relational term). ⚠️ Interacts with 2GN.118: that audits which parameter *values* exist, this audits what a condition may *read*. Independent questions on the same surface; neither blocks the other.",
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
+						"notes": "Filed 2026-08-13 from the 2GN.97 spike session. Scope is **all 43 rules**, not the 24 unmigrated ones: the measurement that produced it covered the 24, but the defect cuts across the absolute/relative boundary, so scoping to relative-award rules would audit the wrong set. Supersedes the framing 2GN.97 inherited — those rules are not unmigrated-but-fine awaiting a baseline, a class of them is under-conditioned, and no baseline of any kind fixes an under-conditioned rule. Absorbs the ambiguity originally filed as a competing-readings question (a central perforation reads spindle-whorl or pendant depending on the disc's size, mass and what it attaches to — the ambiguity IS the missing relational term). ⚠️ Interacts with 2GN.118: that audits which parameter *values* exist, this audits what a condition may *read*. Independent questions on the same surface; neither blocks the other. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1583,12 +1608,14 @@
 					{
 						"id": "2GN.122",
 						"description": "design spike — is there one aperture model, and does it subsume `perforation`? 2GN.118 ruled (2026-08-13) that `opening` is not one axis but at least two crushed into one field: **presence/count** (`closed`/`none` are the same physical fact, scored identically at 0 by `OPENNESS_BY_OPENING`) and **aperture size** (`wide`/`narrow`/`slit`). It also ruled the `cylindrical`/`hollow-enclosed` vocabularies commensurable — `OPENNESS_BY_OPENING` already ranks all seven values on one 0–1 scale, and three shipped rules (`container-wide-open`, `container-restricted-access`, `container-closed-sealed`) pair the cylinder and vessel labels as synonyms by hand, which is the rule layer compensating for a split that should not exist. Two questions this spike owns. **(1) Multiplicity**: a through-void has two mouths (bead, socketed axe, tube) and a two-mouthed vase has two separate apertures — these are different facts and neither is expressible today. **(2) Subsumption**: a hole through a disc (`perforation`) and a hole through a cylinder wall (`opening`) are plausibly one concept split across two parameter names by primitive-by-primitive BNF authoring, the same defect as `base` one level up. If they are one axis, `perforation`'s count/position split (2GN.118's case (c), deferred here whole rather than ruled) resolves inside this model instead. Rule the axis set (count, size, through/blind, position), which parameters survive, and what `ExtractedFeatures` carries. ⚠️ 8 shipped rules read `openingType` or `perforation`; `EXPECTED_FIRE_RATES` re-records once at implementation, which is why this is ruled before 2GN.118's own vocabulary changes are implemented rather than after",
-						"status": "todo",
-						"dependsOn": [],
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
 						"softDependsOn": [
 							"2GN.118"
 						],
-						"notes": "Filed 2026-08-13 from the 2GN.118 spike session, cases (b) `opening` and (c) `perforation`. The full cross-tabulation of `PRIMITIVE_PARAMETERS` found seven disjoint shared-name pairs, not the three originally filed: `base`, `opening`, `perforation` (all unioned into `ExtractedFeatures` and read by rules) plus `crossSection`, `diameter`, `shape`, `taper` (read by no rule, so no live consequence). 2GN.118 ruled on `base` and on the four unread pairs; `opening` and `perforation` were split out here because they outgrew a vocabulary fix. `opening` is the worst of the three splits — zero shared values between the two primitives AND different arities (3 vs 4) for one concept — but the fix is not a union: Jason ruled the two-axis reading, and then raised multiplicity, which neither vocabulary can express at any arity. Subsumption is this spike's open question and was deliberately not ruled in 2GN.118 for want of measurement: if `opening` and `perforation` are one aperture axis, ruling `opening` first and merging `perforation` later means recalibrating `EXPECTED_FIRE_RATES` twice. Scoped as one spike rather than two on that basis. Renaming was considered and rejected as a separate concern: splitting the axes makes the intuitive vocabulary fall out (`closed`/`none` → count, `open` → `wide`, `restricted` → `narrow`), so no new words are needed for the values that survive.",
+						"notes": "Filed 2026-08-13 from the 2GN.118 spike session, cases (b) `opening` and (c) `perforation`. The full cross-tabulation of `PRIMITIVE_PARAMETERS` found seven disjoint shared-name pairs, not the three originally filed: `base`, `opening`, `perforation` (all unioned into `ExtractedFeatures` and read by rules) plus `crossSection`, `diameter`, `shape`, `taper` (read by no rule, so no live consequence). 2GN.118 ruled on `base` and on the four unread pairs; `opening` and `perforation` were split out here because they outgrew a vocabulary fix. `opening` is the worst of the three splits — zero shared values between the two primitives AND different arities (3 vs 4) for one concept — but the fix is not a union: Jason ruled the two-axis reading, and then raised multiplicity, which neither vocabulary can express at any arity. Subsumption is this spike's open question and was deliberately not ruled in 2GN.118 for want of measurement: if `opening` and `perforation` are one aperture axis, ruling `opening` first and merging `perforation` later means recalibrating `EXPECTED_FIRE_RATES` twice. Scoped as one spike rather than two on that basis. Renaming was considered and rejected as a separate concern: splitting the axes makes the intuitive vocabulary fall out (`closed`/`none` → count, `open` → `wide`, `restricted` → `narrow`), so no new words are needed for the values that survive. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1652,12 +1679,13 @@
 					{
 						"id": "2GN.129",
 						"description": "`engine/generation/decoration.ts` — extend the 2GN.127 silence rule to `techniqueAffinities`, and rule the substrate-gate question it exposes. Techniques have a derivable accessibility one hop out: `materialAccessGate` already establishes that a culture with no gold cannot gild and no engravable material cannot engrave, so \"silence is legitimate iff inaccessible\" transposes cleanly. ⚠️ **Blocked on a prior defect, which is this task's to rule**: `materialAccessGate`'s substrate check requires `culturalAffinityWeight(material, culture) > 1`, strictly better than neutral, so a material authored at exactly `1.0` fails it identically to one the culture cannot obtain. Once 2GN.128 pushes cultures to author far more entries, a culture that explicitly states indifference to bronze gets bronze-substrate techniques suppressed exactly as though bronze were unobtainable — the ambivalent-versus-absent collapse 2GN.127 exists to eliminate, reappearing inside the gate meant to model access. Whether affinity should gate substrate access at all is the question; `hasIntroducedMaterialAccess` deliberately gates on availability alone and is the contrast case. ⚠️ moves technique-selection distributions, so decorative calibration guards need re-recording with the drift annotated ⚠️ Measured 2026-08-14 by 2GN.128 and now live in the presets: xoconahtl authors `['clay', 1.0]` against `abundant` clay, and it fails the gate (`affinity=1, isAvailable=true` → substrate access `false`). 2GN.128 deliberately kept the `1.0` rather than nudging it past the gate, so the evidence survives for this ruling.",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.128",
-							"2GN.134"
+							"2GN.134",
+							"M11"
 						],
-						"notes": "Filed 2026-08-14 by the 2GN.127 ruling, which deferred the technique half rather than ruling it blind — see docs/spikes/2GN.127-affinity-silence.md's closing section and doc 12 §2.49. The `> 1` gate is a live defect independent of whether the silence rule extends: it already means an authored-neutral material cannot serve as a substrate, which no ruling ever established. **Ruled 2026-08-25 by 2GN.134 (doc 11 §2.20, doc 12 §2.56): affinity does not gate substrate access.** This task now carries the fix: `materialAccessGate`'s substrate check becomes `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s \"material gate — no plausible engravable material\" fixture to an absent geology (today it fixtures `materialAffinities: []` against a geology that has engravable material, testing the affinity gate); and re-justify `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp (forestInterior stops being the outlier once thalassar/khaltiris get patina/engraving/inlay back over oak/ash). No other pin left tolerance in the measurement.",
+						"notes": "Filed 2026-08-14 by the 2GN.127 ruling, which deferred the technique half rather than ruling it blind — see docs/spikes/2GN.127-affinity-silence.md's closing section and doc 12 §2.49. The `> 1` gate is a live defect independent of whether the silence rule extends: it already means an authored-neutral material cannot serve as a substrate, which no ruling ever established. **Ruled 2026-08-25 by 2GN.134 (doc 11 §2.20, doc 12 §2.56): affinity does not gate substrate access.** This task now carries the fix: `materialAccessGate`'s substrate check becomes `isAvailable && culturalAffinityWeight > 0`; rewrite `decoration.test.ts`'s \"material gate — no plausible engravable material\" fixture to an absent geology (today it fixtures `materialAffinities: []` against a geology that has engravable material, testing the affinity gate); and re-justify `calibration.test.ts`'s R43 regional-spread floor, which narrows 4.0pp → 2.7pp against 3pp (forestInterior stops being the outlier once thalassar/khaltiris get patina/engraving/inlay back over oak/ash). No other pin left tolerance in the measurement. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1710,19 +1738,22 @@
 					{
 						"id": "2GN.135",
 						"description": "design spike — rule the inputs to the derived `wallThickness`/`diameter` quantity 2GN.120 implements: which modelled quantities feed the derivation (`craftSpecialisation`, the component's assigned material, vessel role for thickness; the length ratio 2GN.118 identified for diameter — a cylinder's diameter reads relative to its own length while a disc's is its principal dimension), what continuous value sits beneath the bands, and how per-culture band cutting works so cross-culture comparison stops being impossible by construction. Fourth instance of the band-computed-from-an-absolute-table family (2GN.86 mass, 2GN.87 blade, 2GN.108 axis) — but unlike those, no spike has ruled this one's derivation",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.118"
+							"2GN.118",
+							"M11"
 						],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.120's deliverable says \"a derived thickness quantity with its inputs ruled\", but nothing upstream rules them — spike 2GN.118 explicitly deferred diameter's derivation \"to the 2GN.120 family\", and 2GN.120 itself has no spike dependency. This spike owns the ruling; 2GN.120 becomes pure implementation.",
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.120's deliverable says \"a derived thickness quantity with its inputs ruled\", but nothing upstream rules them — spike 2GN.118 explicitly deferred diameter's derivation \"to the 2GN.120 family\", and 2GN.120 itself has no spike dependency. This spike owns the ruling; 2GN.120 becomes pure implementation. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.136",
 						"description": "design spike — rule the selection criteria and target size for widening the material catalogue: what \"what a real assemblage needs\" (2GN.124's stated judge) means concretely — which single-leaf `MaterialTag` classes must gain siblings for `materials.calibration.test.ts`'s intra-tag guard to measure anything (clay, glass, fiber, leather), which archaeologically common materials earn a slot (shell, amber, horn, pigments, composites), whether new `MaterialTag` members are admitted, and the per-candidate recalibration cost (`EXPECTED_TAG_SHARES`/`EXPECTED_INTRA_TAG_SHARES` move; every authored `materialAffinities` entry array and the 2GN.128 validator verdicts are touched)",
-						"status": "todo",
-						"dependsOn": [],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no doc section defines selection criteria or a target catalogue size, and the change is calibration-shifting. This spike rules the scope; 2GN.124 implements it.",
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.124 is written as implementation but no doc section defines selection criteria or a target catalogue size, and the change is calibration-shifting. This spike rules the scope; 2GN.124 implements it. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1738,29 +1769,33 @@
 					{
 						"id": "2GN.138",
 						"description": "design spike — define \"interpretive challenge\" as a measurable per-artefact quantity and rule the excavation ambiguity distribution targets. Doc 05 §11.3 specifies the principle (measure the interpretive-challenge distribution of a batch, steer the next excavation if skewed) and gives one illustrative skew example (\"90%+ clearly classifiable\"), but never defines the quantity — no formula, no per-artefact scoring rule. 2GN.45's target bands (~30-40% clear / ~40-50% moderate / ~20-30% high) trace to no doc section. Rule the scoring formula (candidate inputs: classification-rule fire counts and margins, tag ambiguity, occluded-property coverage) and re-derive or ratify the bands against measured generator output",
-						"status": "todo",
-						"dependsOn": [],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.45 and 2GN.46 both require a metric doc 05 deliberately left qualitative, and 2GN.45's bands appear to originate in the roadmap task text itself. Blocks both.",
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.45 and 2GN.46 both require a metric doc 05 deliberately left qualitative, and 2GN.45's bands appear to originate in the roadmap task text itself. Blocks both. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.139",
 						"description": "design spike — rule the arrangement-pattern assignment mechanism 2GN.67 needs: detection is already contracted (`tallyArrangements`' same-primitiveType-within-one-top-level-group boundary, per 2GN.6), but nothing in the grammar ever *assigns* a pattern (2GN.3 rolls repetition incidentally, `checkAccumulation` only validates admissibility), so `arrangementGroup.pattern` has no faithful source. Rule whether assignment threads a deliberate choice through `expandGrammar`'s determinism-critical draw sequence (moving every calibration pin) or is derivable at flatten time from structure already rolled — and if threaded, where in the sequence the draw lands",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.108"
+							"2GN.108",
+							"M11"
 						],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.67's own text names pattern assignment as \"the open question this task owns\", and its spike dependency 2GN.108 ruled a short-bodied-edged-tool vocabulary question, not this. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.67's own text names pattern assignment as \"the open question this task owns\", and its spike dependency 2GN.108 ruled a short-bodied-edged-tool vocabulary question, not this. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.140",
 						"description": "design spike — rule how the grammar models intentional multi-part assemblages versus stray components: `<object> ::= <component-group>+` lets `expandGrammar` roll multiple independent groups with no signal for whether that is a designed co-deposit (hoard, burial set) or an accidental artefact of complexity-budget rolls. Rule what carries the signal (a deliberate assemblage draw with its own cultural weighting, a post-hoc heuristic over rolled structure, or a provenance-level property assigned at excavation composition rather than generation), and what downstream consumers — classification, description, the lens — are entitled to read from it",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.108"
+							"2GN.108",
+							"M11"
 						],
-						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.69 is written as implementation but no doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record.",
+						"notes": "Filed 2026-08-20 from the M2 dependency audit: 2GN.69 is written as implementation but no doc or spike supplies an assemblage-detection heuristic, and its spike dependency 2GN.108 ruled a vocabulary question, not assemblage modelling. 2GN.108 stays as a dependency for the shared recalibration-sweep sequencing its notes record. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -1795,42 +1830,46 @@
 					{
 						"id": "2GN.144",
 						"description": "`types/world.ts` + `engine/generation/baselines.ts` + `types/tags.ts` + `engine/generation/materials.ts` — implement 2GN.142's ruling: `CulturePhase` gains `geography: { regions: string[] }` (plural, for a phase spanning several regions); `CulturePhaseSample` gains a matching `geography` field directly (not a nested `CulturePhase` — the sample bag stays structural until 3WS.3/3WS.4 land real culture/phase generation); `ClassificationContext` gains a region label sourced from the same field, alongside the existing `cultureId`/`phaseId` provenance labels (`emptyClassificationContext` needs a placeholder value); `bestRegionalLevel` (`materials.ts`) resolves against a culture-phase's occupied regions instead of scanning the whole `GeologicalContext` unconstrained — the actual collapse fix the spike measured, threaded through its four callers (`isAvailable`, `scarcityWeight`, `explainMaterialWeight`, `deriveMaterialProvenance`) and `assignMaterials`'s call chain. Three call sites also need the new field: `calibration.test.ts`'s `baselineFor` (stops abusing `cultureId` to hold a region name), `routes/dev/explorer/shared/baselineCache.ts`'s `baselineFor`, and the `tests/fixtures/artefact.ts` `ClassificationContext` fixture builder",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.142"
+							"2GN.142",
+							"M11"
 						],
-						"notes": "Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that generates real `GeologicalContext`/regions for production cultures and needs `CulturePhase.geography.regions` to exist before it can populate it. 2GN.143 (provenance-formula spike) gets a soft link, since it measures directly against `bestRegionalLevel`, whose signature this task changes — not a hard blocker since 2GN.143 is unstarted design work, but re-measurement should happen in the right order. Recalibration risk noted in the spike: the `bestRegionalLevel` fix only changes behaviour once a culture-phase's `geography.regions` has more than one entry, which no shipped preset does yet, so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm with `deno task test` before landing. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`.",
+						"notes": "Filed 2026-08-25 as the implementation follow-up to 2GN.142 (ruled, not implemented). Not a blocker for 2GN.27/2GN.68 — neither reads region directly (per 2GN.142's own Finding 2), and both are already unblocked by the ruling itself. 3WS.7 depends on this: it is the task that generates real `GeologicalContext`/regions for production cultures and needs `CulturePhase.geography.regions` to exist before it can populate it. 2GN.143 (provenance-formula spike) gets a soft link, since it measures directly against `bestRegionalLevel`, whose signature this task changes — not a hard blocker since 2GN.143 is unstarted design work, but re-measurement should happen in the right order. Recalibration risk noted in the spike: the `bestRegionalLevel` fix only changes behaviour once a culture-phase's `geography.regions` has more than one entry, which no shipped preset does yet, so `EXPECTED_MEAN_GRADE_BY_REGION` and other calibration pins are not expected to move — confirm with `deno task test` before landing. Full reasoning: `docs/spikes/2GN.142-region-keyed-baselines.md`. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.145",
 						"description": "`engine/generation/grammar.ts` — `expandGrammar` consults `allowedMaterialTags` (2GN.10) when rolling join types and head placements, so it stops producing structure the wrapped-join and rigid-shaft plausibility rules reject on sight. 2GN.137 measured 13–43% of expansions discarded at Stage 5 depending on the cell, dominated by those two rules; the rules are correct and the grammar is uninformed. Rule where in the draw sequence the constraint is read (a filter on the attachment option set before `selectGrammarOption`, so the draw count is unchanged, versus a re-roll, which is not), and re-record every calibration pin, since any change here moves `expandGrammar`'s draw sequence for every artefact",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
 							"2GN.137",
-							"2GN.10"
+							"2GN.10",
+							"M11"
 						],
-						"notes": "Filed 2026-08-25 from the 2GN.137 spike. ⚠️ calibration-shifting: `EXPECTED_FIRE_RATES`, `EXPECTED_TAG_SHARES` and the plausibility calibration guard all re-record. Not a blocker for 2GN.16 — the cap was ruled with headroom for today's rate — but landing it makes N=20 conservative rather than load-bearing.",
+						"notes": "Filed 2026-08-25 from the 2GN.137 spike. ⚠️ calibration-shifting: `EXPECTED_FIRE_RATES`, `EXPECTED_TAG_SHARES` and the plausibility calibration guard all re-record. Not a blocker for 2GN.16 — the cap was ruled with headroom for today's rate — but landing it makes N=20 conservative rather than load-bearing. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.146",
 						"description": "`engine/generation/materials.ts` — `scarcityWeight`'s `trade-only` rung reads `economy.tradeOpenness` on the selection side, the generation-side counterpart of the standing lerp 2GN.27 shipped: an open trading culture imports more of a traded material than a closed one, where today both draw it at the same 0.15 rung. Rule the lerp target (towards the `available` rung, mirroring `materialStanding`, or a shallower one) and whether `tradeRescued` should read the same openness",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.27"
+							"2GN.27",
+							"M11"
 						],
-						"notes": "Filed 2026-09-15 from the 2GN.27 spike (doc 12 §2.59). Standing and selection were deliberately allowed to diverge on this axis for now: `materialStanding` tempers a trade-only material by openness while `computeMaterialWeight` does not, so a trading culture reads its imports as ordinary yet still makes few things from them. ⚠️ calibration-shifting: `EXPECTED_PROVENANCE_MIX` is the pin most directly sensitive to the trade-only rung and re-records, with `EXPECTED_TAG_SHARES` likely to follow in trade-heavy fixture worlds",
+						"notes": "Filed 2026-09-15 from the 2GN.27 spike (doc 12 §2.59). Standing and selection were deliberately allowed to diverge on this axis for now: `materialStanding` tempers a trade-only material by openness while `computeMaterialWeight` does not, so a trading culture reads its imports as ordinary yet still makes few things from them. ⚠️ calibration-shifting: `EXPECTED_PROVENANCE_MIX` is the pin most directly sensitive to the trade-only rung and re-records, with `EXPECTED_TAG_SHARES` likely to follow in trade-heavy fixture worlds Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.147",
 						"description": "`data/decorations.ts` + `engine/generation/decoration.ts` — widen `wire-wrapping`'s introduced-material tag set (currently `['metal']` alone) and audit `isGildingMaterial`'s realised gold/silver-only pool, so at least one technique-appropriate non-prized candidate exists per culture for both techniques",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.150"
+							"2GN.150",
+							"M11"
 						],
-						"notes": "Filed 2026-09-17 from the 2GN.68 spike (doc 12 §2.61). `gilding` and `wire-wrapping` are both 100%-prized under every measured Explorer preset — every candidate in each pool clears `STANDING_CUT` — so 2GN.68's stratum draw (`assignDecorativeDetails`, shared with `assignMaterials`) has nothing non-prized to redirect selection weight toward on these two techniques specifically. Measured: forcing every artefact commoner and tallying which technique supplied a prized layer, `gilding`/`wire-wrapping` alone account for 79–97% of remaining commoner-artefact hits in thalassar/xoconahtl, while every other technique's suppression already works (0.3–0.8% commoner hit rate). `gilding`'s pool is gated by `isGildingMaterial` (`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3`, roadmap 2GN.78) rather than a tag, so widening it means either loosening that physical gate or accepting metals it correctly excludes stay excluded and the pool genuinely has no non-metal analogue; `wire-wrapping`'s `['metal']` tag set may admit a second material class (fibre-wrapped wire is real) without weakening the technique's own logic. Data-authoring work, not a design question — no spike needed. ⚠️ calibration-shifting once landed: re-measure R32 (`precious-materials-in-decoration`) against the four Explorer presets and record the new rate in `docs/spikes/2GN.68-decoration-material-standing.md`'s reopen conditions.",
+						"notes": "Filed 2026-09-17 from the 2GN.68 spike (doc 12 §2.61). `gilding` and `wire-wrapping` are both 100%-prized under every measured Explorer preset — every candidate in each pool clears `STANDING_CUT` — so 2GN.68's stratum draw (`assignDecorativeDetails`, shared with `assignMaterials`) has nothing non-prized to redirect selection weight toward on these two techniques specifically. Measured: forcing every artefact commoner and tallying which technique supplied a prized layer, `gilding`/`wire-wrapping` alone account for 79–97% of remaining commoner-artefact hits in thalassar/xoconahtl, while every other technique's suppression already works (0.3–0.8% commoner hit rate). `gilding`'s pool is gated by `isGildingMaterial` (`craftDomain === 'metallurgy' && formability >= 5 && oxidisation <= 3`, roadmap 2GN.78) rather than a tag, so widening it means either loosening that physical gate or accepting metals it correctly excludes stay excluded and the pool genuinely has no non-metal analogue; `wire-wrapping`'s `['metal']` tag set may admit a second material class (fibre-wrapped wire is real) without weakening the technique's own logic. Data-authoring work, not a design question — no spike needed. ⚠️ calibration-shifting once landed: re-measure R32 (`precious-materials-in-decoration`) against the four Explorer presets and record the new rate in `docs/spikes/2GN.68-decoration-material-standing.md`'s reopen conditions. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -2015,9 +2054,10 @@
 						"description": "`data/classification.ts` + `types/tags.ts` — tag split: add `lavish` to `RELATIVE_TAGS`, move all 13 existing `elite` rule contributions to it, add one `made-for-elite-stratum` rule awarding `elite`, reassign the 11 interpretive description `emphasis` entries and `SITE_TYPE_TAG_AFFINITY.cache`, update doc 05 §9 and the rule-count docs guard",
 						"status": "blocked",
 						"dependsOn": [
-							"2GN.165"
+							"2GN.165",
+							"M11"
 						],
-						"notes": "Per 2GN.164 rulings 1, 2 and 5. Breaking: tag vocabulary and rule weights change, so every consumer of `elite` (scholars, descriptions, Explorer tag inspector) shifts. The two material rules (`material-standing-prized`, `precious-materials-in-decoration`) move to `lavish` too: prized materials are evidence of a lavish object, the stratum is the truth about who it was for. Social `elite` frequency should then equal `eliteShare` per culture (0.16 / 0.24 / 0.24 / 0.34 in the presets); pin that in a test.",
+						"notes": "Per 2GN.164 rulings 1, 2 and 5. Breaking: tag vocabulary and rule weights change, so every consumer of `elite` (scholars, descriptions, Explorer tag inspector) shifts. The two material rules (`material-standing-prized`, `precious-materials-in-decoration`) move to `lavish` too: prized materials are evidence of a lavish object, the stratum is the truth about who it was for. Social `elite` frequency should then equal `eliteShare` per culture (0.16 / 0.24 / 0.24 / 0.34 in the presets); pin that in a test. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
@@ -2043,19 +2083,22 @@
 					{
 						"id": "2GN.169",
 						"description": "design spike — should the elite stratum also drive decorative volume, complexity and depth (labour investment), rather than materials alone?",
-						"status": "todo",
+						"status": "blocked",
 						"dependsOn": [
-							"2GN.164"
+							"2GN.164",
+							"M11"
 						],
-						"notes": "Filed 2026-11-18 by 2GN.164. Measured: `decorativeComplexity` is identical across elite, commoner and drawn strata in every preset, so an elite-stratum artefact differs from a commoner one by materials only; archaeologically elite goods also show more labour. Would reopen 2GN.98 (volume reads `decorativeEmphasis` alone) and 2GN.131 (depth cap from `craftSpecialisation` and emphasis). Blocks the downstream tasks that consume decoration inputs (2GN.32, 2GN.96) but not the tag split, since ground truth comes from the stratum. 2GN.147 (widen the gilding and wire-wrapping pools) is the cheaper evidence-sharpening work in the meantime.",
+						"notes": "Filed 2026-11-18 by 2GN.164. Measured: `decorativeComplexity` is identical across elite, commoner and drawn strata in every preset, so an elite-stratum artefact differs from a commoner one by materials only; archaeologically elite goods also show more labour. Would reopen 2GN.98 (volume reads `decorativeEmphasis` alone) and 2GN.131 (depth cap from `craftSpecialisation` and emphasis). Blocks the downstream tasks that consume decoration inputs (2GN.32, 2GN.96) but not the tag split, since ground truth comes from the stratum. 2GN.147 (widen the gilding and wire-wrapping pools) is the cheaper evidence-sharpening work in the meantime. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					},
 					{
 						"id": "2GN.170",
 						"description": "design spike — figural objects (idols, figurines, effigies) have no vocabulary in the structural grammar, so the object-level `ritual` tag cannot fire on them",
-						"status": "todo",
-						"dependsOn": [],
-						"notes": "Filed 2026-11-18 by 2GN.164. Grep finds no `idol`, `figurine`, `effigy` or `anthropomorph*` in `data/`, `engine/` or `types/`; the eight primitives are all geometric and `ritual` fires only on decoration quantity. A household idol (ritual by object, domestic by context) is therefore not generable. Standalone by design: no existing task owns it.",
+						"status": "blocked",
+						"dependsOn": [
+							"M11"
+						],
+						"notes": "Filed 2026-11-18 by 2GN.164. Grep finds no `idol`, `figurine`, `effigy` or `anthropomorph*` in `data/`, `engine/` or `types/`; the eight primitives are all geometric and `ritual` fires only on decoration quantity. A household idol (ritual by object, domestic by context) is therefore not generable. Standalone by design: no existing task owns it. Gated on M11 (Stack Migration) on 2026-11-18: no further feature work until the move off Deno lands.",
 						"assignee": "Jason Warren"
 					}
 				]
@@ -3766,6 +3809,80 @@
 						"status": "blocked",
 						"dependsOn": [
 							"10NP.9"
+						],
+						"assignee": "Jason Warren"
+					}
+				]
+			},
+			{
+				"id": "M11",
+				"name": "Stack Migration",
+				"goal": "Move off Deno (runtime development ends ~Oct 2027, Deno Deploy shuts ~Apr 2027) to Bun and a deployment target ruled by spike",
+				"tasks": [
+					{
+						"id": "11SM.1",
+						"description": "design spike: rule the stack replacing Deno: runtime (Bun), test runner (`bun:test` vs Vitest), formatter and linter replacing `deno fmt`/`deno lint` (keeping tabs, 100 columns, single quotes), SvelteKit adapter replacing `@deno/svelte-adapter`, and deployment host",
+						"status": "todo",
+						"dependsOn": [],
+						"notes": "Filed 2026-11-18. Deno is joining Cloudflare: Deno Deploy shuts six months after the 9 October 2026 announcement, and runtime development ends after a further year of maintenance releases (deno.com/blog/cloudflare). Run as an interview. Hypothesis: `adapter-static` on GitHub Pages, since doc 08 rules the game client-side only with no server; the dev-only `src/routes/dev/explorer/types/+page.server.ts` must prerender or move. Nothing currently deploys to Deno Deploy; only `site/` publishes, to GitHub Pages.",
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.2",
+						"description": "`package.json` + Bun: replace `deno.json` tasks and import map with package.json scripts and dependencies, a Bun lockfile, and the adapter swap in `svelte.config.js`",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.1"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.3",
+						"description": "test port: the 55 test files on `Deno.test` + `@std/assert` move to the runner 11SM.1 rules; `docs/docs-rule-counts.test.ts` filesystem walk moves off Deno APIs",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.2"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.4",
+						"description": "formatter and linter config replacing `deno fmt`/`deno lint`, with the one-off reformat in its own commit",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.2"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.5",
+						"description": "`scripts/dev/` samplers: replace `Deno.Command`, `Deno.env` and `Deno.args` with Bun equivalents",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.2"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.6",
+						"description": "deployment: build and CI workflow for the host 11SM.1 rules, coexisting with the existing `site/` GitHub Pages workflow; CI runs tests and type checking",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.2",
+							"11SM.3"
+						],
+						"assignee": "Jason Warren"
+					},
+					{
+						"id": "11SM.7",
+						"description": "docs: CLAUDE.md (development commands, stack, migration notes), doc 08 tech stack and adapter sections, README, doc 11 locked decision, doc 12 propagation entry",
+						"status": "blocked",
+						"dependsOn": [
+							"11SM.2",
+							"11SM.3",
+							"11SM.4",
+							"11SM.5",
+							"11SM.6"
 						],
 						"assignee": "Jason Warren"
 					}
