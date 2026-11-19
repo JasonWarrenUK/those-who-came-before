@@ -7,6 +7,28 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-11-18
+
+### Breaking
+
+- Every generated artefact now records the social stratum it was made for (`stratum` on
+  `ClassifiedArtefact`, `madeForEliteStratum` on `ExtractedFeatures`), and `ProductionContext`
+  requires the `stratum` its caller drew. Custom literals of any of the three need the new field.
+
+### Added
+
+- The stratum is an occluded fact: it is ground truth on the artefact but never reaches a generated
+  description, in any register. The Explorer tag inspector lists it under an Occluded group.
+
+### Changed
+
+- The roadmap is split into one phase per old milestone, each with its own file under
+  `docs/roadmaps/` and its own dashboard. Generation Pipeline is the active phase; later phases wait
+  behind a gate on the phase before them.
+- A new Stack Migration milestone opens the Generation Pipeline phase, and every other open task
+  waits on it while the project moves off Deno.
+- `deno task check` now type-checks the `scripts/dev/` samplers as well as the app.
+
 ## [0.59.0] - 2026-09-25
 
 ### Breaking
@@ -46,6 +68,9 @@ All notable changes to this project are documented here. Format follows
   than rendered with gaps, and a template with a missing value is dropped instead of printed
   half-filled.
 
+<details>
+<summary>0.57.0 and earlier</summary>
+
 ## [0.57.0] - 2026-09-18
 
 ### Added
@@ -58,9 +83,6 @@ All notable changes to this project are documented here. Format follows
   for a given seed is unchanged.
 - Trade goods are now a rare scholar specialisation: the `trade-good` tag clears the award threshold
   once the scholar calibration sweep runs against the wired decoration pipeline.
-
-<details>
-<summary>0.56.0 and earlier</summary>
 
 ## [0.56.0] - 2026-09-17
 
@@ -152,7 +174,8 @@ All notable changes to this project are documented here. Format follows
 
 </details>
 
-[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.59.0...HEAD
+[Unreleased]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.60.0...HEAD
+[0.60.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.59.0...v0.60.0
 [0.59.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.58.0...v0.59.0
 [0.58.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.57.0...v0.58.0
 [0.57.0]: https://github.com/JasonWarrenUK/those-who-came-before/compare/v0.56.0...v0.57.0
