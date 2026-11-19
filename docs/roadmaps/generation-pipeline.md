@@ -2235,10 +2235,10 @@ culture-relative baselines
       a rank tag `lavish`; social `elite` ground truth is the stratum, carried as an occluded fact;
       `ritual` stays object-level with ritual context a graded pure function over `Provenance`;
       stratum-responsive decoration is its own spike (2GN.169)
-- [ ] **2GN.165** — `types/artefact.ts` + `engine/generation/classification.ts` +
+- [x] **2GN.165** — `types/artefact.ts` + `engine/generation/classification.ts` +
       `tests/fixtures/artefact.ts` — carry the drawn `ArtefactStratum` as an occluded fact: a
       `stratum` field on `ClassifiedArtefact` and an occluded `madeForEliteStratum` member of
-      `ExtractedFeatures` _(depends on 2GN.164 — done)_ — Breaking: `ClassifiedArtefact` gains a
+      `ExtractedFeatures`. Done 2026-11-18 in PR #82 — Breaking: `ClassifiedArtefact` gains a
       required field
 - [ ] **2GN.166** — `data/classification.ts` + `types/tags.ts` — tag split: add `lavish` to
       `RELATIVE_TAGS`, move all 13 existing `elite` rule contributions to it, add one
@@ -2685,7 +2685,7 @@ graph LR
 	2GN.70["2GN.70: `engine/generation/materials.ts` + `eng…"]
 	2GN.156["2GN.156: Explorer: material (2GN.60) and decora…"]
 	M4["M4: Materials"]:::mile
-	2GN.165["2GN.165: `types/artefact.ts` + `engine/genera… ▸"]
+	2GN.165["2GN.165: `types/artefact.ts` + `engine/generati…"]
 	2GN.166["2GN.166: `data/classification.ts` + `types/tags…"]
 	M6["M6: Features & Classification"]:::mile
 	2GN.21["2GN.21: `engine/generation/classification.ts` —…"]
@@ -3082,7 +3082,6 @@ graph LR
 	2GN.56 --> 2GN.65
 	2GN.65 --> M10
 	class 11SM.1 todo
-	class 2GN.165 inProgress
 	class 11SM.2,11SM.3,11SM.4,11SM.5,11SM.6,11SM.7,2GN.104,2GN.105,2GN.106,2GN.107,2GN.109,2GN.114,2GN.115,2GN.116,2GN.117,2GN.119,2GN.120,2GN.122,2GN.124,2GN.125,2GN.126,2GN.129,2GN.13,2GN.133,2GN.135,2GN.136,2GN.138,2GN.139,2GN.14,2GN.140,2GN.141,2GN.144,2GN.145,2GN.146,2GN.147,2GN.148,2GN.151,2GN.152,2GN.153,2GN.154,2GN.155,2GN.156,2GN.157,2GN.158,2GN.159,2GN.16,2GN.162,2GN.163,2GN.166,2GN.167,2GN.168,2GN.169,2GN.170,2GN.21,2GN.31,2GN.32,2GN.39,2GN.40,2GN.41,2GN.42,2GN.43,2GN.44,2GN.45,2GN.46,2GN.47,2GN.49,2GN.50,2GN.51,2GN.52,2GN.53,2GN.54,2GN.55,2GN.56,2GN.62,2GN.63,2GN.64,2GN.65,2GN.67,2GN.69,2GN.70,2GN.71,2GN.72,2GN.73,2GN.76,2GN.92 blocked
-	class 2GN.1,2GN.10,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.127,2GN.128,2GN.130,2GN.131,2GN.132,2GN.134,2GN.137,2GN.142,2GN.143,2GN.149,2GN.15,2GN.150,2GN.160,2GN.161,2GN.164,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.27,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.38,2GN.4,2GN.48,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.66,2GN.68,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.93,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
+	class 2GN.1,2GN.10,2GN.100,2GN.101,2GN.102,2GN.103,2GN.108,2GN.11,2GN.110,2GN.111,2GN.112,2GN.113,2GN.118,2GN.12,2GN.123,2GN.127,2GN.128,2GN.130,2GN.131,2GN.132,2GN.134,2GN.137,2GN.142,2GN.143,2GN.149,2GN.15,2GN.150,2GN.160,2GN.161,2GN.164,2GN.165,2GN.17,2GN.19,2GN.2,2GN.20,2GN.22,2GN.23,2GN.24,2GN.25,2GN.26,2GN.27,2GN.28,2GN.29,2GN.3,2GN.30,2GN.33,2GN.34,2GN.35,2GN.36,2GN.37,2GN.38,2GN.4,2GN.48,2GN.5,2GN.57,2GN.58,2GN.59,2GN.6,2GN.60,2GN.61,2GN.66,2GN.68,2GN.7,2GN.74,2GN.75,2GN.77,2GN.78,2GN.79,2GN.8,2GN.80,2GN.81,2GN.82,2GN.83,2GN.84,2GN.85,2GN.86,2GN.87,2GN.88,2GN.9,2GN.91,2GN.93,2GN.94,2GN.95,2GN.97,2GN.98,2GN.99 done
 ```
