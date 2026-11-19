@@ -40,9 +40,9 @@ unreliable narrator.
 The design is specified across fourteen documents (docs 00 to 13); doc 11 and doc 12 both record
 their open questions resolved as of the current design round. The implementation was reset for
 launch and is being rebuilt phase by phase against the [MVP roadmaps](docs/roadmaps/README.md).
-**125 of 391 roadmap tasks are done (32%).** The Foundation phase is complete: Deno runtime, the
+**126 of 391 roadmap tasks are done (32%).** The Foundation phase is complete: Deno runtime, the
 full type system, the seeded PRNG and the Project Explorer shell. The Generation Pipeline phase is
-85/172 done: the component grammar system, plausibility checking, material assignment, decorative
+86/172 done: the component grammar system, plausibility checking, material assignment, decorative
 motif and introduced-material resolution, feature extraction, tag classification, description
 generation, NPC scholar generation and the language/naming system are all in place. Its first
 milestone moves the project off Deno (which is winding down after joining Cloudflare) before any
